@@ -18,6 +18,140 @@
             min-height: 100vh;
         }
 
+        /* ============================================ */
+        /* 로그인 화면 스타일 */
+        /* ============================================ */
+        .login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #1e1e1e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .login-box {
+            background: #2a2a2a;
+            border: 1px solid #3a3a3a;
+            border-radius: 12px;
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .login-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            margin: 0 auto 15px;
+        }
+
+        .login-header h2 {
+            font-size: 1.5em;
+            color: #ffffff;
+            margin-bottom: 8px;
+        }
+
+        .login-header p {
+            color: #808080;
+            font-size: 0.9em;
+        }
+
+        .login-form {
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #b0b0b0;
+            font-size: 0.9em;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            background: #1e1e1e;
+            border: 1px solid #3a3a3a;
+            border-radius: 6px;
+            color: #ffffff;
+            font-size: 1em;
+            transition: all 0.2s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #4a90e2;
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+        }
+
+        .login-button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+            border: none;
+            border-radius: 6px;
+            color: #ffffff;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .login-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
+        }
+
+        .login-button:active {
+            transform: translateY(0);
+        }
+
+        .error-message {
+            background: rgba(231, 76, 60, 0.1);
+            border: 1px solid rgba(231, 76, 60, 0.3);
+            color: #e74c3c;
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-top: 15px;
+            font-size: 0.9em;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        /* ============================================ */
+        /* 메인 컨텐츠는 로그인 후 표시 */
+        /* ============================================ */
+        .main-content {
+            display: none;
+        }
+
+        .main-content.unlocked {
+            display: block;
+        }
+
         /* 상단 메뉴바 */
         .navbar {
             background: #2a2a2a;
@@ -341,6 +475,35 @@
     </style>
 </head>
 <body>
+    <!-- 로그인 화면 -->
+    <div class="login-overlay" id="loginOverlay">
+        <div class="login-box">
+            <div class="login-header">
+                <div class="login-icon">⚡</div>
+                <h2>HIQASC 통합 업무 시스템</h2>
+                <p>접근을 위해 비밀번호를 입력하세요</p>
+            </div>
+            <form class="login-form" onsubmit="checkPassword(event)">
+                <div class="form-group">
+                    <label for="password">비밀번호</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        placeholder="비밀번호 입력"
+                        autocomplete="off"
+                        required
+                    >
+                </div>
+                <button type="submit" class="login-button">로그인</button>
+                <div class="error-message" id="errorMessage">
+                    ❌ 비밀번호가 올바르지 않습니다.
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 메인 컨텐츠 (로그인 후 표시) -->
+    <div class="main-content" id="mainContent">
     <!-- 상단 메뉴바 -->
     <nav class="navbar">
         <div class="navbar-container">
@@ -508,9 +671,63 @@
         <p class="developer-tag">DEVELOPED BY DONGGU KANG</p>
     </div>
 
+    </div>
+    <!-- 메인 컨텐츠 끝 -->
+
     <script>
         // ============================================
-        // 앱 URL 설정 (여기만 수정하세요!)
+        // 비밀번호 설정 (여기만 수정하세요!)
+        // ============================================
+        const VALID_PASSWORDS = [
+            'hiq1234',        // 기본 비밀번호
+            'admin'           // 관리자 비밀번호
+            // 필요한 만큼 추가하세요
+        ];
+
+        // ============================================
+        // 로그인 체크 (수정하지 마세요)
+        // ============================================
+        
+        // 페이지 로드 시 세션 확인
+        window.addEventListener('load', function() {
+            if (sessionStorage.getItem('hiqasc_authenticated') === 'true') {
+                unlockPage();
+            }
+        });
+
+        // 비밀번호 확인
+        function checkPassword(event) {
+            event.preventDefault();
+            
+            const passwordInput = document.getElementById('password');
+            const errorMessage = document.getElementById('errorMessage');
+            const enteredPassword = passwordInput.value;
+
+            if (VALID_PASSWORDS.includes(enteredPassword)) {
+                // 비밀번호 맞음
+                sessionStorage.setItem('hiqasc_authenticated', 'true');
+                unlockPage();
+            } else {
+                // 비밀번호 틀림
+                errorMessage.classList.add('show');
+                passwordInput.value = '';
+                passwordInput.focus();
+                
+                // 3초 후 에러 메시지 제거
+                setTimeout(function() {
+                    errorMessage.classList.remove('show');
+                }, 3000);
+            }
+        }
+
+        // 페이지 잠금 해제
+        function unlockPage() {
+            document.getElementById('loginOverlay').style.display = 'none';
+            document.getElementById('mainContent').classList.add('unlocked');
+        }
+
+        // ============================================
+        // 기존 앱 URL 설정
         // ============================================
         const APP_URLS = {
             dailyReport: 'daily-report.html',
