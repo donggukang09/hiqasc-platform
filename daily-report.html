@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>일일 업무 보고</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
+            background: #1e1e1e;
+            color: #e0e0e0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 헤더 */
+        .header {
+            background: #2a2a2a;
+            border-bottom: 1px solid #3a3a3a;
+            padding: 20px 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .header-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .header-info h1 {
+            font-size: 1.5em;
+            color: #ffffff;
+            margin-bottom: 4px;
+        }
+
+        .header-info p {
+            color: #808080;
+            font-size: 0.9em;
+        }
+
+        .back-link {
+            color: #4a90e2;
+            text-decoration: none;
+            font-size: 0.95em;
+            padding: 8px 16px;
+            border: 1px solid #4a90e2;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .back-link:hover {
+            background: #4a90e2;
+            color: #ffffff;
+        }
+
+        /* 메인 컨텐츠 */
+        .main-container {
+            flex: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px;
+            width: 100%;
+        }
+
+        .form-container {
+            background: #2a2a2a;
+            border: 1px solid #3a3a3a;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .form-notice {
+            background: rgba(74, 144, 226, 0.1);
+            border-left: 3px solid #4a90e2;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            color: #e0e0e0;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+
+        .form-notice strong {
+            color: #4a90e2;
+        }
+
+        /* iframe 스타일 */
+        iframe {
+            width: 100%;
+            height: 800px;
+            border: none;
+            border-radius: 8px;
+            background: #ffffff;
+        }
+
+        /* Footer */
+        .footer {
+            background: #2a2a2a;
+            border-top: 1px solid #3a3a3a;
+            padding: 20px;
+            text-align: center;
+            color: #606060;
+            font-size: 0.85em;
+        }
+
+        .developer-tag {
+            margin-top: 8px;
+            font-weight: 600;
+            color: #4a90e2;
+        }
+
+        /* 반응형 */
+        @media (max-width: 768px) {
+            .header-container {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .main-container {
+                padding: 20px 15px;
+            }
+
+            .form-container {
+                padding: 15px;
+            }
+
+            iframe {
+                height: 1000px;
+            }
+        }
+
+        /* 로딩 애니메이션 */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #808080;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            margin: 0 auto 15px;
+            border: 3px solid #3a3a3a;
+            border-top: 3px solid #4a90e2;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- 헤더 -->
+    <div class="header">
+        <div class="header-container">
+            <div class="header-left">
+                <div class="header-icon">R</div>
+                <div class="header-info">
+                    <h1>일일 업무 보고</h1>
+                    <p>Daily Work Report</p>
+                </div>
+            </div>
+            <a href="https://donggukang09.github.io/hiqasc-platform/" class="back-link">← 메인으로</a>
+        </div>
+    </div>
+
+    <!-- 메인 컨텐츠 -->
+    <div class="main-container">
+        <div class="form-container">
+            <div class="form-notice">
+                <strong>📌 작성 안내:</strong> 업무 종료 전 반드시 작성해주세요. 작성한 내용은 자동으로 저장되며, 팀 운영 및 성과 분석에 활용됩니다.
+            </div>
+
+            <!-- 로딩 표시 -->
+            <div class="loading" id="loading">
+                <div class="loading-spinner"></div>
+                <p>폼을 불러오는 중...</p>
+            </div>
+
+            <!-- Google Form 임베드 -->
+            <iframe 
+                src="https://docs.google.com/forms/d/e/1FAIpQLSd3GDgK6HWMSB0Ko2zm4pEFlasBCb0v3kpZ6nzM7HXiu671GQ/viewform?embedded=true"
+                frameborder="0"
+                marginheight="0"
+                marginwidth="0"
+                style="display: none;"
+                id="reportForm"
+                onload="hideLoading()">
+                로딩중...
+            </iframe>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p>© 2025 HIQASC Daily Work Report System</p>
+        <p class="developer-tag">DEVELOPED BY DONGGU KANG</p>
+    </div>
+
+    <script>
+        // iframe 로딩 완료 시 로딩 표시 제거
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('reportForm').style.display = 'block';
+        }
+
+        // 페이지 로드 후 3초 뒤에도 로딩이 안 끝나면 강제로 표시
+        setTimeout(function() {
+            hideLoading();
+        }, 3000);
+
+        // 개발자 콘솔 메시지
+        console.log('%c📋 HIQASC 일일 업무 보고', 'font-size: 18px; font-weight: bold; color: #4a90e2;');
+        console.log('%cDeveloped by Donggu Kang', 'font-size: 14px; color: #357abd;');
+    </script>
+</body>
+</html>
