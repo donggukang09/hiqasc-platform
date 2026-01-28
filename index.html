@@ -596,6 +596,17 @@
                     <span class="card-badge">운영중</span>
                 </div>
 
+                <!-- 머신 수량 대시보드 -->
+                <div class="card" onclick="openApp('machineDashboard')">
+                    <div class="card-icon">M</div>
+                    <h3 class="card-title">머신 수량 대시보드</h3>
+                    <p class="card-description">
+                        완료/잔여 머신 수량 현황을 실시간으로 확인합니다.
+                        테크니션별 실적 분석도 제공합니다.
+                    </p>
+                    <span class="card-badge">운영중</span>
+                </div>
+
                 <!-- 연차 신청 -->
                 <div class="card" onclick="openApp('vacation')">
                     <div class="card-icon">V</div>
@@ -731,6 +742,7 @@
         // ============================================
         const APP_URLS = {
             dailyReport: 'https://donggukang09.github.io/hiqasc-platform/daily-report.html',
+            machineDashboard: 'https://donggukang09.github.io/hiqasc-platform/machine-dashboard.html',
             vacation: 'https://donggukang09.github.io/hiqasc-overtime/leave_request.html',
             overtime: 'https://donggukang09.github.io/hiqasc-overtime/overtime_request.html',
             parts: 'https://script.google.com/macros/s/AKfycbykZC4WAUPnhdVTGIfgntD4UaGZb1WCdKLZphYIIBL5X8-VC9_PLT3jIJ3ucGOwQBGJDw/exec'
