@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>통화요청 자동화 | HIQASC</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
+            background: #2a2a2a;
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+
+        /* 상단 헤더 */
+        .top-header {
+            background: #1e1e1e;
+            border-bottom: 1px solid #3a3a3a;
+            padding: 20px 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .top-header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header-icon {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .header-icon svg {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+
+        .header-info h1 {
+            font-size: 1.5em;
+            color: #ffffff;
+            margin-bottom: 5px;
+        }
+
+        .header-info p {
+            color: #808080;
+            font-size: 0.9em;
+        }
+
+        .back-link {
+            color: #4a90e2;
+            text-decoration: none;
+            padding: 8px 16px;
+            border: 1px solid #4a90e2;
+            border-radius: 6px;
+            transition: all 0.2s;
+            font-size: 0.9em;
+        }
+
+        .back-link:hover {
+            background: #4a90e2;
+            color: #ffffff;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+
+        .header {
+            background: #353535;
+            border: 1px solid #4a4a4a;
+            color: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .header h2 {
+            font-size: 1.8em;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .header-badge {
+            background: rgba(74, 144, 226, 0.2);
+            border: 1px solid rgba(74, 144, 226, 0.4);
+            color: #4a90e2;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .header p {
+            font-size: 1em;
+            color: #b0b0b0;
+            margin: 0;
+        }
+
+        .content {
+            padding: 0;
+        }
+
+        .upload-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .drop-zone {
+            border: 2px dashed #4a4a4a;
+            border-radius: 2px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: #353535;
+        }
+
+        .drop-zone:hover {
+            border-color: #888;
+            background: #f5f5f5;
+        }
+
+        .drop-zone.dragover {
+            border-color: #666;
+            background: #f0f0f0;
+        }
+
+        .drop-zone.uploaded {
+            border-color: #4a4a4a;
+            background: #f5f5f5;
+            border-style: solid;
+        }
+
+        .drop-zone-icon {
+            font-size: 40px;
+            margin-bottom: 15px;
+            opacity: 0.6;
+        }
+
+        .drop-zone h3 {
+            font-size: 16px;
+            color: #e0e0e0;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .drop-zone p {
+            color: #888;
+            font-size: 13px;
+        }
+
+        .file-info {
+            margin-top: 15px;
+            padding: 12px;
+            background: #e8e8e8;
+            border-radius: 2px;
+            font-size: 13px;
+            color: #4a4a4a;
+            font-weight: 600;
+        }
+
+        .process-button {
+            width: 100%;
+            padding: 16px;
+            font-size: 15px;
+            font-weight: 600;
+            color: white;
+            background: #4a4a4a;
+            border: none;
+            border-radius: 2px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 30px;
+            letter-spacing: 0.3px;
+        }
+
+        .process-button:hover:not(:disabled) {
+            background: #333;
+        }
+
+        .process-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .status-section {
+            background: #f5f5f5;
+            border-radius: 2px;
+            padding: 30px;
+            margin-top: 30px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .status-section h3 {
+            font-size: 16px;
+            color: #e0e0e0;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 16px;
+            background: white;
+            border-radius: 2px;
+            margin-bottom: 8px;
+            border: 1px solid #e8e8e8;
+        }
+
+        .status-label {
+            color: #666;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .status-value {
+            font-weight: 600;
+            color: #4a4a4a;
+            font-size: 14px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #e8e8e8;
+            border-top: 3px solid #4a4a4a;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #999;
+            font-size: 12px;
+            border-top: 1px solid #e8e8e8;
+            background: #353535;
+        }
+
+        .download-section {
+            display: none;
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .download-section.active {
+            display: block;
+        }
+
+        .download-button {
+            display: inline-block;
+            padding: 14px 32px;
+            background: #4a4a4a;
+            color: white;
+            text-decoration: none;
+            border-radius: 2px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            margin: 10px;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+        }
+
+        .download-button:hover {
+            background: #333;
+        }
+
+        .instructions {
+            background: #f9f9f9;
+            border: 1px solid #d0d0d0;
+            border-radius: 2px;
+            padding: 24px;
+            margin-bottom: 30px;
+            border-left: 4px solid #4a4a4a;
+        }
+
+        .instructions h4 {
+            color: #e0e0e0;
+            margin-bottom: 16px;
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .instructions ol {
+            margin-left: 20px;
+            color: #555;
+        }
+
+        .instructions li {
+            margin-bottom: 10px;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .instructions strong {
+            color: #e0e0e0;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .upload-section {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 상단 헤더 -->
+    <div class="top-header">
+        <div class="top-header-container">
+            <div class="header-left">
+                <div class="header-icon">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M20 15.5c-1.25 0-2.45-.2-3.57-.57-.35-.11-.74-.03-1.02.24l-2.2 2.2c-2.83-1.44-5.15-3.75-6.59-6.59l2.2-2.21c.28-.26.36-.65.25-1C8.7 6.45 8.5 5.25 8.5 4c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1 0 9.39 7.61 17 17 17 .55 0 1-.45 1-1v-3.5c0-.55-.45-1-1-1z"/>
+                    </svg>
+                </div>
+                <div class="header-info">
+                    <h1>통화요청 자동화</h1>
+                    <p>로우데이터와 콜센터 파일 자동 병합</p>
+                </div>
+            </div>
+            <a href="https://donggukang09.github.io/hiqasc-platform/" class="back-link">← 메인으로</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <div class="header-top">
+                <h2>통화요청 파일 자동화 시스템</h2>
+                <div class="header-badge">HIQASC X TCK</div>
+            </div>
+            <p>로우데이터와 콜센터 파일을 업로드하면 자동으로 병합 및 분류됩니다</p>
+        </div>
+
+        <div class="content">
+            <div class="instructions">
+                <h4>사용 방법</h4>
+                <ol>
+                    <li><strong>1번 파일 (로우데이터)</strong>을 첫 번째 영역에 드래그 앤 드롭</li>
+                    <li><strong>2번 파일 (콜센터 파일)</strong>을 두 번째 영역에 드래그 앤 드롭</li>
+                    <li><strong>자동 처리 시작</strong> 버튼 클릭</li>
+                    <li>처리 완료 후 결과 파일 다운로드</li>
+                </ol>
+            </div>
+
+            <div class="upload-section">
+                <div class="drop-zone" id="dropZone1">
+                    <div class="drop-zone-icon">📄</div>
+                    <h3>1번 파일 (로우데이터)</h3>
+                    <p>파일을 드래그 앤 드롭하거나 클릭하여 선택</p>
+                    <input type="file" id="fileInput1" accept=".xlsx,.xls" style="display: none;">
+                    <div class="file-info" id="fileInfo1" style="display: none;"></div>
+                </div>
+
+                <div class="drop-zone" id="dropZone2">
+                    <div class="drop-zone-icon">📊</div>
+                    <h3>2번 파일 (콜센터 파일)</h3>
+                    <p>파일을 드래그 앤 드롭하거나 클릭하여 선택</p>
+                    <input type="file" id="fileInput2" accept=".xlsx,.xls" style="display: none;">
+                    <div class="file-info" id="fileInfo2" style="display: none;"></div>
+                </div>
+            </div>
+
+            <button class="process-button" id="processButton" disabled>
+                자동 처리 시작
+            </button>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p style="color: #666; font-size: 14px;">파일을 처리하는 중입니다. 잠시만 기다려주세요...</p>
+            </div>
+
+            <div class="download-section" id="downloadSection">
+                <h3 style="margin-bottom: 20px; color: #e0e0e0; font-size: 16px; font-weight: 600;">처리 완료</h3>
+                <button class="download-button" id="downloadButton">
+                    결과 파일 다운로드
+                </button>
+            </div>
+
+            <div class="status-section" id="statusSection" style="display: none;">
+                <h3>처리 현황</h3>
+                <div class="status-item">
+                    <span class="status-label">VLOOKUP 매칭 완료</span>
+                    <span class="status-value" id="matchedCount">-</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">초기불량 시트</span>
+                    <span class="status-value" id="doa95Count">-</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">동일증상 2회 이상VL 교환판정 시트</span>
+                    <span class="status-value" id="exchangeCount">-</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">통화요청 대기 시트</span>
+                    <span class="status-value" id="waitingCount">-</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            DEVELOPED BY DONGGU KANG © 2026 HIQASC Repair Department
+        </div>
+    </div>
+
+    <script>
+        let file1Data = null;
+        let file2Data = null;
+        let resultWorkbook = null;
+
+        // 드래그 앤 드롭 설정
+        function setupDropZone(dropZoneId, fileInputId, fileInfoId, fileNumber) {
+            const dropZone = document.getElementById(dropZoneId);
+            const fileInput = document.getElementById(fileInputId);
+            const fileInfo = document.getElementById(fileInfoId);
+
+            dropZone.addEventListener('click', () => fileInput.click());
+
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('dragover');
+            });
+
+            dropZone.addEventListener('dragleave', () => {
+                dropZone.classList.remove('dragover');
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    handleFile(files[0], dropZone, fileInfo, fileNumber);
+                }
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    handleFile(e.target.files[0], dropZone, fileInfo, fileNumber);
+                }
+            });
+        }
+
+        function handleFile(file, dropZone, fileInfo, fileNumber) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                
+                if (fileNumber === 1) {
+                    file1Data = workbook;
+                } else {
+                    file2Data = workbook;
+                }
+
+                dropZone.classList.add('uploaded');
+                fileInfo.style.display = 'block';
+                fileInfo.textContent = `✓ ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+
+                checkBothFilesUploaded();
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function checkBothFilesUploaded() {
+            const processButton = document.getElementById('processButton');
+            if (file1Data && file2Data) {
+                processButton.disabled = false;
+            }
+        }
+
+        // 파일 처리 시작
+        document.getElementById('processButton').addEventListener('click', processFiles);
+
+        function processFiles() {
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('processButton').disabled = true;
+
+            setTimeout(() => {
+                try {
+                    // 1번 파일 읽기
+                    const sheet1 = file1Data.Sheets[file1Data.SheetNames[0]];
+                    const data1 = XLSX.utils.sheet_to_json(sheet1, { defval: null });
+
+                    // 2번 파일의 모든 시트 읽기 (header=1로 설정, 2번째 행이 헤더)
+                    const allData2 = [];
+                    file2Data.SheetNames.forEach(sheetName => {
+                        const sheet = file2Data.Sheets[sheetName];
+                        const rawData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null });
+                        
+                        // 2번째 행이 헤더 (인덱스 1)
+                        if (rawData.length > 1) {
+                            const headers = rawData[1];
+                            const dataRows = rawData.slice(2); // 3번째 행부터 데이터
+                            
+                            dataRows.forEach(row => {
+                                const obj = {};
+                                headers.forEach((header, idx) => {
+                                    obj[header] = row[idx] !== undefined ? row[idx] : null;
+                                });
+                                if (obj['회원번호']) { // 회원번호가 있는 행만
+                                    allData2.push(obj);
+                                }
+                            });
+                        }
+                    });
+
+                    // VLOOKUP: 회원번호 기준으로 2번 파일의 W, X열을 1번 파일에 복사
+                    let matchedCount = 0;
+                    const data2Map = {};
+                    
+                    allData2.forEach(row => {
+                        const memberId = row['회원번호'];
+                        if (memberId) {
+                            data2Map[memberId] = {
+                                rental: row['임대머신 회수여부'] || row['임대머신'],
+                                result: row['처리결과']
+                            };
+                        }
+                    });
+
+                    data1.forEach(row => {
+                        const memberId = row['회원번호'];
+                        if (memberId && data2Map[memberId]) {
+                            const matched = data2Map[memberId];
+                            if (matched.rental !== null && matched.rental !== undefined) {
+                                row['임대머신 회수여부'] = matched.rental;
+                            }
+                            if (matched.result !== null && matched.result !== undefined) {
+                                row['처리결과'] = matched.result;
+                            }
+                            if (matched.rental || matched.result) {
+                                matchedCount++;
+                            }
+                        }
+                    });
+
+                    // 3개 시트로 분류
+                    const doa95Data = [];
+                    const exchangeData = [];
+                    const waitingData = [];
+
+                    data1.forEach(row => {
+                        const repairCode = row['리페어코드#1'];
+                        const text = row['Text'] ? String(row['Text']) : '';
+                        
+                        // 초기불량: 리페어코드#1 = 95
+                        if (repairCode === 95) {
+                            doa95Data.push(row);
+                        }
+                        // 동일증상 2회 이상VL 교환판정: Text에 "교환검토" 포함
+                        else if (text.includes('교환검토')) {
+                            exchangeData.push(row);
+                        }
+                        // 나머지는 통화요청 대기
+                        else {
+                            waitingData.push(row);
+                        }
+                    });
+
+                    // 2번 파일을 기반으로 워크북 복사 (포맷 유지)
+                    resultWorkbook = XLSX.utils.book_new();
+
+                    // 2번 파일의 각 시트를 복사하고 데이터만 교체
+                    const sheetMapping = {
+                        '통화요청 대기': waitingData,
+                        '초기불량': doa95Data,
+                        '동일증상 2회 이상 VL 교환 판정': exchangeData
+                    };
+
+                    file2Data.SheetNames.forEach(sheetName => {
+                        // 2번 파일의 원본 시트 복사
+                        const originalSheet = file2Data.Sheets[sheetName];
+                        const newSheet = XLSX.utils.sheet_to_json(originalSheet, { header: 1, defval: null });
+                        
+                        // 헤더 행 유지 (0, 1번 행)
+                        const newSheetData = [newSheet[0], newSheet[1]];
+                        
+                        // 해당 시트에 맞는 데이터 추가
+                        const dataToAdd = sheetMapping[sheetName] || [];
+                        const headers = newSheet[1];
+                        
+                        dataToAdd.forEach(rowData => {
+                            const newRow = [];
+                            headers.forEach(header => {
+                                newRow.push(rowData[header] !== undefined ? rowData[header] : null);
+                            });
+                            newSheetData.push(newRow);
+                        });
+                        
+                        // 배열을 시트로 변환
+                        const resultSheet = XLSX.utils.aoa_to_sheet(newSheetData);
+                        
+                        // 원본 시트의 열 너비 복사
+                        if (originalSheet['!cols']) {
+                            resultSheet['!cols'] = originalSheet['!cols'];
+                        }
+                        
+                        // 원본 시트의 행 높이 복사
+                        if (originalSheet['!rows']) {
+                            resultSheet['!rows'] = originalSheet['!rows'];
+                        }
+                        
+                        // 워크북에 시트 추가
+                        XLSX.utils.book_append_sheet(resultWorkbook, resultSheet, sheetName);
+                    });
+
+                    // 상태 표시
+                    document.getElementById('matchedCount').textContent = `${matchedCount}건 매칭 완료`;
+                    document.getElementById('doa95Count').textContent = `${doa95Data.length}건`;
+                    document.getElementById('exchangeCount').textContent = `${exchangeData.length}건`;
+                    document.getElementById('waitingCount').textContent = `${waitingData.length}건`;
+
+                    document.getElementById('loading').classList.remove('active');
+                    document.getElementById('statusSection').style.display = 'block';
+                    document.getElementById('downloadSection').classList.add('active');
+
+                } catch (error) {
+                    alert('파일 처리 중 오류가 발생했습니다: ' + error.message);
+                    console.error(error);
+                    document.getElementById('loading').classList.remove('active');
+                    document.getElementById('processButton').disabled = false;
+                }
+            }, 500);
+        }
+
+        // 다운로드
+        document.getElementById('downloadButton').addEventListener('click', () => {
+            const today = new Date();
+            const dateStr = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}`;
+            const filename = `통화요청_자동처리_${dateStr}.xlsx`;
+            
+            XLSX.writeFile(resultWorkbook, filename);
+        });
+
+        // 초기화
+        setupDropZone('dropZone1', 'fileInput1', 'fileInfo1', 1);
+        setupDropZone('dropZone2', 'fileInput2', 'fileInfo2', 2);
+    </script>
+</body>
+</html>
