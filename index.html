@@ -607,6 +607,17 @@
                     <span class="card-badge">운영중</span>
                 </div>
 
+                <!-- 백로그 대시보드 -->
+                <div class="card" onclick="openApp('backlogDashboard')">
+                    <div class="card-icon">B</div>
+                    <h3 class="card-title">백로그 대시보드</h3>
+                    <p class="card-description">
+                        일간/주간 수리 백로그 현황을 실시간으로 확인합니다.
+                        잔여량 추세 분석을 제공합니다.
+                    </p>
+                    <span class="card-badge">운영중</span>
+                </div>
+
                 <!-- 연차 신청 -->
                 <div class="card" onclick="openApp('vacation')">
                     <div class="card-icon">V</div>
@@ -743,6 +754,7 @@
         const APP_URLS = {
             dailyReport: 'https://donggukang09.github.io/hiqasc-platform/daily-report.html',
             machineDashboard: 'https://donggukang09.github.io/hiqasc-platform/machine-dashboard.html',
+            backlogDashboard: 'https://donggukang09.github.io/hiqasc-platform/backlog-dashboard.html',
             vacation: 'https://donggukang09.github.io/hiqasc-overtime/leave_request.html',
             overtime: 'https://donggukang09.github.io/hiqasc-overtime/overtime_request.html',
             parts: 'https://script.google.com/macros/s/AKfycbykZC4WAUPnhdVTGIfgntD4UaGZb1WCdKLZphYIIBL5X8-VC9_PLT3jIJ3ucGOwQBGJDw/exec'
