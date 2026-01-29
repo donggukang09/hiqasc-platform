@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DOA 시트 자동 정리 | HIQASC</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
+            background: #2a2a2a;
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+
+        /* 헤더 */
+        .top-header {
+            background: #1e1e1e;
+            border-bottom: 1px solid #3a3a3a;
+            padding: 20px 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .top-header-container {
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header-icon {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .header-icon svg {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+
+        .header-info h1 {
+            font-size: 1.5em;
+            color: #ffffff;
+            margin-bottom: 5px;
+        }
+
+        .header-info p {
+            color: #808080;
+            font-size: 0.9em;
+        }
+
+        .back-link {
+            color: #4a90e2;
+            text-decoration: none;
+            padding: 8px 16px;
+            border: 1px solid #4a90e2;
+            border-radius: 6px;
+            transition: all 0.2s;
+            font-size: 0.9em;
+        }
+
+        .back-link:hover {
+            background: #4a90e2;
+            color: #ffffff;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+
+        .header {
+            background: #353535;
+            border: 1px solid #4a4a4a;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .header h2 {
+            color: #ffffff;
+            font-size: 1.8em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #b0b0b0;
+            font-size: 1em;
+        }
+
+        .signature {
+            margin-top: 15px;
+            padding: 12px;
+            background: rgba(74, 144, 226, 0.1);
+            border: 1px solid rgba(74, 144, 226, 0.3);
+            border-radius: 8px;
+            color: #4a90e2;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+            color: #ffffff;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 0.85em;
+            letter-spacing: 1px;
+        }
+
+        .main-content {
+            background: #353535;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .instructions {
+            background: #f5f6f7;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            border-left: 4px solid #2c3e50;
+        }
+
+        .instructions h4 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .instructions ol {
+            margin-left: 20px;
+            color: #666;
+        }
+
+        .instructions li {
+            margin-bottom: 8px;
+        }
+
+        .upload-box {
+            border: 3px dashed #2c3e50;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s;
+            background: #f5f6f7;
+            cursor: pointer;
+            margin-bottom: 25px;
+        }
+
+        .upload-box:hover {
+            border-color: #34495e;
+            background: #ecf0f1;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(44, 62, 80, 0.3);
+        }
+
+        .upload-box.dragover {
+            background: #e8eaed;
+            border-color: #34495e;
+            transform: scale(1.02);
+        }
+
+        .upload-box.uploaded {
+            border-color: #27ae60;
+            background: #f0fff4;
+        }
+
+        .upload-box h3 {
+            color: #2c3e50;
+            margin-bottom: 12px;
+            font-size: 1.2em;
+        }
+
+        .upload-box p {
+            color: #666;
+            margin-bottom: 15px;
+            font-size: 0.9em;
+        }
+
+        .upload-icon {
+            font-size: 2.5em;
+            margin-bottom: 12px;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .btn-upload {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: #ffffff;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.95em;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .btn-upload:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(44, 62, 80, 0.4);
+        }
+
+        .file-name {
+            margin-top: 10px;
+            font-size: 0.85em;
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .serial-section {
+            margin-bottom: 25px;
+        }
+
+        .serial-section h3 {
+            color: #2c3e50;
+            margin-bottom: 12px;
+            font-size: 1.2em;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 180px;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.95em;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+            transition: all 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #2c3e50;
+            box-shadow: 0 0 10px rgba(44, 62, 80, 0.2);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 25px;
+        }
+
+        .btn-process {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: #ffffff;
+            border: none;
+            padding: 12px 40px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1.05em;
+            font-weight: bold;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(44, 62, 80, 0.3);
+        }
+
+        .btn-process:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(44, 62, 80, 0.4);
+        }
+
+        .btn-process:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .btn-reset {
+            background: #353535;
+            color: #2c3e50;
+            border: 2px solid #2c3e50;
+            padding: 12px 40px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1.05em;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .btn-reset:hover {
+            background: #2c3e50;
+            color: #ffffff;
+            transform: translateY(-3px);
+        }
+
+        .status-message {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: bold;
+            display: none;
+            white-space: pre-line;
+        }
+
+        .status-message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+            display: block;
+        }
+
+        .status-message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+            display: block;
+        }
+
+        .status-message.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 2px solid #bee5eb;
+            display: block;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #2c3e50;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- 상단 헤더 -->
+    <div class="top-header">
+        <div class="top-header-container">
+            <div class="header-left">
+                <div class="header-icon">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/>
+                    </svg>
+                </div>
+                <div class="header-info">
+                    <h1>DOA 시트 자동 정리</h1>
+                    <p>통화요청 건 자동 정리 시스템</p>
+                </div>
+            </div>
+            <a href="https://donggukang09.github.io/hiqasc-platform/" class="back-link">← 메인으로</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h2>🎯 DOA 시트 자동 정리 시스템</h2>
+            <p>통화요청 건 파일을 자동으로 정리합니다</p>
+            <div class="signature">DEVELOPED BY DONGGU KANG</div>
+        </div>
+
+        <div class="main-content">
+            <div class="instructions">
+                <h4>📋 사용 방법</h4>
+                <ol>
+                    <li><strong>출고일 기준 파일</strong> 엑셀 다운로드 후 (시트1: 로우데이터, 시트2: Model)<br>드래그 앤 드롭하거나 클릭하여 업로드</li>
+                    <li>Serial Number를 텍스트 입력란에 붙여넣기 (한 줄에 하나씩)</li>
+                    <li>"DOA 시트 생성" 버튼 클릭</li>
+                    <li>생성된 Excel 파일 자동 다운로드</li>
+                </ol>
+                <div style="margin-top: 15px; padding-top: 15px; border-top: 2px solid #ddd;">
+                    <p style="color: #666; font-size: 0.9em; line-height: 1.6;">
+                        <strong>💡 간단 사용법:</strong><br>
+                        DOA 자료용 엑셀 파일(로우데이터 + Model 시트)을 업로드하고, DOA로 판정된 Serial Number를 붙여넣은 후 생성 버튼만 누르면 자동으로 정리된 엑셀 파일이 다운로드됩니다.
+                    </p>
+                </div>
+            </div>
+
+            <div class="upload-box" id="dataFileBox">
+                <div class="upload-icon">📄</div>
+                <h3>통합 데이터 파일</h3>
+                <p>첫 번째 시트: 로우데이터 | 두 번째 시트: Model 정보</p>
+                <button class="btn-upload" onclick="document.getElementById('dataFileInput').click()">파일 선택</button>
+                <input type="file" id="dataFileInput" class="file-input" accept=".xlsx,.xls">
+                <div class="file-name" id="dataFileName"></div>
+            </div>
+
+            <div class="serial-section">
+                <h3>🔢 Serial Number 입력</h3>
+                <textarea id="serialInput" placeholder="Serial Number를 입력하세요 (한 줄에 하나씩)&#10;예:&#10;25308CV6g141774207N&#10;24159DV2f29457420Qm&#10;22042CV1c20407420aR"></textarea>
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn-process" id="processBtn" onclick="processData()" disabled>
+                    ✨ DOA 시트 생성
+                </button>
+                <button class="btn-reset" onclick="resetAll()">
+                    🔄 초기화
+                </button>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>처리 중입니다...</p>
+            </div>
+
+            <div class="status-message" id="statusMessage"></div>
+        </div>
+    </div>
+
+    <script>
+        let rawData = null;
+        let modelData = null;
+
+        // 드래그 앤 드롭 설정
+        const box = document.getElementById('dataFileBox');
+        const input = document.getElementById('dataFileInput');
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            box.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+            }, false);
+        });
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            box.addEventListener(eventName, () => box.classList.add('dragover'), false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            box.addEventListener(eventName, () => box.classList.remove('dragover'), false);
+        });
+
+        box.addEventListener('drop', (e) => {
+            const files = e.dataTransfer.files;
+            input.files = files;
+            handleFileSelect();
+        }, false);
+
+        // 파일 선택 이벤트
+        input.addEventListener('change', handleFileSelect);
+
+        function handleFileSelect() {
+            const file = input.files[0];
+            if (!file) return;
+
+            const nameDiv = document.getElementById('dataFileName');
+            nameDiv.textContent = `✓ ${file.name}`;
+            box.classList.add('uploaded');
+
+            showStatus('파일 로딩 중...', 'info');
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    
+                    // 첫 번째 시트: 로우데이터
+                    if (workbook.SheetNames.length < 1) {
+                        showStatus('❌ 첫 번째 시트(로우데이터)가 없습니다', 'error');
+                        return;
+                    }
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    rawData = XLSX.utils.sheet_to_json(firstSheet);
+                    
+                    // 두 번째 시트: Model
+                    if (workbook.SheetNames.length < 2) {
+                        showStatus('❌ 두 번째 시트(Model)가 없습니다. 파일에 Model 시트를 추가해주세요.', 'error');
+                        rawData = null;
+                        return;
+                    }
+                    const secondSheet = workbook.Sheets[workbook.SheetNames[1]];
+                    modelData = XLSX.utils.sheet_to_json(secondSheet);
+                    
+                    showStatus(`✅ 파일 로드 완료!\n로우데이터: ${rawData.length}개 행 | Model: ${modelData.length}개 행`, 'success');
+                    
+                    checkReadyToProcess();
+                } catch (error) {
+                    showStatus(`❌ 파일 읽기 오류: ${error.message}`, 'error');
+                    console.error(error);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function checkReadyToProcess() {
+            const serialText = document.getElementById('serialInput').value.trim();
+            const processBtn = document.getElementById('processBtn');
+            
+            if (rawData && modelData && serialText) {
+                processBtn.disabled = false;
+            } else {
+                processBtn.disabled = true;
+            }
+        }
+
+        document.getElementById('serialInput').addEventListener('input', checkReadyToProcess);
+
+        function processData() {
+            const serialInput = document.getElementById('serialInput').value.trim();
+            if (!rawData || !modelData || !serialInput) {
+                showStatus('❌ 모든 파일과 Serial Number를 입력해주세요', 'error');
+                return;
+            }
+
+            showLoading(true);
+            showStatus('', '');
+
+            try {
+                // 오늘 날짜 (함수 시작 시 정의)
+                const today = new Date();
+                const year = today.getFullYear();
+                const month = today.toLocaleString('en-US', { month: 'long' });
+                const dateStr = today.toISOString().split('T')[0];
+
+                // Serial Number 파싱
+                const serials = serialInput.split('\n')
+                    .map(s => s.trim())
+                    .filter(s => s.length > 0);
+
+                showStatus(`⏳ ${serials.length}개의 Serial Number 처리 중...`, 'info');
+
+                // Model 데이터를 Map으로 변환
+                const modelMap = new Map();
+                modelData.forEach(row => {
+                    const machineId = row['International Machine ID'];
+                    if (machineId) {
+                        modelMap.set(machineId.toString().trim(), {
+                            modelLine: row['model line'] || '',
+                            model: row['model'] || ''
+                        });
+                    }
+                });
+
+                // Serial Number로 필터링 및 데이터 매칭
+                const results = [];
+                let matchCount = 0;
+                
+                serials.forEach(serial => {
+                    const matched = rawData.find(row => 
+                        row['Serial Number'] && row['Serial Number'].toString().trim() === serial
+                    );
+
+                    if (matched) {
+                        matchCount++;
+                        const machineId = matched['International Machine ID'] ? 
+                            matched['International Machine ID'].toString().trim() : '';
+                        
+                        // SKU2는 International Machine ID 앞 4자리 + /WR
+                        const sku2 = machineId.length >= 4 ? machineId.substring(0, 4) + '/WR' : '';
+                        
+                        const modelInfo = modelMap.get(machineId) || { modelLine: '', model: '' };
+
+                        results.push({
+                            'No': matchCount,
+                            '판정일': dateStr,
+                            '판정연도': year,
+                            '판정월': month,
+                            'Pick-up Number': matched['Pick-up Number'] || '',
+                            '회원번호': matched['회원번호'] || '',
+                            'First Name': matched['First Name'] || '',
+                            'Serial Number': matched['Serial Number'] || '',
+                            'International Machine ID': machineId,
+                            'SKU2': sku2,
+                            'Model ': modelInfo.model,
+                            '담당자': matched['담당자'] || '',
+                            'Text': matched['Text'] || '',
+                            'Technician note': matched['Technician note'] || ''
+                        });
+                    }
+                });
+
+                if (matchCount === 0) {
+                    showStatus('❌ 매칭되는 Serial Number가 없습니다.\nSerial Number를 확인해주세요.', 'error');
+                    showLoading(false);
+                    return;
+                }
+
+                // Excel 파일 생성
+                const wb = XLSX.utils.book_new();
+                const ws = XLSX.utils.json_to_sheet(results);
+
+                // 컬럼 너비 설정
+                ws['!cols'] = [
+                    { wch: 5 },   // No
+                    { wch: 12 },  // 판정일
+                    { wch: 10 },  // 판정연도
+                    { wch: 10 },  // 판정월
+                    { wch: 15 },  // Pick-up Number
+                    { wch: 12 },  // 회원번호
+                    { wch: 15 },  // First Name
+                    { wch: 25 },  // Serial Number
+                    { wch: 25 },  // International Machine ID
+                    { wch: 15 },  // SKU2
+                    { wch: 20 },  // Model
+                    { wch: 10 },  // 담당자
+                    { wch: 30 },  // Text
+                    { wch: 30 }   // Technician note
+                ];
+
+                XLSX.utils.book_append_sheet(wb, ws, 'DOA_정리');
+
+                // 파일 다운로드
+                const fileName = `DOA_정리_${year}${String(today.getMonth()+1).padStart(2,'0')}${String(today.getDate()).padStart(2,'0')}.xlsx`;
+                XLSX.writeFile(wb, fileName);
+
+                showStatus(`✅ 완료! ${matchCount}/${serials.length}개 매칭 성공\n파일명: ${fileName}`, 'success');
+                showLoading(false);
+
+            } catch (error) {
+                showStatus(`❌ 오류 발생: ${error.message}`, 'error');
+                showLoading(false);
+                console.error(error);
+            }
+        }
+
+        function resetAll() {
+            rawData = null;
+            modelData = null;
+            
+            input.value = '';
+            document.getElementById('serialInput').value = '';
+            document.getElementById('dataFileName').textContent = '';
+            box.classList.remove('uploaded');
+            document.getElementById('processBtn').disabled = true;
+            
+            showStatus('', '');
+            showLoading(false);
+        }
+
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.textContent = message;
+            statusDiv.className = 'status-message';
+            if (type) {
+                statusDiv.classList.add(type);
+            }
+        }
+
+        function showLoading(show) {
+            const loading = document.getElementById('loading');
+            if (show) {
+                loading.classList.add('active');
+            } else {
+                loading.classList.remove('active');
+            }
+        }
+    </script>
+</body>
+</html>
