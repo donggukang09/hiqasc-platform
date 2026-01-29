@@ -299,7 +299,9 @@
         /* 퀵 액세스 카드 그리드 */
         .quick-access {
             margin-bottom: 50px;
-            width: 100%;
+            max-width: 1400px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .section-title {
@@ -311,9 +313,8 @@
 
         .cards-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            grid-template-columns: repeat(3, 1fr);
             gap: 25px;
-            width: 100%;
         }
 
         .card {
