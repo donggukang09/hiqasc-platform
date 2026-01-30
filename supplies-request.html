@@ -575,8 +575,15 @@
             const specSelect = document.getElementById('specSelect');
             const unitSelect = document.getElementById('unitSelect');
 
-            // 품목 (중복 제거)
-            const items = [...new Set(itemsData.map(row => row['품목명']))].filter(v => v);
+            // 품목 (헤더와 빈 값 제외, 중복 제거)
+            const items = [...new Set(
+                itemsData
+                    .map(row => row['품목명'])
+                    .filter(v => v && v !== '품목명') // 헤더 제외
+            )];
+            
+            console.log('품목 데이터:', items); // 디버깅용
+            
             items.forEach(item => {
                 const option = document.createElement('option');
                 option.value = item;
@@ -590,8 +597,15 @@
             otherOption.textContent = '기타';
             itemSelect.appendChild(otherOption);
 
-            // 규격 (중복 제거)
-            const specs = [...new Set(itemsData.map(row => row['규격']))].filter(v => v);
+            // 규격 (헤더와 빈 값 제외, 중복 제거)
+            const specs = [...new Set(
+                itemsData
+                    .map(row => row['규격'])
+                    .filter(v => v && v !== '규격') // 헤더 제외
+            )];
+            
+            console.log('규격 데이터:', specs); // 디버깅용
+            
             specs.forEach(spec => {
                 const option = document.createElement('option');
                 option.value = spec;
@@ -604,8 +618,15 @@
             specOther.textContent = '기타';
             specSelect.appendChild(specOther);
 
-            // 단위 (중복 제거)
-            const units = [...new Set(itemsData.map(row => row['단위']))].filter(v => v);
+            // 단위 (헤더와 빈 값 제외, 중복 제거)
+            const units = [...new Set(
+                itemsData
+                    .map(row => row['단위'])
+                    .filter(v => v && v !== '단위') // 헤더 제외
+            )];
+            
+            console.log('단위 데이터:', units); // 디버깅용
+            
             units.forEach(unit => {
                 const option = document.createElement('option');
                 option.value = unit;
