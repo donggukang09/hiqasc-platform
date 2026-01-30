@@ -281,6 +281,30 @@
             height: 400px;
         }
 
+        .chart-stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #3a3a3a;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-label {
+            color: #808080;
+            font-size: 0.85em;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            color: #4a90e2;
+            font-size: 1.5em;
+            font-weight: 700;
+        }
+
         /* 주간 차트 그리드 */
         .weekly-charts {
             display: grid;
@@ -401,17 +425,47 @@
                     <div class="chart-container">
                         <canvas id="weeklyRemainChart"></canvas>
                     </div>
+                    <div class="chart-stats">
+                        <div class="stat-item">
+                            <div class="stat-label">합계</div>
+                            <div class="stat-value" id="remainTotal">-</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">평균</div>
+                            <div class="stat-value" id="remainAvg">-</div>
+                        </div>
+                    </div>
                 </div>
                 <div class="chart-box">
                     <h3>입고량 추세</h3>
                     <div class="chart-container">
                         <canvas id="weeklyIncomingChart"></canvas>
                     </div>
+                    <div class="chart-stats">
+                        <div class="stat-item">
+                            <div class="stat-label">합계</div>
+                            <div class="stat-value" id="incomingTotal">-</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">평균</div>
+                            <div class="stat-value" id="incomingAvg">-</div>
+                        </div>
+                    </div>
                 </div>
                 <div class="chart-box">
                     <h3>처리량 추세</h3>
                     <div class="chart-container">
                         <canvas id="weeklyProcessChart"></canvas>
+                    </div>
+                    <div class="chart-stats">
+                        <div class="stat-item">
+                            <div class="stat-label">합계</div>
+                            <div class="stat-value" id="processTotal">-</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">평균</div>
+                            <div class="stat-value" id="processAvg">-</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -632,6 +686,22 @@
         // 주간 업데이트
         // ============================================
         function updateWeekly(labels, remainData, incomingData, processData) {
+            // 합계와 평균 계산 및 업데이트
+            const remainTotal = remainData.reduce((a, b) => a + b, 0);
+            const remainAvg = Math.round(remainTotal / remainData.length);
+            document.getElementById('remainTotal').textContent = remainTotal.toLocaleString() + '대';
+            document.getElementById('remainAvg').textContent = remainAvg.toLocaleString() + '대';
+
+            const incomingTotal = incomingData.reduce((a, b) => a + b, 0);
+            const incomingAvg = Math.round(incomingTotal / incomingData.length);
+            document.getElementById('incomingTotal').textContent = incomingTotal.toLocaleString() + '대';
+            document.getElementById('incomingAvg').textContent = incomingAvg.toLocaleString() + '대';
+
+            const processTotal = processData.reduce((a, b) => a + b, 0);
+            const processAvg = Math.round(processTotal / processData.length);
+            document.getElementById('processTotal').textContent = processTotal.toLocaleString() + '대';
+            document.getElementById('processAvg').textContent = processAvg.toLocaleString() + '대';
+
             // 잔여량 차트
             const ctxRemain = document.getElementById('weeklyRemainChart');
             if (weeklyRemainChart) weeklyRemainChart.destroy();
