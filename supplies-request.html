@@ -18,7 +18,6 @@
             min-height: 100vh;
         }
 
-        /* 상단 헤더 */
         .top-header {
             background: #1e1e1e;
             border-bottom: 1px solid #3a3a3a;
@@ -85,7 +84,6 @@
             color: #ffffff;
         }
 
-        /* 로딩 */
         .loading {
             text-align: center;
             padding: 100px 20px;
@@ -111,14 +109,12 @@
             font-size: 1.1em;
         }
 
-        /* 컨테이너 */
         .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 30px;
         }
 
-        /* 신청 폼 */
         .form-section {
             background: #353535;
             border: 1px solid #4a4a4a;
@@ -187,7 +183,6 @@
             cursor: pointer;
         }
 
-        /* 기타 입력란 */
         .other-input {
             display: none;
             margin-top: 10px;
@@ -197,7 +192,6 @@
             display: block;
         }
 
-        /* 버튼 */
         .btn-submit {
             width: 100%;
             padding: 15px;
@@ -222,7 +216,6 @@
             transform: none;
         }
 
-        /* 신청 내역 */
         .history-section {
             background: #353535;
             border: 1px solid #4a4a4a;
@@ -231,22 +224,15 @@
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
 
-        .history-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
         .history-title {
             font-size: 1.5em;
             color: #ffffff;
             display: flex;
             align-items: center;
             gap: 10px;
+            margin-bottom: 20px;
         }
 
-        /* 테이블 */
         .table-container {
             overflow-x: auto;
         }
@@ -276,34 +262,6 @@
             background: #2a2a2a;
         }
 
-        /* 상태 배지 */
-        .status-badge {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 0.8em;
-            font-weight: 600;
-        }
-
-        .status-pending {
-            background: rgba(255, 193, 7, 0.2);
-            border: 1px solid #ffc107;
-            color: #ffc107;
-        }
-
-        .status-waiting {
-            background: rgba(74, 144, 226, 0.2);
-            border: 1px solid #4a90e2;
-            color: #4a90e2;
-        }
-
-        .status-completed {
-            background: rgba(40, 167, 69, 0.2);
-            border: 1px solid #28a745;
-            color: #28a745;
-        }
-
-        /* 상태 선택 */
         .status-select {
             padding: 6px 10px;
             background: #2a2a2a;
@@ -314,7 +272,6 @@
             cursor: pointer;
         }
 
-        /* 알림 메시지 */
         .alert {
             padding: 15px;
             border-radius: 8px;
@@ -338,7 +295,6 @@
             color: #e74c3c;
         }
 
-        /* 반응형 */
         @media (max-width: 768px) {
             .form-grid {
                 grid-template-columns: 1fr;
@@ -351,7 +307,6 @@
     </style>
 </head>
 <body>
-    <!-- 상단 헤더 -->
     <div class="top-header">
         <div class="top-header-container">
             <div class="header-left">
@@ -369,15 +324,12 @@
         </div>
     </div>
 
-    <!-- 로딩 -->
     <div class="loading" id="loading">
         <div class="loading-spinner"></div>
         <div class="loading-text">데이터 로딩 중...</div>
     </div>
 
-    <!-- 메인 컨테이너 -->
     <div class="container" id="mainContainer" style="display: none;">
-        <!-- 알림 메시지 -->
         <div class="alert alert-success" id="successAlert">
             ✓ 신청이 완료되었습니다!
         </div>
@@ -385,7 +337,6 @@
             ✗ 오류가 발생했습니다. 다시 시도해주세요.
         </div>
 
-        <!-- 신청 폼 -->
         <div class="form-section">
             <h2 class="form-title">
                 <span>📝</span>
@@ -394,7 +345,6 @@
             
             <form id="requestForm">
                 <div class="form-grid">
-                    <!-- 품목 -->
                     <div class="form-group">
                         <label class="form-label required">품목</label>
                         <select class="form-select" id="itemSelect" required>
@@ -403,7 +353,6 @@
                         <input type="text" class="form-input other-input" id="itemOther" placeholder="품목을 입력하세요">
                     </div>
 
-                    <!-- 규격 -->
                     <div class="form-group">
                         <label class="form-label required">규격</label>
                         <select class="form-select" id="specSelect" required>
@@ -412,13 +361,11 @@
                         <input type="text" class="form-input other-input" id="specOther" placeholder="규격을 입력하세요">
                     </div>
 
-                    <!-- 수량 -->
                     <div class="form-group">
                         <label class="form-label required">수량</label>
                         <input type="number" class="form-input" id="quantity" min="1" placeholder="수량을 입력하세요" required>
                     </div>
 
-                    <!-- 단위 -->
                     <div class="form-group">
                         <label class="form-label required">단위</label>
                         <select class="form-select" id="unitSelect" required>
@@ -427,7 +374,6 @@
                         <input type="text" class="form-input other-input" id="unitOther" placeholder="단위를 입력하세요">
                     </div>
 
-                    <!-- 신청자 -->
                     <div class="form-group full-width">
                         <label class="form-label required">신청자</label>
                         <input type="text" class="form-input" id="requester" placeholder="이름을 입력하세요" required>
@@ -438,14 +384,11 @@
             </form>
         </div>
 
-        <!-- 신청 내역 -->
         <div class="history-section">
-            <div class="history-header">
-                <h2 class="history-title">
-                    <span>📋</span>
-                    <span>신청 내역</span>
-                </h2>
-            </div>
+            <h2 class="history-title">
+                <span>📋</span>
+                <span>신청 내역</span>
+            </h2>
 
             <div class="table-container">
                 <table class="request-table">
@@ -462,7 +405,6 @@
                         </tr>
                     </thead>
                     <tbody id="requestTableBody">
-                        <!-- 데이터가 여기에 추가됩니다 -->
                     </tbody>
                 </table>
             </div>
@@ -470,9 +412,6 @@
     </div>
 
     <script>
-        // ============================================
-        // Google Sheets 설정
-        // ============================================
         const SHEET_ID = '1O_NTEzDd60odS_9bGlzZeFUIzH0rBoRzcZY22mpRboY';
         const ITEMS_SHEET = '소모품품목리스트';
         const REQUESTS_SHEET = '소모품신청내역';
@@ -481,9 +420,6 @@
         let itemsData = [];
         let requestsData = [];
 
-        // ============================================
-        // 데이터 로드
-        // ============================================
         async function loadData() {
             try {
                 const itemsUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${ITEMS_SHEET}`;
@@ -520,12 +456,8 @@
             const json = JSON.parse(text.substring(47).slice(0, -2));
             const rows = json.table.rows;
             
-            // 첫 번째 행을 헤더로 사용
             const headers = rows[0].c.map(cell => cell ? cell.v : null);
             
-            console.log('헤더:', headers); // 디버깅
-            
-            // 나머지 행을 데이터로 변환
             return rows.slice(1).map(row => {
                 const obj = {};
                 row.c.forEach((cell, idx) => {
@@ -535,25 +467,19 @@
                     }
                 });
                 return obj;
-            }).filter(row => Object.values(row).some(v => v)); // 빈 행 제외
+            }).filter(row => Object.values(row).some(v => v));
         }
 
-        // ============================================
-        // 드롭다운 채우기
-        // ============================================
         function populateDropdowns() {
             const itemSelect = document.getElementById('itemSelect');
             const specSelect = document.getElementById('specSelect');
             const unitSelect = document.getElementById('unitSelect');
 
-            // 품목 (헤더와 빈 값 제외, 중복 제거)
             const items = [...new Set(
                 itemsData
                     .map(row => row['품목명'])
-                    .filter(v => v && v !== '품목명') // 헤더 제외
+                    .filter(v => v && v !== '품목명')
             )];
-            
-            console.log('품목 데이터:', items); // 디버깅용
             
             items.forEach(item => {
                 const option = document.createElement('option');
@@ -562,20 +488,16 @@
                 itemSelect.appendChild(option);
             });
             
-            // 기타 옵션 추가
             const otherOption = document.createElement('option');
             otherOption.value = '기타';
             otherOption.textContent = '기타';
             itemSelect.appendChild(otherOption);
 
-            // 규격 (헤더와 빈 값 제외, 중복 제거)
             const specs = [...new Set(
                 itemsData
                     .map(row => row['규격'])
-                    .filter(v => v && v !== '규격') // 헤더 제외
+                    .filter(v => v && v !== '규격')
             )];
-            
-            console.log('규격 데이터:', specs); // 디버깅용
             
             specs.forEach(spec => {
                 const option = document.createElement('option');
@@ -589,14 +511,11 @@
             specOther.textContent = '기타';
             specSelect.appendChild(specOther);
 
-            // 단위 (헤더와 빈 값 제외, 중복 제거)
             const units = [...new Set(
                 itemsData
                     .map(row => row['단위'])
-                    .filter(v => v && v !== '단위') // 헤더 제외
+                    .filter(v => v && v !== '단위')
             )];
-            
-            console.log('단위 데이터:', units); // 디버깅용
             
             units.forEach(unit => {
                 const option = document.createElement('option');
@@ -611,9 +530,6 @@
             unitSelect.appendChild(unitOther);
         }
 
-        // ============================================
-        // 기타 선택 시 입력란 표시
-        // ============================================
         document.getElementById('itemSelect').addEventListener('change', function() {
             const otherInput = document.getElementById('itemOther');
             if (this.value === '기타') {
@@ -650,9 +566,6 @@
             }
         });
 
-        // ============================================
-        // 폼 제출
-        // ============================================
         document.getElementById('requestForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
@@ -673,7 +586,6 @@
             const now = new Date();
             const timestamp = now.toLocaleString('ko-KR');
 
-            // Google Sheets에 추가
             const params = new URLSearchParams({
                 '신청일시': timestamp,
                 '품목': item,
@@ -686,12 +598,11 @@
             });
 
             try {
-                const response = await fetch(`${WEB_APP_URL}?${params.toString()}`, {
+                await fetch(`${WEB_APP_URL}?${params.toString()}`, {
                     method: 'GET',
                     mode: 'no-cors'
                 });
 
-                // 로컬에도 추가 (즉시 표시용)
                 requestsData.push({
                     '신청일시': timestamp,
                     '품목': item,
@@ -707,13 +618,11 @@
                 displayRequests();
                 this.reset();
 
-                // 기타 입력란 숨기기
                 document.querySelectorAll('.other-input').forEach(input => {
                     input.classList.remove('active');
                     input.required = false;
                 });
 
-                // 2초 후 새로고침하여 실제 시트 데이터 가져오기
                 setTimeout(() => {
                     loadData();
                 }, 2000);
@@ -727,25 +636,17 @@
             }
         });
 
-        // ============================================
-        // 신청 내역 표시
-        // ============================================
         function displayRequests() {
             const tbody = document.getElementById('requestTableBody');
             tbody.innerHTML = '';
 
-            // 필터링 없이 모든 데이터 표시
             let displayData = [...requestsData];
-
-            // 최신순 정렬
             displayData.reverse();
 
             displayData.forEach((row, index) => {
                 const tr = document.createElement('tr');
                 
-                const statusClass = 
-                    row['상태'] === '완료' ? 'status-completed' :
-                    row['상태'] === '구매대기중' ? 'status-waiting' : 'status-pending';
+                const realIndex = requestsData.length - 1 - index;
 
                 tr.innerHTML = `
                     <td>${row['신청일시'] || '-'}</td>
@@ -755,7 +656,7 @@
                     <td>${row['단위'] || '-'}</td>
                     <td>${row['신청자'] || '-'}</td>
                     <td>
-                        <select class="status-select" onchange="updateStatus(${requestsData.length - 1 - index}, this.value)">
+                        <select class="status-select" onchange="updateStatus(${realIndex}, this.value)">
                             <option value="요청중" ${row['상태'] === '요청중' ? 'selected' : ''}>요청중</option>
                             <option value="구매대기중" ${row['상태'] === '구매대기중' ? 'selected' : ''}>구매대기중</option>
                             <option value="완료" ${row['상태'] === '완료' ? 'selected' : ''}>완료</option>
@@ -772,9 +673,6 @@
             }
         }
 
-        // ============================================
-        // 상태 업데이트
-        // ============================================
         function updateStatus(index, newStatus) {
             requestsData[index]['상태'] = newStatus;
             
@@ -785,15 +683,9 @@
                 requestsData[index]['완료일시'] = '';
             }
 
-            // Google Sheets 업데이트 (나중에 구현)
-            // updateGoogleSheets(index, newStatus);
-
             displayRequests();
         }
 
-        // ============================================
-        // 알림 표시
-        // ============================================
         function showAlert(type) {
             const alert = document.getElementById(type === 'success' ? 'successAlert' : 'errorAlert');
             alert.classList.add('active');
@@ -803,9 +695,6 @@
             }, 3000);
         }
 
-        // ============================================
-        // 초기화
-        // ============================================
         loadData();
     </script>
 </body>
