@@ -475,12 +475,6 @@
                     <span>📋</span>
                     <span>신청 내역</span>
                 </h2>
-                <div class="filter-buttons">
-                    <button class="filter-btn active" onclick="filterRequests('all')">전체</button>
-                    <button class="filter-btn" onclick="filterRequests('요청중')">요청중</button>
-                    <button class="filter-btn" onclick="filterRequests('구매대기중')">구매대기중</button>
-                    <button class="filter-btn" onclick="filterRequests('완료')">완료</button>
-                </div>
             </div>
 
             <div class="table-container">
@@ -516,7 +510,6 @@
 
         let itemsData = [];
         let requestsData = [];
-        let currentFilter = 'all';
 
         // ============================================
         // 데이터 로드
@@ -771,15 +764,13 @@
             const tbody = document.getElementById('requestTableBody');
             tbody.innerHTML = '';
 
-            let filteredData = requestsData;
-            if (currentFilter !== 'all') {
-                filteredData = requestsData.filter(row => row['상태'] === currentFilter);
-            }
+            // 필터링 없이 모든 데이터 표시
+            let displayData = [...requestsData];
 
             // 최신순 정렬
-            filteredData.reverse();
+            displayData.reverse();
 
-            filteredData.forEach((row, index) => {
+            displayData.forEach((row, index) => {
                 const tr = document.createElement('tr');
                 
                 const statusClass = 
@@ -794,7 +785,7 @@
                     <td>${row['단위'] || '-'}</td>
                     <td>${row['신청자'] || '-'}</td>
                     <td>
-                        <select class="status-select" onchange="updateStatus(${index}, this.value)">
+                        <select class="status-select" onchange="updateStatus(${requestsData.length - 1 - index}, this.value)">
                             <option value="요청중" ${row['상태'] === '요청중' ? 'selected' : ''}>요청중</option>
                             <option value="구매대기중" ${row['상태'] === '구매대기중' ? 'selected' : ''}>구매대기중</option>
                             <option value="완료" ${row['상태'] === '완료' ? 'selected' : ''}>완료</option>
@@ -806,7 +797,7 @@
                 tbody.appendChild(tr);
             });
 
-            if (filteredData.length === 0) {
+            if (displayData.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px; color: #808080;">신청 내역이 없습니다.</td></tr>';
             }
         }
@@ -826,21 +817,6 @@
 
             // Google Sheets 업데이트 (나중에 구현)
             // updateGoogleSheets(index, newStatus);
-
-            displayRequests();
-        }
-
-        // ============================================
-        // 필터링
-        // ============================================
-        function filterRequests(filter) {
-            currentFilter = filter;
-            
-            // 버튼 활성화
-            document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            event.target.classList.add('active');
 
             displayRequests();
         }
