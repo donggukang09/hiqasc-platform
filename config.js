@@ -24,10 +24,10 @@ const SHEETS_CONFIG = {
     OVERTIME: '12U0BzTsjxPfK3AZqQyY479ozC0g1T3Cxutj6XmN75-k'
 };
 
-// Apps Script Web App URL (나중에 업데이트)
+// Apps Script Web App URL
 const APPS_SCRIPT_CONFIG = {
     PARTS_INPUT: 'https://script.google.com/macros/s/AKfycbykZC4WAUPnhdVTGIfgntD4UaGZb1WCdKLZphYIIBL5X8-VC9_PLT3jIJ3ucGOwQBGJDw/exec',
-    SUPPLIES_REQUEST: 'https://script.google.com/macros/s/AKfycbyQ7i8DClKt9GPVJd2Bjq3hihrPKGJ0VbFbD2TF08KQ1VLv_0KBN-noZZSIZvGTFre5/exec'
+    SUPPLIES_REQUEST: 'https://script.google.com/macros/s/AKfycbzuZ0u1GJAnWh5LmHJqw43rjb2TrrNIxrnzowaHe1iO0uqctHRFkCEVaZRPYKIMxlZjMQ/exec'
 };
 
 // ============================================
