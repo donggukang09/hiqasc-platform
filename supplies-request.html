@@ -305,6 +305,7 @@
             }
         }
     </style>
+    <script src="config.js"></script>
 </head>
 <body>
     <div class="top-header">
@@ -412,10 +413,10 @@
     </div>
 
     <script>
-        const SHEET_ID = '1O_NTEzDd60odS_9bGlzZeFUIzH0rBoRzcZY22mpRboY';
+        const SHEET_ID = SHEETS_CONFIG.INVENTORY;
         const ITEMS_SHEET = '소모품품목리스트';
         const REQUESTS_SHEET = '소모품신청내역';
-        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyQ7i8DClKt9GPVJd2Bjq3hihrPKGJ0VbFbD2TF08KQ1VLv_0KBN-noZZSIZvGTFre5/exec';
+        const WEB_APP_URL = APPS_SCRIPT_CONFIG.SUPPLIES_REQUEST;
 
         let itemsData = [];
         let requestsData = [];
