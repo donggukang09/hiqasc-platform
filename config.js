@@ -26,7 +26,7 @@ const SHEETS_CONFIG = {
 
 // Apps Script Web App URL
 const APPS_SCRIPT_CONFIG = {
-    PARTS_INPUT: 'https://script.google.com/macros/s/AKfycbwOdb6vofmvJKRYGbAUSIMWUQ-cbzJp2u7CWpaEwhqQSptZYP_RRwOdM2TaoK4_juOn/exec',
+    PARTS_INPUT: 'https://script.google.com/macros/s/AKfycbzcLwwIHN28QJdcxmysBsY779tvJbeKm8CAbk0PAZqd0d5BuBJbt55tuChUNDZ3JMiv/exec',
     SUPPLIES_REQUEST: 'https://script.google.com/macros/s/AKfycbzuZ0u1GJAnWh5LmHJqw43rjb2TrrNIxrnzowaHe1iO0uqctHRFkCEVaZRPYKIMxlZjMQ/exec'
 };
 
