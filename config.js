@@ -1,35 +1,21 @@
-// ============================================
-// HIQASC 통합 업무 시스템 설정 파일
-// ============================================
-// 이 파일에서 모든 Google Sheets ID를 관리합니다.
-// 계정 변경 시 이 파일만 수정하면 모든 시스템이 자동 업데이트됩니다.
-
+// HIQASC Platform Configuration
+// Google Sheets IDs
 const SHEETS_CONFIG = {
-    // 수리 데이터 (머신 수량 대시보드, 백로그 대시보드)
-    REPAIR_DATA: '111K9l8gt-14roqvynNFEJrT2aLsTYjU8gQBsKNiyFmI',
-    
-    // 재고 관리 (소모품 신청)
-    INVENTORY: '1vfnyawoFJnxFODMpmk_iGGwEOfTo0duc1-8VUyPyjcA',
-    
-    // 부품 사용 기록
-    PARTS: '1RUH7EPhOUEVNWvZbizvuf0u3AnZ8K7mbMF-hAto5kKw',
-    
-    // 연차 관리
-    LEAVE: '1cmMEbIkmEL629RT04hpUUgXddnSVLGo1YwRzBwfyzCY',
-    
-    // 일일 업무 보고
-    DAILY_REPORT: '1eyZOi_yD76jijCV8yE5k-FThswFlNu5OxdMy0IRdlEs',
-    
-    // 추가근로 관리
-    OVERTIME: '12U0BzTsjxPfK3AZqQyY479ozC0g1T3Cxutj6XmN75-k'
+    repairBacklog: '111K9l8gt-14roqvynNFEJrT2aLsTYjU8gQBsKNiyFmI',
+    supplies: '1vfnyawoFJnxFODMpmk_iGGwEOfTo0duc1-8VUyPyjcA',
+    parts: '1RUH7EPhOUEVNWvZbizvuf0u3AnZ8K7mbMF-hAto5kKw',
+    leave: '1cmMEbIkmEL629RT04hpUUgXddnSVLGo1YwRzBwfyzCY',
+    dailyReport: '1eyZOi_yD76jijCV8yE5k-FThswFlNu5OxdMy0IRdlEs',
+    overtime: '12U0BzTsjxPfK3AZqQyY479ozC0g1T3Cxutj6XmN75-k',
+    wiki: '1yEwC43ULV1baQ7rYJ2He1wgkEEl00FNMgo7gBkD9auM'
 };
 
-// Apps Script Web App URL
+// Apps Script Web App URLs
 const APPS_SCRIPT_CONFIG = {
-    PARTS_INPUT: 'https://script.google.com/macros/s/AKfycbxH-usbWLQYim1T32p9ClYSnXnSToLQgebuQMGv9Apz3ThDx8wZkqaEEant6EiUWTAI/exec',
-    SUPPLIES_REQUEST: 'https://script.google.com/macros/s/AKfycbzuZ0u1GJAnWh5LmHJqw43rjb2TrrNIxrnzowaHe1iO0uqctHRFkCEVaZRPYKIMxlZjMQ/exec'
+    suppliesRequest: 'https://script.google.com/macros/s/AKfycbzuZ0u1GJAnWh5LmHJqw43rjb2TrrNIxrnzowaHe1iO0uqctHRFkCEVaZRPYKIMxlZjMQ/exec',
+    parts: 'https://script.google.com/macros/s/AKfycbxH-usbWLQYim1T32p9ClYSnXnSToLQgebuQMGv9Apz3ThDx8wZkqaEEant6EiUWTAI/exec',
+    leave: 'https://script.google.com/macros/s/AKfycbymUluI5lJ6PYRlDrAUIvZ5yCE0wjD0WVy6fpC7HkYfl8JhQjVbqsnvDVt9QOgl0mnY/exec',
+    overtime: 'https://script.google.com/macros/s/AKfycbymUluI5lJ6PYRlDrAUIvZ5yCE0wjD0WVy6fpC7HkYfl8JhQjVbqsnvDVt9QOgl0mnY/exec'
 };
 
-// ============================================
 // DEVELOPED BY DONGGU KANG
-// ============================================
