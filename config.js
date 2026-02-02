@@ -4,7 +4,8 @@ const SHEETS_CONFIG = {
     parts: '1RUH7EPhOUEVNWvZbizvuf0u3AnZ8K7mbMF-hAto5kKw',
     leave: '1cmMEbIkmEL629RT04hpUUgXddnSVLGo1YwRzBwfyzCY',
     dailyReport: '1eyZOi_yD76jijCV8yE5k-FThswFlNu5OxdMy0IRdlEs',
-    overtime: '12U0BzTsjxPfK3AZqQyY479ozC0g1T3Cxutj6XmN75-k'
+    overtime: '12U0BzTsjxPfK3AZqQyY479ozC0g1T3Cxutj6XmN75-k',
+    machineQuantity: '10i2D4ZJZnzOkWb6ccUxlVvdvWx0TOInWO4Kzr9tYGmU'
 };
 
 const APPS_SCRIPT_CONFIG = {
