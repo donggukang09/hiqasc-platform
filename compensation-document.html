@@ -211,11 +211,11 @@
         }
 
         .output-paper {
-            width: 210mm;
-            min-height: 297mm;
+            width: 297mm;  /* A4 가로 */
+            min-height: 210mm;  /* A4 가로 */
             background: white;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-            padding: 40mm 30mm;
+            padding: 30mm 40mm;
         }
 
         .output-content {
@@ -223,6 +223,9 @@
             font-size: 28pt;
             line-height: 2.2;
             color: #000;
+            border: 3px solid #000;
+            padding: 30px 40px;
+            min-height: 150mm;
         }
 
         .output-content div {
@@ -261,6 +264,13 @@
             .output-content {
                 font-size: 28pt;
                 line-height: 2.2;
+                border: 3px solid #000;
+                padding: 30px 40px;
+            }
+
+            @page {
+                size: A4 landscape;  /* A4 가로 */
+                margin: 0;
             }
         }
 
