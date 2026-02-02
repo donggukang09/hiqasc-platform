@@ -19,6 +19,82 @@
         }
 
         /* ============================================ */
+        /* 퀵 링크 사이드바 (새로 추가) */
+        /* ============================================ */
+        .quick-links-sidebar {
+            position: fixed;
+            right: 30px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 999;
+            display: none; /* 로그인 후 표시 */
+        }
+
+        .quick-links-sidebar.show {
+            display: block;
+            animation: slideInRight 0.5s ease;
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateY(-50%) translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(-50%) translateX(0);
+            }
+        }
+
+        .quick-link-item {
+            background: #353535;
+            border: 1px solid #4a4a4a;
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            transition: all 0.3s;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 160px;
+            text-decoration: none;
+            color: #e0e0e0;
+        }
+
+        .quick-link-item:hover {
+            background: #4a4a4a;
+            border-color: #4a90e2;
+            transform: translateX(-5px);
+            box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+        }
+
+        .quick-link-icon {
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .quick-link-text {
+            font-size: 0.85em;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        /* 모바일에서는 숨김 */
+        @media (max-width: 1200px) {
+            .quick-links-sidebar {
+                display: none !important;
+            }
+        }
+
+        /* ============================================ */
         /* 로그인 화면 */
         /* ============================================ */
         .login-overlay {
@@ -385,6 +461,26 @@
     <script src="config.js"></script>
 </head>
 <body>
+    <!-- 퀵 링크 사이드바 (새로 추가) -->
+    <div class="quick-links-sidebar" id="quickLinks">
+        <a href="https://hiqasc.kr/" target="_blank" class="quick-link-item">
+            <div class="quick-link-icon">🏢</div>
+            <span class="quick-link-text">HIQASC SVC</span>
+        </a>
+        <a href="https://www.nespresso.com/kr/" target="_blank" class="quick-link-item">
+            <div class="quick-link-icon">☕</div>
+            <span class="quick-link-text">네스프레소 공홈</span>
+        </a>
+        <a href="https://www.ilyanglogis.co.kr/" target="_blank" class="quick-link-item">
+            <div class="quick-link-icon">📦</div>
+            <span class="quick-link-text">일양 택배</span>
+        </a>
+        <a href="https://www.allwinedu.co.kr/" target="_blank" class="quick-link-item">
+            <div class="quick-link-icon">📚</div>
+            <span class="quick-link-text">올윈에듀</span>
+        </a>
+    </div>
+
     <!-- 로그인 화면 -->
     <div class="login-overlay" id="loginOverlay">
         <div class="login-box">
@@ -677,6 +773,8 @@
                 sessionStorage.setItem('hiqasc_authenticated', 'true');
                 document.getElementById('loginOverlay').style.display = 'none';
                 document.getElementById('mainContent').classList.add('unlocked');
+                // 퀵 링크 사이드바 표시
+                document.getElementById('quickLinks').classList.add('show');
             } else {
                 errorDiv.style.display = 'block';
                 setTimeout(() => {
@@ -713,6 +811,8 @@
             if (sessionStorage.getItem('hiqasc_authenticated') === 'true') {
                 document.getElementById('loginOverlay').style.display = 'none';
                 document.getElementById('mainContent').classList.add('unlocked');
+                // 퀵 링크 사이드바 표시
+                document.getElementById('quickLinks').classList.add('show');
             }
         });
     </script>
