@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HIQASC 위키 시스템</title>
+    <script src="https://donggukang09.github.io/hiqasc-platform/config.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
+            background: #2a2a2a;
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* 헤더 */
+        .header {
+            background: #1e1e1e;
+            border: 1px solid #3a3a3a;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .back-button {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #5dade2 0%, #3498db 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .back-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(93, 173, 226, 0.4);
+        }
+
+        .header h1 {
+            font-size: 2em;
+            color: #ffffff;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #808080;
+            font-size: 1em;
+        }
+
+        /* 검색창 */
+        .search-box {
+            background: #1e1e1e;
+            border: 1px solid #3a3a3a;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .search-input-wrapper {
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 18px 60px 18px 50px;
+            background: #2a2a2a;
+            border: 2px solid #3a3a3a;
+            border-radius: 10px;
+            color: #e0e0e0;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #4a90e2;
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 20px;
+            color: #808080;
+        }
+
+        .clear-btn {
+            position: absolute;
+            right: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: none;
+        }
+
+        .clear-btn:hover {
+            background: #c0392b;
+        }
+
+        .clear-btn.visible {
+            display: block;
+        }
+
+        /* 결과 영역 */
+        .results-header {
+            background: #1e1e1e;
+            border: 1px solid #3a3a3a;
+            border-radius: 12px;
+            padding: 20px 30px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .results-count {
+            font-size: 1.1em;
+            color: #4a90e2;
+            font-weight: 600;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #808080;
+            display: none;
+        }
+
+        .loading.visible {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #3a3a3a;
+            border-top: 3px solid #4a90e2;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            color: #808080;
+            display: none;
+        }
+
+        .no-results.visible {
+            display: block;
+        }
+
+        .no-results-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+
+        /* 위키 항목 카드 */
+        .wiki-item {
+            background: #1e1e1e;
+            border: 1px solid #3a3a3a;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .wiki-item:hover {
+            border-color: #4a90e2;
+            box-shadow: 0 4px 16px rgba(74, 144, 226, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .wiki-field {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .wiki-field:last-child {
+            margin-bottom: 0;
+        }
+
+        .wiki-label {
+            min-width: 100px;
+            font-weight: 600;
+            color: #4a90e2;
+            margin-right: 15px;
+            font-size: 14px;
+        }
+
+        .wiki-value {
+            flex: 1;
+            color: #e0e0e0;
+            line-height: 1.6;
+            word-break: break-word;
+        }
+
+        .wiki-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .wiki-tag {
+            background: rgba(74, 144, 226, 0.2);
+            border: 1px solid rgba(74, 144, 226, 0.4);
+            color: #4a90e2;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 30px;
+            color: #606060;
+            font-size: 0.85em;
+            margin-top: 50px;
+        }
+
+        .developer-tag {
+            margin-top: 8px;
+            font-weight: 600;
+            color: #4a90e2;
+        }
+
+        /* 반응형 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .header h1 {
+                font-size: 1.5em;
+            }
+
+            .wiki-field {
+                flex-direction: column;
+            }
+
+            .wiki-label {
+                margin-bottom: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 헤더 -->
+        <div class="header">
+            <a href="https://donggukang09.github.io/hiqasc-platform/" class="back-button">← 메인으로</a>
+            <h1>📚 HIQASC 위키 시스템</h1>
+            <p>수리 매뉴얼 및 증상별 해결방법 검색</p>
+        </div>
+
+        <!-- 검색창 -->
+        <div class="search-box">
+            <div class="search-input-wrapper">
+                <span class="search-icon">🔍</span>
+                <input 
+                    type="text" 
+                    class="search-input" 
+                    id="searchInput"
+                    placeholder="모델명, 증상, 부품명 등을 검색하세요... (예: 추출안됨, 버츄오 플러스)"
+                >
+                <button class="clear-btn" id="clearBtn" onclick="clearSearch()">지우기</button>
+            </div>
+        </div>
+
+        <!-- 로딩 -->
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>검색 중...</p>
+        </div>
+
+        <!-- 결과 없음 -->
+        <div class="no-results" id="noResults">
+            <div class="no-results-icon">🔍</div>
+            <h2 style="color: #808080; margin-bottom: 10px;">검색 결과가 없습니다</h2>
+            <p>다른 키워드로 검색해보세요</p>
+        </div>
+
+        <!-- 결과 헤더 -->
+        <div class="results-header" id="resultsHeader" style="display: none;">
+            <div class="results-count" id="resultsCount">검색 결과: 0건</div>
+        </div>
+
+        <!-- 결과 목록 -->
+        <div id="resultsList"></div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>© 2025 HIQASC Wiki System. All rights reserved.</p>
+            <p class="developer-tag">DEVELOPED BY DONGGU KANG</p>
+        </div>
+    </div>
+
+    <script>
+        // Google Sheets 설정
+        const WIKI_SHEET_ID = SHEETS_CONFIG.wiki; // config.js에서 가져옴
+        const SHEET_NAME = '위키데이터';
+        
+        let allData = [];
+        let searchTimeout;
+
+        // 페이지 로드 시 데이터 가져오기
+        window.addEventListener('load', () => {
+            fetchWikiData();
+        });
+
+        // 검색 입력 이벤트
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const query = e.target.value.trim();
+            
+            // 지우기 버튼 표시/숨김
+            if (query) {
+                document.getElementById('clearBtn').classList.add('visible');
+            } else {
+                document.getElementById('clearBtn').classList.remove('visible');
+            }
+
+            // 디바운싱 (300ms 후 검색)
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                if (query) {
+                    searchWiki(query);
+                } else {
+                    displayAllData();
+                }
+            }, 300);
+        });
+
+        // Enter 키로 검색
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const query = e.target.value.trim();
+                if (query) {
+                    searchWiki(query);
+                }
+            }
+        });
+
+        // 검색 지우기
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('clearBtn').classList.remove('visible');
+            displayAllData();
+        }
+
+        // Google Sheets에서 데이터 가져오기
+        async function fetchWikiData() {
+            const loading = document.getElementById('loading');
+            loading.classList.add('visible');
+
+            try {
+                const url = `https://docs.google.com/spreadsheets/d/${WIKI_SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
+                
+                const response = await fetch(url);
+                const text = await response.text();
+                
+                // JSON 파싱
+                const json = JSON.parse(text.substring(47).slice(0, -2));
+                
+                // 데이터 변환
+                allData = json.table.rows.map(row => ({
+                    model: row.c[0]?.v || '',
+                    symptom: row.c[1]?.v || '',
+                    solution: row.c[2]?.v || '',
+                    parts: row.c[3]?.v || '',
+                    note: row.c[4]?.v || '',
+                    tags: row.c[5]?.v || ''
+                }));
+
+                loading.classList.remove('visible');
+                displayAllData();
+
+            } catch (error) {
+                console.error('데이터 로드 오류:', error);
+                loading.classList.remove('visible');
+                alert('데이터를 불러오는데 실패했습니다.');
+            }
+        }
+
+        // 전체 데이터 표시
+        function displayAllData() {
+            displayResults(allData);
+        }
+
+        // 검색 실행
+        function searchWiki(query) {
+            const queryLower = query.toLowerCase();
+            
+            const filtered = allData.filter(item => {
+                return (
+                    item.model.toLowerCase().includes(queryLower) ||
+                    item.symptom.toLowerCase().includes(queryLower) ||
+                    item.solution.toLowerCase().includes(queryLower) ||
+                    item.parts.toLowerCase().includes(queryLower) ||
+                    item.note.toLowerCase().includes(queryLower) ||
+                    item.tags.toLowerCase().includes(queryLower)
+                );
+            });
+
+            displayResults(filtered);
+        }
+
+        // 결과 표시
+        function displayResults(data) {
+            const resultsList = document.getElementById('resultsList');
+            const resultsHeader = document.getElementById('resultsHeader');
+            const resultsCount = document.getElementById('resultsCount');
+            const noResults = document.getElementById('noResults');
+
+            resultsList.innerHTML = '';
+
+            if (data.length === 0) {
+                resultsHeader.style.display = 'none';
+                noResults.classList.add('visible');
+                return;
+            }
+
+            noResults.classList.remove('visible');
+            resultsHeader.style.display = 'flex';
+            resultsCount.textContent = `검색 결과: ${data.length}건`;
+
+            data.forEach(item => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'wiki-item';
+                
+                // 해시태그 처리
+                const tags = item.tags.split(' ').filter(tag => tag.trim());
+                const tagsHtml = tags.length > 0 
+                    ? `<div class="wiki-tags">${tags.map(tag => `<span class="wiki-tag">${tag}</span>`).join('')}</div>`
+                    : '<span style="color: #808080;">-</span>';
+
+                itemDiv.innerHTML = `
+                    <div class="wiki-field">
+                        <div class="wiki-label">모델</div>
+                        <div class="wiki-value">${item.model || '-'}</div>
+                    </div>
+                    <div class="wiki-field">
+                        <div class="wiki-label">증상</div>
+                        <div class="wiki-value">${item.symptom || '-'}</div>
+                    </div>
+                    <div class="wiki-field">
+                        <div class="wiki-label">해결방법</div>
+                        <div class="wiki-value">${item.solution || '-'}</div>
+                    </div>
+                    <div class="wiki-field">
+                        <div class="wiki-label">사용부품</div>
+                        <div class="wiki-value">${item.parts || '-'}</div>
+                    </div>
+                    <div class="wiki-field">
+                        <div class="wiki-label">비고</div>
+                        <div class="wiki-value">${item.note || '-'}</div>
+                    </div>
+                    <div class="wiki-field">
+                        <div class="wiki-label">태그</div>
+                        <div class="wiki-value">${tagsHtml}</div>
+                    </div>
+                `;
+
+                resultsList.appendChild(itemDiv);
+            });
+        }
+    </script>
+</body>
+</html>
