@@ -13,5 +13,6 @@ const APPS_SCRIPT_CONFIG = {
     suppliesRequest: 'https://script.google.com/macros/s/AKfycbzuZ0u1GJAnWh5LmHJqw43rjb2TrrNIxrnzowaHe1iO0uqctHRFkCEVaZRPYKIMxlZjMQ/exec',
     parts: 'https://script.google.com/macros/s/AKfycbxH-usbWLQYim1T32p9ClYSnXnSToLQgebuQMGv9Apz3ThDx8wZkqaEEant6EiUWTAI/exec',
     leave: 'https://script.google.com/macros/s/AKfycbymUluI5lJ6PYRlDrAUIvZ5yCE0wjD0WVy6fpC7HkYfl8JhQjVbqsnvDVt9QOgl0mnY/exec',
-    overtime: 'https://script.google.com/macros/s/AKfycbymUluI5lJ6PYRlDrAUIvZ5yCE0wjD0WVy6fpC7HkYfl8JhQjVbqsnvDVt9QOgl0mnY/exec'
+    overtime: 'https://script.google.com/macros/s/AKfycbymUluI5lJ6PYRlDrAUIvZ5yCE0wjD0WVy6fpC7HkYfl8JhQjVbqsnvDVt9QOgl0mnY/exec',
+    쟈ㅏㅑ: 'https://script.google.com/macros/s/AKfycbwHPmVKR7wGBg9Ksc_BEQGtcN8r6u88I67lwYd8DxE5yE3xY75VMFhHqqItFrV36_78XQ/exec'
 };
