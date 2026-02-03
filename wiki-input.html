@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>위키 데이터 입력</title>
+    <script src="https://donggukang09.github.io/hiqasc-platform/config.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
+            background: #2a2a2a;
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* 헤더 */
+        .header {
+            background: #1e1e1e;
+            border: 1px solid #3a3a3a;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .back-button {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #5dade2 0%, #3498db 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .back-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(93, 173, 226, 0.4);
+        }
+
+        .header h1 {
+            font-size: 2em;
+            color: #ffffff;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #808080;
+            font-size: 1em;
+        }
+
+        /* 입력 폼 */
+        .input-form {
+            background: #1e1e1e;
+            border: 1px solid #3a3a3a;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            color: #4a90e2;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .form-label .required {
+            color: #e74c3c;
+            margin-left: 4px;
+        }
+
+        .form-input,
+        .form-textarea {
+            width: 100%;
+            padding: 12px 15px;
+            background: #2a2a2a;
+            border: 2px solid #3a3a3a;
+            border-radius: 8px;
+            color: #e0e0e0;
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+
+        .form-input:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: #4a90e2;
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2);
+        }
+
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .form-hint {
+            font-size: 12px;
+            color: #808080;
+            margin-top: 6px;
+        }
+
+        /* 버튼 그룹 */
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .submit-button {
+            flex: 1;
+            padding: 15px;
+            background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .submit-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(39, 174, 96, 0.4);
+        }
+
+        .submit-button:disabled {
+            background: #3a3a3a;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .reset-button {
+            padding: 15px 30px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .reset-button:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
+        }
+
+        /* 로딩 오버레이 */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .loading-overlay.visible {
+            display: flex;
+        }
+
+        .loading-content {
+            text-align: center;
+        }
+
+        .spinner {
+            border: 4px solid #3a3a3a;
+            border-top: 4px solid #4a90e2;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 성공/실패 메시지 */
+        .message-box {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 20px 30px;
+            border-radius: 10px;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            z-index: 10000;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .message-box.success {
+            background: #27ae60;
+            color: white;
+        }
+
+        .message-box.error {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .message-box.visible {
+            display: block;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 30px;
+            color: #606060;
+            font-size: 0.85em;
+            margin-top: 50px;
+        }
+
+        .developer-tag {
+            margin-top: 8px;
+            font-weight: 600;
+            color: #4a90e2;
+        }
+
+        /* 반응형 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .header h1 {
+                font-size: 1.5em;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .message-box {
+                right: 10px;
+                left: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 헤더 -->
+        <div class="header">
+            <a href="https://donggukang09.github.io/hiqasc-platform/" class="back-button">← 메인으로</a>
+            <h1>📝 위키 데이터 입력</h1>
+            <p>새로운 수리 매뉴얼 및 해결방법을 등록합니다</p>
+        </div>
+
+        <!-- 입력 폼 -->
+        <div class="input-form">
+            <form id="wikiForm">
+                <div class="form-group">
+                    <label class="form-label">
+                        모델명<span class="required">*</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        class="form-input" 
+                        id="model"
+                        placeholder="예: 버츄오 플러스, 라티시마 원"
+                        required
+                    >
+                    <div class="form-hint">기기의 정확한 모델명을 입력하세요</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        증상<span class="required">*</span>
+                    </label>
+                    <textarea 
+                        class="form-textarea" 
+                        id="symptom"
+                        placeholder="예: 커피 추출이 안됨, 물이 새어나옴"
+                        required
+                    ></textarea>
+                    <div class="form-hint">발생한 증상을 상세히 설명하세요</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        해결방법<span class="required">*</span>
+                    </label>
+                    <textarea 
+                        class="form-textarea" 
+                        id="solution"
+                        placeholder="예: 1. 물탱크 확인 2. 펌프 청소 3. ..."
+                        required
+                    ></textarea>
+                    <div class="form-hint">해결 방법을 단계별로 설명하세요</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        사용부품
+                    </label>
+                    <input 
+                        type="text" 
+                        class="form-input" 
+                        id="parts"
+                        placeholder="예: 펌프, O링, 워터탱크"
+                    >
+                    <div class="form-hint">수리에 사용된 부품명을 입력하세요 (선택사항)</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        비고
+                    </label>
+                    <textarea 
+                        class="form-textarea" 
+                        id="note"
+                        placeholder="추가 메모나 주의사항"
+                    ></textarea>
+                    <div class="form-hint">추가로 남길 메모나 주의사항을 입력하세요 (선택사항)</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        해시태그
+                    </label>
+                    <input 
+                        type="text" 
+                        class="form-input" 
+                        id="tags"
+                        placeholder="예: #추출안됨 #워터누수 #버츄오"
+                    >
+                    <div class="form-hint">검색을 위한 태그를 #으로 구분하여 입력하세요 (선택사항)</div>
+                </div>
+
+                <div class="button-group">
+                    <button type="submit" class="submit-button" id="submitBtn">
+                        📤 등록하기
+                    </button>
+                    <button type="button" class="reset-button" onclick="resetForm()">
+                        🔄 초기화
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>© 2025 HIQASC Wiki System. All rights reserved.</p>
+            <p class="developer-tag">DEVELOPED BY DONGGU KANG</p>
+        </div>
+    </div>
+
+    <!-- 로딩 오버레이 -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p style="color: #e0e0e0; font-size: 16px;">데이터를 등록하는 중...</p>
+        </div>
+    </div>
+
+    <!-- 메시지 박스 -->
+    <div class="message-box" id="messageBox"></div>
+
+    <script>
+        // Google Sheets 설정
+        const WIKI_SHEET_ID = SHEETS_CONFIG.wiki;
+        const WIKI_APPS_SCRIPT_URL = APPS_SCRIPT_CONFIG.wiki || APPS_SCRIPT_CONFIG.suppliesRequest; // 임시로 supplies 스크립트 사용
+
+        // 폼 제출 처리
+        document.getElementById('wikiForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            
+            // 입력값 가져오기
+            const formData = {
+                model: document.getElementById('model').value.trim(),
+                symptom: document.getElementById('symptom').value.trim(),
+                solution: document.getElementById('solution').value.trim(),
+                parts: document.getElementById('parts').value.trim(),
+                note: document.getElementById('note').value.trim(),
+                tags: document.getElementById('tags').value.trim()
+            };
+
+            // 필수 항목 검증
+            if (!formData.model || !formData.symptom || !formData.solution) {
+                showMessage('필수 항목을 모두 입력해주세요.', 'error');
+                return;
+            }
+
+            // 버튼 비활성화 및 로딩 표시
+            submitBtn.disabled = true;
+            loadingOverlay.classList.add('visible');
+
+            try {
+                // Apps Script로 데이터 전송
+                const response = await fetch(WIKI_APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'addWikiData',
+                        data: formData
+                    })
+                });
+
+                // no-cors 모드에서는 응답을 확인할 수 없으므로 성공으로 간주
+                showMessage('✅ 위키 데이터가 성공적으로 등록되었습니다!', 'success');
+                
+                // 폼 초기화
+                setTimeout(() => {
+                    document.getElementById('wikiForm').reset();
+                }, 1500);
+
+            } catch (error) {
+                console.error('등록 오류:', error);
+                showMessage('❌ 데이터 등록 중 오류가 발생했습니다.', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                loadingOverlay.classList.remove('visible');
+            }
+        });
+
+        // 폼 초기화
+        function resetForm() {
+            if (confirm('입력한 내용을 모두 지우시겠습니까?')) {
+                document.getElementById('wikiForm').reset();
+                showMessage('입력 내용이 초기화되었습니다.', 'success');
+            }
+        }
+
+        // 메시지 표시
+        function showMessage(message, type) {
+            const messageBox = document.getElementById('messageBox');
+            messageBox.textContent = message;
+            messageBox.className = `message-box ${type} visible`;
+            
+            setTimeout(() => {
+                messageBox.classList.remove('visible');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
