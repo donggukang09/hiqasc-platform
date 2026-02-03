@@ -6,6 +6,7 @@ const SHEETS_CONFIG = {
     dailyReport: '1eyZOi_yD76jijCV8yE5k-FThswFlNu5OxdMy0IRdlEs',
     overtime: '12U0BzTsjxPfK3AZqQyY479ozC0g1T3Cxutj6XmN75-k',
     machineQuantity: '111K9l8gt-14roqvynNFEJrT2aLsTYjU8gQBsKNiyFmI'
+    wiki: '1yEwC43ULV1baQ7rYJ2He1wgkEEl00FNMgo7gBkD9auM'
 };
 
 const APPS_SCRIPT_CONFIG = {
