@@ -437,6 +437,10 @@
                 itemsData = parseGoogleSheetsData(itemsText);
                 requestsData = parseGoogleSheetsData(requestsText);
 
+                console.log('품목 데이터:', itemsData.length, '개');
+                console.log('신청 데이터:', requestsData.length, '개');
+                console.log('신청 내역:', requestsData);
+
                 populateDropdowns();
                 displayRequests();
 
@@ -469,7 +473,13 @@
                 });
                 obj['_rowIndex'] = index + 2;
                 return obj;
-            }).filter(row => Object.values(row).some(v => v && v !== row['_rowIndex']));
+            }).filter(row => {
+                // _rowIndex를 제외한 값이 하나라도 있으면 유효한 행
+                const values = Object.entries(row)
+                    .filter(([key, val]) => key !== '_rowIndex')
+                    .map(([key, val]) => val);
+                return values.some(v => v !== null && v !== undefined && v !== '');
+            });
         }
 
         function populateDropdowns() {
@@ -716,7 +726,7 @@
             alert.classList.add('active');
             
             setTimeout(() => {
-                alert.classList.remove('visible');
+                alert.classList.remove('active');
             }, 3000);
         }
 
