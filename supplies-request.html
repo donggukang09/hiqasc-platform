@@ -426,6 +426,10 @@
                 const itemsUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${ITEMS_SHEET}`;
                 const requestsUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${REQUESTS_SHEET}`;
 
+                console.log('시트 ID:', SHEET_ID);
+                console.log('품목 시트명:', ITEMS_SHEET);
+                console.log('신청 시트명:', REQUESTS_SHEET);
+
                 const [itemsResponse, requestsResponse] = await Promise.all([
                     fetch(itemsUrl),
                     fetch(requestsUrl)
@@ -433,6 +437,8 @@
 
                 const itemsText = await itemsResponse.text();
                 const requestsText = await requestsResponse.text();
+
+                console.log('신청 데이터 원본 (처음 200자):', requestsText.substring(0, 200));
 
                 itemsData = parseGoogleSheetsData(itemsText);
                 requestsData = parseGoogleSheetsData(requestsText);
