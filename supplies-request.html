@@ -467,6 +467,7 @@
                         obj[header] = cell ? cell.v : null;
                     }
                 });
+                obj['_rowIndex'] = index + 2;
                 return obj;
             }).filter(row => Object.values(row).some(v => v));
         }
@@ -644,6 +645,7 @@
                 const tr = document.createElement('tr');
                 
                 const realIndex = requestsData.length - 1 - index;
+                const rowIndex = row['_rowIndex'];
 
                 tr.innerHTML = `
                     <td>${row['신청일시'] || '-'}</td>
@@ -653,7 +655,7 @@
                     <td>${row['단위'] || '-'}</td>
                     <td>${row['신청자'] || '-'}</td>
                     <td>
-                        <select class="status-select" onchange="updateStatus(${realIndex}, this.value)">
+                        <select class="status-select" onchange="updateStatus(${realIndex}, ${rowIndex}, this.value)">
                             <option value="요청중" ${row['상태'] === '요청중' ? 'selected' : ''}>요청중</option>
                             <option value="구매대기중" ${row['상태'] === '구매대기중' ? 'selected' : ''}>구매대기중</option>
                             <option value="완료" ${row['상태'] === '완료' ? 'selected' : ''}>완료</option>
@@ -670,18 +672,43 @@
             }
         }
 
-        function updateStatus(index, newStatus) {
-            requestsData[index]['상태'] = newStatus;
-            
-            if (newStatus === '완료') {
-                const now = new Date();
-                requestsData[index]['완료일시'] = now.toLocaleString('ko-KR');
-            } else {
-                requestsData[index]['완료일시'] = '';
-            }
-
-            displayRequests();
+        async function updateStatus(arrayIndex, rowIndex, newStatus) {
+    try {
+        // 로컬 데이터 업데이트
+        requestsData[arrayIndex]['상태'] = newStatus;
+        
+        let completedTime = '';
+        if (newStatus === '완료') {
+            const now = new Date();
+            completedTime = now.toLocaleString('ko-KR');
+            requestsData[arrayIndex]['완료일시'] = completedTime;
+        } else {
+            requestsData[arrayIndex]['완료일시'] = '';
         }
+
+        // 화면 즉시 업데이트
+        displayRequests();
+
+        // Apps Script로 실제 시트 업데이트
+        const params = new URLSearchParams({
+            action: 'updateStatus',
+            rowIndex: rowIndex,
+            status: newStatus,
+            completedTime: completedTime
+        });
+
+        await fetch(`${WEB_APP_URL}?${params.toString()}`, {
+            method: 'GET',
+            mode: 'no-cors'
+        });
+
+        console.log('상태 업데이트 완료:', rowIndex, newStatus);
+
+    } catch (error) {
+        console.error('상태 업데이트 오류:', error);
+        showAlert('error');
+    }
+}
 
         function showAlert(type) {
             const alert = document.getElementById(type === 'success' ? 'successAlert' : 'errorAlert');
