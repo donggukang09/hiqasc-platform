@@ -417,7 +417,14 @@
             }
         }
     </style>
-    <script src="config.js"></script>
+    <script>
+        // 캐시 버스터: config.js를 항상 최신 버전으로 로드
+        (function() {
+            const script = document.createElement('script');
+            script.src = 'config.js?v=' + Date.now();
+            document.head.appendChild(script);
+        })();
+    </script>
 </head>
 <body>
     <!-- 헤더 -->
@@ -538,7 +545,7 @@
         // ============================================
         // Google Sheets 설정
         // ============================================
-        const SHEET_ID = SHEETS_CONFIG.machineQuantity;
+        const SHEET_ID = SHEETS_CONFIG.REPAIR_DATA;
         const COMPLETE_SHEET_NAME = '완료';
         const REMAINING_SHEET_NAME = '잔여';
 

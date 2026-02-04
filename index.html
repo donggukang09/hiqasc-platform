@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 2.2.0 | Updated: 2025-02-03 15:45:00 | Cache Buster: 1738571100 | Wiki Added -->
+<!-- Version: 2.3.0 | Updated: 2026-02-04 13:00:00 | Cache Buster: 1738650000 | Supplies Fixed -->
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -462,7 +462,14 @@
             }
         }
     </style>
-    <script src="config.js"></script>
+    <script>
+        // 캐시 버스터: config.js를 항상 최신 버전으로 로드
+        (function() {
+            const script = document.createElement('script');
+            script.src = 'config.js?v=' + Date.now();
+            document.head.appendChild(script);
+        })();
+    </script>
 </head>
 <body>
     <!-- 퀵 링크 사이드바 (새로 추가) -->

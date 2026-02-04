@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>추가 근로 신청 - HIQASC</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #3d4e5c 0%, #2c3e50 100%);
+            min-height: 100vh;
+            padding: 15px;
+        }
+
+        .container {
+            max-width: 770px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .logo-section {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .logo {
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .hiqasc { color: #718096; }
+        .nespresso { color: #a0aec0; }
+
+        h1 {
+            text-align: center;
+            color: #2d3748;
+            font-size: 22px;
+            margin-bottom: 6px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #718096;
+            font-size: 12px;
+        }
+
+        .form-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 4px;
+            color: #2d3748;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        select, input[type="date"], input[type="time"], textarea {
+            width: 100%;
+            padding: 7px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 12px;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        select:focus, input:focus, textarea:focus {
+            outline: none;
+            border-color: #5dade2;
+            box-shadow: 0 0 0 3px rgba(93, 173, 226, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .time-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .info-box {
+            background: #ecf5fb;
+            border-left: 4px solid #5dade2;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 12px;
+            color: #2d3748;
+        }
+
+        .info-box strong {
+            display: block;
+            margin-bottom: 4px;
+            color: #2980b9;
+            font-size: 12px;
+        }
+
+        .warning-box {
+            background: #fff5f5;
+            border-left: 4px solid #fc8181;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 12px;
+            color: #742a2a;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 10px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(52, 73, 94, 0.4);
+            background: linear-gradient(135deg, #2c3e50 0%, #1a252f 100%);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .submit-btn:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 15px;
+            color: white;
+            opacity: 0.8;
+            font-size: 11px;
+            margin-top: 15px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 15px;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #5dade2;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .success-message, .error-message {
+            display: none;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .success-message {
+            background: #c6f6d5;
+            color: #22543d;
+            border: 2px solid #48bb78;
+        }
+
+        .error-message {
+            background: #fed7d7;
+            color: #742a2a;
+            border: 2px solid #fc8181;
+        }
+
+        #weeklyHoursDisplay {
+            font-size: 13px;
+            font-weight: bold;
+            color: #2d3748;
+            padding: 8px;
+            background: #edf2f7;
+            border-radius: 6px;
+            text-align: center;
+            margin-top: 8px;
+        }
+
+        .overtime-limit {
+            color: #e53e3e;
+        }
+
+        #hoursDisplay {
+            padding: 10px;
+            background: #e6f7ff;
+            border-radius: 6px;
+            text-align: center;
+            margin-bottom: 15px;
+            border-left: 4px solid #5dade2;
+        }
+
+        #hoursDisplay strong {
+            color: #2c3e50;
+            font-size: 14px;
+        }
+
+        #weeklyProgressDisplay {
+            padding: 12px;
+            background: #f0f9ff;
+            border-radius: 6px;
+            text-align: center;
+            margin-bottom: 15px;
+            border-left: 4px solid #3b82f6;
+        }
+
+        #weeklyProgressDisplay .progress-text {
+            color: #1e40af;
+            font-size: 15px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        #weeklyProgressDisplay .progress-bar-container {
+            background: #dbeafe;
+            height: 24px;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            margin-top: 8px;
+        }
+
+        #weeklyProgressDisplay .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        #weeklyProgressDisplay .progress-bar.warning {
+            background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%);
+        }
+
+        #weeklyProgressDisplay .progress-bar.danger {
+            background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        /* 애니메이션 추가 */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        #weeklyProgressDisplay {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        /* 팝업 모달 스타일 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 0;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 350px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-30px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px 12px 0 0;
+            text-align: center;
+        }
+
+        .modal-header-error {
+            background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+        }
+
+        .modal-icon {
+            font-size: 40px;
+            margin-bottom: 8px;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .modal-body {
+            padding: 20px;
+            text-align: center;
+            color: #2d3748;
+            line-height: 1.6;
+            font-size: 13px;
+        }
+
+        .modal-body strong {
+            display: block;
+            margin-top: 12px;
+            font-size: 14px;
+            color: #4a5568;
+        }
+
+        .modal-button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 15px;
+        }
+
+        .modal-button:hover {
+            background: linear-gradient(135deg, #2c3e50 0%, #1a252f 100%);
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 메인으로 버튼 -->
+        <div style="text-align: center; margin-bottom: 12px;">
+            <button onclick="window.location.href='https://donggukang09.github.io/hiqasc-platform/'" 
+                    style="padding: 10px 20px; background: linear-gradient(135deg, #5dade2 0%, #3498db 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.3s; box-shadow: 0 2px 8px rgba(93, 173, 226, 0.3);"
+                    onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(93, 173, 226, 0.4)'"
+                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(93, 173, 226, 0.3)'">
+                ← 메인으로
+            </button>
+        </div>
+
+        <div class="header">
+            <div class="logo-section">
+                <span class="logo hiqasc">HIQASC</span>
+                <span class="logo nespresso">Nespresso</span>
+            </div>
+            <h1>📋 추가 근로 신청</h1>
+            <p class="subtitle">정규 업무 시간 외 조근 및 야근 신청</p>
+        </div>
+
+        <div class="form-container">
+            <div class="success-message" id="successMessage">
+                ✅ 추가 근로 신청이 완료되었습니다!
+            </div>
+            <div class="error-message" id="errorMessage">
+                ❌ 오류가 발생했습니다. 다시 시도해주세요.
+            </div>
+
+            <div class="info-box">
+                <strong>📋 신청 안내</strong>
+                평일: 조근(8-9시), 야근(18-21시, 1시간 단위)<br>
+                주말: 08:00-18:00 (1시간 단위 선택 가능)<br>
+                주간 최대 12시간 제한<br>
+                <span style="color: #48bb78; font-weight: bold;">✅ 같은 날 조근+야근 신청 가능</span>
+            </div>
+
+            <div class="warning-box">
+                <strong>⚠️ 주의사항</strong>
+                주당 최대 12시간까지만 신청 가능합니다.<br>
+                신청 후 관리자 승인이 필요합니다.
+            </div>
+
+            <form id="overtimeForm">
+                <div class="form-group">
+                    <label for="name">신청자 *</label>
+                    <select id="name" required>
+                        <option value="">선택하세요</option>
+                        <option value="강동구">강동구</option>
+                        <option value="곽연학">곽연학</option>
+                        <option value="김지수">김지수</option>
+                        <option value="김현관">김현관</option>
+                        <option value="박준현">박준현</option>
+                        <option value="신준호">신준호</option>
+                        <option value="안정용">안정용</option>
+                        <option value="이대민">이대민</option>
+                        <option value="이덕수">이덕수</option>
+                        <option value="이동민">이동민</option>
+                        <option value="이상민">이상민</option>
+                        <option value="장균수">장균수</option>
+                        <option value="조성주">조성주</option>
+                        <option value="최재웅">최재웅</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="date">날짜 *</label>
+                    <input type="date" id="date" required>
+                    <div id="weeklyHoursDisplay" style="display:none;"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="type">근무 유형 *</label>
+                    <select id="type" required>
+                        <option value="">선택하세요</option>
+                        <option value="조근">조근 (평일 08:00-09:00)</option>
+                        <option value="야근">야근 (평일 18:00-21:00, 1시간 단위)</option>
+                        <option value="주말">주말 근무 (08:00-18:00, 1시간 단위)</option>
+                    </select>
+                </div>
+
+                <div class="time-selector">
+                    <div class="form-group">
+                        <label for="startTime">시작 시간 *</label>
+                        <select id="startTime" required>
+                            <option value="">선택하세요</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="endTime">종료 시간 *</label>
+                        <select id="endTime" required>
+                            <option value="">선택하세요</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="hoursDisplay" style="display: none;">
+                    <strong>총 근무시간: <span id="totalHours">0</span>시간</strong>
+                </div>
+
+                <!-- 주간 신청 현황 -->
+                <div id="weeklyProgressDisplay" style="display: none;">
+                    <div class="progress-text">
+                        신청된 시간: <span id="weeklyUsedHours">0</span>시간 / 신청 가능: <span id="weeklyRemainingHours">12</span>시간
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="progressBar" style="width: 0%;">
+                            <span id="progressPercent">0%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="reason">사유 / 업무 내용 *</label>
+                    <textarea id="reason" required placeholder="추가 근로가 필요한 사유나 수행할 업무 내용을 입력해주세요"></textarea>
+                </div>
+
+                <button type="submit" class="submit-btn" id="submitBtn">신청하기</button>
+            </form>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p style="margin-top: 15px; color: #667eea;">처리 중...</p>
+            </div>
+        </div>
+
+        <div class="footer">
+            DEVELOPED BY DONGGU KANG © 2026 HIQASC
+        </div>
+    </div>
+
+    <!-- 성공 팝업 모달 -->
+    <div id="successModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-icon">✅</div>
+                <h2 class="modal-title">신청 완료!</h2>
+            </div>
+            <div class="modal-body">
+                <p>추가 근로 신청이 성공적으로 접수되었습니다.</p>
+                <strong id="modalDetails"></strong>
+                <p style="margin-top: 15px; font-size: 14px; color: #718096;">
+                    관리자 승인 후 이메일로 알림을 받으실 수 있습니다.
+                </p>
+                <button class="modal-button" onclick="closeModal()">확인</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 에러 팝업 모달 -->
+    <div id="errorModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header modal-header-error">
+                <div class="modal-icon">❌</div>
+                <h2 class="modal-title">신청 실패</h2>
+            </div>
+            <div class="modal-body">
+                <p id="errorModalMessage">신청 처리 중 오류가 발생했습니다.</p>
+                <button class="modal-button" onclick="closeModal()">확인</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Google Apps Script Web App URL (배포 후 입력)
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzOEsw-0XIUQJYHdTmsCpiMOY9UvyJzoLfMILLlBshN6Drbdj4xMmre1BUOpP9CjaQU/exec';
+
+        const form = document.getElementById('overtimeForm');
+        const typeSelect = document.getElementById('type');
+        const startTimeSelect = document.getElementById('startTime');
+        const endTimeSelect = document.getElementById('endTime');
+        const dateInput = document.getElementById('date');
+        const nameSelect = document.getElementById('name');
+        const weeklyHoursDisplay = document.getElementById('weeklyHoursDisplay');
+
+        // 모달 열기/닫기 함수
+        function showSuccessModal(name, date, type, startTime, endTime, hours) {
+            const modal = document.getElementById('successModal');
+            const details = document.getElementById('modalDetails');
+            details.innerHTML = `
+                ${name}님 | ${date}<br>
+                ${type}: ${startTime} - ${endTime} (${hours}시간)
+            `;
+            modal.style.display = 'block';
+        }
+
+        function showErrorModal(message) {
+            const modal = document.getElementById('errorModal');
+            const errorMessage = document.getElementById('errorModalMessage');
+            errorMessage.textContent = message || '신청 처리 중 오류가 발생했습니다.';
+            modal.style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('successModal').style.display = 'none';
+            document.getElementById('errorModal').style.display = 'none';
+        }
+
+        // 모달 외부 클릭시 닫기
+        window.onclick = function(event) {
+            const successModal = document.getElementById('successModal');
+            const errorModal = document.getElementById('errorModal');
+            if (event.target == successModal) {
+                closeModal();
+            }
+            if (event.target == errorModal) {
+                closeModal();
+            }
+        }
+
+        // 시간 옵션 설정
+        typeSelect.addEventListener('change', function() {
+            const type = this.value;
+            startTimeSelect.innerHTML = '<option value="">선택하세요</option>';
+            endTimeSelect.innerHTML = '<option value="">선택하세요</option>';
+
+            if (type === '조근') {
+                startTimeSelect.innerHTML += '<option value="08:00">08:00</option>';
+                endTimeSelect.innerHTML += '<option value="09:00">09:00</option>';
+            } else if (type === '야근') {
+                for (let i = 18; i <= 21; i++) {
+                    const time = `${i}:00`;
+                    startTimeSelect.innerHTML += `<option value="${time}">${time}</option>`;
+                    endTimeSelect.innerHTML += `<option value="${time}">${time}</option>`;
+                }
+            } else if (type === '주말') {
+                for (let i = 8; i <= 18; i++) {
+                    const time = `${String(i).padStart(2, '0')}:00`;
+                    startTimeSelect.innerHTML += `<option value="${time}">${time}</option>`;
+                    endTimeSelect.innerHTML += `<option value="${time}">${time}</option>`;
+                }
+            }
+        });
+
+        // 시작 시간 선택 시 종료 시간 옵션 필터링
+        startTimeSelect.addEventListener('change', function() {
+            const type = typeSelect.value;
+            const startTime = this.value;
+            
+            if (!startTime) {
+                endTimeSelect.innerHTML = '<option value="">선택하세요</option>';
+                return;
+            }
+
+            endTimeSelect.innerHTML = '<option value="">선택하세요</option>';
+            
+            const startHour = parseInt(startTime.split(':')[0]);
+            
+            if (type === '조근') {
+                endTimeSelect.innerHTML += '<option value="09:00">09:00</option>';
+            } else if (type === '야근') {
+                for (let i = 18; i <= 21; i++) {
+                    if (i > startHour) {  // 시작 시간보다 큰 시간만
+                        const time = `${i}:00`;
+                        endTimeSelect.innerHTML += `<option value="${time}">${time}</option>`;
+                    }
+                }
+            } else if (type === '주말') {
+                for (let i = 8; i <= 18; i++) {
+                    if (i > startHour) {  // 시작 시간보다 큰 시간만
+                        const time = `${String(i).padStart(2, '0')}:00`;
+                        endTimeSelect.innerHTML += `<option value="${time}">${time}</option>`;
+                    }
+                }
+            }
+        });
+
+        // 주간 근무 시간 조회
+        async function checkWeeklyHours() {
+            const name = nameSelect.value;
+            const date = dateInput.value;
+            
+            if (!name || !date) {
+                weeklyHoursDisplay.style.display = 'none';
+                document.getElementById('weeklyProgressDisplay').style.display = 'none';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${SCRIPT_URL}?action=getWeeklyHours&name=${encodeURIComponent(name)}&date=${date}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const weeklyHours = data.hours || 0;
+                    const remainingHours = 12 - weeklyHours;
+                    const percentage = Math.min((weeklyHours / 12) * 100, 100);
+
+                    // 주간 프로그레스 표시
+                    document.getElementById('weeklyUsedHours').textContent = weeklyHours;
+                    document.getElementById('weeklyRemainingHours').textContent = remainingHours;
+                    document.getElementById('progressPercent').textContent = Math.round(percentage) + '%';
+                    
+                    const progressBar = document.getElementById('progressBar');
+                    progressBar.style.width = percentage + '%';
+                    
+                    // 색상 변경
+                    progressBar.className = 'progress-bar';
+                    if (percentage >= 100) {
+                        progressBar.classList.add('danger');
+                    } else if (percentage >= 80) {
+                        progressBar.classList.add('warning');
+                    }
+                    
+                    document.getElementById('weeklyProgressDisplay').style.display = 'block';
+                    
+                    // 기존 경고 메시지
+                    if (weeklyHours >= 12) {
+                        weeklyHoursDisplay.innerHTML = `
+                            <span class="overtime-limit">⚠️ 이번 주 누적: ${weeklyHours}시간 (최대 12시간 초과)</span>
+                        `;
+                        weeklyHoursDisplay.style.display = 'block';
+                    } else if (weeklyHours >= 10) {
+                        weeklyHoursDisplay.innerHTML = `
+                            ⚠️ 이번 주 누적: ${weeklyHours}시간 / 12시간 (남은 시간: <span class="overtime-limit">${remainingHours}시간</span>)
+                        `;
+                        weeklyHoursDisplay.style.display = 'block';
+                    } else {
+                        weeklyHoursDisplay.style.display = 'none';
+                    }
+                }
+            } catch (error) {
+                console.error('주간 시간 조회 실패:', error);
+            }
+        }
+
+        nameSelect.addEventListener('change', checkWeeklyHours);
+        dateInput.addEventListener('change', checkWeeklyHours);
+
+        // 시간 선택 시 총 근무시간 계산
+        startTimeSelect.addEventListener('change', calculateHours);
+        endTimeSelect.addEventListener('change', calculateHours);
+
+        function calculateHours() {
+            const startTime = startTimeSelect.value;
+            const endTime = endTimeSelect.value;
+            
+            if (startTime && endTime) {
+                const start = new Date(`2000-01-01 ${startTime}`);
+                const end = new Date(`2000-01-01 ${endTime}`);
+                const hours = (end - start) / (1000 * 60 * 60);
+                
+                if (hours > 0) {
+                    document.getElementById('totalHours').textContent = hours;
+                    document.getElementById('hoursDisplay').style.display = 'block';
+                } else {
+                    document.getElementById('hoursDisplay').style.display = 'none';
+                }
+            } else {
+                document.getElementById('hoursDisplay').style.display = 'none';
+            }
+        }
+
+        // 폼 제출
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const name = document.getElementById('name').value;
+            const date = document.getElementById('date').value;
+            const type = document.getElementById('type').value;
+            const startTime = document.getElementById('startTime').value;
+            const endTime = document.getElementById('endTime').value;
+            const reason = document.getElementById('reason').value;
+
+            // 시간 검증
+            if (startTime >= endTime) {
+                alert('종료 시간은 시작 시간보다 늦어야 합니다.');
+                return;
+            }
+
+            // 근무 시간 계산
+            const start = new Date(`2000-01-01 ${startTime}`);
+            const end = new Date(`2000-01-01 ${endTime}`);
+            const hours = (end - start) / (1000 * 60 * 60);
+
+            const formData = {
+                action: 'submitRequest',
+                name: name,
+                date: date,
+                type: type,
+                startTime: startTime,
+                endTime: endTime,
+                hours: hours,
+                reason: reason,
+                status: '대기',
+                submitDate: new Date().toISOString()
+            };
+
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('submitBtn').disabled = true;
+
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                // 성공 팝업 표시
+                showSuccessModal(name, date, type, startTime, endTime, hours);
+                form.reset();
+                weeklyHoursDisplay.style.display = 'none';
+
+            } catch (error) {
+                console.error('Error:', error);
+                showErrorModal('신청 처리 중 오류가 발생했습니다. 다시 시도해주세요.');
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('submitBtn').disabled = false;
+            }
+        });
+
+        // 오늘 날짜를 최소값으로 설정
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.setAttribute('min', today);
+    </script>
+</body>
+</html>

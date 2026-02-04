@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Breville 부품 사용 기록</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
+      background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+    
+    /* 메인으로 버튼 스타일 */
+    .back-button {
+      margin-bottom: 15px;
+      padding: 10px 20px;
+      background: linear-gradient(135deg, #5dade2 0%, #3498db 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.3s;
+      box-shadow: 0 2px 8px rgba(93, 173, 226, 0.3);
+      text-decoration: none;
+      display: inline-block;
+    }
+    
+    .back-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(93, 173, 226, 0.4);
+    }
+    
+    .back-button:active {
+      transform: translateY(0);
+    }
+    
+    .container {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+      max-width: 900px;
+      width: 100%;
+      padding: 40px;
+      animation: slideUp 0.5s ease;
+      position: relative;
+    }
+    
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 40px;
+      padding-bottom: 30px;
+      border-bottom: 2px solid #ecf0f1;
+    }
+    
+    .header-left h1 {
+      color: #2c3e50;
+      font-size: 28px;
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+    
+    .header-left p {
+      color: #7f8c8d;
+      font-size: 14px;
+    }
+    
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      animation: fadeInRight 1s ease;
+    }
+    
+    @keyframes fadeInRight {
+      from {
+        opacity: 0;
+        transform: translateX(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    
+    .brand-logo {
+      height: 35px;
+      animation: float 3s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-5px); }
+    }
+    
+    .brand-divider {
+      color: #bdc3c7;
+      font-size: 20px;
+      font-weight: 300;
+    }
+    
+    .brand-text {
+      font-size: 14px;
+      color: #7f8c8d;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+    
+    .form-group {
+      margin-bottom: 25px;
+      position: relative;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: #2c3e50;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    
+    .form-group label::before {
+      content: "▪";
+      margin-right: 5px;
+      color: #95a5a6;
+    }
+    
+    .required {
+      color: #e74c3c;
+      margin-left: 3px;
+    }
+    
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid #ecf0f1;
+      border-radius: 10px;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
+      background-color: #fafafa;
+    }
+    
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: #95a5a6;
+      box-shadow: 0 0 0 3px rgba(149, 165, 166, 0.1);
+      background-color: white;
+    }
+    
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    
+    .readonly-field {
+      background-color: #ecf0f1;
+      cursor: not-allowed;
+      color: #7f8c8d;
+    }
+    
+    .submit-btn {
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 10px;
+      position: relative;
+    }
+    
+    .submit-btn::after {
+      content: "→";
+      position: absolute;
+      right: 20px;
+      font-size: 20px;
+      transition: all 0.3s ease;
+    }
+    
+    .submit-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(44, 62, 80, 0.4);
+    }
+    
+    .submit-btn:hover::after {
+      right: 15px;
+    }
+    
+    .submit-btn:active {
+      transform: translateY(0);
+    }
+    
+    .submit-btn:disabled {
+      background: #95a5a6;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .message {
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      display: none;
+      animation: slideDown 0.3s ease;
+    }
+    
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .message.success {
+      background-color: #d5f4e6;
+      color: #27ae60;
+      border: 1px solid #a8e6cf;
+    }
+    
+    .message.success::before {
+      content: "✓ ";
+      font-weight: bold;
+    }
+    
+    .message.error {
+      background-color: #fadbd8;
+      color: #e74c3c;
+      border: 1px solid #f5b7b1;
+    }
+    
+    .message.error::before {
+      content: "✕ ";
+      font-weight: bold;
+    }
+    
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 20px;
+    }
+    
+    .spinner {
+      border: 3px solid #ecf0f1;
+      border-top: 3px solid #2c3e50;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .icon-wrapper {
+      position: relative;
+    }
+    
+    .icon-wrapper::before {
+      content: "📦";
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 18px;
+      pointer-events: none;
+      opacity: 0.5;
+    }
+    
+    .staff-icon::before {
+      content: "👤";
+    }
+    
+    .part-icon::before {
+      content: "🔧";
+    }
+    
+    /* 서명 스타일 */
+    .signature {
+      position: absolute;
+      bottom: 15px;
+      right: 25px;
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      color: #bdc3c7;
+      letter-spacing: 1px;
+      animation: fadeIn 2s ease;
+      transition: all 0.3s ease;
+    }
+    
+    .signature:hover {
+      color: #7f8c8d;
+      transform: scale(1.05);
+      cursor: default;
+    }
+    
+    .signature::before {
+      content: "⚡ ";
+      font-size: 10px;
+    }
+    
+    .signature::after {
+      content: "";
+      display: block;
+      width: 0;
+      height: 1px;
+      background: #95a5a6;
+      transition: width 0.3s ease;
+      margin-top: 2px;
+    }
+    
+    .signature:hover::after {
+      width: 100%;
+    }
+    
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .container {
+        padding: 25px;
+        padding-bottom: 50px;
+      }
+      
+      .header {
+        flex-direction: column;
+        gap: 20px;
+      }
+      
+      .header-left {
+        text-align: center;
+      }
+      
+      .header-right {
+        flex-direction: column;
+        gap: 10px;
+      }
+      
+      .brand-divider {
+        display: none;
+      }
+      
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+      
+      .header-left h1 {
+        font-size: 22px;
+      }
+      
+      .signature {
+        position: relative;
+        bottom: auto;
+        right: auto;
+        text-align: center;
+        margin-top: 30px;
+        font-size: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- 메인으로 버튼 -->
+  <a href="https://donggukang09.github.io/hiqasc-platform/" class="back-button">← 메인으로</a>
+  
+  <div class="container">
+    <div class="header">
+      <div class="header-left">
+        <h1>Breville 부품 사용 기록</h1>
+        <p>부품 사용 내역을 입력해주세요</p>
+      </div>
+      <div class="header-right">
+        <span class="brand-text">HIQASC</span>
+        <span class="brand-divider">×</span>
+        <img src="https://www.nespresso.com/shared_res/agility/n-components/header/2023-navigation-refresh/assets/nespresso-logo.svg" 
+             alt="Nespresso" 
+             class="brand-logo"
+             onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+        <span class="brand-text" style="display: none;">NESPRESSO</span>
+        <span class="brand-divider">×</span>
+        <img src="https://www.breville.com/content/dam/breville-brands/breville/master/global/logos/breville-logo.svg" 
+             alt="Breville" 
+             class="brand-logo"
+             onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+        <span class="brand-text" style="display: none;">Breville</span>
+      </div>
+    </div>
+    
+    <div id="message" class="message"></div>
+    <div id="loading" class="loading">
+      <div class="spinner"></div>
+      <p style="margin-top: 15px; color: #7f8c8d;">저장 중...</p>
+    </div>
+    
+    <form id="partsForm">
+      <div class="form-row">
+        <div class="form-group">
+          <label>픽업넘버 <span class="required">*</span></label>
+          <input type="text" id="pickupNumber" name="pickupNumber" required>
+        </div>
+        
+        <div class="form-group">
+          <label>회원번호</label>
+          <input type="text" id="memberNumber" name="memberNumber">
+        </div>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label>고객명 <span class="required">*</span></label>
+          <input type="text" id="customerName" name="customerName" required>
+        </div>
+        
+        <div class="form-group">
+          <label>Serial Number</label>
+          <input type="text" id="serialNumber" name="serialNumber">
+        </div>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label>Return date <span class="required">*</span></label>
+          <input type="date" id="returnDate" name="returnDate" required>
+        </div>
+        
+        <div class="form-group icon-wrapper staff-icon">
+          <label>담당자 <span class="required">*</span></label>
+          <select id="staff" name="staff" required>
+            <option value="">선택하세요</option>
+            <option value="강동구">강동구</option>
+            <option value="장균수">장균수</option>
+            <option value="곽연학">곽연학</option>
+            <option value="조성주">조성주</option>
+            <option value="이상민">이상민</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group icon-wrapper part-icon">
+          <label>부품명 <span class="required">*</span></label>
+          <select id="partName" name="partName" required>
+            <option value="">선택하세요</option>
+            <option value="BREW CHAMBER ASSEMBLY (Nespresso logo) KR MFDS">BREW CHAMBER ASSEMBLY (Nespresso logo) KR MFDS</option>
+            <option value="CONTROL PCB ASSEMBLY - 220V - KR">CONTROL PCB ASSEMBLY - 220V - KR</option>
+            <option value="BACK COVER ASSEMBLY - STAINLESS STEEL KR MFDS">BACK COVER ASSEMBLY - STAINLESS STEEL KR MFDS</option>
+            <option value="Feet, Kit">Feet, Kit</option>
+            <option value="PUMP ASSEMBLY">PUMP ASSEMBLY</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label>부품번호 (자동입력)</label>
+          <input type="text" id="partNumber" name="partNumber" readonly class="readonly-field">
+        </div>
+      </div>
+      
+      <button type="submit" class="submit-btn" id="submitBtn">
+        저장하기
+      </button>
+    </form>
+    
+    <!-- 서명 -->
+    <div class="signature">DEVELOPED BY DONGGU KANG</div>
+  </div>
+  
+  <script>
+    // 부품명-부품번호 매칭 데이터
+    const partMapping = {
+      'BREW CHAMBER ASSEMBLY (Nespresso logo) KR MFDS': 'SP0108858',
+      'CONTROL PCB ASSEMBLY - 220V - KR': 'SP0022091',
+      'BACK COVER ASSEMBLY - STAINLESS STEEL KR MFDS': 'SP0108870',
+      'Feet, Kit': 'SP0023700',
+      'PUMP ASSEMBLY': 'AS00001061'
+    };
+    
+    // 부품명 선택 시 부품번호 자동입력
+    document.getElementById('partName').addEventListener('change', function() {
+      const partNumber = partMapping[this.value] || '';
+      document.getElementById('partNumber').value = partNumber;
+    });
+    
+    // 폼 제출
+    document.getElementById('partsForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const submitBtn = document.getElementById('submitBtn');
+      const loading = document.getElementById('loading');
+      const messageDiv = document.getElementById('message');
+      
+      // 버튼 비활성화 및 로딩 표시
+      submitBtn.disabled = true;
+      loading.style.display = 'block';
+      messageDiv.style.display = 'none';
+      
+      // 폼 데이터 수집
+      const formData = {
+        pickupNumber: document.getElementById('pickupNumber').value,
+        memberNumber: document.getElementById('memberNumber').value,
+        customerName: document.getElementById('customerName').value,
+        serialNumber: document.getElementById('serialNumber').value,
+        returnDate: document.getElementById('returnDate').value,
+        staff: document.getElementById('staff').value,
+        partNumber: document.getElementById('partNumber').value,
+        partName: document.getElementById('partName').value
+      };
+      
+      // Google Apps Script로 데이터 전송
+      google.script.run
+        .withSuccessHandler(function(response) {
+          loading.style.display = 'none';
+          submitBtn.disabled = false;
+          
+          if (response.success) {
+            showMessage('성공적으로 저장되었습니다!', 'success');
+            document.getElementById('partsForm').reset();
+          } else {
+            showMessage('저장 중 오류가 발생했습니다: ' + response.message, 'error');
+          }
+        })
+        .withFailureHandler(function(error) {
+          loading.style.display = 'none';
+          submitBtn.disabled = false;
+          showMessage('오류: ' + error.message, 'error');
+        })
+        .saveData(formData);
+    });
+    
+    function showMessage(text, type) {
+      const messageDiv = document.getElementById('message');
+      messageDiv.textContent = text;
+      messageDiv.className = 'message ' + type;
+      messageDiv.style.display = 'block';
+      
+      // 3초 후 메시지 숨기기
+      setTimeout(function() {
+        messageDiv.style.display = 'none';
+      }, 3000);
+    }
+  </script>
+</body>
+</html>
