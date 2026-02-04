@@ -467,7 +467,11 @@
             const json = JSON.parse(text.substring(47).slice(0, -2));
             const rows = json.table.rows;
             
-            const headers = rows[0].c.map(cell => cell ? cell.v : null);
+            // 첫 번째 행을 헤더로 사용
+            const headerRow = rows[0];
+            const headers = headerRow.c.map(cell => cell ? cell.v : null);
+            
+            console.log('파싱된 헤더:', headers);
             
             return rows.slice(1).map((row, index) => {
                 const obj = {};
