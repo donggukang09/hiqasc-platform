@@ -459,7 +459,7 @@
             
             const headers = rows[0].c.map(cell => cell ? cell.v : null);
             
-            return rows.slice(1).map(row => {
+            return rows.slice(1).map((row, index) => {
                 const obj = {};
                 row.c.forEach((cell, idx) => {
                     const header = headers[idx];
@@ -469,7 +469,7 @@
                 });
                 obj['_rowIndex'] = index + 2;
                 return obj;
-            }).filter(row => Object.values(row).some(v => v));
+            }).filter(row => Object.values(row).some(v => v && v !== row['_rowIndex']));
         }
 
         function populateDropdowns() {
@@ -613,7 +613,8 @@
                     '단위': unit,
                     '신청자': requester,
                     '상태': '요청중',
-                    '완료일시': ''
+                    '완료일시': '',
+                    '_rowIndex': requestsData.length + 2
                 });
 
                 showAlert('success');
@@ -673,49 +674,49 @@
         }
 
         async function updateStatus(arrayIndex, rowIndex, newStatus) {
-    try {
-        // 로컬 데이터 업데이트
-        requestsData[arrayIndex]['상태'] = newStatus;
-        
-        let completedTime = '';
-        if (newStatus === '완료') {
-            const now = new Date();
-            completedTime = now.toLocaleString('ko-KR');
-            requestsData[arrayIndex]['완료일시'] = completedTime;
-        } else {
-            requestsData[arrayIndex]['완료일시'] = '';
+            try {
+                // 로컬 데이터 업데이트
+                requestsData[arrayIndex]['상태'] = newStatus;
+                
+                let completedTime = '';
+                if (newStatus === '완료') {
+                    const now = new Date();
+                    completedTime = now.toLocaleString('ko-KR');
+                    requestsData[arrayIndex]['완료일시'] = completedTime;
+                } else {
+                    requestsData[arrayIndex]['완료일시'] = '';
+                }
+
+                // 화면 즉시 업데이트
+                displayRequests();
+
+                // Apps Script로 실제 시트 업데이트
+                const params = new URLSearchParams({
+                    action: 'updateStatus',
+                    rowIndex: rowIndex,
+                    status: newStatus,
+                    completedTime: completedTime
+                });
+
+                await fetch(`${WEB_APP_URL}?${params.toString()}`, {
+                    method: 'GET',
+                    mode: 'no-cors'
+                });
+
+                console.log('상태 업데이트 완료:', rowIndex, newStatus);
+
+            } catch (error) {
+                console.error('상태 업데이트 오류:', error);
+                showAlert('error');
+            }
         }
-
-        // 화면 즉시 업데이트
-        displayRequests();
-
-        // Apps Script로 실제 시트 업데이트
-        const params = new URLSearchParams({
-            action: 'updateStatus',
-            rowIndex: rowIndex,
-            status: newStatus,
-            completedTime: completedTime
-        });
-
-        await fetch(`${WEB_APP_URL}?${params.toString()}`, {
-            method: 'GET',
-            mode: 'no-cors'
-        });
-
-        console.log('상태 업데이트 완료:', rowIndex, newStatus);
-
-    } catch (error) {
-        console.error('상태 업데이트 오류:', error);
-        showAlert('error');
-    }
-}
 
         function showAlert(type) {
             const alert = document.getElementById(type === 'success' ? 'successAlert' : 'errorAlert');
             alert.classList.add('active');
             
             setTimeout(() => {
-                alert.classList.remove('active');
+                alert.classList.remove('visible');
             }, 3000);
         }
 
