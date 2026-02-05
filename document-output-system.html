@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>문서 출력 - HIQASC</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            max-width: 600px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 40px;
+            animation: slideUp 0.5s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .back-button {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #5dade2 0%, #3498db 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .back-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(93, 173, 226, 0.4);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+
+        /* 하위 메뉴 스타일 */
+        .submenu-options {
+            display: grid;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .submenu-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border: 2px solid #e3e6ea;
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+        }
+
+        .submenu-card:hover {
+            transform: translateX(5px);
+            border-color: #3498db;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .submenu-card h4 {
+            color: #2c3e50;
+            font-size: 16px;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .submenu-card p {
+            color: #7f8c8d;
+            font-size: 13px;
+        }
+
+        /* 입력 폼 화면 */
+        .form-screen {
+            display: none;
+        }
+
+        .form-screen.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .form-group label::before {
+            content: "▪";
+            margin-right: 5px;
+            color: #95a5a6;
+        }
+
+        .required {
+            color: #e74c3c;
+            margin-left: 3px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ecf0f1;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
+            background-color: #fafafa;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #95a5a6;
+            box-shadow: 0 0 0 3px rgba(149, 165, 166, 0.1);
+            background-color: white;
+        }
+
+        .add-line-btn {
+            display: inline-block;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .add-line-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+        }
+
+        .line-input-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .line-input-group input {
+            flex: 1;
+        }
+
+        .remove-line-btn {
+            padding: 10px 15px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .remove-line-btn:hover {
+            background: #c0392b;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(44, 62, 80, 0.4);
+        }
+
+        /* 출력 화면 */
+        .output-screen {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #2a2a2a;
+            z-index: 9999;
+            overflow: auto;
+        }
+
+        .output-screen.active {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .output-controls {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+
+        .control-btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .print-btn {
+            background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+            color: white;
+        }
+
+        .print-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(39, 174, 96, 0.4);
+        }
+
+        .close-btn {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+        }
+
+        .close-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
+        }
+
+        .output-paper {
+            width: 297mm;
+            min-height: 210mm;
+            background: white;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            padding: 30mm 40mm;
+        }
+
+        .output-content {
+            font-family: '맑은 고딕', 'Malgun Gothic', sans-serif;
+            font-size: 60pt;
+            line-height: 1.8;
+            color: #000;
+            border: 3px solid #000;
+            padding: 30px 40px;
+            min-height: 150mm;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .output-content div {
+            margin-bottom: 20px;
+        }
+
+        .output-content .empty-line {
+            margin-bottom: 40px;
+        }
+
+        .signature {
+            text-align: center;
+            margin-top: 30px;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            color: #bdc3c7;
+            letter-spacing: 1px;
+        }
+
+        /* 인쇄 스타일 */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .output-controls {
+                display: none !important;
+            }
+
+            .output-screen {
+                position: static;
+                background: white;
+                padding: 0;
+            }
+
+            .output-paper {
+                width: 100%;
+                min-height: auto;
+                box-shadow: none;
+                padding: 20mm 25mm;
+                margin: 0;
+            }
+
+            .output-content {
+                font-size: 60pt;
+                line-height: 1.8;
+                border: 3px solid #000;
+                padding: 30px 40px;
+                text-align: center;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            }
+
+            @page {
+                size: A4 landscape;
+                margin: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 25px;
+            }
+
+            .header h1 {
+                font-size: 22px;
+            }
+
+            .output-paper {
+                width: 100%;
+                padding: 20px;
+            }
+
+            .output-content {
+                font-size: 40pt;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="document-output-main.html" class="back-button">← 문서 출력 시스템으로</a>
+        
+        <div class="header">
+            <h1>📋 문서 출력</h1>
+            <p>빠른 선택 또는 자유 입력</p>
+        </div>
+
+        <!-- 메인 화면: 빠른 선택 vs 직접 입력 -->
+        <div id="mainMenu">
+            <div class="submenu-options">
+                <div class="submenu-card" onclick="selectType('quick')">
+                    <h4>⚡ 빠른 선택</h4>
+                    <p>자주 사용하는 템플릿 선택</p>
+                </div>
+                <div class="submenu-card" onclick="selectType('custom')">
+                    <h4>✏️ 직접 입력</h4>
+                    <p>내용을 자유롭게 입력</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 빠른 선택 템플릿 -->
+        <div id="quickSelectForm" class="form-screen">
+            <button class="back-button" onclick="backToMain()">← 뒤로</button>
+            
+            <div class="header">
+                <h1>⚡ 빠른 선택</h1>
+                <p>템플릿을 선택하세요</p>
+            </div>
+
+            <div class="submenu-options">
+                <div class="submenu-card" onclick="useTemplate('disposal')">
+                    <h4>🗑️ 폐기 캡슐 하이큐</h4>
+                    <p>폐기 캡슐 하이큐 문서 출력</p>
+                </div>
+                
+                <!-- 여기에 새 템플릿 추가 가능 -->
+                <!-- 
+                <div class="submenu-card" onclick="useTemplate('template2')">
+                    <h4>📄 템플릿 2</h4>
+                    <p>설명</p>
+                </div>
+                -->
+            </div>
+        </div>
+
+        <!-- 직접 입력 폼 -->
+        <div id="customInputForm" class="form-screen">
+            <button class="back-button" onclick="backToMain()">← 뒤로</button>
+            
+            <div class="header">
+                <h1>✏️ 직접 입력</h1>
+                <p>출력할 내용을 입력하세요</p>
+            </div>
+
+            <form onsubmit="generateCustom(event)">
+                <div id="customLinesContainer">
+                    <div class="line-input-group">
+                        <input type="text" class="custom-line" placeholder="1번째 줄 입력">
+                    </div>
+                </div>
+
+                <button type="button" class="add-line-btn" onclick="addCustomLine()">+ 줄 추가</button>
+                <button type="submit" class="submit-btn">출력 화면 보기</button>
+            </form>
+        </div>
+
+        <div class="signature">DEVELOPED BY DONGGU KANG</div>
+    </div>
+
+    <!-- 출력 화면 -->
+    <div class="output-screen" id="outputScreen">
+        <div class="output-controls">
+            <button class="control-btn print-btn" onclick="printDocument()">🖨️ 인쇄하기</button>
+            <button class="control-btn close-btn" onclick="closeOutput()">← 돌아가기</button>
+        </div>
+        
+        <div class="output-paper">
+            <div class="output-content" id="outputContent">
+                <!-- 여기에 내용이 동적으로 삽입됩니다 -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let lineCount = 1;
+
+        // 메인 메뉴에서 선택
+        function selectType(type) {
+            document.getElementById('mainMenu').style.display = 'none';
+            
+            if (type === 'quick') {
+                document.getElementById('quickSelectForm').classList.add('active');
+            } else if (type === 'custom') {
+                document.getElementById('customInputForm').classList.add('active');
+            }
+        }
+
+        // 메인으로 돌아가기
+        function backToMain() {
+            document.querySelectorAll('.form-screen').forEach(el => {
+                el.classList.remove('active');
+            });
+            document.getElementById('mainMenu').style.display = 'block';
+        }
+
+        // 템플릿 사용
+        function useTemplate(templateName) {
+            let content = '';
+            
+            if (templateName === 'disposal') {
+                content = `
+                    <div>폐기 캡슐</div>
+                    <div>하이큐</div>
+                `;
+            }
+            // 여기에 새 템플릿 추가 가능
+            
+            document.getElementById('outputContent').innerHTML = content;
+            document.getElementById('outputScreen').classList.add('active');
+        }
+
+        // 직접 입력 줄 추가
+        function addCustomLine() {
+            lineCount++;
+            const container = document.getElementById('customLinesContainer');
+            const lineGroup = document.createElement('div');
+            lineGroup.className = 'line-input-group';
+            lineGroup.innerHTML = `
+                <input type="text" class="custom-line" placeholder="${lineCount}번째 줄 입력">
+                <button type="button" class="remove-line-btn" onclick="removeLine(this)">×</button>
+            `;
+            container.appendChild(lineGroup);
+        }
+
+        // 줄 제거
+        function removeLine(btn) {
+            btn.parentElement.remove();
+        }
+
+        // 직접 입력 문서 생성
+        function generateCustom(e) {
+            e.preventDefault();
+
+            const lines = document.querySelectorAll('.custom-line');
+            let content = '';
+            
+            lines.forEach(line => {
+                if (line.value.trim()) {
+                    content += `<div>${line.value}</div>`;
+                }
+            });
+
+            if (!content) {
+                alert('최소 한 줄 이상 입력해주세요!');
+                return;
+            }
+
+            document.getElementById('outputContent').innerHTML = content;
+            document.getElementById('outputScreen').classList.add('active');
+        }
+
+        // 인쇄
+        function printDocument() {
+            window.print();
+        }
+
+        // 출력 화면 닫기
+        function closeOutput() {
+            document.getElementById('outputScreen').classList.remove('active');
+        }
+
+        // ESC 키로 닫기
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                if (document.getElementById('outputScreen').classList.contains('active')) {
+                    closeOutput();
+                } else {
+                    backToMain();
+                }
+            }
+        });
+    </script>
+</body>
+</html>

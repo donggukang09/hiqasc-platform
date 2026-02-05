@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>문서 출력 시스템 - HIQASC</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            max-width: 800px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 40px;
+            animation: slideUp 0.5s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .back-button {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #5dade2 0%, #3498db 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .back-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(93, 173, 226, 0.4);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: #7f8c8d;
+            font-size: 16px;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
+        }
+
+        .menu-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #ecf0f1 100%);
+            border: 2px solid #ecf0f1;
+            border-radius: 15px;
+            padding: 40px 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: block;
+        }
+
+        .menu-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            border-color: #3498db;
+        }
+
+        .menu-card .icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .menu-card h2 {
+            color: #2c3e50;
+            font-size: 22px;
+            margin-bottom: 12px;
+        }
+
+        .menu-card p {
+            color: #7f8c8d;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .signature {
+            text-align: center;
+            margin-top: 40px;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            color: #bdc3c7;
+            letter-spacing: 1px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 25px;
+            }
+
+            .header h1 {
+                font-size: 26px;
+            }
+
+            .menu-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .menu-card {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="https://donggukang09.github.io/hiqasc-platform/" class="back-button">← 메인으로</a>
+        
+        <div class="header">
+            <h1>📄 문서 출력 시스템</h1>
+            <p>필요한 문서 유형을 선택하세요</p>
+        </div>
+
+        <div class="menu-grid">
+            <a href="compensation-document.html" class="menu-card">
+                <div class="icon">📦</div>
+                <h2>보상판매 문서 생성</h2>
+                <p>회원 정보를 입력하여<br>보상판매 문서 출력</p>
+            </a>
+
+            <a href="document-output-system.html" class="menu-card">
+                <div class="icon">📋</div>
+                <h2>문서 출력</h2>
+                <p>빠른 선택 또는 자유 입력으로<br>다양한 문서 출력</p>
+            </a>
+        </div>
+
+        <div class="signature">DEVELOPED BY DONGGU KANG</div>
+    </div>
+</body>
+</html>
