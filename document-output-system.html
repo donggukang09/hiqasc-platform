@@ -568,7 +568,17 @@
 
         // 인쇄
         function printDocument() {
+            // 인쇄 전 입력 폼 숨기기
+            const container = document.querySelector('.container');
+            container.style.display = 'none';
+            
+            // 인쇄 실행
             window.print();
+            
+            // 인쇄 후 입력 폼 복원
+            setTimeout(() => {
+                container.style.display = 'block';
+            }, 100);
         }
 
         // 출력 화면 닫기
