@@ -386,26 +386,20 @@
                 <div>태은물류 출고</div>
             `;
 
+            // 입력 폼 숨기기
+            document.getElementById('inputForm').style.display = 'none';
+            
             // 출력 화면 표시
             outputScreen.classList.add('active');
         });
 
         function printDocument() {
-            // 인쇄 전 입력 폼 숨기기
-            const container = document.getElementById('inputForm');
-            container.style.display = 'none';
-            
-            // 인쇄 실행
             window.print();
-            
-            // 인쇄 후 입력 폼 복원
-            setTimeout(() => {
-                container.style.display = 'block';
-            }, 100);
         }
 
         function closeOutput() {
             outputScreen.classList.remove('active');
+            document.getElementById('inputForm').style.display = 'block';
         }
 
         // ESC 키로 닫기
