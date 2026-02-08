@@ -467,37 +467,56 @@
             const json = JSON.parse(text.substring(47).slice(0, -2));
             const rows = json.table.rows;
             
-            let headers;
             let dataStartRow;
             
             if (isRequestsSheet) {
-                // 소모품신청내역 시트는 헤더를 강제 지정
-                headers = ['신청일시', '품목', '규격', '수량', '단위', '신청자', '상태', '완료일시'];
+                // 소모품신청내역 시트 - 빈 열 없음!
+                // 실제 시트: A: 신청일시, B: 품목, C: 규격, D: 수량, E: 단위, F: 신청자, G: 상태, H: 완료일시
                 dataStartRow = 1; // 2행부터 데이터 (1행은 헤더)
-                console.log('신청내역 시트 - 강제 헤더 사용:', headers);
+                console.log('신청내역 시트 - 정확한 열 매핑 사용');
+                
+                return rows.slice(dataStartRow).map((row, index) => {
+                    const obj = {
+                        '신청일시': row.c[0] ? row.c[0].v : null,
+                        '품목': row.c[1] ? row.c[1].v : null,
+                        '규격': row.c[2] ? row.c[2].v : null,
+                        '수량': row.c[3] ? row.c[3].v : null,
+                        '단위': row.c[4] ? row.c[4].v : null,
+                        '신청자': row.c[5] ? row.c[5].v : null,
+                        '상태': row.c[6] ? row.c[6].v : null,
+                        '완료일시': row.c[7] ? row.c[7].v : null
+                    };
+                    obj['_rowIndex'] = index + dataStartRow + 1;
+                    return obj;
+                }).filter(row => {
+                    const values = Object.entries(row)
+                        .filter(([key, val]) => key !== '_rowIndex')
+                        .map(([key, val]) => val);
+                    return values.some(v => v !== null && v !== undefined && v !== '');
+                });
             } else {
                 // 품목리스트는 첫 행을 헤더로 사용
-                headers = rows[0].c.map(cell => cell ? cell.v : null);
+                const headers = rows[0].c.map(cell => cell ? cell.v : null);
                 dataStartRow = 1;
                 console.log('품목리스트 - 파싱된 헤더:', headers);
-            }
-            
-            return rows.slice(dataStartRow).map((row, index) => {
-                const obj = {};
-                row.c.forEach((cell, idx) => {
-                    const header = headers[idx];
-                    if (header) {
-                        obj[header] = cell ? cell.v : null;
-                    }
+                
+                return rows.slice(dataStartRow).map((row, index) => {
+                    const obj = {};
+                    row.c.forEach((cell, idx) => {
+                        const header = headers[idx];
+                        if (header) {
+                            obj[header] = cell ? cell.v : null;
+                        }
+                    });
+                    obj['_rowIndex'] = index + dataStartRow + 1;
+                    return obj;
+                }).filter(row => {
+                    const values = Object.entries(row)
+                        .filter(([key, val]) => key !== '_rowIndex')
+                        .map(([key, val]) => val);
+                    return values.some(v => v !== null && v !== undefined && v !== '');
                 });
-                obj['_rowIndex'] = index + dataStartRow + 1;
-                return obj;
-            }).filter(row => {
-                const values = Object.entries(row)
-                    .filter(([key, val]) => key !== '_rowIndex')
-                    .map(([key, val]) => val);
-                return values.some(v => v !== null && v !== undefined && v !== '');
-            });
+            }
         }
 
         function populateDropdowns() {
