@@ -108,6 +108,21 @@
             transition: all 0.3s;
         }
 
+        select.form-input {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%234a90e2' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            padding-right: 40px;
+        }
+
+        select.form-input option {
+            background: #2a2a2a;
+            color: #e0e0e0;
+            padding: 10px;
+        }
+
         .form-input:focus,
         .form-textarea:focus {
             outline: none;
@@ -302,14 +317,30 @@
                     <label class="form-label">
                         모델명<span class="required">*</span>
                     </label>
-                    <input 
-                        type="text" 
+                    <select 
                         class="form-input" 
                         id="model"
-                        placeholder="예: 버츄오 플러스, 라티시마 원"
                         required
                     >
-                    <div class="form-hint">기기의 정확한 모델명을 입력하세요</div>
+                        <option value="">모델을 선택하세요</option>
+                        <option value="버츄오 넥스트 (Vertuo NEXT)">버츄오 넥스트 (Vertuo NEXT)</option>
+                        <option value="버츄오 팝 (Vertuo POP)">버츄오 팝 (Vertuo POP)</option>
+                        <option value="버츄오 플러스 (Vertuo PLUS)">버츄오 플러스 (Vertuo PLUS)</option>
+                        <option value="버츄오 업 (Vertuo UP)">버츄오 업 (Vertuo UP)</option>
+                        <option value="에센자 미니 (Essenza Mini)">에센자 미니 (Essenza Mini)</option>
+                        <option value="시티즈 (Citiz)">시티즈 (Citiz)</option>
+                        <option value="시티즈 플래티넘 (Citiz Platinum)">시티즈 플래티넘 (Citiz Platinum)</option>
+                        <option value="픽시 (Pixie)">픽시 (Pixie)</option>
+                        <option value="라티시마 원 (Lattissima One)">라티시마 원 (Lattissima One)</option>
+                        <option value="라티시마 터치 (Lattissima Touch)">라티시마 터치 (Lattissima Touch)</option>
+                        <option value="그랑 라티시마 (Gran Lattissima)">그랑 라티시마 (Gran Lattissima)</option>
+                        <option value="크리아티스타 플러스 (Creatista Plus)">크리아티스타 플러스 (Creatista Plus)</option>
+                        <option value="나노 포머 (Nano Foamer)">나노 포머 (Nano Foamer)</option>
+                        <option value="에어로치노 (Aeroccino)">에어로치노 (Aeroccino)</option>
+                        <option value="바리스타 (Barista)">바리스타 (Barista)</option>
+                        <option value="버츄오 크리아티스타 (Vertuo Creatista)">버츄오 크리아티스타 (Vertuo Creatista)</option>
+                    </select>
+                    <div class="form-hint">수리할 기기의 모델을 선택하세요</div>
                 </div>
 
                 <div class="form-group">
