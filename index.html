@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 2.2.0 | Updated: 2025-02-03 15:45:00 | Cache Buster: 1738571100 | Wiki Added -->
+<!-- Version: 2.3.0 | Updated: 2025-02-08 | Cache Buster: 1738998400 | Consumables Inventory Added -->
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -730,6 +730,21 @@
                         </p>
                         <span class="card-badge">운영중</span>
                     </div>
+
+                    <!-- 소모품 재고 리스트 (새로 추가) -->
+                    <div class="card" onclick="openApp('consumablesInventory')">
+                        <div class="card-icon">
+                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M20 2H4c-1 0-2 .9-2 2v3.01c0 .72.43 1.34 1 1.69V20c0 1.1 1.1 2 2 2h14c.9 0 2-.9 2-2V8.7c.57-.35 1-.97 1-1.69V4c0-1.1-1-2-2-2zm-5 12H9v-2h6v2zm5-7H4V4h16v3z"/>
+                            </svg>
+                        </div>
+                        <h3 class="card-title">소모품 재고 리스트</h3>
+                        <p class="card-description">
+                            실시간 소모품 재고 현황을 조회합니다.
+                            품목별 수량 및 상태를 확인하세요.
+                        </p>
+                        <span class="card-badge">운영중</span>
+                    </div>
                 </div>
             </div>
 
@@ -805,7 +820,8 @@
             callRequest: 'https://donggukang09.github.io/hiqasc-platform/call-request-system.html',
             suppliesRequest: 'https://donggukang09.github.io/hiqasc-platform/supplies-request.html',
             documentOutput: 'https://donggukang09.github.io/hiqasc-platform/document-output-main.html',
-            wiki: 'https://donggukang09.github.io/hiqasc-platform/wiki-system.html'
+            wiki: 'https://donggukang09.github.io/hiqasc-platform/wiki-system.html',
+            consumablesInventory: 'https://donggukang09.github.io/hiqasc-platform/consumables-inventory.html'
         };
 
         // 비밀번호 확인
