@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>소모품 재고 리스트</title>
+    <script src="https://donggukang09.github.io/hiqasc-platform/config.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
+            background: #2a2a2a;
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* 헤더 */
+        .header {
+            background: #1e1e1e;
+            border: 1px solid #3a3a3a;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .back-button {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #5dade2 0%, #3498db 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .back-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(93, 173, 226, 0.4);
+        }
+
+        .header h1 {
+            font-size: 2em;
+            color: #ffffff;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #808080;
+            font-size: 1em;
+        }
+
+        /* 검색 & 새로고침 */
+        .controls {
+            background: #1e1e1e;
+            border: 1px solid #3a3a3a;
+            border-radius: 12px;
+            padding: 20px 30px;
+            margin-bottom: 30px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .search-box {
+            flex: 1;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 45px 12px 40px;
+            background: #2a2a2a;
+            border: 2px solid #3a3a3a;
+            border-radius: 8px;
+            color: #e0e0e0;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #4a90e2;
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 18px;
+            color: #808080;
+        }
+
+        .refresh-btn {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .refresh-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(39, 174, 96, 0.4);
+        }
+
+        .sheet-link-btn {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .sheet-link-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(155, 89, 182, 0.4);
+        }
+
+        /* 통계 */
+        .stats {
+            background: #1e1e1e;
+            border: 1px solid #3a3a3a;
+            border-radius: 12px;
+            padding: 20px 30px;
+            margin-bottom: 30px;
+            display: flex;
+            gap: 30px;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .stat-icon {
+            font-size: 32px;
+        }
+
+        .stat-info h3 {
+            font-size: 28px;
+            color: #4a90e2;
+            font-weight: 700;
+        }
+
+        .stat-info p {
+            font-size: 13px;
+            color: #808080;
+            margin-top: 2px;
+        }
+
+        /* 테이블 */
+        .table-container {
+            background: #1e1e1e;
+            border: 1px solid #3a3a3a;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #252525;
+        }
+
+        th {
+            padding: 18px 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #4a90e2;
+            font-size: 14px;
+            border-bottom: 2px solid #3a3a3a;
+            white-space: nowrap;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid #2a2a2a;
+            transition: all 0.2s;
+        }
+
+        tbody tr:hover {
+            background: #252525;
+        }
+
+        td {
+            padding: 15px;
+            color: #e0e0e0;
+            font-size: 14px;
+        }
+
+        /* 상태 배지 */
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .status-normal {
+            background: rgba(39, 174, 96, 0.2);
+            border: 1px solid rgba(39, 174, 96, 0.4);
+            color: #27ae60;
+        }
+
+        .status-low {
+            background: rgba(243, 156, 18, 0.2);
+            border: 1px solid rgba(243, 156, 18, 0.4);
+            color: #f39c12;
+        }
+
+        .status-critical {
+            background: rgba(231, 76, 60, 0.2);
+            border: 1px solid rgba(231, 76, 60, 0.4);
+            color: #e74c3c;
+        }
+
+        /* 수량 표시 */
+        .quantity-cell {
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .quantity-normal {
+            color: #27ae60;
+        }
+
+        .quantity-low {
+            color: #f39c12;
+        }
+
+        .quantity-critical {
+            color: #e74c3c;
+        }
+
+        /* 로딩 & 에러 */
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: #808080;
+        }
+
+        .spinner {
+            border: 3px solid #3a3a3a;
+            border-top: 3px solid #4a90e2;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 60px 20px;
+            color: #808080;
+        }
+
+        .no-data-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 30px;
+            color: #606060;
+            font-size: 0.85em;
+            margin-top: 50px;
+        }
+
+        .developer-tag {
+            margin-top: 8px;
+            font-weight: 600;
+            color: #4a90e2;
+        }
+
+        /* 반응형 */
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .stats {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            table {
+                font-size: 12px;
+            }
+
+            th, td {
+                padding: 10px 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 헤더 -->
+        <div class="header">
+            <a href="https://donggukang09.github.io/hiqasc-platform/" class="back-button">← 메인으로</a>
+            <h1>📦 소모품 재고 리스트</h1>
+            <p>실시간 소모품 재고 현황 조회</p>
+        </div>
+
+        <!-- 검색 & 버튼 -->
+        <div class="controls">
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input 
+                    type="text" 
+                    class="search-input" 
+                    id="searchInput"
+                    placeholder="품목명 또는 규격으로 검색..."
+                >
+            </div>
+            <button class="refresh-btn" onclick="loadInventory()">🔄 새로고침</button>
+            <a href="https://docs.google.com/spreadsheets/d/1vfnyawoFJnxFODMpmk_iGGwEOfTo0duc1-8VUyPyjcA/edit#gid=SHEET_GID" 
+               class="sheet-link-btn" 
+               target="_blank">
+               📊 시트 열기
+            </a>
+        </div>
+
+        <!-- 통계 -->
+        <div class="stats" id="stats">
+            <div class="stat-item">
+                <div class="stat-icon">📦</div>
+                <div class="stat-info">
+                    <h3 id="totalItems">-</h3>
+                    <p>전체 품목</p>
+                </div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-icon">✅</div>
+                <div class="stat-info">
+                    <h3 id="normalItems">-</h3>
+                    <p>정상 재고</p>
+                </div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-icon">⚠️</div>
+                <div class="stat-info">
+                    <h3 id="lowItems">-</h3>
+                    <p>재고 부족</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 로딩 -->
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>재고 데이터를 불러오는 중...</p>
+        </div>
+
+        <!-- 데이터 없음 -->
+        <div class="no-data" id="noData" style="display: none;">
+            <div class="no-data-icon">📭</div>
+            <h2 style="color: #808080; margin-bottom: 10px;">재고 데이터가 없습니다</h2>
+            <p>구글 시트에 데이터를 추가해주세요</p>
+        </div>
+
+        <!-- 테이블 -->
+        <div class="table-container" id="tableContainer" style="display: none;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>품목명</th>
+                        <th>규격</th>
+                        <th>현재수량</th>
+                        <th>단위</th>
+                        <th>안전재고</th>
+                        <th>상태</th>
+                        <th>비고</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>© 2025 HIQASC Inventory System. All rights reserved.</p>
+            <p class="developer-tag">DEVELOPED BY DONGGU KANG</p>
+        </div>
+    </div>
+
+    <script>
+        // Google Sheets 설정
+        const INVENTORY_SHEET_ID = '1vfnyawoFJnxFODMpmk_iGGwEOfTo0duc1-8VUyPyjcA';
+        const SHEET_NAME = '소모품재고';
+        
+        let allData = [];
+        let searchTimeout;
+
+        // 페이지 로드 시 데이터 가져오기
+        window.addEventListener('load', () => {
+            loadInventory();
+        });
+
+        // 검색 기능
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                filterData(e.target.value);
+            }, 300);
+        });
+
+        // 재고 데이터 로드
+        async function loadInventory() {
+            const loading = document.getElementById('loading');
+            const tableContainer = document.getElementById('tableContainer');
+            const noData = document.getElementById('noData');
+            
+            loading.style.display = 'block';
+            tableContainer.style.display = 'none';
+            noData.style.display = 'none';
+
+            try {
+                const url = `https://docs.google.com/spreadsheets/d/${INVENTORY_SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}`;
+                
+                console.log('데이터 요청:', url);
+                
+                const response = await fetch(url);
+                const text = await response.text();
+                const json = JSON.parse(text.substring(47).slice(0, -2));
+                
+                console.log('응답 데이터:', json);
+
+                // 데이터 변환 (첫 번째 행은 헤더)
+                allData = [];
+                for (let i = 1; i < json.table.rows.length; i++) {
+                    const row = json.table.rows[i];
+                    
+                    // 빈 행 건너뛰기
+                    if (!row.c || !row.c[0]?.v) continue;
+                    
+                    const item = {
+                        name: row.c[0]?.v || '',
+                        spec: row.c[1]?.v || '',
+                        quantity: parseFloat(row.c[2]?.v) || 0,
+                        unit: row.c[3]?.v || '',
+                        safetyStock: parseFloat(row.c[4]?.v) || 0,
+                        status: row.c[5]?.v || '',
+                        note: row.c[6]?.v || ''
+                    };
+                    
+                    allData.push(item);
+                }
+
+                console.log('처리된 데이터:', allData);
+
+                loading.style.display = 'none';
+
+                if (allData.length === 0) {
+                    noData.style.display = 'block';
+                } else {
+                    tableContainer.style.display = 'block';
+                    displayData(allData);
+                    updateStats(allData);
+                }
+
+            } catch (error) {
+                console.error('데이터 로드 오류:', error);
+                loading.style.display = 'none';
+                alert('재고 데이터를 불러오는데 실패했습니다.\n\n구글 시트에 "소모품재고" 탭이 있는지 확인해주세요.');
+            }
+        }
+
+        // 데이터 표시
+        function displayData(data) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            data.forEach(item => {
+                const row = document.createElement('tr');
+                
+                // 상태 결정
+                let statusClass = 'status-normal';
+                let statusText = item.status || '정상';
+                let quantityClass = 'quantity-normal';
+                
+                if (item.quantity <= 0) {
+                    statusClass = 'status-critical';
+                    statusText = '재고없음';
+                    quantityClass = 'quantity-critical';
+                } else if (item.quantity < item.safetyStock) {
+                    statusClass = 'status-low';
+                    statusText = '부족';
+                    quantityClass = 'quantity-low';
+                }
+                
+                row.innerHTML = `
+                    <td><strong>${item.name}</strong></td>
+                    <td>${item.spec || '-'}</td>
+                    <td class="quantity-cell ${quantityClass}">${item.quantity.toLocaleString()}</td>
+                    <td>${item.unit}</td>
+                    <td>${item.safetyStock.toLocaleString()}</td>
+                    <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                    <td style="color: #808080;">${item.note || '-'}</td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+
+        // 통계 업데이트
+        function updateStats(data) {
+            const total = data.length;
+            let normal = 0;
+            let low = 0;
+
+            data.forEach(item => {
+                if (item.quantity >= item.safetyStock) {
+                    normal++;
+                } else {
+                    low++;
+                }
+            });
+
+            document.getElementById('totalItems').textContent = total;
+            document.getElementById('normalItems').textContent = normal;
+            document.getElementById('lowItems').textContent = low;
+        }
+
+        // 검색 필터
+        function filterData(query) {
+            if (!query.trim()) {
+                displayData(allData);
+                updateStats(allData);
+                return;
+            }
+
+            const queryLower = query.toLowerCase();
+            const filtered = allData.filter(item => 
+                item.name.toLowerCase().includes(queryLower) ||
+                item.spec.toLowerCase().includes(queryLower)
+            );
+
+            displayData(filtered);
+            updateStats(filtered);
+        }
+    </script>
+</body>
+</html>
