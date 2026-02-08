@@ -250,21 +250,6 @@
             display: block;
         }
 
-        /* Alert 박스 */
-        .alert-box {
-            background: #f39c12;
-            color: white;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-size: 14px;
-        }
-
-        .alert-box strong {
-            display: block;
-            margin-bottom: 5px;
-        }
-
         /* Footer */
         .footer {
             text-align: center;
@@ -308,18 +293,6 @@
             <a href="https://donggukang09.github.io/hiqasc-platform/" class="back-button">← 메인으로</a>
             <h1>📝 위키 데이터 입력</h1>
             <p>새로운 수리 매뉴얼 및 해결방법을 등록합니다</p>
-        </div>
-
-        <!-- 안내 메시지 -->
-        <div class="alert-box">
-            <strong>⚠️ 중요 안내</strong>
-            현재 이 페이지는 구글 시트에 직접 데이터를 추가할 수 없습니다. <br>
-            대신 <strong>구글 시트를 직접 열어서</strong> 데이터를 입력해주세요:<br>
-            <a href="https://docs.google.com/spreadsheets/d/1yEwC43ULV1baQ7rYJ2He1wgkEEl00FNMgo7gBkD9auM/edit" 
-               target="_blank" 
-               style="color: white; text-decoration: underline; font-weight: bold;">
-               📊 위키 데이터 시트 열기
-            </a>
         </div>
 
         <!-- 입력 폼 -->
@@ -404,8 +377,8 @@
                 </div>
 
                 <div class="button-group">
-                    <button type="button" class="submit-button" id="copyBtn" onclick="copyToClipboard()">
-                        📋 클립보드에 복사
+                    <button type="submit" class="submit-button" id="submitBtn">
+                        📤 등록하기
                     </button>
                     <button type="button" class="reset-button" onclick="resetForm()">
                         🔄 초기화
@@ -421,48 +394,95 @@
         </div>
     </div>
 
+    <!-- 로딩 오버레이 -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p style="color: #e0e0e0; font-size: 16px;">데이터를 등록하는 중...</p>
+        </div>
+    </div>
+
     <!-- 메시지 박스 -->
     <div class="message-box" id="messageBox"></div>
 
     <script>
+        // ⚠️ 이 URL을 Apps Script 배포 후 받은 URL로 교체하세요
+        const WIKI_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwsy4_VWcYxLPPWNa0TGQk8qWAeqa6W4MiJIpdOOxF0L3iCPk-0hrBRZFe2n9m-z1ev_w/exec';
+
+        // 폼 제출 처리
+        document.getElementById('wikiForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            
+            // 입력값 가져오기
+            const formData = {
+                model: document.getElementById('model').value.trim(),
+                symptom: document.getElementById('symptom').value.trim(),
+                solution: document.getElementById('solution').value.trim(),
+                parts: document.getElementById('parts').value.trim(),
+                note: document.getElementById('note').value.trim(),
+                tags: document.getElementById('tags').value.trim()
+            };
+
+            // 필수 항목 검증
+            if (!formData.model || !formData.symptom || !formData.solution) {
+                showMessage('필수 항목을 모두 입력해주세요.', 'error');
+                return;
+            }
+
+            // URL 확인
+            if (WIKI_APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE') {
+                showMessage('❌ Apps Script URL이 설정되지 않았습니다. 코드에서 URL을 설정해주세요.', 'error');
+                return;
+            }
+
+            // 버튼 비활성화 및 로딩 표시
+            submitBtn.disabled = true;
+            loadingOverlay.classList.add('visible');
+
+            try {
+                console.log('전송할 데이터:', formData);
+                
+                // Apps Script로 데이터 전송
+                const response = await fetch(WIKI_APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'addWikiData',
+                        data: formData
+                    })
+                });
+
+                console.log('응답:', response);
+                
+                // no-cors 모드에서는 응답을 읽을 수 없으므로 성공으로 간주
+                showMessage('✅ 위키 데이터가 성공적으로 등록되었습니다!', 'success');
+                
+                // 폼 초기화
+                setTimeout(() => {
+                    document.getElementById('wikiForm').reset();
+                }, 1500);
+
+            } catch (error) {
+                console.error('등록 오류:', error);
+                showMessage('❌ 데이터 등록 중 오류가 발생했습니다.', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                loadingOverlay.classList.remove('visible');
+            }
+        });
+
         // 폼 초기화
         function resetForm() {
             if (confirm('입력한 내용을 모두 지우시겠습니까?')) {
                 document.getElementById('wikiForm').reset();
                 showMessage('입력 내용이 초기화되었습니다.', 'success');
             }
-        }
-
-        // 클립보드에 복사
-        function copyToClipboard() {
-            const model = document.getElementById('model').value.trim();
-            const symptom = document.getElementById('symptom').value.trim();
-            const solution = document.getElementById('solution').value.trim();
-            const parts = document.getElementById('parts').value.trim();
-            const note = document.getElementById('note').value.trim();
-            const tags = document.getElementById('tags').value.trim();
-
-            // 필수 항목 검증
-            if (!model || !symptom || !solution) {
-                showMessage('필수 항목을 모두 입력해주세요.', 'error');
-                return;
-            }
-
-            // 탭으로 구분된 텍스트 생성 (구글 시트에 붙여넣기 용)
-            const textToCopy = `${model}\t${symptom}\t${solution}\t${parts}\t${note}\t${tags}`;
-
-            // 클립보드에 복사
-            navigator.clipboard.writeText(textToCopy).then(() => {
-                showMessage('✅ 클립보드에 복사되었습니다! 구글 시트에 붙여넣기 하세요.', 'success');
-                
-                // 구글 시트 열기
-                setTimeout(() => {
-                    window.open('https://docs.google.com/spreadsheets/d/1yEwC43ULV1baQ7rYJ2He1wgkEEl00FNMgo7gBkD9auM/edit', '_blank');
-                }, 1000);
-            }).catch(err => {
-                console.error('복사 실패:', err);
-                showMessage('❌ 복사에 실패했습니다.', 'error');
-            });
         }
 
         // 메시지 표시
@@ -473,7 +493,7 @@
             
             setTimeout(() => {
                 messageBox.classList.remove('visible');
-            }, 4000);
+            }, 3000);
         }
     </script>
 </body>
