@@ -340,7 +340,7 @@
 
     <script>
         // Google Sheets 설정
-        const WIKI_SHEET_ID = SHEETS_CONFIG.wiki; // config.js에서 가져옴
+        const WIKI_SHEET_ID = '1yEwC43ULV1baQ7rYJ2He1wgkEEl00FNMgo7gBkD9auM';
         const SHEET_NAME = '위키데이터';
         
         let allData = [];
@@ -398,21 +398,36 @@
             try {
                 const url = `https://docs.google.com/spreadsheets/d/${WIKI_SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
                 
+                console.log('데이터 요청 URL:', url);
+                
                 const response = await fetch(url);
                 const text = await response.text();
+                
+                console.log('응답 텍스트:', text.substring(0, 200));
                 
                 // JSON 파싱
                 const json = JSON.parse(text.substring(47).slice(0, -2));
                 
-                // 데이터 변환
-                allData = json.table.rows.map(row => ({
-                    model: row.c[0]?.v || '',
-                    symptom: row.c[1]?.v || '',
-                    solution: row.c[2]?.v || '',
-                    parts: row.c[3]?.v || '',
-                    note: row.c[4]?.v || '',
-                    tags: row.c[5]?.v || ''
-                }));
+                console.log('파싱된 JSON:', json);
+                console.log('전체 행 수:', json.table.rows.length);
+                
+                // 헤더를 하드코딩하고 첫 번째 행(헤더)을 건너뛰고 데이터 변환
+                // 물품신청 시스템과 동일한 방식으로 수정
+                allData = json.table.rows.slice(1).map(row => {
+                    const rowData = {
+                        model: row.c[0]?.v || '',
+                        symptom: row.c[1]?.v || '',
+                        solution: row.c[2]?.v || '',
+                        parts: row.c[3]?.v || '',
+                        note: row.c[4]?.v || '',
+                        tags: row.c[5]?.v || ''
+                    };
+                    console.log('처리된 행 데이터:', rowData);
+                    return rowData;
+                });
+
+                console.log('전체 데이터:', allData);
+                console.log('로드된 데이터 개수:', allData.length);
 
                 loading.classList.remove('visible');
                 displayAllData();
@@ -426,15 +441,17 @@
 
         // 전체 데이터 표시
         function displayAllData() {
+            console.log('전체 데이터 표시:', allData.length + '건');
             displayResults(allData);
         }
 
         // 검색 실행
         function searchWiki(query) {
+            console.log('검색어:', query);
             const queryLower = query.toLowerCase();
             
             const filtered = allData.filter(item => {
-                return (
+                const matches = (
                     item.model.toLowerCase().includes(queryLower) ||
                     item.symptom.toLowerCase().includes(queryLower) ||
                     item.solution.toLowerCase().includes(queryLower) ||
@@ -442,13 +459,22 @@
                     item.note.toLowerCase().includes(queryLower) ||
                     item.tags.toLowerCase().includes(queryLower)
                 );
+                
+                if (matches) {
+                    console.log('매칭된 항목:', item);
+                }
+                
+                return matches;
             });
 
+            console.log('검색 결과:', filtered.length + '건');
             displayResults(filtered);
         }
 
         // 결과 표시
         function displayResults(data) {
+            console.log('결과 표시:', data.length + '건');
+            
             const resultsList = document.getElementById('resultsList');
             const resultsHeader = document.getElementById('resultsHeader');
             const resultsCount = document.getElementById('resultsCount');
@@ -459,6 +485,7 @@
             if (data.length === 0) {
                 resultsHeader.style.display = 'none';
                 noResults.classList.add('visible');
+                console.log('결과 없음 표시');
                 return;
             }
 
@@ -466,7 +493,9 @@
             resultsHeader.style.display = 'flex';
             resultsCount.textContent = `검색 결과: ${data.length}건`;
 
-            data.forEach(item => {
+            data.forEach((item, index) => {
+                console.log(`항목 ${index + 1} 표시:`, item);
+                
                 const itemDiv = document.createElement('div');
                 itemDiv.className = 'wiki-item';
                 
@@ -505,6 +534,8 @@
 
                 resultsList.appendChild(itemDiv);
             });
+            
+            console.log('결과 표시 완료');
         }
     </script>
 </body>
