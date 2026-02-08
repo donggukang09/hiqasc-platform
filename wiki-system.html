@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HIQASC 위키 시스템</title>
-    <script src="https://donggukang09.github.io/hiqasc-platform/config.js"></script>
     <style>
         * {
             margin: 0;
@@ -191,6 +190,14 @@
             margin-bottom: 20px;
         }
 
+        .error-box {
+            background: #e74c3c;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
         /* 위키 항목 카드 */
         .wiki-item {
             background: #1e1e1e;
@@ -296,6 +303,9 @@
             <p>수리 매뉴얼 및 증상별 해결방법 검색</p>
         </div>
 
+        <!-- 에러 메시지 -->
+        <div id="errorBox" style="display: none;"></div>
+
         <!-- 검색창 -->
         <div class="search-box">
             <div class="search-input-wrapper">
@@ -313,7 +323,7 @@
         <!-- 로딩 -->
         <div class="loading" id="loading">
             <div class="spinner"></div>
-            <p>검색 중...</p>
+            <p>데이터 로딩 중...</p>
         </div>
 
         <!-- 결과 없음 -->
@@ -355,14 +365,12 @@
         document.getElementById('searchInput').addEventListener('input', function(e) {
             const query = e.target.value.trim();
             
-            // 지우기 버튼 표시/숨김
             if (query) {
                 document.getElementById('clearBtn').classList.add('visible');
             } else {
                 document.getElementById('clearBtn').classList.remove('visible');
             }
 
-            // 디바운싱 (300ms 후 검색)
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => {
                 if (query) {
@@ -390,43 +398,80 @@
             displayAllData();
         }
 
+        // 에러 표시
+        function showError(message) {
+            const errorBox = document.getElementById('errorBox');
+            errorBox.className = 'error-box';
+            errorBox.innerHTML = `<strong>⚠️ 오류 발생</strong><br>${message}`;
+            errorBox.style.display = 'block';
+        }
+
+        // 안전한 값 가져오기
+        function safeGetValue(obj, defaultValue = '') {
+            try {
+                return obj && obj.v !== null && obj.v !== undefined ? String(obj.v) : defaultValue;
+            } catch (e) {
+                return defaultValue;
+            }
+        }
+
         // Google Sheets에서 데이터 가져오기
         async function fetchWikiData() {
             const loading = document.getElementById('loading');
             loading.classList.add('visible');
 
             try {
-                const url = `https://docs.google.com/spreadsheets/d/${WIKI_SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
+                const url = `https://docs.google.com/spreadsheets/d/${WIKI_SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}`;
                 
                 console.log('데이터 요청 URL:', url);
                 
                 const response = await fetch(url);
-                const text = await response.text();
                 
-                console.log('응답 텍스트:', text.substring(0, 200));
+                if (!response.ok) {
+                    throw new Error(`HTTP 오류: ${response.status}`);
+                }
+                
+                const text = await response.text();
+                console.log('응답 받음, 길이:', text.length);
                 
                 // JSON 파싱
-                const json = JSON.parse(text.substring(47).slice(0, -2));
+                const jsonText = text.substring(47).slice(0, -2);
+                const json = JSON.parse(jsonText);
                 
-                console.log('파싱된 JSON:', json);
-                console.log('전체 행 수:', json.table.rows.length);
-                
-                // 헤더를 하드코딩하고 첫 번째 행(헤더)을 건너뛰고 데이터 변환
-                // 물품신청 시스템과 동일한 방식으로 수정
-                allData = json.table.rows.slice(1).map(row => {
-                    const rowData = {
-                        model: row.c[0]?.v || '',
-                        symptom: row.c[1]?.v || '',
-                        solution: row.c[2]?.v || '',
-                        parts: row.c[3]?.v || '',
-                        note: row.c[4]?.v || '',
-                        tags: row.c[5]?.v || ''
-                    };
-                    console.log('처리된 행 데이터:', rowData);
-                    return rowData;
-                });
+                console.log('JSON 파싱 성공');
+                console.log('전체 행 수:', json.table.rows ? json.table.rows.length : 0);
 
-                console.log('전체 데이터:', allData);
+                if (!json.table || !json.table.rows || json.table.rows.length === 0) {
+                    throw new Error('시트에 데이터가 없습니다.');
+                }
+
+                // 첫 번째 행이 헤더인지 확인
+                const firstRow = json.table.rows[0];
+                console.log('첫 번째 행:', firstRow);
+
+                // 데이터 변환 - 첫 번째 행은 헤더로 건너뛰기
+                allData = [];
+                for (let i = 1; i < json.table.rows.length; i++) {
+                    const row = json.table.rows[i];
+                    
+                    // 빈 행 건너뛰기
+                    if (!row.c || row.c.every(cell => !cell || !cell.v)) {
+                        continue;
+                    }
+                    
+                    const rowData = {
+                        model: safeGetValue(row.c[0]),
+                        symptom: safeGetValue(row.c[1]),
+                        solution: safeGetValue(row.c[2]),
+                        parts: safeGetValue(row.c[3]),
+                        note: safeGetValue(row.c[4]),
+                        tags: safeGetValue(row.c[5])
+                    };
+                    
+                    allData.push(rowData);
+                }
+
+                console.log('처리된 데이터:', allData);
                 console.log('로드된 데이터 개수:', allData.length);
 
                 loading.classList.remove('visible');
@@ -435,7 +480,7 @@
             } catch (error) {
                 console.error('데이터 로드 오류:', error);
                 loading.classList.remove('visible');
-                alert('데이터를 불러오는데 실패했습니다.');
+                showError(`데이터를 불러올 수 없습니다: ${error.message}<br><br>F12를 눌러 콘솔을 확인해주세요.`);
             }
         }
 
@@ -451,20 +496,19 @@
             const queryLower = query.toLowerCase();
             
             const filtered = allData.filter(item => {
-                const matches = (
-                    item.model.toLowerCase().includes(queryLower) ||
-                    item.symptom.toLowerCase().includes(queryLower) ||
-                    item.solution.toLowerCase().includes(queryLower) ||
-                    item.parts.toLowerCase().includes(queryLower) ||
-                    item.note.toLowerCase().includes(queryLower) ||
-                    item.tags.toLowerCase().includes(queryLower)
-                );
-                
-                if (matches) {
-                    console.log('매칭된 항목:', item);
+                try {
+                    return (
+                        (item.model && item.model.toLowerCase().includes(queryLower)) ||
+                        (item.symptom && item.symptom.toLowerCase().includes(queryLower)) ||
+                        (item.solution && item.solution.toLowerCase().includes(queryLower)) ||
+                        (item.parts && item.parts.toLowerCase().includes(queryLower)) ||
+                        (item.note && item.note.toLowerCase().includes(queryLower)) ||
+                        (item.tags && item.tags.toLowerCase().includes(queryLower))
+                    );
+                } catch (e) {
+                    console.error('검색 중 오류:', e, item);
+                    return false;
                 }
-                
-                return matches;
             });
 
             console.log('검색 결과:', filtered.length + '건');
@@ -485,7 +529,6 @@
             if (data.length === 0) {
                 resultsHeader.style.display = 'none';
                 noResults.classList.add('visible');
-                console.log('결과 없음 표시');
                 return;
             }
 
@@ -494,45 +537,47 @@
             resultsCount.textContent = `검색 결과: ${data.length}건`;
 
             data.forEach((item, index) => {
-                console.log(`항목 ${index + 1} 표시:`, item);
-                
-                const itemDiv = document.createElement('div');
-                itemDiv.className = 'wiki-item';
-                
-                // 해시태그 처리
-                const tags = item.tags.split(' ').filter(tag => tag.trim());
-                const tagsHtml = tags.length > 0 
-                    ? `<div class="wiki-tags">${tags.map(tag => `<span class="wiki-tag">${tag}</span>`).join('')}</div>`
-                    : '<span style="color: #808080;">-</span>';
+                try {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'wiki-item';
+                    
+                    // 해시태그 처리
+                    const tags = item.tags ? item.tags.split(' ').filter(tag => tag.trim()) : [];
+                    const tagsHtml = tags.length > 0 
+                        ? `<div class="wiki-tags">${tags.map(tag => `<span class="wiki-tag">${tag}</span>`).join('')}</div>`
+                        : '<span style="color: #808080;">-</span>';
 
-                itemDiv.innerHTML = `
-                    <div class="wiki-field">
-                        <div class="wiki-label">모델</div>
-                        <div class="wiki-value">${item.model || '-'}</div>
-                    </div>
-                    <div class="wiki-field">
-                        <div class="wiki-label">증상</div>
-                        <div class="wiki-value">${item.symptom || '-'}</div>
-                    </div>
-                    <div class="wiki-field">
-                        <div class="wiki-label">해결방법</div>
-                        <div class="wiki-value">${item.solution || '-'}</div>
-                    </div>
-                    <div class="wiki-field">
-                        <div class="wiki-label">사용부품</div>
-                        <div class="wiki-value">${item.parts || '-'}</div>
-                    </div>
-                    <div class="wiki-field">
-                        <div class="wiki-label">비고</div>
-                        <div class="wiki-value">${item.note || '-'}</div>
-                    </div>
-                    <div class="wiki-field">
-                        <div class="wiki-label">태그</div>
-                        <div class="wiki-value">${tagsHtml}</div>
-                    </div>
-                `;
+                    itemDiv.innerHTML = `
+                        <div class="wiki-field">
+                            <div class="wiki-label">모델</div>
+                            <div class="wiki-value">${item.model || '-'}</div>
+                        </div>
+                        <div class="wiki-field">
+                            <div class="wiki-label">증상</div>
+                            <div class="wiki-value">${item.symptom || '-'}</div>
+                        </div>
+                        <div class="wiki-field">
+                            <div class="wiki-label">해결방법</div>
+                            <div class="wiki-value">${item.solution || '-'}</div>
+                        </div>
+                        <div class="wiki-field">
+                            <div class="wiki-label">사용부품</div>
+                            <div class="wiki-value">${item.parts || '-'}</div>
+                        </div>
+                        <div class="wiki-field">
+                            <div class="wiki-label">비고</div>
+                            <div class="wiki-value">${item.note || '-'}</div>
+                        </div>
+                        <div class="wiki-field">
+                            <div class="wiki-label">태그</div>
+                            <div class="wiki-value">${tagsHtml}</div>
+                        </div>
+                    `;
 
-                resultsList.appendChild(itemDiv);
+                    resultsList.appendChild(itemDiv);
+                } catch (e) {
+                    console.error(`항목 ${index} 표시 오류:`, e, item);
+                }
             });
             
             console.log('결과 표시 완료');
