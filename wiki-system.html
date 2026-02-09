@@ -421,9 +421,9 @@
             loading.classList.add('visible');
 
             try {
-                // 캐시 버스팅을 위한 타임스탬프 추가
+                // headers=1 파라미터 추가 - 첫 번째 행을 명시적으로 헤더로 지정
                 const timestamp = new Date().getTime();
-                const url = `https://docs.google.com/spreadsheets/d/${WIKI_SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}&t=${timestamp}`;
+                const url = `https://docs.google.com/spreadsheets/d/${WIKI_SHEET_ID}/gviz/tq?tqx=out:json&headers=1&sheet=${encodeURIComponent(SHEET_NAME)}&t=${timestamp}`;
                 
                 console.log('데이터 요청 URL:', url);
                 
