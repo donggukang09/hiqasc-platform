@@ -672,10 +672,25 @@
                                 <path d="M20 15.5c-1.25 0-2.45-.2-3.57-.57-.35-.11-.74-.03-1.02.24l-2.2 2.2c-2.83-1.44-5.15-3.75-6.59-6.59l2.2-2.21c.28-.26.36-.65.25-1C8.7 6.45 8.5 5.25 8.5 4c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1 0 9.39 7.61 17 17 17 .55 0 1-.45 1-1v-3.5c0-.55-.45-1-1-1z"/>
                             </svg>
                         </div>
-                        <h3 class="card-title">통화요청 자동화</h3>
+                        <h3 class="card-title">통화요청 파일 자동 생성</h3>
                         <p class="card-description">
                             로우데이터와 콜센터 파일을 자동 병합합니다.
                             파일 업로드 후 자동으로 분류 및 정리됩니다.
+                        </p>
+                        <span class="card-badge">운영중</span>
+                    </div>
+
+                    <!-- 통화요청 관리 시스템 -->
+                    <div class="card" onclick="openApp('callManagement')">
+                        <div class="card-icon">
+                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-5 14H4v-4h11v4zm0-5H4V9h11v4zm5 5h-4V9h4v9z"/>
+                            </svg>
+                        </div>
+                        <h3 class="card-title">통화요청 관리 시스템</h3>
+                        <p class="card-description">
+                            통화요청 현황을 조회하고 관리합니다.
+                            실시간 데이터 확인 및 업데이트가 가능합니다.
                         </p>
                         <span class="card-badge">운영중</span>
                     </div>
@@ -818,6 +833,7 @@
             parts: 'https://script.google.com/macros/s/AKfycbxH-usbWLQYim1T32p9ClYSnXnSToLQgebuQMGv9Apz3ThDx8wZkqaEEant6EiUWTAI/exec',
             doaSystem: 'https://donggukang09.github.io/hiqasc-platform/doa-system.html',
             callRequest: 'https://donggukang09.github.io/hiqasc-platform/call-request-system.html',
+            callManagement: 'https://script.google.com/macros/s/AKfycbzQ5ROrUuCrBRU24UN__FuD94UJnVgiZRDozlGF7OOc8cGmsppvbqXbz8u0G5WqkglR0A/exec',
             suppliesRequest: 'https://donggukang09.github.io/hiqasc-platform/supplies-request.html',
             documentOutput: 'https://donggukang09.github.io/hiqasc-platform/document-output-main.html',
             wiki: 'https://donggukang09.github.io/hiqasc-platform/wiki-system.html',
