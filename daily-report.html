@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>일일 업무 보고</title>
+    <title>일일 업무 보고 | HIQASC</title>
     <style>
         * {
             margin: 0;
@@ -13,238 +13,594 @@
 
         body {
             font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
-            background: #1e1e1e;
+            background: #2a2a2a;
             color: #e0e0e0;
             min-height: 100vh;
-            display: flex;
-            flex-direction: column;
+            padding: 20px;
         }
 
-        /* 헤더 */
-        .header {
-            background: #2a2a2a;
-            border-bottom: 1px solid #3a3a3a;
-            padding: 20px 30px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-        }
-
-        .header-container {
-            max-width: 1400px;
+        .container {
+            max-width: 900px;
             margin: 0 auto;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
         }
 
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 15px;
+        .header {
+            background: #353535;
+            border: 1px solid #4a4a4a;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 20px;
+            text-align: center;
         }
 
-        .header-icon {
-            width: 40px;
-            height: 40px;
+        .header-logo {
+            width: 60px;
+            height: 60px;
             background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
-            border-radius: 8px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
+            margin: 0 auto 20px;
+            font-size: 32px;
             font-weight: 700;
             color: #ffffff;
         }
 
-        .header-info h1 {
-            font-size: 1.5em;
+        .header h1 {
             color: #ffffff;
-            margin-bottom: 4px;
+            font-size: 1.8em;
+            margin-bottom: 10px;
         }
 
-        .header-info p {
+        .header p {
             color: #808080;
             font-size: 0.9em;
         }
 
-        .back-link {
+        .back-button {
+            display: inline-block;
+            margin-bottom: 15px;
             color: #4a90e2;
             text-decoration: none;
-            font-size: 0.95em;
-            padding: 8px 16px;
-            border: 1px solid #4a90e2;
-            border-radius: 6px;
-            transition: all 0.2s;
+            font-size: 14px;
+            transition: color 0.3s;
         }
 
-        .back-link:hover {
-            background: #4a90e2;
-            color: #ffffff;
-        }
-
-        /* 메인 컨텐츠 */
-        .main-container {
-            flex: 1;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 30px;
-            width: 100%;
+        .back-button:hover {
+            color: #357abd;
         }
 
         .form-container {
-            background: #2a2a2a;
-            border: 1px solid #3a3a3a;
+            background: #353535;
+            border: 1px solid #4a4a4a;
             border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        .form-notice {
-            background: rgba(74, 144, 226, 0.1);
-            border-left: 3px solid #4a90e2;
-            padding: 15px 20px;
+            padding: 30px;
             margin-bottom: 20px;
-            border-radius: 6px;
-            color: #e0e0e0;
-            font-size: 0.9em;
-            line-height: 1.6;
         }
 
-        .form-notice strong {
-            color: #4a90e2;
+        .form-section {
+            margin-bottom: 30px;
         }
 
-        /* iframe 스타일 */
-        iframe {
-            width: 100%;
-            height: 800px;
-            border: none;
-            border-radius: 8px;
-            background: #ffffff;
-        }
-
-        /* Footer */
-        .footer {
-            background: #2a2a2a;
-            border-top: 1px solid #3a3a3a;
-            padding: 20px;
-            text-align: center;
-            color: #606060;
-            font-size: 0.85em;
-        }
-
-        .developer-tag {
-            margin-top: 8px;
+        .section-title {
+            font-size: 1.2em;
             font-weight: 600;
             color: #4a90e2;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #4a4a4a;
         }
 
-        /* 반응형 */
-        @media (max-width: 768px) {
-            .header-container {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 15px;
-            }
-
-            .main-container {
-                padding: 20px 15px;
-            }
-
-            .form-container {
-                padding: 15px;
-            }
-
-            iframe {
-                height: 1000px;
-            }
+        .form-group {
+            margin-bottom: 15px;
         }
 
-        /* 로딩 애니메이션 */
+        .form-label {
+            display: block;
+            font-weight: 500;
+            color: #e0e0e0;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+        }
+
+        .required {
+            color: #e74c3c;
+            margin-left: 3px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #4a4a4a;
+            border-radius: 8px;
+            background: #2a2a2a;
+            color: #e0e0e0;
+            font-size: 0.95em;
+            font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #4a90e2;
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+        }
+
+        select.form-control {
+            cursor: pointer;
+        }
+
+        .service-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .service-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .service-item label {
+            font-size: 0.85em;
+            color: #b0b0b0;
+            margin-bottom: 5px;
+        }
+
+        .service-item input[type="number"] {
+            padding: 10px;
+            border: 1px solid #4a4a4a;
+            border-radius: 8px;
+            background: #2a2a2a;
+            color: #e0e0e0;
+            font-size: 0.95em;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .service-item input[type="number"]:focus {
+            outline: none;
+            border-color: #4a90e2;
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+        }
+
+        .checkbox-group {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #4a4a4a;
+        }
+
+        .checkbox-group h4 {
+            font-size: 0.95em;
+            font-weight: 600;
+            color: #4a90e2;
+            margin-bottom: 15px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: #353535;
+            border-radius: 6px;
+            transition: background 0.3s;
+        }
+
+        .checkbox-item:hover {
+            background: #3d3d3d;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            margin-right: 10px;
+            cursor: pointer;
+            accent-color: #4a90e2;
+        }
+
+        .checkbox-item label {
+            font-size: 0.9em;
+            color: #e0e0e0;
+            cursor: pointer;
+            margin: 0;
+        }
+
+        textarea.form-control {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         .loading {
             text-align: center;
-            padding: 40px;
+            padding: 30px;
             color: #808080;
         }
 
-        .loading-spinner {
-            width: 40px;
-            height: 40px;
-            margin: 0 auto 15px;
-            border: 3px solid #3a3a3a;
-            border-top: 3px solid #4a90e2;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
+        .success-message {
+            display: none;
+            text-align: center;
+            padding: 40px;
+            background: #353535;
+            border: 1px solid #4a4a4a;
+            border-radius: 12px;
         }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .success-message.show {
+            display: block;
+        }
+
+        .success-icon {
+            font-size: 60px;
+            color: #27ae60;
+            margin-bottom: 20px;
+        }
+
+        .success-message h2 {
+            color: #27ae60;
+            margin-bottom: 10px;
+        }
+
+        .success-message p {
+            color: #808080;
+            margin-bottom: 20px;
+        }
+
+        .btn-primary {
+            display: inline-block;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 0.8em;
+        }
+
+        @media (max-width: 768px) {
+            .form-container {
+                padding: 20px;
+            }
+
+            .service-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- 헤더 -->
-    <div class="header">
-        <div class="header-container">
-            <div class="header-left">
-                <div class="header-icon">R</div>
-                <div class="header-info">
-                    <h1>일일 업무 보고</h1>
-                    <p>Daily Work Report</p>
+    <div class="container">
+        <div class="header">
+            <a href="https://donggukang09.github.io/hiqasc-platform/" class="back-button">← 메인으로</a>
+            <div class="header-logo">R</div>
+            <h1>일일 업무 보고</h1>
+            <p>Daily Work Report System</p>
+        </div>
+
+        <div id="loadingMessage" class="loading">
+            시스템 초기화 중...
+        </div>
+
+        <div class="form-container" id="formContainer" style="display: none;">
+            <form id="dailyReportForm">
+                <!-- 기본 정보 -->
+                <div class="form-section">
+                    <h3 class="section-title">기본 정보</h3>
+                    
+                    <div class="form-group">
+                        <label class="form-label">이름<span class="required">*</span></label>
+                        <select class="form-control" id="name" required>
+                            <option value="">이름 선택</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">날짜<span class="required">*</span></label>
+                        <input type="date" class="form-control" id="date" required>
+                    </div>
                 </div>
-            </div>
-            <a href="https://donggukang09.github.io/hiqasc-platform/" class="back-link">← 메인으로</a>
+
+                <!-- 일일 서비스 내역 -->
+                <div class="form-section">
+                    <h3 class="section-title">일일 서비스 내역</h3>
+                    
+                    <div class="service-grid">
+                        <div class="service-item">
+                            <label>클린업 서비스<span class="required">*</span></label>
+                            <input type="number" id="cleanup" min="0" value="0" required>
+                        </div>
+                        <div class="service-item">
+                            <label>일반 기능불량<span class="required">*</span></label>
+                            <input type="number" id="malfunction" min="0" value="0" required>
+                        </div>
+                        <div class="service-item">
+                            <label>모터부식<span class="required">*</span></label>
+                            <input type="number" id="motor" min="0" value="0" required>
+                        </div>
+                        <div class="service-item">
+                            <label>동파<span class="required">*</span></label>
+                            <input type="number" id="frozen" min="0" value="0" required>
+                        </div>
+                        <div class="service-item">
+                            <label>NTF<span class="required">*</span></label>
+                            <input type="number" id="ntf" min="0" value="0" required>
+                        </div>
+                        <div class="service-item">
+                            <label>DOA<span class="required">*</span></label>
+                            <input type="number" id="doa" min="0" value="0" required>
+                        </div>
+                        <div class="service-item">
+                            <label>Hygienic<span class="required">*</span></label>
+                            <input type="number" id="hygienic" min="0" value="0" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SVC 마감 체크리스트 -->
+                <div class="form-section">
+                    <h3 class="section-title">SVC 마감 체크리스트</h3>
+
+                    <div class="checkbox-group">
+                        <h4>기본 정보</h4>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="check_return_date">
+                            <label for="check_return_date">Return date 입력 확인</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="check_engineer_name">
+                            <label for="check_engineer_name">엔지니어 이름 입력 확인</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="check_machine_id">
+                            <label for="check_machine_id">Machine ID 확인</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="check_serial">
+                            <label for="check_serial">Serial 번호 확인</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="check_repair_code">
+                            <label for="check_repair_code">리페이코드 확인</label>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <h4>수리 내역</h4>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="check_repair_typo">
+                            <label for="check_repair_typo">수리 내역서 오탈자 확인</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="check_parts_record">
+                            <label for="check_parts_record">부품 사용 내역 정상 기입 확인</label>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <h4>부품 사용</h4>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="check_parts_register">
+                            <label for="check_parts_register">부품 등록 여부 확인</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="check_parts_match">
+                            <label for="check_parts_match">부품 사용 내역 일치 여부 확인</label>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <h4>입고, 출고</h4>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="check_incoming">
+                            <label for="check_incoming">입고 일, 입고 송장 확인</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="check_outgoing">
+                            <label for="check_outgoing">출고 일 확인</label>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <h4>서비스 상태</h4>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="check_service_status">
+                            <label for="check_service_status">서비스 상태 확인</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="check_call_request">
+                            <label for="check_call_request">통화요청 여부 확인</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="check_call_date">
+                            <label for="check_call_date">통화요청 최초 전달일 확인</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feedback -->
+                <div class="form-section">
+                    <h3 class="section-title">Feedback</h3>
+
+                    <div class="form-group">
+                        <label class="form-label">주요 이슈</label>
+                        <textarea class="form-control" id="main_issues" placeholder="오늘 발생한 주요 이슈나 문제점을 작성해주세요"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">제안 및 필요 물품</label>
+                        <textarea class="form-control" id="suggestions" placeholder="업무 개선 제안이나 필요한 물품을 작성해주세요"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">건강 상태, 피로도 및 컨디션</label>
+                        <textarea class="form-control" id="health" placeholder="현재 건강 상태와 피로도를 자유롭게 작성해주세요"></textarea>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn" id="submitBtn">제출하기</button>
+            </form>
         </div>
-    </div>
 
-    <!-- 메인 컨텐츠 -->
-    <div class="main-container">
-        <div class="form-container">
-            <div class="form-notice">
-                <strong>📌 작성 안내:</strong> 업무 종료 전 반드시 작성해주세요. 작성한 내용은 자동으로 저장되며, 팀 운영 및 성과 분석에 활용됩니다.
-            </div>
-
-            <!-- 로딩 표시 -->
-            <div class="loading" id="loading">
-                <div class="loading-spinner"></div>
-                <p>폼을 불러오는 중...</p>
-            </div>
-
-            <!-- Google Form 임베드 -->
-            <iframe 
-                src="https://docs.google.com/forms/d/e/1FAIpQLSd3GDgK6HWMSB0Ko2zm4pEFlasBCb0v3kpZ6nzM7HXiu671GQ/viewform?embedded=true"
-                frameborder="0"
-                marginheight="0"
-                marginwidth="0"
-                style="display: none;"
-                id="reportForm"
-                onload="hideLoading()">
-                로딩중...
-            </iframe>
+        <div class="success-message" id="successMessage">
+            <div class="success-icon">✓</div>
+            <h2>제출 완료</h2>
+            <p>일일 업무 보고가 성공적으로 저장되었습니다.</p>
+            <a href="https://donggukang09.github.io/hiqasc-platform/" class="btn-primary">메인으로 돌아가기</a>
         </div>
-    </div>
 
-    <!-- Footer -->
-    <div class="footer">
-        <p>© 2025 HIQASC Daily Work Report System</p>
-        <p class="developer-tag">DEVELOPED BY DONGGU KANG</p>
+        <div class="footer">
+            <p>© 2025 HIQASC Daily Work Report System</p>
+            <p>DEVELOPED BY DONGGU KANG</p>
+        </div>
     </div>
 
     <script>
-        // iframe 로딩 완료 시 로딩 표시 제거
-        function hideLoading() {
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('reportForm').style.display = 'block';
+        // Google Apps Script Web App URL (설정 필요)
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxwCHxEvT6OV0Qj0jM_AYJeOiRPJ18jCIziIqxAeRGoOA18ahrtewn4_pw7eVsTeXwbjQ/exec';
+
+        // 오늘 날짜를 기본값으로 설정
+        document.getElementById('date').valueAsDate = new Date();
+
+        // 페이지 로드 시 테크니션 이름 목록 가져오기
+        async function loadTechnicians() {
+            try {
+                const response = await fetch(SCRIPT_URL + '?action=getTechnicians');
+                const data = await response.json();
+                
+                const select = document.getElementById('name');
+                
+                if (data.technicians && data.technicians.length > 0) {
+                    data.technicians.forEach(name => {
+                        if (name && name.trim()) {
+                            const option = document.createElement('option');
+                            option.value = name.trim();
+                            option.text = name.trim();
+                            select.add(option);
+                        }
+                    });
+                }
+                
+                // 로딩 숨기고 폼 표시
+                document.getElementById('loadingMessage').style.display = 'none';
+                document.getElementById('formContainer').style.display = 'block';
+                
+            } catch (error) {
+                console.error('Error loading technicians:', error);
+                document.getElementById('loadingMessage').textContent = '테크니션 목록을 불러오는데 실패했습니다. 페이지를 새로고침 해주세요.';
+            }
         }
 
-        // 페이지 로드 후 3초 뒤에도 로딩이 안 끝나면 강제로 표시
-        setTimeout(function() {
-            hideLoading();
-        }, 3000);
+        // 폼 제출 처리
+        document.getElementById('dailyReportForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = '제출 중...';
 
-        // 개발자 콘솔 메시지
-        console.log('%c📋 HIQASC 일일 업무 보고', 'font-size: 18px; font-weight: bold; color: #4a90e2;');
-        console.log('%cDeveloped by Donggu Kang', 'font-size: 14px; color: #357abd;');
+            // 데이터 수집
+            const formData = {
+                action: 'submitReport',
+                timestamp: new Date().toISOString(),
+                name: document.getElementById('name').value,
+                date: document.getElementById('date').value,
+                
+                // 서비스 내역
+                cleanup: document.getElementById('cleanup').value,
+                malfunction: document.getElementById('malfunction').value,
+                motor: document.getElementById('motor').value,
+                frozen: document.getElementById('frozen').value,
+                ntf: document.getElementById('ntf').value,
+                doa: document.getElementById('doa').value,
+                hygienic: document.getElementById('hygienic').value,
+                
+                // 체크리스트
+                check_return_date: document.getElementById('check_return_date').checked,
+                check_engineer_name: document.getElementById('check_engineer_name').checked,
+                check_machine_id: document.getElementById('check_machine_id').checked,
+                check_serial: document.getElementById('check_serial').checked,
+                check_repair_code: document.getElementById('check_repair_code').checked,
+                check_repair_typo: document.getElementById('check_repair_typo').checked,
+                check_parts_record: document.getElementById('check_parts_record').checked,
+                check_parts_register: document.getElementById('check_parts_register').checked,
+                check_parts_match: document.getElementById('check_parts_match').checked,
+                check_incoming: document.getElementById('check_incoming').checked,
+                check_outgoing: document.getElementById('check_outgoing').checked,
+                check_service_status: document.getElementById('check_service_status').checked,
+                check_call_request: document.getElementById('check_call_request').checked,
+                check_call_date: document.getElementById('check_call_date').checked,
+                
+                // Feedback
+                main_issues: document.getElementById('main_issues').value,
+                suggestions: document.getElementById('suggestions').value,
+                health: document.getElementById('health').value
+            };
+
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                // 성공 메시지 표시
+                document.getElementById('formContainer').style.display = 'none';
+                document.getElementById('successMessage').classList.add('show');
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert('제출 중 오류가 발생했습니다. 다시 시도해주세요.');
+                submitBtn.disabled = false;
+                submitBtn.textContent = '제출하기';
+            }
+        });
+
+        // 페이지 로드 시 테크니션 목록 불러오기
+        window.addEventListener('load', () => {
+            loadTechnicians();
+        });
     </script>
 </body>
 </html>
