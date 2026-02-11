@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>머신 사용법 안내 | HIQASC</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0e1a;
+            --bg-secondary: #111827;
+            --bg-card: #1a2235;
+            --bg-card-hover: #1e2a42;
+            --border-color: #2a3a5c;
+            --border-hover: #3b82f6;
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --accent-blue: #3b82f6;
+            --accent-blue-light: #60a5fa;
+            --accent-gradient: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
+            --accent-original: #c084fc;
+            --accent-vertuo: #34d399;
+            --accent-milk: #fb923c;
+            --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.3);
+            --shadow-card-hover: 0 8px 32px rgba(59, 130, 246, 0.15);
+            --radius: 12px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* Header */
+        .page-header {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            border-bottom: 1px solid var(--border-color);
+            padding: 28px 32px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(12px);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 13px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .back-btn:hover {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: var(--accent-blue);
+            color: var(--text-primary);
+        }
+
+        .page-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .page-title h1 {
+            font-size: 22px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #e2e8f0, #93c5fd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .page-title .badge {
+            font-size: 11px;
+            padding: 3px 10px;
+            background: rgba(59, 130, 246, 0.15);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 20px;
+            color: var(--accent-blue-light);
+            font-weight: 500;
+        }
+
+        /* Search */
+        .search-box {
+            position: relative;
+            width: 320px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 16px 10px 40px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-family: 'Noto Sans KR', sans-serif;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .search-box input:focus {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .search-box input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+
+        .search-clear {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 16px;
+            display: none;
+            padding: 4px;
+            line-height: 1;
+        }
+
+        .search-clear.visible {
+            display: block;
+        }
+
+        /* Category Filter Tabs */
+        .filter-bar {
+            max-width: 1400px;
+            margin: 24px auto 0;
+            padding: 0 32px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filter-tab {
+            padding: 8px 20px;
+            border-radius: 24px;
+            font-size: 13px;
+            font-weight: 500;
+            border: 1px solid var(--border-color);
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.25s;
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+
+        .filter-tab:hover {
+            border-color: var(--accent-blue);
+            color: var(--text-primary);
+            background: rgba(59, 130, 246, 0.08);
+        }
+
+        .filter-tab.active {
+            background: var(--accent-blue);
+            border-color: var(--accent-blue);
+            color: #fff;
+        }
+
+        .filter-tab .count {
+            display: inline-block;
+            margin-left: 6px;
+            padding: 1px 7px;
+            border-radius: 10px;
+            font-size: 11px;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .filter-tab.active .count {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        /* Main Content */
+        .main-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 28px 32px 60px;
+        }
+
+        /* Section */
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(42, 58, 92, 0.5);
+        }
+
+        .section-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .section-dot.original { background: var(--accent-original); }
+        .section-dot.vertuo { background: var(--accent-vertuo); }
+        .section-dot.milk { background: var(--accent-milk); }
+
+        .section-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .section-count {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-left: auto;
+        }
+
+        /* Card Grid */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 16px;
+        }
+
+        /* Machine Card */
+        .machine-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 0;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .machine-card:hover {
+            border-color: var(--border-hover);
+            background: var(--bg-card-hover);
+            box-shadow: var(--shadow-card-hover);
+            transform: translateY(-3px);
+        }
+
+        .machine-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: transparent;
+            transition: background 0.3s;
+        }
+
+        .machine-card.original:hover::after { background: var(--accent-original); }
+        .machine-card.vertuo:hover::after { background: var(--accent-vertuo); }
+        .machine-card.milk:hover::after { background: var(--accent-milk); }
+
+        .card-icon-area {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            height: 36px;
+            background: linear-gradient(180deg, rgba(30, 42, 66, 0.5) 0%, transparent 100%);
+            position: relative;
+            padding: 0 10px;
+        }
+
+        .card-type-badge {
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-top: 10px;
+        }
+
+        .card-type-badge.original {
+            background: rgba(192, 132, 252, 0.15);
+            color: var(--accent-original);
+            border: 1px solid rgba(192, 132, 252, 0.2);
+        }
+
+        .card-type-badge.vertuo {
+            background: rgba(52, 211, 153, 0.15);
+            color: var(--accent-vertuo);
+            border: 1px solid rgba(52, 211, 153, 0.2);
+        }
+
+        .card-type-badge.milk {
+            background: rgba(251, 146, 60, 0.15);
+            color: var(--accent-milk);
+            border: 1px solid rgba(251, 146, 60, 0.2);
+        }
+
+        .card-body {
+            padding: 16px 18px 18px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+            line-height: 1.4;
+        }
+
+        .card-code {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-family: 'Consolas', 'Monaco', monospace;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+
+        .card-link-hint {
+            margin-top: auto;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--accent-blue-light);
+            opacity: 0;
+            transform: translateX(-4px);
+            transition: all 0.3s;
+        }
+
+        .machine-card:hover .card-link-hint {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .card-link-hint svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        /* No Results */
+        .no-results {
+            display: none;
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+
+        .no-results.visible {
+            display: block;
+        }
+
+        .no-results-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .no-results-text {
+            font-size: 15px;
+            margin-bottom: 8px;
+        }
+
+        .no-results-sub {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        /* Info Banner */
+        .info-banner {
+            max-width: 1400px;
+            margin: 20px auto 0;
+            padding: 0 32px;
+        }
+
+        .info-banner-inner {
+            background: linear-gradient(135deg, rgba(30, 58, 95, 0.4) 0%, rgba(37, 99, 235, 0.08) 100%);
+            border: 1px solid rgba(59, 130, 246, 0.15);
+            border-radius: 10px;
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .info-banner-icon {
+            flex-shrink: 0;
+            width: 20px;
+            height: 20px;
+            color: var(--accent-blue-light);
+        }
+
+        .info-banner-inner a {
+            color: var(--accent-blue-light);
+            text-decoration: none;
+        }
+
+        .info-banner-inner a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .page-header { padding: 20px 16px; }
+            .header-content { flex-direction: column; align-items: flex-start; }
+            .search-box { width: 100%; }
+            .filter-bar { padding: 0 16px; margin-top: 16px; }
+            .main-content { padding: 20px 16px 40px; }
+            .info-banner { padding: 0 16px; }
+            .card-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+            .page-title h1 { font-size: 18px; }
+        }
+
+        @media (max-width: 480px) {
+            .card-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+            .card-body { padding: 12px 14px 14px; }
+            .card-name { font-size: 13px; }
+        }
+
+        /* Animation */
+        .section {
+            animation: fadeInUp 0.4s ease-out backwards;
+        }
+
+        .section:nth-child(2) { animation-delay: 0.1s; }
+        .section:nth-child(3) { animation-delay: 0.2s; }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .machine-card {
+            animation: cardFadeIn 0.3s ease-out backwards;
+        }
+
+        @keyframes cardFadeIn {
+            from { opacity: 0; transform: scale(0.96); }
+            to { opacity: 1; transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="page-header">
+        <div class="header-content">
+            <div class="header-left">
+                <a class="back-btn" onclick="history.back()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+                    돌아가기
+                </a>
+                <div class="page-title">
+                    <h1>머신 사용법 안내</h1>
+                    <span class="badge">네스프레소 공식</span>
+                </div>
+            </div>
+            <div class="search-box">
+                <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" id="searchInput" placeholder="머신명 또는 모델코드 검색..." autocomplete="off">
+                <button class="search-clear" id="searchClear">&times;</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Info Banner -->
+    <div class="info-banner">
+        <div class="info-banner-inner">
+            <svg class="info-banner-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            <span>각 머신 카드를 클릭하면 <a href="https://www.nespresso.com/kr/ko/technical-support-usage" target="_blank">네스프레소 공식 기술지원</a> 페이지의 해당 머신 사용법으로 이동합니다.</span>
+        </div>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="filter-bar">
+        <button class="filter-tab active" data-filter="all">전체 <span class="count" id="countAll"></span></button>
+        <button class="filter-tab" data-filter="original">오리지널 <span class="count" id="countOriginal"></span></button>
+        <button class="filter-tab" data-filter="vertuo">버츄오 <span class="count" id="countVertuo"></span></button>
+        <button class="filter-tab" data-filter="milk">밀크 디바이스 <span class="count" id="countMilk"></span></button>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+
+        <!-- 오리지널 머신 -->
+        <div class="section" data-category="original" id="sectionOriginal">
+            <div class="section-header">
+                <div class="section-dot original"></div>
+                <h2 class="section-title">오리지널 머신</h2>
+                <span class="section-count" id="originalCount"></span>
+            </div>
+            <div class="card-grid" id="gridOriginal"></div>
+        </div>
+
+        <!-- 버츄오 머신 -->
+        <div class="section" data-category="vertuo" id="sectionVertuo">
+            <div class="section-header">
+                <div class="section-dot vertuo"></div>
+                <h2 class="section-title">버츄오 머신</h2>
+                <span class="section-count" id="vertuoCount"></span>
+            </div>
+            <div class="card-grid" id="gridVertuo"></div>
+        </div>
+
+        <!-- 밀크 디바이스 -->
+        <div class="section" data-category="milk" id="sectionMilk">
+            <div class="section-header">
+                <div class="section-dot milk"></div>
+                <h2 class="section-title">밀크 디바이스</h2>
+                <span class="section-count" id="milkCount"></span>
+            </div>
+            <div class="card-grid" id="gridMilk"></div>
+        </div>
+
+        <!-- No Results -->
+        <div class="no-results" id="noResults">
+            <div class="no-results-icon">—</div>
+            <div class="no-results-text">검색 결과가 없습니다</div>
+            <div class="no-results-sub">다른 키워드로 검색해 보세요</div>
+        </div>
+    </div>
+
+    <script>
+        // ===== Machine Data =====
+        const machines = [
+            // 오리지널 머신
+            { name: '에센자 미니', category: 'original', link: 'https://www.nespresso.com/kr/ko/technical-support-usage#!/Essenza-Mini/instructions' },
+            { name: '픽시', category: 'original', link: 'https://www.nespresso.com/kr/ko/technical-support-usage#!/Pixie/instructions' },
+            { name: '시티즈', category: 'original', link: 'https://www.nespresso.com/kr/ko/technical-support-usage#!/Citiz/instructions' },
+            { name: '시티즈 플래티넘', category: 'original', link: 'https://www.nespresso.com/kr/ko/technical-support-usage#!/Citiz-Platinum/instructions' },
+            { name: '라티시마 원', category: 'original', link: 'https://www.nespresso.com/kr/ko/technical-support-usage#!/Lattissima-One/instructions' },
+            { name: '뉴 라티시마 원', category: 'original', link: 'https://www.nespresso.com/kr/ko/technical-support-usage#!/Nespresso-Lattissima-One/instructions' },
+            { name: '그랑 라티시마', category: 'original', link: 'https://www.nespresso.com/kr/ko/technical-support-usage#!/Gran-Lattissima/instructions' },
+            { name: '크리아티스타 플러스', category: 'original', link: 'https://www.nespresso.com/kr/ko/technical-support-usage#!/Creatista/instructions' },
+
+            // 버츄오 머신
+            { name: '버츄오 팝', category: 'vertuo', link: 'https://www.nespresso.com/kr/ko/technical-support-usage#!/Vertuo-POP/instructions' },
+            { name: '버츄오 팝+', category: 'vertuo', link: 'https://www.nespresso.com/kr/ko/technical-support-usage#!/Vertuo-POP-Plus/instructions' },
+            { name: '버츄오 플러스', category: 'vertuo', link: 'https://www.nespresso.com/kr/ko/technical-support-usage#!/VertuoPlus/instructions' },
+            { name: '버츄오 라티시마', category: 'vertuo', link: 'https://www.nespresso.com/kr/ko/technical-support-usage#!/Vertuo-Lattissima/instructions' },
+            { name: '버츄오 크리아티스타', category: 'vertuo', link: 'https://www.nespresso.com/kr/ko/technical-support-usage#!/Vertuo-Creatista/instructions' },
+            { name: '버츄오 넥스트', category: 'vertuo', link: 'https://www.nespresso.com/kr/ko/technical-support-usage#!/Vertuo-Next/instructions' },
+
+            // 밀크 디바이스
+            { name: '에어로치노 4R', category: 'milk', link: 'https://www.nespresso.com/kr/ko/technical-support-usage#!/Aeroccino-4R/instructions' },
+            { name: '에어로치노 4', category: 'milk', link: 'https://www.nespresso.com/kr/ko/technical-support-usage#!/Aeroccino-4/instructions' },
+            { name: '에어로치노 3', category: 'milk', link: 'https://www.nespresso.com/kr/ko/technical-support-usage#!/Aeroccino-3/instructions' },
+            { name: '나모포머', category: 'milk', link: 'https://www.nespresso.com/kr/ko/technical-support-usage#!/Nano-Foamer/instructions' },
+        ];
+
+        // ===== Render Cards =====
+        function createCard(machine) {
+            const card = document.createElement('a');
+            card.href = machine.link;
+            card.target = '_blank';
+            card.rel = 'noopener noreferrer';
+            card.className = `machine-card ${machine.category}`;
+            card.dataset.name = machine.name.toLowerCase();
+            card.dataset.category = machine.category;
+
+            const categoryLabel = { original: 'OL', vertuo: 'VL', milk: 'MILK' };
+
+            card.innerHTML = `
+                <div class="card-icon-area">
+                    <span class="card-type-badge ${machine.category}">${categoryLabel[machine.category]}</span>
+                </div>
+                <div class="card-body">
+                    <div class="card-name">${machine.name}</div>
+                    <div class="card-link-hint">
+                        <span>사용법 보기</span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                    </div>
+                </div>
+            `;
+
+            // Apply staggered animation
+            const index = machines.indexOf(machine);
+            card.style.animationDelay = `${(index % 12) * 0.03}s`;
+
+            return card;
+        }
+
+        function renderAllCards() {
+            const grids = {
+                original: document.getElementById('gridOriginal'),
+                vertuo: document.getElementById('gridVertuo'),
+                milk: document.getElementById('gridMilk'),
+            };
+
+            Object.values(grids).forEach(g => g.innerHTML = '');
+
+            machines.forEach(m => {
+                grids[m.category].appendChild(createCard(m));
+            });
+
+            updateCounts();
+        }
+
+        function updateCounts() {
+            const counts = { original: 0, vertuo: 0, milk: 0 };
+            machines.forEach(m => counts[m.category]++);
+
+            document.getElementById('countAll').textContent = machines.length;
+            document.getElementById('countOriginal').textContent = counts.original;
+            document.getElementById('countVertuo').textContent = counts.vertuo;
+            document.getElementById('countMilk').textContent = counts.milk;
+
+            document.getElementById('originalCount').textContent = `${counts.original}개 머신`;
+            document.getElementById('vertuoCount').textContent = `${counts.vertuo}개 머신`;
+            document.getElementById('milkCount').textContent = `${counts.milk}개 제품`;
+        }
+
+        // ===== Filter =====
+        let currentFilter = 'all';
+
+        document.querySelectorAll('.filter-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                currentFilter = tab.dataset.filter;
+                applyFilters();
+            });
+        });
+
+        // ===== Search =====
+        const searchInput = document.getElementById('searchInput');
+        const searchClear = document.getElementById('searchClear');
+
+        searchInput.addEventListener('input', () => {
+            searchClear.classList.toggle('visible', searchInput.value.length > 0);
+            applyFilters();
+        });
+
+        searchClear.addEventListener('click', () => {
+            searchInput.value = '';
+            searchClear.classList.remove('visible');
+            applyFilters();
+            searchInput.focus();
+        });
+
+        function applyFilters() {
+            const query = searchInput.value.toLowerCase().trim();
+            const cards = document.querySelectorAll('.machine-card');
+            let visibleCounts = { original: 0, vertuo: 0, milk: 0 };
+            let totalVisible = 0;
+
+            cards.forEach(card => {
+                const matchCategory = currentFilter === 'all' || card.dataset.category === currentFilter;
+                const matchSearch = !query || 
+                    card.dataset.name.includes(query);
+
+                const visible = matchCategory && matchSearch;
+                card.style.display = visible ? '' : 'none';
+
+                if (visible) {
+                    visibleCounts[card.dataset.category]++;
+                    totalVisible++;
+                }
+            });
+
+            // Show/hide sections
+            ['original', 'vertuo', 'milk'].forEach(cat => {
+                const section = document.querySelector(`.section[data-category="${cat}"]`);
+                section.style.display = visibleCounts[cat] > 0 ? '' : 'none';
+            });
+
+            // No results
+            document.getElementById('noResults').classList.toggle('visible', totalVisible === 0);
+        }
+
+        // ===== Init =====
+        renderAllCards();
+    </script>
+</body>
+</html>
