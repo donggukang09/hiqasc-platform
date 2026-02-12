@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>수리 백로그 대시보드 | HIQASC</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
     <style>
         * {
             margin: 0;
@@ -481,6 +482,8 @@
         const DAILY_SHEET = '일간백로그';
         const WEEKLY_SHEET = '주간백로그';
 
+        Chart.register(ChartDataLabels);
+
         let dailyChart = null;
         let weeklyRemainChart = null;
         let weeklyIncomingChart = null;
@@ -655,9 +658,26 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    layout: {
+                        padding: {
+                            top: 25
+                        }
+                    },
                     plugins: {
                         legend: {
                             display: false
+                        },
+                        datalabels: {
+                            color: '#ffffff',
+                            font: {
+                                weight: 'bold',
+                                size: 13
+                            },
+                            anchor: 'end',
+                            align: 'top',
+                            formatter: function(value) {
+                                return value + '대';
+                            }
                         }
                     },
                     scales: {
@@ -767,9 +787,26 @@
             return {
                 responsive: true,
                 maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        top: 25
+                    }
+                },
                 plugins: {
                     legend: {
                         display: false
+                    },
+                    datalabels: {
+                        color: '#ffffff',
+                        font: {
+                            weight: 'bold',
+                            size: 12
+                        },
+                        anchor: 'end',
+                        align: 'top',
+                        formatter: function(value) {
+                            return value + unit;
+                        }
                     }
                 },
                 scales: {
