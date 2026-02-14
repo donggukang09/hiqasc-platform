@@ -1164,16 +1164,17 @@
             const workDays = Object.values(techData[name].daily).filter(v => v > 0).length || 1;
             techArray.push({ name, total, avg: (total / workDays).toFixed(1) });
         }
-        techArray.sort((a, b) => parseFloat(b.avg) - parseFloat(a.avg));
+        // 그래프용: 수량순 / 테이블용: 달성률순
+        const chartArray = [...techArray].sort((a, b) => b.total - a.total);
+        const rankArray  = [...techArray].sort((a, b) => parseFloat(b.avg) - parseFloat(a.avg));
 
         const TARGET_DAILY = 15; // 일일 목표 수량
-        const maxTotal = techArray.length > 0 ? techArray[0].total : 1;
 
-        // Table
+        // Table (달성률순)
         const tbody = document.getElementById('rankingTableBody');
         tbody.innerHTML = '';
         const medals = ['🥇', '🥈', '🥉'];
-        techArray.forEach((t, i) => {
+        rankArray.forEach((t, i) => {
             const pct = Math.round((parseFloat(t.avg) / TARGET_DAILY) * 100);
             const barWidth = Math.min(pct, 100); // 바는 최대 100%
             const pctColor = pct >= 100 ? 'var(--green-light)' : pct >= 80 ? 'var(--amber)' : 'var(--red)';
@@ -1198,16 +1199,16 @@
             tbody.appendChild(row);
         });
 
-        // Bar chart
+        // Bar chart (수량순)
         if (rankingChart) rankingChart.destroy();
         rankingChart = new Chart(document.getElementById('rankingChart'), {
             type: 'bar',
             data: {
-                labels: techArray.map(t => t.name),
+                labels: chartArray.map(t => t.name),
                 datasets: [{
                     label: '주간 완료',
-                    data: techArray.map(t => t.total),
-                    backgroundColor: techArray.map((_, i) => {
+                    data: chartArray.map(t => t.total),
+                    backgroundColor: chartArray.map((_, i) => {
                         if (i === 0) return 'rgba(245, 158, 11, 0.9)';
                         if (i === 1) return 'rgba(148, 163, 184, 0.8)';
                         if (i === 2) return 'rgba(180, 120, 60, 0.8)';
