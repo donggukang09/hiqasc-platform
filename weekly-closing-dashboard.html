@@ -136,6 +136,21 @@
         }
         .load-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(59,130,246,0.4); }
 
+        .back-link {
+            color: #4a90e2;
+            text-decoration: none;
+            padding: 8px 16px;
+            border: 1px solid #4a90e2;
+            border-radius: 6px;
+            transition: all 0.2s;
+            font-size: 0.9em;
+            white-space: nowrap;
+        }
+        .back-link:hover {
+            background: #4a90e2;
+            color: #ffffff;
+        }
+
         /* === TABS === */
         .tab-row {
             display: flex;
@@ -455,11 +470,15 @@
     <div class="top-bar-inner">
         <div class="header-row">
             <div class="logo">
-                <div class="logo-icon">H</div>
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="white" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
+                    </svg>
+                </div>
                 <div class="logo-text">HIQASC <span>주간마감</span></div>
             </div>
             <div class="week-controls">
-                <a href="https://donggukang09.github.io/hiqasc-platform/index.html" class="load-btn" style="background:linear-gradient(135deg,#64748b,#475569);text-decoration:none;display:inline-flex;align-items:center;gap:6px;">🏠 메인</a>
+                <a href="https://donggukang09.github.io/hiqasc-platform/" class="back-link">← 메인으로</a>
                 <label>📅 기준일 선택:</label>
                 <input type="date" id="datePicker" onchange="onDateChange()">
                 <span class="week-label" id="weekRangeLabel">-</span>
