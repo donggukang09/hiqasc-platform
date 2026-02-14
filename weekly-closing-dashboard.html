@@ -1164,7 +1164,7 @@
             const workDays = Object.values(techData[name].daily).filter(v => v > 0).length || 1;
             techArray.push({ name, total, avg: (total / workDays).toFixed(1) });
         }
-        techArray.sort((a, b) => b.total - a.total);
+        techArray.sort((a, b) => parseFloat(b.avg) - parseFloat(a.avg));
 
         const TARGET_DAILY = 15; // 일일 목표 수량
         const maxTotal = techArray.length > 0 ? techArray[0].total : 1;
