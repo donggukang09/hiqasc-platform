@@ -626,7 +626,7 @@
                         <th>이름</th>
                         <th style="text-align:center;">주간 완료</th>
                         <th style="text-align:center;">일평균</th>
-                        <th style="width:30%;">실적</th>
+                        <th style="width:30%;">달성률 (목표: 일 15대)</th>
                     </tr>
                 </thead>
                 <tbody id="rankingTableBody"></tbody>
@@ -1166,6 +1166,7 @@
         }
         techArray.sort((a, b) => b.total - a.total);
 
+        const TARGET_DAILY = 15; // 일일 목표 수량
         const maxTotal = techArray.length > 0 ? techArray[0].total : 1;
 
         // Table
@@ -1173,7 +1174,14 @@
         tbody.innerHTML = '';
         const medals = ['🥇', '🥈', '🥉'];
         techArray.forEach((t, i) => {
-            const pct = ((t.total / maxTotal) * 100).toFixed(0);
+            const pct = Math.round((parseFloat(t.avg) / TARGET_DAILY) * 100);
+            const barWidth = Math.min(pct, 100); // 바는 최대 100%
+            const pctColor = pct >= 100 ? 'var(--green-light)' : pct >= 80 ? 'var(--amber)' : 'var(--red)';
+            const barColor = pct >= 100
+                ? 'linear-gradient(90deg, #10b981, #34d399)'
+                : pct >= 80
+                    ? 'linear-gradient(90deg, #f59e0b, #fbbf24)'
+                    : 'linear-gradient(90deg, #ef4444, #f87171)';
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td class="num" style="text-align:center;"><span class="medal">${medals[i] || (i + 1)}</span></td>
@@ -1182,8 +1190,8 @@
                 <td class="num">${t.avg}대/일</td>
                 <td>
                     <div class="bar-cell">
-                        <div class="mini-bar"><div class="mini-bar-fill" style="width:${pct}%"></div></div>
-                        <span style="font-size:12px; color:var(--text-muted); font-family:'JetBrains Mono'; min-width:35px;">${pct}%</span>
+                        <div class="mini-bar"><div class="mini-bar-fill" style="width:${barWidth}%; background:${barColor}"></div></div>
+                        <span style="font-size:12px; color:${pctColor}; font-family:'JetBrains Mono'; min-width:40px; font-weight:600;">${pct}%</span>
                     </div>
                 </td>
             `;
