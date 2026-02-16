@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 2.5.0 | Updated: 2026-02-14 | Weekly Closing Dashboard Added -->
+<!-- Version: 2.6.0 | Updated: 2026-02-16 | Team Dashboard Added -->
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -315,6 +315,86 @@
             gap: 6px;
         }
 
+        /* 팀 현황 대시보드 하이라이트 카드 */
+        .highlight-card {
+            background: linear-gradient(135deg, #1a2a4a 0%, #2a3a5a 100%);
+            border: 1px solid #4a90e2;
+            border-radius: 14px;
+            padding: 28px 32px;
+            margin-bottom: 40px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .highlight-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #4a90e2, #6366f1, #a78bfa);
+        }
+
+        .highlight-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(74, 144, 226, 0.25);
+            border-color: #6366f1;
+        }
+
+        .highlight-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #4a90e2 0%, #6366f1 100%);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            flex-shrink: 0;
+        }
+
+        .highlight-info {
+            flex: 1;
+        }
+
+        .highlight-info h3 {
+            font-size: 1.3em;
+            color: #ffffff;
+            margin-bottom: 6px;
+            font-weight: 700;
+        }
+
+        .highlight-info p {
+            color: #94a3b8;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+
+        .highlight-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            background: rgba(99, 102, 241, 0.2);
+            border: 1px solid rgba(99, 102, 241, 0.4);
+            color: #a5b4fc;
+            border-radius: 8px;
+            font-size: 0.8em;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        @media (max-width: 768px) {
+            .highlight-card {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+
         /* 섹션 */
         .section {
             margin-bottom: 50px;
@@ -470,6 +550,10 @@
         <div style="background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%); border: 1px solid #4a90e2; border-radius: 10px; padding: 14px 16px; margin-bottom: 15px; text-align: center; box-shadow: 0 2px 8px rgba(74, 144, 226, 0.3);">
             <span style="font-size: 15px; font-weight: 700; color: #ffffff; letter-spacing: 0.5px;">⚡ 바로가기</span>
         </div>
+        <a href="https://donggukang09.github.io/hiqasc-platform/team-dashboard.html" class="quick-link-item">
+            <div class="quick-link-icon">📊</div>
+            <span class="quick-link-text">팀 현황</span>
+        </a>
         <a href="https://hiqasc.kr/" target="_blank" class="quick-link-item">
             <div class="quick-link-icon">🏢</div>
             <span class="quick-link-text">HIQASC SVC</span>
@@ -542,6 +626,16 @@
                         <span>수리팀 관리자</span>
                     </div>
                 </div>
+            </div>
+
+            <!-- 팀 현황 대시보드 (상단 하이라이트) -->
+            <div class="highlight-card" onclick="openApp('teamDashboard')">
+                <div class="highlight-icon">📊</div>
+                <div class="highlight-info">
+                    <h3>HIQASC 팀 현황 대시보드</h3>
+                    <p>팀원 근무 현황, 연차/추가근로, 당일 수리 현황을 한눈에 확인합니다.</p>
+                </div>
+                <span class="highlight-badge">운영중</span>
             </div>
 
             <!-- 데이터 분석 섹션 -->
@@ -840,6 +934,7 @@
         // 앱 URL 설정
         // ============================================
         const APP_URLS = {
+            teamDashboard: 'https://donggukang09.github.io/hiqasc-platform/team-dashboard.html',
             dailyReport: 'https://donggukang09.github.io/hiqasc-platform/daily-report.html',
             machineDashboard: 'https://donggukang09.github.io/hiqasc-platform/machine-dashboard.html',
             backlogDashboard: 'https://donggukang09.github.io/hiqasc-platform/backlog-dashboard.html',
