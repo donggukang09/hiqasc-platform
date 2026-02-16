@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HIQASC 팀 현황 대시보드</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Manrope', sans-serif;
+    background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0d1117 100%);
+    min-height: 100vh;
+    color: #e0e0e0;
+    padding: 20px;
+  }
+
+  .header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding: 25px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .header h1 {
+    font-size: 28px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #60a5fa, #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 8px;
+  }
+
+  .header .date-display {
+    font-size: 16px;
+    color: #94a3b8;
+    font-weight: 500;
+  }
+
+  .header .refresh-btn {
+    display: inline-block;
+    margin-top: 12px;
+    padding: 8px 20px;
+    background: linear-gradient(135deg, #3b82f6, #6366f1);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'Manrope', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.3s;
+  }
+
+  .header .refresh-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(59,130,246,0.4);
+  }
+
+  .back-link {
+    display: inline-block;
+    margin-bottom: 14px;
+    color: #94a3b8;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 6px;
+    transition: all 0.2s;
+  }
+
+  .back-link:hover {
+    color: #60a5fa;
+    border-color: #60a5fa;
+    background: rgba(96,165,250,0.08);
+  }
+
+  .summary-section {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 30px;
+  }
+
+  .summary-card {
+    background: rgba(255,255,255,0.04);
+    border-radius: 14px;
+    padding: 20px;
+    text-align: center;
+    border: 1px solid rgba(255,255,255,0.06);
+    transition: all 0.3s;
+  }
+
+  .summary-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255,255,255,0.12);
+  }
+
+  .summary-card .count { font-size: 42px; font-weight: 800; margin-bottom: 6px; }
+  .summary-card .label { font-size: 14px; color: #94a3b8; font-weight: 500; }
+  .summary-card.total .count { color: #60a5fa; }
+  .summary-card.working .count { color: #34d399; }
+  .summary-card.leave .count { color: #f97316; }
+  .summary-card.overtime .count { color: #a78bfa; }
+
+  .section-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    padding-left: 12px;
+    border-left: 3px solid #6366f1;
+    color: #e2e8f0;
+  }
+
+  .team-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 14px;
+    margin-bottom: 35px;
+  }
+
+  .member-card {
+    background: rgba(255,255,255,0.04);
+    border-radius: 14px;
+    padding: 18px;
+    border: 1px solid rgba(255,255,255,0.06);
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .member-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255,255,255,0.15);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+  }
+
+  .member-card-top {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .member-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #3b82f6, #6366f1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 42px;
+    font-weight: 700;
+    color: white;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+
+  .member-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .member-info { flex: 1; min-width: 0; text-align: center; }
+
+  .member-name-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 3px;
+  }
+
+  .member-name { font-size: 22px; font-weight: 800; color: #f1f5f9; }
+
+  .member-role {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+    background: rgba(99,102,241,0.15);
+    color: #a5b4fc;
+    border: 1px solid rgba(99,102,241,0.25);
+  }
+
+  .member-role.leader {
+    background: rgba(250,204,21,0.15);
+    color: #fbbf24;
+    border-color: rgba(250,204,21,0.3);
+  }
+
+  .member-tenure { font-size: 12px; color: #64748b; }
+
+  .member-status-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+
+  .status-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .badge-working { background: rgba(52,211,153,0.15); color: #34d399; border: 1px solid rgba(52,211,153,0.3); }
+  .badge-leave { background: rgba(249,115,22,0.15); color: #f97316; border: 1px solid rgba(249,115,22,0.3); }
+  .badge-overtime { background: rgba(167,139,250,0.15); color: #a78bfa; border: 1px solid rgba(167,139,250,0.3); }
+
+  .member-detail { font-size: 15px; color: #60a5fa; margin-bottom: 6px; text-align: center; font-weight: 700; }
+
+  .model-tags {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 5px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255,255,255,0.05);
+  }
+
+  .model-tag {
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 5px;
+    background: rgba(255,255,255,0.05);
+    color: #c8d6e5;
+    border: 1px solid rgba(255,255,255,0.1);
+    font-weight: 600;
+  }
+
+  .model-tag.all {
+    background: rgba(52,211,153,0.1);
+    color: #34d399;
+    border-color: rgba(52,211,153,0.2);
+  }
+
+  .repair-section { margin-bottom: 30px; }
+
+  .repair-table-wrap {
+    background: rgba(255,255,255,0.04);
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.06);
+    overflow: hidden;
+  }
+
+  .repair-table { width: 100%; border-collapse: collapse; }
+
+  .repair-table thead th {
+    background: rgba(99,102,241,0.15);
+    padding: 14px 16px;
+    text-align: left;
+    font-size: 13px;
+    font-weight: 600;
+    color: #a5b4fc;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .repair-table tbody td {
+    padding: 12px 16px;
+    font-size: 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+
+  .repair-table tbody tr:hover { background: rgba(255,255,255,0.03); }
+  .repair-table tbody tr:last-child td { border-bottom: none; }
+
+  .repair-count { font-weight: 700; font-size: 18px; }
+
+  .repair-bar {
+    height: 6px;
+    border-radius: 3px;
+    background: rgba(255,255,255,0.06);
+    margin-top: 6px;
+    overflow: hidden;
+  }
+
+  .repair-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, #3b82f6, #6366f1);
+    transition: width 0.5s ease;
+  }
+
+  .target-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .target-met { background: rgba(52,211,153,0.15); color: #34d399; }
+  .target-not { background: rgba(239,68,68,0.15); color: #ef4444; }
+
+  .repair-table tfoot td {
+    padding: 14px 16px;
+    font-weight: 700;
+    background: rgba(99,102,241,0.08);
+    border-top: 2px solid rgba(99,102,241,0.2);
+    font-size: 15px;
+    color: #a5b4fc;
+  }
+
+  .loading { text-align: center; padding: 40px; color: #64748b; }
+
+  .loading .spinner {
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    border: 3px solid rgba(99,102,241,0.2);
+    border-top-color: #6366f1;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 10px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media (max-width: 768px) {
+    .summary-section { grid-template-columns: repeat(2, 1fr); }
+    .team-grid { grid-template-columns: 1fr; }
+    .header h1 { font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <a href="https://donggukang09.github.io/hiqasc-platform/" class="back-link">← 메인으로</a>
+  <h1>📊 HIQASC 팀 현황 대시보드</h1>
+  <div class="date-display" id="dateDisplay"></div>
+  <button class="refresh-btn" onclick="loadAllData()">🔄 새로고침</button>
+</div>
+
+<div class="summary-section">
+  <div class="summary-card total"><div class="count" id="totalCount">-</div><div class="label">총 인원</div></div>
+  <div class="summary-card working"><div class="count" id="workingCount">-</div><div class="label">출근</div></div>
+  <div class="summary-card leave"><div class="count" id="leaveCount">-</div><div class="label">연차</div></div>
+  <div class="summary-card overtime"><div class="count" id="overtimeCount">-</div><div class="label">추가근로</div></div>
+</div>
+
+<div class="section-title">👥 팀원 근무 현황</div>
+<div class="team-grid" id="teamGrid">
+  <div class="loading"><div class="spinner"></div><br>데이터 로딩 중...</div>
+</div>
+
+<div class="repair-section">
+  <div class="section-title">🔧 당일 수리 현황</div>
+  <div class="repair-table-wrap">
+    <table class="repair-table">
+      <thead><tr><th>테크니션</th><th>수리 건수</th><th>달성률</th><th>목표</th></tr></thead>
+      <tbody id="repairTableBody">
+        <tr><td colspan="4" class="loading"><div class="spinner"></div><br>데이터 로딩 중...</td></tr>
+      </tbody>
+      <tfoot id="repairTableFoot" style="display:none;">
+        <tr><td>합계</td><td id="totalRepairs">0</td><td></td><td></td></tr>
+      </tfoot>
+    </table>
+  </div>
+</div>
+
+<script>
+const SHEET_IDS = {
+  main: '111K9l8gt-14roqvynNFEJrT2aLsTYjU8gQBsKNiyFmI',
+  leave: '1cmMEbIkmEL629RT04hpUUgXddnSVLGo1YwRzBwfyzCY',
+  overtime: '12U0BzTsjxPfK3AZqQyY479ozC0g1T3Cxutj6XmN75-k'
+};
+
+const DAILY_TARGET = 15;
+const cache = Date.now();
+
+const today = new Date();
+const todayStr = formatDate(today);
+document.getElementById('dateDisplay').textContent = 
+  `${today.getFullYear()}년 ${today.getMonth()+1}월 ${today.getDate()}일 (${['일','월','화','수','목','금','토'][today.getDay()]}요일)`;
+
+let teamMembers = [];
+let leaveData = [];
+let overtimeData = [];
+let repairData = {};
+
+function formatDate(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function normalizeDate(val) {
+  if (!val) return '';
+  let str = String(val).trim();
+  
+  const gvizMatch = str.match(/Date\((\d+),\s*(\d+),\s*(\d+)/);
+  if (gvizMatch) return `${gvizMatch[1]}-${String(parseInt(gvizMatch[2])+1).padStart(2,'0')}-${String(gvizMatch[3]).padStart(2,'0')}`;
+  
+  const dotMatch = str.match(/(\d{4})\.\s*(\d{1,2})\.\s*(\d{1,2})/);
+  if (dotMatch) return `${dotMatch[1]}-${String(dotMatch[2]).padStart(2,'0')}-${String(dotMatch[3]).padStart(2,'0')}`;
+  
+  const dashMatch = str.match(/(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (dashMatch) return `${dashMatch[1]}-${String(dashMatch[2]).padStart(2,'0')}-${String(dashMatch[3]).padStart(2,'0')}`;
+  
+  return str;
+}
+
+function calcTenure(joinDateStr) {
+  if (!joinDateStr) return '';
+  const join = new Date(joinDateStr);
+  if (isNaN(join.getTime())) return '';
+  const diff = today - join;
+  const years = Math.floor(diff / (365.25 * 24 * 60 * 60 * 1000));
+  const months = Math.floor((diff % (365.25 * 24 * 60 * 60 * 1000)) / (30.44 * 24 * 60 * 60 * 1000));
+  return years > 0 ? `${years}년 ${months}개월` : `${months}개월`;
+}
+
+function loadGviz(sheetId, tabName, query, callbackName) {
+  return new Promise((resolve) => {
+    const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json;responseHandler:${callbackName}&sheet=${encodeURIComponent(tabName)}&tq=${encodeURIComponent(query)}&_=${cache}`;
+    
+    window[callbackName] = function(response) {
+      try {
+        if (response.status === 'error') { resolve({ rows: [], cols: [] }); return; }
+        resolve({ rows: response.table.rows || [], cols: response.table.cols || [] });
+      } catch(e) { resolve({ rows: [], cols: [] }); }
+      delete window[callbackName];
+      const el = document.getElementById('script_' + callbackName);
+      if (el) el.remove();
+    };
+    
+    const script = document.createElement('script');
+    script.id = 'script_' + callbackName;
+    script.src = url;
+    script.onerror = () => resolve({ rows: [], cols: [] });
+    document.body.appendChild(script);
+  });
+}
+
+function getCellValue(row, i) {
+  if (!row.c || !row.c[i]) return '';
+  const c = row.c[i];
+  if (c.f) return c.f;
+  if (c.v !== null && c.v !== undefined) return String(c.v);
+  return '';
+}
+
+function getRawValue(row, i) {
+  if (!row.c || !row.c[i]) return '';
+  const c = row.c[i];
+  return (c.v !== null && c.v !== undefined) ? String(c.v) : '';
+}
+
+async function loadAllData() {
+  console.log('=== 데이터 로드 시작 ===');
+  
+  // 1. 테크니션 정보 (이름, 직책, 입사일, 수리가능모델, 사진URL)
+  const techResult = await loadGviz(SHEET_IDS.leave, '테크니션정보', 'SELECT A, B, C, D, E', 'cb_tech');
+  teamMembers = [];
+  if (techResult.rows) {
+    techResult.rows.forEach(row => {
+      const name = getCellValue(row, 0);
+      if (!name) return;
+      teamMembers.push({
+        name,
+        role: getCellValue(row, 1),
+        joinDate: normalizeDate(row.c && row.c[2] ? (row.c[2].f || getRawValue(row, 2)) : ''),
+        models: getCellValue(row, 3),
+        photoUrl: getCellValue(row, 4)
+      });
+    });
+  }
+  console.log('테크니션:', teamMembers);
+  
+  // 2. 연차 신청 (승인)
+  const leaveResult = await loadGviz(SHEET_IDS.leave, '연차신청', "SELECT B, E, F, I WHERE I = '승인'", 'cb_leave');
+  leaveData = [];
+  if (leaveResult.rows) {
+    leaveResult.rows.forEach(row => {
+      const name = getCellValue(row, 0);
+      const startDate = normalizeDate(row.c && row.c[1] ? (row.c[1].f || getRawValue(row, 1)) : '');
+      const endDate = normalizeDate(row.c && row.c[2] ? (row.c[2].f || getRawValue(row, 2)) : '');
+      if (name && startDate && endDate) leaveData.push({ name, startDate, endDate });
+    });
+  }
+  
+  // 3. 추가근로 (승인)
+  const otResult = await loadGviz(SHEET_IDS.overtime, '시트1', "SELECT B, C, D, I WHERE I = '승인'", 'cb_overtime');
+  overtimeData = [];
+  if (otResult.rows) {
+    otResult.rows.forEach(row => {
+      const name = getCellValue(row, 0);
+      const date = normalizeDate(row.c && row.c[1] ? (row.c[1].f || getRawValue(row, 1)) : '');
+      const type = getCellValue(row, 2);
+      if (name && date) overtimeData.push({ name, date, type });
+    });
+  }
+  
+  // 4. 수리 건수 (완료 탭 AM열)
+  const repairResult = await loadGviz(SHEET_IDS.main, '완료', 'SELECT AM', 'cb_repair');
+  repairData = {};
+  if (repairResult.rows) {
+    repairResult.rows.forEach(row => {
+      const tech = getCellValue(row, 0);
+      if (tech && tech !== '담당자') repairData[tech] = (repairData[tech] || 0) + 1;
+    });
+  }
+  console.log('수리 건수:', repairData);
+  
+  renderDashboard();
+}
+
+function renderDashboard() {
+  // 오늘 연차자
+  const onLeaveToday = new Set();
+  leaveData.forEach(item => {
+    if (item.startDate <= todayStr && item.endDate >= todayStr) onLeaveToday.add(item.name);
+  });
+  
+  // 오늘 추가근로자
+  const onOvertimeToday = {};
+  overtimeData.forEach(item => {
+    if (item.date === todayStr) onOvertimeToday[item.name] = item.type || '추가근로';
+  });
+  
+  // 요약
+  const total = teamMembers.length;
+  const leaveCount = teamMembers.filter(m => onLeaveToday.has(m.name)).length;
+  document.getElementById('totalCount').textContent = total;
+  document.getElementById('workingCount').textContent = total - leaveCount;
+  document.getElementById('leaveCount').textContent = leaveCount;
+  document.getElementById('overtimeCount').textContent = teamMembers.filter(m => onOvertimeToday[m.name]).length;
+  
+  // 팀원 카드
+  const grid = document.getElementById('teamGrid');
+  if (teamMembers.length === 0) {
+    grid.innerHTML = '<div class="loading">팀원 데이터를 불러올 수 없습니다.</div>';
+    return;
+  }
+  
+  let html = '';
+  teamMembers.forEach(member => {
+    const { name, role, joinDate, models, photoUrl } = member;
+    
+    // 아바타
+    const avatar = photoUrl 
+      ? `<img src="${photoUrl}" alt="${name}" onerror="this.parentElement.innerHTML='${name.charAt(0)}'">` 
+      : name.charAt(0);
+    
+    // 직책
+    const isLeader = ['팀장','매니저','리더'].includes(role);
+    
+    // 근속
+    const tenure = calcTenure(joinDate);
+    
+    // 상태
+    let badges = '';
+    let detail = '';
+    if (onLeaveToday.has(name)) {
+      badges = '<span class="status-badge badge-leave">🏖️ 연차</span>';
+      const info = leaveData.find(l => l.name === name && l.startDate <= todayStr && l.endDate >= todayStr);
+      if (info) detail = `${info.startDate} ~ ${info.endDate}`;
+    } else {
+      badges = '<span class="status-badge badge-working">✅ 출근</span>';
+      const cnt = repairData[name] || 0;
+      if (cnt > 0) detail = `오늘 수리: ${cnt}건`;
+    }
+    if (onOvertimeToday[name]) {
+      badges += ` <span class="status-badge badge-overtime">🌙 ${onOvertimeToday[name]}</span>`;
+    }
+    
+    // 수리 가능 모델 태그
+    let modelHtml = '';
+    if (models) {
+      const list = models.split(',').map(m => m.trim()).filter(m => m);
+      const tags = list.map(m => {
+        const isAll = m.toUpperCase().includes('ALL');
+        return `<span class="model-tag${isAll ? ' all' : ''}">${m}</span>`;
+      }).join('');
+      modelHtml = `<div class="model-tags">${tags}</div>`;
+    }
+    
+    html += `
+      <div class="member-card">
+        <div class="member-card-top">
+          <div class="member-avatar">${avatar}</div>
+          <div class="member-info">
+            <div class="member-name-row">
+              <span class="member-name">${name}</span>
+              <span class="member-role${isLeader ? ' leader' : ''}">${role}</span>
+            </div>
+            <div class="member-tenure">${tenure ? `근속 ${tenure}` : ''}</div>
+          </div>
+        </div>
+        <div class="member-status-row">${badges}</div>
+        ${detail ? `<div class="member-detail">${detail}</div>` : ''}
+        ${modelHtml}
+      </div>
+    `;
+  });
+  grid.innerHTML = html;
+  
+  // 수리 테이블
+  const tbody = document.getElementById('repairTableBody');
+  const working = teamMembers.filter(m => !onLeaveToday.has(m.name));
+  const rows = working.map(m => ({ name: m.name, count: repairData[m.name] || 0 })).sort((a,b) => b.count - a.count);
+  
+  let totalCnt = 0;
+  let thtml = '';
+  rows.forEach(item => {
+    totalCnt += item.count;
+    const pct = Math.min(Math.round((item.count / DAILY_TARGET) * 100), 100);
+    const met = item.count >= DAILY_TARGET;
+    thtml += `<tr>
+      <td style="font-weight:600">${item.name}</td>
+      <td><span class="repair-count" style="color:${met?'#34d399':'#60a5fa'}">${item.count}</span>
+        <div class="repair-bar"><div class="repair-bar-fill" style="width:${pct}%;${met?'background:linear-gradient(90deg,#34d399,#22d3ee)':''}"></div></div></td>
+      <td>${Math.round((item.count/DAILY_TARGET)*100)}%</td>
+      <td><span class="target-badge ${met?'target-met':'target-not'}">${met?'달성 ✓':'미달'}</span></td>
+    </tr>`;
+  });
+  
+  tbody.innerHTML = thtml || '<tr><td colspan="4" style="text-align:center;color:#64748b;padding:20px;">오늘 수리 데이터가 없습니다.</td></tr>';
+  document.getElementById('totalRepairs').textContent = totalCnt + '건';
+  document.getElementById('repairTableFoot').style.display = '';
+}
+
+loadAllData();
+</script>
+</body>
+</html>
