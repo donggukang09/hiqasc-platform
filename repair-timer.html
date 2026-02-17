@@ -474,12 +474,13 @@ const SHEET_IDS = {
 };
 
 // ⚠️ Apps Script 배포 후 여기에 URL 붙여넣기
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyDhNw51lRHIBQ3amB4j8EBpwx1LlXm0rDIjHlsTUA07P0hN2JOaHn5XxRyprltW9p5/exec';
+const SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
 
 const cache = Date.now();
 
 // 테크니션 데이터
 let techData = []; // [{name, models: []}]
+let modelList = []; // 전체 모델 목록
 // 오늘 기록 (화면 표시용)
 let todayRecords = [];
 
@@ -514,59 +515,51 @@ function getCellValue(row, i) {
 
 // ===== 초기 데이터 로드 =====
 async function loadInitData() {
-  // 테크니션 정보 (이름, 수리가능모델)
-  const result = await loadGviz(SHEET_IDS.leave, '테크니션정보', 'SELECT A, D', 'cb_init');
+  // 1. 테크니션 목록
+  const techResult = await loadGviz(SHEET_IDS.leave, '테크니션정보', 'SELECT A', 'cb_init');
   techData = [];
-  if (result.rows) {
-    result.rows.forEach(row => {
+  if (techResult.rows) {
+    techResult.rows.forEach(row => {
       const name = getCellValue(row, 0);
-      const modelsStr = getCellValue(row, 1);
-      if (!name) return;
-      const models = modelsStr ? modelsStr.split(',').map(m => m.trim()).filter(m => m) : [];
-      techData.push({ name, models });
+      if (name) techData.push({ name });
     });
   }
 
-  // 드롭다운 채우기
-  const select = document.getElementById('techSelect');
+  // 테크니션 드롭다운
+  const techSelect = document.getElementById('techSelect');
   techData.forEach(t => {
     const opt = document.createElement('option');
     opt.value = t.name;
     opt.textContent = t.name;
-    select.appendChild(opt);
+    techSelect.appendChild(opt);
   });
 
-  // 오늘 기록 로드
-  await loadTodayRecords();
-}
-
-// 테크니션 선택 시 모델 업데이트
-document.getElementById('techSelect').addEventListener('change', function() {
-  const modelSelect = document.getElementById('modelSelect');
-  modelSelect.innerHTML = '';
-
-  const tech = techData.find(t => t.name === this.value);
-  if (!tech) {
-    modelSelect.disabled = true;
-    modelSelect.innerHTML = '<option value="">테크니션을 먼저 선택하세요</option>';
-    return;
+  // 2. 모델 목록 (별도 탭)
+  const modelResult = await loadGviz(SHEET_IDS.leave, '모델목록', 'SELECT A', 'cb_models');
+  modelList = [];
+  if (modelResult.rows) {
+    modelResult.rows.forEach(row => {
+      const model = getCellValue(row, 0);
+      if (model) modelList.push(model);
+    });
   }
 
+  // 모델 드롭다운
+  const modelSelect = document.getElementById('modelSelect');
   modelSelect.disabled = false;
   modelSelect.innerHTML = '<option value="">모델을 선택하세요</option>';
-
-  // 모든 고유 모델 수집 (ALL 포함 시 전체 모델 목록 사용)
-  const allModels = [...new Set(techData.flatMap(t => t.models.filter(m => !m.toUpperCase().includes('ALL'))))];
-  const hasAll = tech.models.some(m => m.toUpperCase().includes('ALL'));
-  const modelList = hasAll ? allModels : tech.models.filter(m => !m.toUpperCase().includes('ALL'));
-
   modelList.forEach(m => {
     const opt = document.createElement('option');
     opt.value = m;
     opt.textContent = m;
     modelSelect.appendChild(opt);
   });
-});
+
+  // 오늘 기록 로드
+  await loadTodayRecords();
+}
+
+// (모델 드롭다운은 이제 테크니션과 무관하게 전체 모델 표시)
 
 // ===== 스톱워치 =====
 let timerInterval = null;
