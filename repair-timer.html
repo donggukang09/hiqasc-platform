@@ -487,7 +487,7 @@ let todayRecords = [];
 // ===== JSONP 로더 =====
 function loadGviz(sheetId, tabName, query, callbackName) {
   return new Promise((resolve) => {
-    const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json;responseHandler:${callbackName}&sheet=${encodeURIComponent(tabName)}&tq=${encodeURIComponent(query)}&_=${cache}`;
+    const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json;responseHandler:${callbackName}&sheet=${encodeURIComponent(tabName)}&headers=1&tq=${encodeURIComponent(query)}&_=${cache}`;
     window[callbackName] = function(response) {
       try {
         if (response.status === 'error') { resolve({ rows: [], cols: [] }); return; }
@@ -535,14 +535,19 @@ async function loadInitData() {
   });
 
   // 2. 모델 목록 (별도 탭)
-  const modelResult = await loadGviz(SHEET_IDS.leave, '모델목록', 'SELECT A', 'cb_models');
+  console.log('모델목록 로드 시작...');
+  const modelResult = await loadGviz(SHEET_IDS.main, '모델목록', 'SELECT A', 'cb_models');
+  console.log('모델목록 결과:', modelResult);
   modelList = [];
   if (modelResult.rows) {
-    modelResult.rows.forEach(row => {
+    console.log('모델 행 수:', modelResult.rows.length);
+    modelResult.rows.forEach((row, idx) => {
       const model = getCellValue(row, 0);
+      console.log(`모델[${idx}]:`, model, row.c);
       if (model) modelList.push(model);
     });
   }
+  console.log('최종 모델 목록:', modelList);
 
   // 모델 드롭다운
   const modelSelect = document.getElementById('modelSelect');
