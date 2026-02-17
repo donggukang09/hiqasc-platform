@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>수리 타이머 | HIQASC</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
+    background: #2a2a2a;
+    min-height: 100vh;
+    color: #e0e0e0;
+  }
+
+  /* 헤더 */
+  .header {
+    background: #1e1e1e;
+    border-bottom: 1px solid #3a3a3a;
+    padding: 20px 30px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+  }
+
+  .header-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+
+  .header-icon {
+    width: 45px;
+    height: 45px;
+    background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    color: #fff;
+  }
+
+  .header-info h1 {
+    font-size: 1.6em;
+    color: #fff;
+    margin-bottom: 4px;
+  }
+
+  .header-info p {
+    color: #808080;
+    font-size: 0.9em;
+  }
+
+  .back-link {
+    color: #4a90e2;
+    text-decoration: none;
+    padding: 8px 16px;
+    border: 1px solid #4a90e2;
+    border-radius: 6px;
+    transition: all 0.2s;
+    font-size: 0.85em;
+    font-weight: 500;
+  }
+
+  .back-link:hover {
+    background: #4a90e2;
+    color: #fff;
+  }
+
+  /* 컨테이너 */
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 30px;
+  }
+
+  /* 입력 영역 */
+  .input-section {
+    background: #353535;
+    border: 1px solid #4a4a4a;
+    border-radius: 12px;
+    padding: 28px;
+    margin-bottom: 25px;
+  }
+
+  .input-section h2 {
+    font-size: 1.1em;
+    color: #fff;
+    margin-bottom: 20px;
+    font-weight: 600;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .form-group.full {
+    grid-column: 1 / -1;
+  }
+
+  .form-group label {
+    font-size: 0.85em;
+    color: #808080;
+    font-weight: 600;
+  }
+
+  .form-group select,
+  .form-group input {
+    padding: 12px 14px;
+    border: 1px solid #4a4a4a;
+    border-radius: 8px;
+    background: #2a2a2a;
+    color: #e0e0e0;
+    font-size: 1em;
+    font-family: inherit;
+    transition: all 0.3s;
+  }
+
+  .form-group select:focus,
+  .form-group input:focus {
+    outline: none;
+    border-color: #4a90e2;
+    box-shadow: 0 0 0 3px rgba(74,144,226,0.1);
+  }
+
+  .form-group select option {
+    background: #2a2a2a;
+    color: #e0e0e0;
+  }
+
+  /* 스톱워치 영역 */
+  .stopwatch-section {
+    background: #353535;
+    border: 1px solid #4a4a4a;
+    border-radius: 12px;
+    padding: 40px 28px;
+    margin-bottom: 25px;
+    text-align: center;
+  }
+
+  .stopwatch-display {
+    font-size: 5em;
+    font-weight: 700;
+    color: #fff;
+    font-variant-numeric: tabular-nums;
+    margin-bottom: 8px;
+    letter-spacing: 2px;
+  }
+
+  .stopwatch-ms {
+    font-size: 1.5em;
+    color: #808080;
+    margin-bottom: 30px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .stopwatch-info {
+    font-size: 0.9em;
+    color: #4a90e2;
+    margin-bottom: 25px;
+    min-height: 22px;
+  }
+
+  .btn-group {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    padding: 14px 36px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.05em;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.3s;
+    min-width: 130px;
+  }
+
+  .btn:hover {
+    transform: translateY(-2px);
+  }
+
+  .btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .btn-start {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: #fff;
+  }
+
+  .btn-start:hover:not(:disabled) {
+    box-shadow: 0 4px 12px rgba(40,167,69,0.3);
+  }
+
+  .btn-pause {
+    background: linear-gradient(135deg, #e67e22, #f39c12);
+    color: #fff;
+  }
+
+  .btn-pause:hover:not(:disabled) {
+    box-shadow: 0 4px 12px rgba(230,126,34,0.3);
+  }
+
+  .btn-stop {
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    color: #fff;
+  }
+
+  .btn-stop:hover:not(:disabled) {
+    box-shadow: 0 4px 12px rgba(231,76,60,0.3);
+  }
+
+  .btn-reset {
+    background: #4a4a4a;
+    color: #e0e0e0;
+    border: 1px solid #5a5a5a;
+  }
+
+  .btn-reset:hover:not(:disabled) {
+    background: #5a5a5a;
+  }
+
+  /* 저장 상태 메시지 */
+  .save-message {
+    margin-top: 15px;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 0.9em;
+    font-weight: 600;
+    display: none;
+  }
+
+  .save-message.success {
+    display: block;
+    background: rgba(40,167,69,0.15);
+    border: 1px solid rgba(40,167,69,0.3);
+    color: #28a745;
+  }
+
+  .save-message.error {
+    display: block;
+    background: rgba(231,76,60,0.15);
+    border: 1px solid rgba(231,76,60,0.3);
+    color: #e74c3c;
+  }
+
+  /* 평균 수리시간 */
+  .avg-section {
+    background: #353535;
+    border: 1px solid #4a4a4a;
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-bottom: 25px;
+  }
+
+  .avg-section h2 {
+    font-size: 1.1em;
+    color: #fff;
+    margin-bottom: 16px;
+    font-weight: 600;
+  }
+
+  .avg-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+  }
+
+  .avg-card {
+    background: #2a2a2a;
+    border: 1px solid #4a4a4a;
+    border-radius: 8px;
+    padding: 14px;
+    text-align: center;
+  }
+
+  .avg-model {
+    font-size: 0.8em;
+    color: #808080;
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+
+  .avg-time {
+    font-size: 1.4em;
+    font-weight: 700;
+    color: #4a90e2;
+  }
+
+  .avg-count {
+    font-size: 0.75em;
+    color: #606060;
+    margin-top: 4px;
+  }
+
+  /* 오늘 기록 테이블 */
+  .history-section {
+    background: #353535;
+    border: 1px solid #4a4a4a;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 30px;
+  }
+
+  .history-section h2 {
+    font-size: 1.1em;
+    color: #fff;
+    padding: 20px 28px 16px;
+    font-weight: 600;
+  }
+
+  .history-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .history-table thead th {
+    background: #2a2a2a;
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 0.85em;
+    font-weight: 600;
+    color: #4a90e2;
+    border-bottom: 1px solid #4a4a4a;
+  }
+
+  .history-table tbody td {
+    padding: 11px 16px;
+    font-size: 0.9em;
+    border-bottom: 1px solid #3a3a3a;
+  }
+
+  .history-table tbody tr:hover { background: #3a3a3a; }
+  .history-table tbody tr:last-child td { border-bottom: none; }
+
+  .history-empty {
+    text-align: center;
+    padding: 30px;
+    color: #606060;
+    font-size: 0.9em;
+  }
+
+  .time-highlight {
+    color: #4a90e2;
+    font-weight: 700;
+  }
+
+  /* 반응형 */
+  @media (max-width: 768px) {
+    .header-container { flex-direction: column; gap: 15px; }
+    .form-grid { grid-template-columns: 1fr; }
+    .stopwatch-display { font-size: 3.5em; }
+    .container { padding: 20px 15px; }
+    .btn { min-width: 100px; padding: 12px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- 헤더 -->
+<div class="header">
+  <div class="header-container">
+    <div class="header-left">
+      <div class="header-icon">⏱️</div>
+      <div class="header-info">
+        <h1>수리 타이머</h1>
+        <p>Repair Stopwatch</p>
+      </div>
+    </div>
+    <a href="https://donggukang09.github.io/hiqasc-platform/" class="back-link">← 메인으로</a>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- 입력 영역 -->
+  <div class="input-section">
+    <h2>📋 수리 정보 입력</h2>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>테크니션</label>
+        <select id="techSelect">
+          <option value="">선택하세요</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>모델명</label>
+        <select id="modelSelect" disabled>
+          <option value="">테크니션을 먼저 선택하세요</option>
+        </select>
+      </div>
+      <div class="form-group full">
+        <label>증상</label>
+        <input type="text" id="symptomInput" placeholder="간략한 증상을 입력하세요">
+      </div>
+    </div>
+  </div>
+
+  <!-- 스톱워치 -->
+  <div class="stopwatch-section">
+    <div class="stopwatch-display" id="timerDisplay">00:00:00</div>
+    <div class="stopwatch-ms" id="timerMs">.00</div>
+    <div class="stopwatch-info" id="timerInfo"></div>
+    <div class="btn-group">
+      <button class="btn btn-start" id="btnStart" onclick="startTimer()">▶ 시작</button>
+      <button class="btn btn-pause" id="btnPause" onclick="pauseTimer()" disabled>⏸ 일시정지</button>
+      <button class="btn btn-stop" id="btnStop" onclick="stopTimer()" disabled>⏹ 완료 저장</button>
+      <button class="btn btn-reset" id="btnReset" onclick="resetTimer()">↺ 초기화</button>
+    </div>
+    <div class="save-message" id="saveMessage"></div>
+  </div>
+
+  <!-- 모델별 평균 수리시간 -->
+  <div class="avg-section">
+    <h2>📊 모델별 평균 수리시간</h2>
+    <div class="avg-grid" id="avgGrid">
+      <div class="history-empty">기록이 쌓이면 평균이 표시됩니다.</div>
+    </div>
+  </div>
+
+  <!-- 오늘 수리 기록 -->
+  <div class="history-section">
+    <h2>📝 오늘 수리 기록</h2>
+    <table class="history-table">
+      <thead>
+        <tr>
+          <th>시간</th>
+          <th>테크니션</th>
+          <th>모델명</th>
+          <th>증상</th>
+          <th>수리시간</th>
+        </tr>
+      </thead>
+      <tbody id="historyBody">
+        <tr><td colspan="5" class="history-empty">아직 기록이 없습니다.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<script>
+// ===== 설정 =====
+const SHEET_IDS = {
+  main: '111K9l8gt-14roqvynNFEJrT2aLsTYjU8gQBsKNiyFmI',
+  leave: '1cmMEbIkmEL629RT04hpUUgXddnSVLGo1YwRzBwfyzCY'
+};
+
+// ⚠️ Apps Script 배포 후 여기에 URL 붙여넣기
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyDhNw51lRHIBQ3amB4j8EBpwx1LlXm0rDIjHlsTUA07P0hN2JOaHn5XxRyprltW9p5/exec';
+
+const cache = Date.now();
+
+// 테크니션 데이터
+let techData = []; // [{name, models: []}]
+// 오늘 기록 (화면 표시용)
+let todayRecords = [];
+
+// ===== JSONP 로더 =====
+function loadGviz(sheetId, tabName, query, callbackName) {
+  return new Promise((resolve) => {
+    const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json;responseHandler:${callbackName}&sheet=${encodeURIComponent(tabName)}&tq=${encodeURIComponent(query)}&_=${cache}`;
+    window[callbackName] = function(response) {
+      try {
+        if (response.status === 'error') { resolve({ rows: [], cols: [] }); return; }
+        resolve({ rows: response.table.rows || [], cols: response.table.cols || [] });
+      } catch(e) { resolve({ rows: [], cols: [] }); }
+      delete window[callbackName];
+      const el = document.getElementById('script_' + callbackName);
+      if (el) el.remove();
+    };
+    const script = document.createElement('script');
+    script.id = 'script_' + callbackName;
+    script.src = url;
+    script.onerror = () => resolve({ rows: [], cols: [] });
+    document.body.appendChild(script);
+  });
+}
+
+function getCellValue(row, i) {
+  if (!row.c || !row.c[i]) return '';
+  const c = row.c[i];
+  if (c.f) return c.f;
+  if (c.v !== null && c.v !== undefined) return String(c.v);
+  return '';
+}
+
+// ===== 초기 데이터 로드 =====
+async function loadInitData() {
+  // 테크니션 정보 (이름, 수리가능모델)
+  const result = await loadGviz(SHEET_IDS.leave, '테크니션정보', 'SELECT A, D', 'cb_init');
+  techData = [];
+  if (result.rows) {
+    result.rows.forEach(row => {
+      const name = getCellValue(row, 0);
+      const modelsStr = getCellValue(row, 1);
+      if (!name) return;
+      const models = modelsStr ? modelsStr.split(',').map(m => m.trim()).filter(m => m) : [];
+      techData.push({ name, models });
+    });
+  }
+
+  // 드롭다운 채우기
+  const select = document.getElementById('techSelect');
+  techData.forEach(t => {
+    const opt = document.createElement('option');
+    opt.value = t.name;
+    opt.textContent = t.name;
+    select.appendChild(opt);
+  });
+
+  // 오늘 기록 로드
+  await loadTodayRecords();
+}
+
+// 테크니션 선택 시 모델 업데이트
+document.getElementById('techSelect').addEventListener('change', function() {
+  const modelSelect = document.getElementById('modelSelect');
+  modelSelect.innerHTML = '';
+
+  const tech = techData.find(t => t.name === this.value);
+  if (!tech) {
+    modelSelect.disabled = true;
+    modelSelect.innerHTML = '<option value="">테크니션을 먼저 선택하세요</option>';
+    return;
+  }
+
+  modelSelect.disabled = false;
+  modelSelect.innerHTML = '<option value="">모델을 선택하세요</option>';
+
+  // 모든 고유 모델 수집 (ALL 포함 시 전체 모델 목록 사용)
+  const allModels = [...new Set(techData.flatMap(t => t.models.filter(m => !m.toUpperCase().includes('ALL'))))];
+  const hasAll = tech.models.some(m => m.toUpperCase().includes('ALL'));
+  const modelList = hasAll ? allModels : tech.models.filter(m => !m.toUpperCase().includes('ALL'));
+
+  modelList.forEach(m => {
+    const opt = document.createElement('option');
+    opt.value = m;
+    opt.textContent = m;
+    modelSelect.appendChild(opt);
+  });
+});
+
+// ===== 스톱워치 =====
+let timerInterval = null;
+let startTime = 0;
+let elapsed = 0;
+let isRunning = false;
+let isPaused = false;
+
+function updateDisplay() {
+  const total = elapsed;
+  const hrs = Math.floor(total / 3600000);
+  const mins = Math.floor((total % 3600000) / 60000);
+  const secs = Math.floor((total % 60000) / 1000);
+  const ms = Math.floor((total % 1000) / 10);
+
+  document.getElementById('timerDisplay').textContent =
+    `${String(hrs).padStart(2,'0')}:${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+  document.getElementById('timerMs').textContent = `.${String(ms).padStart(2,'0')}`;
+}
+
+function startTimer() {
+  const tech = document.getElementById('techSelect').value;
+  const model = document.getElementById('modelSelect').value;
+
+  if (!tech) { alert('테크니션을 선택하세요.'); return; }
+  if (!model) { alert('모델명을 선택하세요.'); return; }
+
+  if (isPaused) {
+    // 재개
+    startTime = Date.now() - elapsed;
+    isPaused = false;
+  } else {
+    // 새 시작
+    startTime = Date.now();
+    elapsed = 0;
+  }
+
+  isRunning = true;
+  timerInterval = setInterval(() => {
+    elapsed = Date.now() - startTime;
+    updateDisplay();
+  }, 10);
+
+  document.getElementById('timerInfo').textContent = `${tech} · ${model} 수리 중...`;
+
+  // 입력 비활성화
+  document.getElementById('techSelect').disabled = true;
+  document.getElementById('modelSelect').disabled = true;
+  document.getElementById('symptomInput').disabled = true;
+
+  // 버튼 상태
+  document.getElementById('btnStart').disabled = true;
+  document.getElementById('btnPause').disabled = false;
+  document.getElementById('btnStop').disabled = false;
+
+  // 메시지 초기화
+  const msg = document.getElementById('saveMessage');
+  msg.className = 'save-message';
+  msg.style.display = 'none';
+}
+
+function pauseTimer() {
+  if (!isRunning) return;
+
+  clearInterval(timerInterval);
+  isRunning = false;
+  isPaused = true;
+
+  document.getElementById('timerInfo').textContent += ' (일시정지)';
+  document.getElementById('btnStart').disabled = false;
+  document.getElementById('btnStart').textContent = '▶ 재개';
+  document.getElementById('btnPause').disabled = true;
+}
+
+function stopTimer() {
+  if (!isRunning && !isPaused) return;
+
+  clearInterval(timerInterval);
+  isRunning = false;
+  isPaused = false;
+
+  const tech = document.getElementById('techSelect').value;
+  const model = document.getElementById('modelSelect').value;
+  const symptom = document.getElementById('symptomInput').value;
+  const totalSeconds = Math.round(elapsed / 1000);
+  const timeDisplay = document.getElementById('timerDisplay').textContent;
+
+  // 화면 기록 추가
+  const now = new Date();
+  const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+  const record = {
+    time: timeStr,
+    timestamp: now.toLocaleString('ko-KR'),
+    technician: tech,
+    model: model,
+    symptom: symptom,
+    timeDisplay: timeDisplay,
+    seconds: totalSeconds
+  };
+
+  todayRecords.unshift(record);
+  renderHistory();
+  renderAverage();
+
+  // 구글시트 저장
+  saveToSheet(record);
+
+  document.getElementById('timerInfo').textContent = `✅ ${timeDisplay} 저장 완료!`;
+
+  // 버튼 상태
+  document.getElementById('btnStart').disabled = true;
+  document.getElementById('btnPause').disabled = true;
+  document.getElementById('btnStop').disabled = true;
+}
+
+function resetTimer() {
+  clearInterval(timerInterval);
+  isRunning = false;
+  isPaused = false;
+  elapsed = 0;
+  updateDisplay();
+
+  document.getElementById('timerInfo').textContent = '';
+  document.getElementById('btnStart').textContent = '▶ 시작';
+  document.getElementById('btnStart').disabled = false;
+  document.getElementById('btnPause').disabled = true;
+  document.getElementById('btnStop').disabled = true;
+
+  // 입력 활성화
+  document.getElementById('techSelect').disabled = false;
+  document.getElementById('modelSelect').disabled = false;
+  document.getElementById('symptomInput').disabled = false;
+  document.getElementById('symptomInput').value = '';
+
+  const msg = document.getElementById('saveMessage');
+  msg.className = 'save-message';
+  msg.style.display = 'none';
+}
+
+// ===== 구글시트 저장 =====
+async function saveToSheet(record) {
+  const msg = document.getElementById('saveMessage');
+
+  if (SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE') {
+    msg.className = 'save-message error';
+    msg.textContent = '⚠️ Apps Script URL이 설정되지 않았습니다. 화면에만 기록됩니다.';
+    msg.style.display = 'block';
+    return;
+  }
+
+  try {
+    await fetch(SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(record)
+    });
+
+    msg.className = 'save-message success';
+    msg.textContent = '✅ 구글시트에 저장되었습니다.';
+    msg.style.display = 'block';
+  } catch(err) {
+    msg.className = 'save-message error';
+    msg.textContent = '❌ 저장 실패: ' + err.message;
+    msg.style.display = 'block';
+  }
+}
+
+// ===== 오늘 기록 로드 =====
+async function loadTodayRecords() {
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+
+  const result = await loadGviz(SHEET_IDS.main, '수리타이머', 'SELECT A, B, C, D, E, F', 'cb_history');
+
+  todayRecords = [];
+  if (result.rows) {
+    result.rows.forEach(row => {
+      const timestamp = getCellValue(row, 0);
+      if (!timestamp) return;
+
+      // 오늘 기록만 필터
+      if (timestamp.includes(todayStr) || timestamp.includes(`${today.getFullYear()}. ${today.getMonth()+1}. ${today.getDate()}.`) || timestamp.includes(`${today.getMonth()+1}/${today.getDate()}/${today.getFullYear()}`)) {
+        const timeMatch = timestamp.match(/(\d{1,2}):(\d{2})/);
+        const timeStr = timeMatch ? `${timeMatch[1].padStart(2,'0')}:${timeMatch[2]}` : '';
+
+        todayRecords.push({
+          time: timeStr,
+          timestamp: timestamp,
+          technician: getCellValue(row, 1),
+          model: getCellValue(row, 2),
+          symptom: getCellValue(row, 3),
+          timeDisplay: getCellValue(row, 4),
+          seconds: parseInt(getCellValue(row, 5)) || 0
+        });
+      }
+    });
+  }
+
+  todayRecords.reverse();
+  renderHistory();
+  renderAverage();
+}
+
+// ===== 기록 렌더링 =====
+function renderHistory() {
+  const tbody = document.getElementById('historyBody');
+
+  if (todayRecords.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" class="history-empty">아직 기록이 없습니다.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = todayRecords.map(r => `
+    <tr>
+      <td>${r.time}</td>
+      <td>${r.technician}</td>
+      <td>${r.model}</td>
+      <td>${r.symptom || '-'}</td>
+      <td class="time-highlight">${r.timeDisplay}</td>
+    </tr>
+  `).join('');
+}
+
+// ===== 평균 수리시간 렌더링 =====
+function renderAverage() {
+  const grid = document.getElementById('avgGrid');
+
+  if (todayRecords.length === 0) {
+    grid.innerHTML = '<div class="history-empty">기록이 쌓이면 평균이 표시됩니다.</div>';
+    return;
+  }
+
+  // 모델별 그룹
+  const modelMap = {};
+  todayRecords.forEach(r => {
+    if (!r.model || r.seconds <= 0) return;
+    if (!modelMap[r.model]) modelMap[r.model] = [];
+    modelMap[r.model].push(r.seconds);
+  });
+
+  if (Object.keys(modelMap).length === 0) {
+    grid.innerHTML = '<div class="history-empty">기록이 쌓이면 평균이 표시됩니다.</div>';
+    return;
+  }
+
+  grid.innerHTML = Object.entries(modelMap).map(([model, times]) => {
+    const avg = Math.round(times.reduce((a,b) => a+b, 0) / times.length);
+    const mins = Math.floor(avg / 60);
+    const secs = avg % 60;
+    const avgStr = mins > 0 ? `${mins}분 ${secs}초` : `${secs}초`;
+
+    return `
+      <div class="avg-card">
+        <div class="avg-model">${model}</div>
+        <div class="avg-time">${avgStr}</div>
+        <div class="avg-count">${times.length}건 평균</div>
+      </div>
+    `;
+  }).join('');
+}
+
+// 초기 로드
+loadInitData();
+</script>
+</body>
+</html>
