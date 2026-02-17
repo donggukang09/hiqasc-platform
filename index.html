@@ -315,13 +315,19 @@
             gap: 6px;
         }
 
+        .highlight-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
         /* 팀 현황 대시보드 하이라이트 카드 */
         .highlight-card {
             background: linear-gradient(135deg, #1a2a4a 0%, #2a3a5a 100%);
             border: 1px solid #4a90e2;
             border-radius: 14px;
             padding: 28px 32px;
-            margin-bottom: 40px;
             cursor: pointer;
             transition: all 0.3s;
             display: flex;
@@ -392,6 +398,9 @@
             .highlight-card {
                 flex-direction: column;
                 text-align: center;
+            }
+            .highlight-grid {
+                grid-template-columns: 1fr;
             }
         }
 
@@ -628,14 +637,24 @@
                 </div>
             </div>
 
-            <!-- 팀 현황 대시보드 (상단 하이라이트) -->
-            <div class="highlight-card" onclick="openApp('teamDashboard')">
-                <div class="highlight-icon">📊</div>
-                <div class="highlight-info">
-                    <h3>HIQASC 팀 현황 대시보드</h3>
-                    <p>팀원 근무 현황, 연차/추가근로, 당일 수리 현황을 한눈에 확인합니다.</p>
+            <!-- 상단 하이라이트 바로가기 -->
+            <div class="highlight-grid">
+                <div class="highlight-card" onclick="openApp('teamDashboard')">
+                    <div class="highlight-icon">📊</div>
+                    <div class="highlight-info">
+                        <h3>HIQASC 팀 현황 대시보드</h3>
+                        <p>팀원 근무 현황, 연차/추가근로, 당일 수리 현황을 한눈에 확인합니다.</p>
+                    </div>
+                    <span class="highlight-badge">운영중</span>
                 </div>
-                <span class="highlight-badge">운영중</span>
+                <div class="highlight-card" onclick="openApp('repairTimer')">
+                    <div class="highlight-icon">⏱️</div>
+                    <div class="highlight-info">
+                        <h3>수리 타이머</h3>
+                        <p>수리 시간을 측정하고 기록합니다. 모델별 평균 수리시간 통계를 제공합니다.</p>
+                    </div>
+                    <span class="highlight-badge">운영중</span>
+                </div>
             </div>
 
             <!-- 데이터 분석 섹션 -->
