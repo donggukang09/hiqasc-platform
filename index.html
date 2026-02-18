@@ -15,6 +15,11 @@
             box-sizing: border-box;
         }
 
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: 80px;
+        }
+
         body {
             font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
             background: #2a2a2a;
@@ -611,10 +616,11 @@
                     <span class="brand-text">HIQASC 통합 업무 시스템</span>
                 </a>
                 <div class="navbar-menu">
-                    <span class="nav-item">📋 업무 관리</span>
-                    <span class="nav-item">📊 데이터 분석</span>
-                    <span class="nav-item">🗂️ 정보 관리</span>
-                    <span class="nav-item">⚙️ 시스템</span>
+                    <a href="#sec-data" class="nav-item">📊 데이터 분석</a>
+                    <a href="#sec-work" class="nav-item">📋 업무 관리</a>
+                    <a href="#sec-tools" class="nav-item">🔧 업무 도구</a>
+                    <a href="#sec-inventory" class="nav-item">📦 재고 관리</a>
+                    <a href="#sec-info" class="nav-item">📚 정보 관리</a>
                 </div>
             </div>
         </nav>
@@ -658,7 +664,7 @@
             </div>
 
             <!-- 데이터 분석 섹션 -->
-            <div class="section">
+            <div class="section" id="sec-data">
                 <h2 class="section-title">📊 데이터 분석</h2>
                 <div class="cards-grid">
                     <!-- 머신 수량 대시보드 -->
@@ -709,7 +715,7 @@
             </div>
 
             <!-- 업무 관리 섹션 -->
-            <div class="section">
+            <div class="section" id="sec-work">
                 <h2 class="section-title">📋 업무 관리</h2>
                 <div class="cards-grid">
                     <!-- 일일 업무 보고 -->
@@ -775,7 +781,7 @@
             </div>
 
             <!-- 업무 도구 섹션 -->
-            <div class="section">
+            <div class="section" id="sec-tools">
                 <h2 class="section-title">🔧 업무 도구</h2>
                 <div class="cards-grid">
                     <!-- 수리 타이머 -->
@@ -856,7 +862,7 @@
             </div>
 
             <!-- 재고 관리 섹션 -->
-            <div class="section">
+            <div class="section" id="sec-inventory">
                 <h2 class="section-title">📦 재고 관리</h2>
                 <div class="cards-grid">
                     <!-- 소모품 신청 -->
@@ -892,7 +898,7 @@
             </div>
 
             <!-- 개발 예정 시스템 섹션 -->
-            <div class="section">
+            <div class="section" id="sec-info">
                 <h2 class="section-title">📚 정보 관리</h2>
                 <div class="cards-grid">
                     <!-- 위키 시스템 -->
