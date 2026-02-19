@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>수리 타이머 | HIQASC</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -439,7 +440,7 @@
 
   <!-- 모델별 평균 수리시간 -->
   <div class="avg-section">
-    <h2>📊 모델별 평균 수리시간</h2>
+    <h2>📊 모델별 평균 수리시간 (누적)</h2>
     <div class="avg-grid" id="avgGrid">
       <div class="history-empty">기록이 쌓이면 평균이 표시됩니다.</div>
     </div>
@@ -447,10 +448,11 @@
 
   <!-- 오늘 수리 기록 -->
   <div class="history-section">
-    <h2>📝 오늘 수리 기록</h2>
+    <h2>📝 수리 기록</h2>
     <table class="history-table">
       <thead>
         <tr>
+          <th>날짜</th>
           <th>시간</th>
           <th>테크니션</th>
           <th>모델명</th>
@@ -474,7 +476,7 @@ const SHEET_IDS = {
 };
 
 // ⚠️ Apps Script 배포 후 여기에 URL 붙여넣기
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyDhNw51lRHIBQ3amB4j8EBpwx1LlXm0rDIjHlsTUA07P0hN2JOaHn5XxRyprltW9p5/exec';
+const SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
 
 const cache = Date.now();
 
@@ -535,19 +537,14 @@ async function loadInitData() {
   });
 
   // 2. 모델 목록 (별도 탭)
-  console.log('모델목록 로드 시작...');
   const modelResult = await loadGviz(SHEET_IDS.main, '모델목록', 'SELECT A', 'cb_models');
-  console.log('모델목록 결과:', modelResult);
   modelList = [];
   if (modelResult.rows) {
-    console.log('모델 행 수:', modelResult.rows.length);
     modelResult.rows.forEach((row, idx) => {
       const model = getCellValue(row, 0);
-      console.log(`모델[${idx}]:`, model, row.c);
       if (model) modelList.push(model);
     });
   }
-  console.log('최종 모델 목록:', modelList);
 
   // 모델 드롭다운
   const modelSelect = document.getElementById('modelSelect');
@@ -561,7 +558,7 @@ async function loadInitData() {
   });
 
   // 오늘 기록 로드
-  await loadTodayRecords();
+  await loadAllRecords();
 }
 
 // (모델 드롭다운은 이제 테크니션과 무관하게 전체 모델 표시)
@@ -658,6 +655,7 @@ function stopTimer() {
 
   const record = {
     time: timeStr,
+    date: `${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')}`,
     timestamp: now.toLocaleString('ko-KR'),
     technician: tech,
     model: model,
@@ -734,11 +732,8 @@ async function saveToSheet(record) {
   }
 }
 
-// ===== 오늘 기록 로드 =====
-async function loadTodayRecords() {
-  const today = new Date();
-  const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
-
+// ===== 전체 기록 로드 =====
+async function loadAllRecords() {
   const result = await loadGviz(SHEET_IDS.main, '수리타이머', 'SELECT A, B, C, D, E, F', 'cb_history');
 
   todayRecords = [];
@@ -747,21 +742,26 @@ async function loadTodayRecords() {
       const timestamp = getCellValue(row, 0);
       if (!timestamp) return;
 
-      // 오늘 기록만 필터
-      if (timestamp.includes(todayStr) || timestamp.includes(`${today.getFullYear()}. ${today.getMonth()+1}. ${today.getDate()}.`) || timestamp.includes(`${today.getMonth()+1}/${today.getDate()}/${today.getFullYear()}`)) {
-        const timeMatch = timestamp.match(/(\d{1,2}):(\d{2})/);
-        const timeStr = timeMatch ? `${timeMatch[1].padStart(2,'0')}:${timeMatch[2]}` : '';
+      const timeMatch = timestamp.match(/(\d{1,2}):(\d{2})/);
+      const timeStr = timeMatch ? `${timeMatch[1].padStart(2,'0')}:${timeMatch[2]}` : '';
 
-        todayRecords.push({
-          time: timeStr,
-          timestamp: timestamp,
-          technician: getCellValue(row, 1),
-          model: getCellValue(row, 2),
-          symptom: getCellValue(row, 3),
-          timeDisplay: getCellValue(row, 4),
-          seconds: parseInt(getCellValue(row, 5)) || 0
-        });
+      // 날짜 추출
+      let dateStr = '';
+      const dateMatch = timestamp.match(/(\d{4})\.\s*(\d{1,2})\.\s*(\d{1,2})/);
+      if (dateMatch) {
+        dateStr = `${dateMatch[2].padStart(2,'0')}/${dateMatch[3].padStart(2,'0')}`;
       }
+
+      todayRecords.push({
+        time: timeStr,
+        date: dateStr,
+        timestamp: timestamp,
+        technician: getCellValue(row, 1),
+        model: getCellValue(row, 2),
+        symptom: getCellValue(row, 3),
+        timeDisplay: getCellValue(row, 4),
+        seconds: parseInt(getCellValue(row, 5)) || 0
+      });
     });
   }
 
@@ -775,12 +775,13 @@ function renderHistory() {
   const tbody = document.getElementById('historyBody');
 
   if (todayRecords.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5" class="history-empty">아직 기록이 없습니다.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" class="history-empty">아직 기록이 없습니다.</td></tr>';
     return;
   }
 
   tbody.innerHTML = todayRecords.map(r => `
     <tr>
+      <td>${r.date || '-'}</td>
       <td>${r.time}</td>
       <td>${r.technician}</td>
       <td>${r.model}</td>
