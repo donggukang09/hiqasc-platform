@@ -570,7 +570,7 @@
                 const modelText = await modelResponse.text();
 
                 // 모델 데이터 먼저 로드
-                MODEL_DATABASE = parseGoogleSheetsData(modelText);
+                MODEL_DATABASE = parseGoogleSheetsData(modelText, true); // model 시트용 파싱
                 console.log('✅ 모델 데이터 로드 완료:', MODEL_DATABASE.length, '개');
 
                 const completeData = parseGoogleSheetsData(completeText);
@@ -597,12 +597,24 @@
             }
         }
 
-        function parseGoogleSheetsData(text) {
+        function parseGoogleSheetsData(text, isModelSheet = false) {
             const json = JSON.parse(text.substring(47).slice(0, -2));
             const rows = json.table.rows;
-            const cols = json.table.cols.map(col => col.label);
+            
+            let cols;
+            let dataStartRow = 0;
+            
+            if (isModelSheet) {
+                // model 시트는 헤더를 강제 지정
+                cols = ['International Machine ID', 'model line', 'model'];
+                dataStartRow = 1; // 첫 행은 헤더이므로 스킵
+            } else {
+                // 다른 시트는 기존 방식
+                cols = json.table.cols.map(col => col.label);
+                dataStartRow = 0;
+            }
 
-            return rows.map(row => {
+            return rows.slice(dataStartRow).map(row => {
                 const obj = {};
                 row.c.forEach((cell, idx) => {
                     obj[cols[idx]] = cell ? cell.v : null;
