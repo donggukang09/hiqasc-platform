@@ -1,0 +1,1741 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>업무 게시판 - HIQASC 통합 업무 시스템</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<style>
+:root {
+  --bg-primary: #0a0e1a;
+  --bg-secondary: #111827;
+  --bg-card: #1a2236;
+  --bg-card-hover: #1f2a42;
+  --bg-input: #0d1321;
+  --border-color: #2a3550;
+  --border-focus: #3b82f6;
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --accent-blue: #3b82f6;
+  --accent-blue-hover: #2563eb;
+  --accent-green: #10b981;
+  --accent-red: #ef4444;
+  --accent-orange: #f59e0b;
+  --accent-purple: #8b5cf6;
+  --gradient-blue: linear-gradient(135deg, #3b82f6, #2563eb);
+  --gradient-header: linear-gradient(135deg, #1e3a5f, #1a2744);
+  --shadow-card: 0 4px 24px rgba(0,0,0,0.3);
+  --shadow-modal: 0 24px 80px rgba(0,0,0,0.6);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --radius-xs: 6px;
+  --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Manrope', sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+/* ── 스크롤바 ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-primary); }
+::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* ── 헤더 ── */
+.header {
+  background: var(--gradient-header);
+  border-bottom: 1px solid var(--border-color);
+  padding: 20px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(20px);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.header-icon {
+  width: 42px;
+  height: 42px;
+  background: var(--gradient-blue);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: white;
+  box-shadow: 0 4px 12px rgba(59,130,246,0.3);
+}
+
+.header h1 {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.header h1 span {
+  color: var(--accent-blue);
+}
+
+.header-subtitle {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 400;
+  margin-top: 2px;
+}
+
+.btn-home {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+  transition: var(--transition);
+  text-decoration: none;
+  font-family: 'Manrope', sans-serif;
+}
+
+.btn-home:hover {
+  background: rgba(255,255,255,0.1);
+  color: var(--text-primary);
+}
+
+/* ── 메인 컨테이너 ── */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+/* ── 툴바 ── */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.search-box {
+  flex: 1;
+  min-width: 240px;
+  position: relative;
+}
+
+.search-box i {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 10px 14px 10px 40px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-family: 'Manrope', sans-serif;
+  transition: var(--transition);
+}
+
+.search-box input:focus {
+  outline: none;
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+}
+
+.search-box input::placeholder {
+  color: var(--text-muted);
+}
+
+.category-filter {
+  position: relative;
+}
+
+.category-filter select {
+  appearance: none;
+  padding: 10px 36px 10px 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-family: 'Manrope', sans-serif;
+  cursor: pointer;
+  transition: var(--transition);
+  min-width: 140px;
+}
+
+.category-filter select:focus {
+  outline: none;
+  border-color: var(--accent-blue);
+}
+
+.category-filter::after {
+  content: '\f107';
+  font-family: 'Font Awesome 6 Free';
+  font-weight: 900;
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 12px;
+  pointer-events: none;
+}
+
+.btn-write {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: var(--gradient-blue);
+  border: none;
+  border-radius: var(--radius-sm);
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  font-family: 'Manrope', sans-serif;
+  white-space: nowrap;
+}
+
+.btn-write:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(59,130,246,0.4);
+}
+
+/* ── 게시글 목록 ── */
+.board-stats {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding: 0 4px;
+}
+
+.board-stats span {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.board-stats .count {
+  color: var(--accent-blue);
+  font-weight: 600;
+}
+
+.post-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.post-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  padding: 18px 22px;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.post-item:hover {
+  background: var(--bg-card-hover);
+  border-color: rgba(59,130,246,0.3);
+  transform: translateX(4px);
+}
+
+.post-number {
+  min-width: 36px;
+  height: 36px;
+  background: rgba(59,130,246,0.1);
+  border-radius: var(--radius-xs);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent-blue);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.post-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.post-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.post-category {
+  display: inline-flex;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.cat-절차 { background: rgba(59,130,246,0.15); color: #60a5fa; }
+.cat-매뉴얼 { background: rgba(16,185,129,0.15); color: #34d399; }
+.cat-공지 { background: rgba(239,68,68,0.15); color: #f87171; }
+.cat-참고 { background: rgba(245,158,11,0.15); color: #fbbf24; }
+.cat-기타 { background: rgba(139,92,246,0.15); color: #a78bfa; }
+
+.post-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.post-title .comment-count {
+  font-size: 12px;
+  color: var(--accent-blue);
+  font-weight: 700;
+  margin-left: 6px;
+}
+
+.post-has-image {
+  color: var(--text-muted);
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.post-meta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.post-meta i {
+  margin-right: 4px;
+  font-size: 11px;
+}
+
+.post-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.post-views {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ── 페이지네이션 ── */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 24px;
+}
+
+.page-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+  font-family: 'Manrope', sans-serif;
+}
+
+.page-btn:hover { background: var(--bg-card-hover); }
+.page-btn.active {
+  background: var(--accent-blue);
+  border-color: var(--accent-blue);
+  color: white;
+}
+
+/* ── 모달 공통 ── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.modal-overlay.active { display: flex; }
+
+.modal {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-modal);
+  animation: modalIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.95) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.modal-header {
+  padding: 22px 28px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  background: var(--bg-secondary);
+  z-index: 10;
+  border-radius: 16px 16px 0 0;
+}
+
+.modal-header h2 {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.modal-close {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-xs);
+  border: none;
+  background: rgba(255,255,255,0.05);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 16px;
+  transition: var(--transition);
+}
+
+.modal-close:hover {
+  background: rgba(239,68,68,0.15);
+  color: var(--accent-red);
+}
+
+.modal-body {
+  padding: 28px;
+}
+
+/* ── 글쓰기 폼 ── */
+.form-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.form-group {
+  flex: 1;
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+.form-group label .required {
+  color: var(--accent-red);
+  margin-left: 2px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-family: 'Manrope', sans-serif;
+  transition: var(--transition);
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+}
+
+.form-group textarea {
+  min-height: 200px;
+  resize: vertical;
+  line-height: 1.7;
+}
+
+.form-group select {
+  appearance: none;
+  cursor: pointer;
+}
+
+/* ── 이미지 업로드 ── */
+.image-upload-area {
+  border: 2px dashed var(--border-color);
+  border-radius: var(--radius);
+  padding: 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: var(--transition);
+  margin-bottom: 12px;
+}
+
+.image-upload-area:hover {
+  border-color: var(--accent-blue);
+  background: rgba(59,130,246,0.03);
+}
+
+.image-upload-area i {
+  font-size: 28px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.image-upload-area p {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.image-upload-area .hint {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 4px;
+  opacity: 0.7;
+}
+
+.image-preview-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.image-preview-item {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+}
+
+.image-preview-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.image-preview-item .remove-img {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(239,68,68,0.9);
+  color: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  opacity: 0;
+  transition: var(--transition);
+}
+
+.image-preview-item:hover .remove-img { opacity: 1; }
+
+/* ── 폼 버튼 ── */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color);
+  margin-top: 8px;
+}
+
+.btn-cancel {
+  padding: 10px 24px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+  font-family: 'Manrope', sans-serif;
+}
+
+.btn-cancel:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+.btn-submit {
+  padding: 10px 28px;
+  background: var(--gradient-blue);
+  border: none;
+  border-radius: var(--radius-sm);
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  font-family: 'Manrope', sans-serif;
+}
+
+.btn-submit:hover {
+  box-shadow: 0 4px 16px rgba(59,130,246,0.4);
+}
+
+.btn-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── 게시글 상세보기 ── */
+.detail-header {
+  margin-bottom: 24px;
+}
+
+.detail-category-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.detail-title {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.4;
+  margin-bottom: 14px;
+}
+
+.detail-meta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 13px;
+  color: var(--text-muted);
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.detail-meta i { margin-right: 5px; }
+
+.detail-body {
+  padding: 24px 0;
+  font-size: 15px;
+  line-height: 1.85;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.detail-images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-color);
+}
+
+.detail-images img {
+  max-width: 100%;
+  max-height: 400px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.detail-images img:hover {
+  border-color: var(--accent-blue);
+}
+
+.detail-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color);
+}
+
+.btn-action {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--border-color);
+  background: rgba(255,255,255,0.03);
+  color: var(--text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+  transition: var(--transition);
+  font-family: 'Manrope', sans-serif;
+}
+
+.btn-action:hover { background: rgba(255,255,255,0.08); color: var(--text-primary); }
+.btn-action.edit:hover { border-color: var(--accent-blue); color: var(--accent-blue); }
+.btn-action.delete:hover { border-color: var(--accent-red); color: var(--accent-red); }
+.btn-action.back:hover { border-color: var(--accent-blue); color: var(--accent-blue); }
+
+/* ── 댓글 영역 ── */
+.comments-section {
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-color);
+}
+
+.comments-title {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.comments-title .count {
+  background: var(--accent-blue);
+  color: white;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.comment-write {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.comment-write input[type="text"].comment-author {
+  width: 120px;
+  flex-shrink: 0;
+  padding: 10px 12px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: 'Manrope', sans-serif;
+}
+
+.comment-write textarea {
+  flex: 1;
+  padding: 10px 14px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: 'Manrope', sans-serif;
+  resize: none;
+  height: 42px;
+  line-height: 1.5;
+  transition: var(--transition);
+}
+
+.comment-write textarea:focus {
+  outline: none;
+  border-color: var(--accent-blue);
+  height: 80px;
+}
+
+.comment-write button {
+  padding: 10px 16px;
+  background: var(--accent-blue);
+  border: none;
+  border-radius: var(--radius-sm);
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: 'Manrope', sans-serif;
+  transition: var(--transition);
+  align-self: flex-end;
+}
+
+.comment-write button:hover { background: var(--accent-blue-hover); }
+
+.comment-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.comment-item {
+  padding: 14px 16px;
+  background: rgba(255,255,255,0.02);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--border-color);
+}
+
+.comment-item:hover { border-left-color: var(--accent-blue); }
+
+.comment-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.comment-author {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent-blue);
+}
+
+.comment-date {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.comment-text {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.comment-delete {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 11px;
+  cursor: pointer;
+  padding: 2px 6px;
+  margin-left: 8px;
+  border-radius: 4px;
+  transition: var(--transition);
+}
+
+.comment-delete:hover { color: var(--accent-red); background: rgba(239,68,68,0.1); }
+
+/* ── 이미지 뷰어 ── */
+.image-viewer {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.92);
+  z-index: 2000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  cursor: zoom-out;
+}
+
+.image-viewer.active { display: flex; }
+
+.image-viewer img {
+  max-width: 90vw;
+  max-height: 90vh;
+  border-radius: 8px;
+  box-shadow: 0 0 60px rgba(0,0,0,0.5);
+}
+
+/* ── 빈 상태 ── */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-muted);
+}
+
+.empty-state i {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.3;
+}
+
+.empty-state h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text-secondary);
+}
+
+.empty-state p { font-size: 13px; }
+
+/* ── 로딩 ── */
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10,14,26,0.8);
+  z-index: 3000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-overlay.active { display: flex; }
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--border-color);
+  border-top-color: var(--accent-blue);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── 토스트 ── */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  padding: 14px 22px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 500;
+  z-index: 5000;
+  transform: translateY(100px);
+  opacity: 0;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  font-family: 'Manrope', sans-serif;
+}
+
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast.success { background: var(--accent-green); color: white; }
+.toast.error { background: var(--accent-red); color: white; }
+.toast.info { background: var(--accent-blue); color: white; }
+
+/* ── 반응형 ── */
+@media (max-width: 768px) {
+  .header { padding: 16px 20px; }
+  .header h1 { font-size: 17px; }
+  .container { padding: 16px; }
+  .toolbar { gap: 8px; }
+  .search-box { min-width: 100%; }
+  .form-row { flex-direction: column; gap: 0; }
+  .post-item { padding: 14px 16px; }
+  .post-right { display: none; }
+  .modal { max-height: 95vh; margin: 10px; }
+  .modal-body { padding: 20px; }
+  .comment-write { flex-wrap: wrap; }
+  .comment-write input[type="text"].comment-author { width: 100%; }
+  .detail-title { font-size: 18px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── 헤더 ── -->
+<div class="header">
+  <div class="header-left">
+    <div class="header-icon"><i class="fas fa-book-open"></i></div>
+    <div>
+      <h1>업무 <span>게시판</span></h1>
+      <div class="header-subtitle">HIQASC 업무 지식 베이스</div>
+    </div>
+  </div>
+  <a href="index.html" class="btn-home">
+    <i class="fas fa-arrow-left"></i> 메인으로
+  </a>
+</div>
+
+<!-- ── 메인 ── -->
+<div class="container">
+
+  <!-- 툴바 -->
+  <div class="toolbar">
+    <div class="search-box">
+      <i class="fas fa-search"></i>
+      <input type="text" id="searchInput" placeholder="제목, 내용으로 검색..." oninput="filterPosts()">
+    </div>
+    <div class="category-filter">
+      <select id="categoryFilter" onchange="filterPosts()">
+        <option value="">전체 카테고리</option>
+        <option value="절차">📋 절차</option>
+        <option value="매뉴얼">📖 매뉴얼</option>
+        <option value="공지">📢 공지</option>
+        <option value="참고">💡 참고</option>
+        <option value="기타">📎 기타</option>
+      </select>
+    </div>
+    <button class="btn-write" onclick="openWriteModal()">
+      <i class="fas fa-pen"></i> 글쓰기
+    </button>
+  </div>
+
+  <!-- 게시판 통계 -->
+  <div class="board-stats">
+    <span>전체 <span class="count" id="totalCount">0</span>건</span>
+    <span id="filterInfo"></span>
+  </div>
+
+  <!-- 게시글 목록 -->
+  <div class="post-list" id="postList"></div>
+
+  <!-- 페이지네이션 -->
+  <div class="pagination" id="pagination"></div>
+
+</div>
+
+<!-- ── 글쓰기/수정 모달 ── -->
+<div class="modal-overlay" id="writeModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="writeModalTitle"><i class="fas fa-pen" style="margin-right:8px; color:var(--accent-blue)"></i>새 글 작성</h2>
+      <button class="modal-close" onclick="closeWriteModal()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editPostId">
+
+      <div class="form-row">
+        <div class="form-group" style="flex:0.4; margin-bottom:0;">
+          <label>카테고리 <span class="required">*</span></label>
+          <select id="postCategory">
+            <option value="절차">📋 절차</option>
+            <option value="매뉴얼">📖 매뉴얼</option>
+            <option value="공지">📢 공지</option>
+            <option value="참고">💡 참고</option>
+            <option value="기타">📎 기타</option>
+          </select>
+        </div>
+        <div class="form-group" style="flex:0.6; margin-bottom:0;">
+          <label>작성자 <span class="required">*</span></label>
+          <input type="text" id="postAuthor" placeholder="이름을 입력하세요">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>제목 <span class="required">*</span></label>
+        <input type="text" id="postTitle" placeholder="제목을 입력하세요">
+      </div>
+
+      <div class="form-group">
+        <label>내용 <span class="required">*</span></label>
+        <textarea id="postContent" placeholder="업무에 필요한 내용을 작성하세요..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>이미지 첨부</label>
+        <div class="image-upload-area" onclick="document.getElementById('imageInput').click()">
+          <i class="fas fa-cloud-upload-alt"></i>
+          <p>클릭하여 이미지를 선택하세요</p>
+          <p class="hint">JPG, PNG, GIF / 최대 5장 / 각 5MB 이하</p>
+        </div>
+        <input type="file" id="imageInput" accept="image/*" multiple style="display:none" onchange="handleImageSelect(event)">
+        <div class="image-preview-list" id="imagePreviewList"></div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn-cancel" onclick="closeWriteModal()">취소</button>
+        <button class="btn-submit" id="submitBtn" onclick="submitPost()">
+          <i class="fas fa-check" style="margin-right:6px"></i>등록
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── 게시글 상세 모달 ── -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal" style="max-width:860px;">
+    <div class="modal-header">
+      <h2><i class="fas fa-file-alt" style="margin-right:8px; color:var(--accent-blue)"></i>게시글</h2>
+      <button class="modal-close" onclick="closeDetailModal()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body" id="detailContent"></div>
+  </div>
+</div>
+
+<!-- ── 이미지 뷰어 ── -->
+<div class="image-viewer" id="imageViewer" onclick="closeImageViewer()">
+  <img id="viewerImage" src="">
+</div>
+
+<!-- ── 로딩 ── -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+</div>
+
+<!-- ── 토스트 ── -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+//  설정 - Google Apps Script 웹앱 URL을 여기에 입력하세요
+// ============================================================
+const API_URL = 'https://script.google.com/macros/s/AKfycbwunXF86W5DBVROEP1-KM_FqC50ENYkfqLv9xd5gFHaDxYJCZ4R6XtncdmFSeB11mNg/exec'; // ← 배포된 Apps Script 웹앱 URL
+
+// ============================================================
+//  데이터 저장소 (API 연동 전 localStorage 사용)
+// ============================================================
+const STORAGE_KEY = 'hiqasc_board_posts';
+const COMMENTS_KEY = 'hiqasc_board_comments';
+const POSTS_PER_PAGE = 10;
+
+let posts = [];
+let comments = [];
+let filteredPosts = [];
+let currentPage = 1;
+let selectedImages = []; // { file, base64, name }
+
+// ── 초기화 ──
+function init() {
+  loadData();
+  filterPosts();
+}
+
+// ── 데이터 로드/저장 ──
+function loadData() {
+  if (API_URL) {
+    loadFromAPI();
+    return;
+  }
+  try {
+    posts = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    comments = JSON.parse(localStorage.getItem(COMMENTS_KEY) || '[]');
+  } catch(e) {
+    posts = [];
+    comments = [];
+  }
+  // 데모 데이터가 없으면 샘플 추가
+  if (posts.length === 0) {
+    posts = getSamplePosts();
+    comments = getSampleComments();
+    saveData();
+  }
+}
+
+function saveData() {
+  if (API_URL) return; // API 모드에서는 서버에서 관리
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(posts));
+  localStorage.setItem(COMMENTS_KEY, JSON.stringify(comments));
+}
+
+// ── API 연동 함수 ──
+async function loadFromAPI() {
+  showLoading(true);
+  try {
+    const res = await fetch(API_URL + '?action=getPosts');
+    const data = await res.json();
+    if (data.success) {
+      posts = data.posts || [];
+      comments = data.comments || [];
+    }
+  } catch(e) {
+    showToast('데이터를 불러오는데 실패했습니다.', 'error');
+    console.error(e);
+  }
+  showLoading(false);
+  filterPosts();
+}
+
+async function saveToAPI(action, payload) {
+  showLoading(true);
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action, ...payload })
+    });
+    const data = await res.json();
+    showLoading(false);
+    return data;
+  } catch(e) {
+    showLoading(false);
+    showToast('저장에 실패했습니다.', 'error');
+    console.error(e);
+    return { success: false };
+  }
+}
+
+// ── 게시글 필터링 ──
+function filterPosts() {
+  const keyword = document.getElementById('searchInput').value.trim().toLowerCase();
+  const category = document.getElementById('categoryFilter').value;
+
+  filteredPosts = posts.filter(p => {
+    const matchCategory = !category || p.category === category;
+    const matchKeyword = !keyword || 
+      p.title.toLowerCase().includes(keyword) || 
+      p.content.toLowerCase().includes(keyword) ||
+      p.author.toLowerCase().includes(keyword);
+    return matchCategory && matchKeyword;
+  });
+
+  // 최신순 정렬
+  filteredPosts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+  currentPage = 1;
+  document.getElementById('totalCount').textContent = filteredPosts.length;
+
+  const info = [];
+  if (category) info.push(`카테고리: ${category}`);
+  if (keyword) info.push(`검색: "${keyword}"`);
+  document.getElementById('filterInfo').textContent = info.length ? info.join(' · ') : '';
+
+  renderPosts();
+  renderPagination();
+}
+
+// ── 게시글 목록 렌더링 ──
+function renderPosts() {
+  const list = document.getElementById('postList');
+  const start = (currentPage - 1) * POSTS_PER_PAGE;
+  const pagePosts = filteredPosts.slice(start, start + POSTS_PER_PAGE);
+
+  if (pagePosts.length === 0) {
+    list.innerHTML = `
+      <div class="empty-state">
+        <i class="fas fa-inbox"></i>
+        <h3>게시글이 없습니다</h3>
+        <p>새 글을 작성하거나 검색 조건을 변경해보세요.</p>
+      </div>`;
+    return;
+  }
+
+  list.innerHTML = pagePosts.map((post, i) => {
+    const num = filteredPosts.length - start - i;
+    const commentCount = comments.filter(c => c.postId === post.id).length;
+    const hasImages = post.images && post.images.length > 0;
+    const catClass = `cat-${post.category}`;
+    const date = formatDate(post.createdAt);
+    
+    return `
+      <div class="post-item" onclick="openDetail('${post.id}')">
+        <div class="post-number">${num}</div>
+        <div class="post-content">
+          <div class="post-title-row">
+            <span class="post-category ${catClass}">${post.category}</span>
+            <span class="post-title">${escapeHtml(post.title)}${commentCount > 0 ? `<span class="comment-count">[${commentCount}]</span>` : ''}</span>
+            ${hasImages ? '<span class="post-has-image"><i class="fas fa-image"></i></span>' : ''}
+          </div>
+          <div class="post-meta">
+            <span><i class="fas fa-user"></i>${escapeHtml(post.author)}</span>
+            <span><i class="fas fa-clock"></i>${date}</span>
+            <span><i class="fas fa-eye"></i>${post.views || 0}</span>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ── 페이지네이션 ──
+function renderPagination() {
+  const totalPages = Math.ceil(filteredPosts.length / POSTS_PER_PAGE);
+  const pag = document.getElementById('pagination');
+
+  if (totalPages <= 1) { pag.innerHTML = ''; return; }
+
+  let html = '';
+  html += `<button class="page-btn" onclick="goPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled style="opacity:0.3"' : ''}><i class="fas fa-chevron-left"></i></button>`;
+
+  let startPage = Math.max(1, currentPage - 2);
+  let endPage = Math.min(totalPages, startPage + 4);
+  if (endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
+
+  for (let i = startPage; i <= endPage; i++) {
+    html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="goPage(${i})">${i}</button>`;
+  }
+
+  html += `<button class="page-btn" onclick="goPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled style="opacity:0.3"' : ''}><i class="fas fa-chevron-right"></i></button>`;
+  pag.innerHTML = html;
+}
+
+function goPage(page) {
+  const totalPages = Math.ceil(filteredPosts.length / POSTS_PER_PAGE);
+  if (page < 1 || page > totalPages) return;
+  currentPage = page;
+  renderPosts();
+  renderPagination();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── 글쓰기 모달 ──
+function openWriteModal(editId) {
+  const modal = document.getElementById('writeModal');
+  const titleEl = document.getElementById('writeModalTitle');
+  const submitBtn = document.getElementById('submitBtn');
+  
+  document.getElementById('editPostId').value = '';
+  document.getElementById('postCategory').value = '절차';
+  document.getElementById('postAuthor').value = '';
+  document.getElementById('postTitle').value = '';
+  document.getElementById('postContent').value = '';
+  selectedImages = [];
+  renderImagePreviews();
+
+  if (editId) {
+    const post = posts.find(p => p.id === editId);
+    if (post) {
+      document.getElementById('editPostId').value = editId;
+      document.getElementById('postCategory').value = post.category;
+      document.getElementById('postAuthor').value = post.author;
+      document.getElementById('postTitle').value = post.title;
+      document.getElementById('postContent').value = post.content;
+      
+      if (post.images && post.images.length > 0) {
+        selectedImages = post.images.map(url => ({ base64: url, name: 'existing', file: null }));
+        renderImagePreviews();
+      }
+
+      titleEl.innerHTML = '<i class="fas fa-edit" style="margin-right:8px; color:var(--accent-blue)"></i>글 수정';
+      submitBtn.innerHTML = '<i class="fas fa-check" style="margin-right:6px"></i>수정';
+    }
+  } else {
+    titleEl.innerHTML = '<i class="fas fa-pen" style="margin-right:8px; color:var(--accent-blue)"></i>새 글 작성';
+    submitBtn.innerHTML = '<i class="fas fa-check" style="margin-right:6px"></i>등록';
+  }
+
+  modal.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeWriteModal() {
+  document.getElementById('writeModal').classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+// ── 이미지 선택 ──
+function handleImageSelect(event) {
+  const files = Array.from(event.target.files);
+  
+  if (selectedImages.length + files.length > 5) {
+    showToast('이미지는 최대 5장까지 첨부 가능합니다.', 'error');
+    return;
+  }
+
+  files.forEach(file => {
+    if (file.size > 5 * 1024 * 1024) {
+      showToast(`${file.name}: 5MB를 초과합니다.`, 'error');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      selectedImages.push({ file, base64: e.target.result, name: file.name });
+      renderImagePreviews();
+    };
+    reader.readAsDataURL(file);
+  });
+
+  event.target.value = '';
+}
+
+function renderImagePreviews() {
+  const container = document.getElementById('imagePreviewList');
+  container.innerHTML = selectedImages.map((img, i) => `
+    <div class="image-preview-item">
+      <img src="${img.base64}" alt="${img.name}">
+      <button class="remove-img" onclick="event.stopPropagation(); removeImage(${i})">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+  `).join('');
+}
+
+function removeImage(index) {
+  selectedImages.splice(index, 1);
+  renderImagePreviews();
+}
+
+// ── 게시글 등록/수정 ──
+async function submitPost() {
+  const editId = document.getElementById('editPostId').value;
+  const category = document.getElementById('postCategory').value;
+  const author = document.getElementById('postAuthor').value.trim();
+  const title = document.getElementById('postTitle').value.trim();
+  const content = document.getElementById('postContent').value.trim();
+
+  if (!author || !title || !content) {
+    showToast('작성자, 제목, 내용을 모두 입력해주세요.', 'error');
+    return;
+  }
+
+  const imageUrls = selectedImages.map(img => img.base64);
+
+  if (API_URL) {
+    // API 모드
+    const result = await saveToAPI(editId ? 'updatePost' : 'createPost', {
+      id: editId || undefined,
+      category, author, title, content,
+      images: imageUrls
+    });
+    if (result.success) {
+      showToast(editId ? '글이 수정되었습니다.' : '글이 등록되었습니다.', 'success');
+      closeWriteModal();
+      loadFromAPI();
+    }
+  } else {
+    // 로컬 모드
+    if (editId) {
+      const idx = posts.findIndex(p => p.id === editId);
+      if (idx >= 0) {
+        posts[idx] = {
+          ...posts[idx],
+          category, author, title, content,
+          images: imageUrls,
+          updatedAt: new Date().toISOString()
+        };
+      }
+      showToast('글이 수정되었습니다.', 'success');
+    } else {
+      posts.push({
+        id: 'post_' + Date.now(),
+        category, author, title, content,
+        images: imageUrls,
+        views: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+      showToast('글이 등록되었습니다.', 'success');
+    }
+    saveData();
+    closeWriteModal();
+    filterPosts();
+  }
+}
+
+// ── 게시글 상세보기 ──
+function openDetail(postId) {
+  const post = posts.find(p => p.id === postId);
+  if (!post) return;
+
+  // 조회수 증가
+  post.views = (post.views || 0) + 1;
+  saveData();
+  renderPosts();
+
+  const postComments = comments.filter(c => c.postId === postId);
+  const catClass = `cat-${post.category}`;
+
+  let html = `
+    <div class="detail-header">
+      <div class="detail-category-row">
+        <span class="post-category ${catClass}" style="font-size:12px; padding:4px 12px;">${post.category}</span>
+      </div>
+      <div class="detail-title">${escapeHtml(post.title)}</div>
+      <div class="detail-meta">
+        <span><i class="fas fa-user"></i>${escapeHtml(post.author)}</span>
+        <span><i class="fas fa-calendar"></i>${formatDate(post.createdAt)}</span>
+        ${post.updatedAt && post.updatedAt !== post.createdAt ? `<span><i class="fas fa-edit"></i>수정: ${formatDate(post.updatedAt)}</span>` : ''}
+        <span><i class="fas fa-eye"></i>조회 ${post.views}</span>
+      </div>
+    </div>
+
+    <div class="detail-body">${escapeHtml(post.content)}</div>
+
+    ${post.images && post.images.length > 0 ? `
+      <div class="detail-images">
+        ${post.images.map(url => `<img src="${url}" onclick="event.stopPropagation(); openImageViewer('${url.replace(/'/g, "\\'")}')" alt="첨부이미지">`).join('')}
+      </div>
+    ` : ''}
+
+    <div class="detail-actions">
+      <button class="btn-action back" onclick="closeDetailModal()">
+        <i class="fas fa-arrow-left"></i> 목록
+      </button>
+      <button class="btn-action edit" onclick="closeDetailModal(); openWriteModal('${post.id}')">
+        <i class="fas fa-edit"></i> 수정
+      </button>
+      <button class="btn-action delete" onclick="deletePost('${post.id}')">
+        <i class="fas fa-trash-alt"></i> 삭제
+      </button>
+    </div>
+
+    <div class="comments-section">
+      <div class="comments-title">
+        <i class="fas fa-comments"></i> 댓글 <span class="count">${postComments.length}</span>
+      </div>
+      
+      <div class="comment-write">
+        <input type="text" class="comment-author" id="commentAuthor" placeholder="작성자">
+        <textarea id="commentContent" placeholder="댓글을 입력하세요..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();addComment('${post.id}');}"></textarea>
+        <button onclick="addComment('${post.id}')">등록</button>
+      </div>
+
+      <div class="comment-list">
+        ${postComments.length === 0 ? '<div style="text-align:center; padding:20px; color:var(--text-muted); font-size:13px;">아직 댓글이 없습니다.</div>' :
+          postComments.map(c => `
+            <div class="comment-item">
+              <div class="comment-top">
+                <span>
+                  <span class="comment-author">${escapeHtml(c.author)}</span>
+                  <span class="comment-date" style="margin-left:10px">${formatDate(c.createdAt)}</span>
+                </span>
+                <button class="comment-delete" onclick="deleteComment('${c.id}', '${post.id}')">삭제</button>
+              </div>
+              <div class="comment-text">${escapeHtml(c.content)}</div>
+            </div>
+          `).join('')}
+      </div>
+    </div>
+  `;
+
+  document.getElementById('detailContent').innerHTML = html;
+  document.getElementById('detailModal').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeDetailModal() {
+  document.getElementById('detailModal').classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+// ── 게시글 삭제 ──
+async function deletePost(postId) {
+  if (!confirm('이 게시글을 삭제하시겠습니까?\n댓글도 함께 삭제됩니다.')) return;
+
+  if (API_URL) {
+    const result = await saveToAPI('deletePost', { id: postId });
+    if (result.success) {
+      showToast('게시글이 삭제되었습니다.', 'success');
+      closeDetailModal();
+      loadFromAPI();
+    }
+  } else {
+    posts = posts.filter(p => p.id !== postId);
+    comments = comments.filter(c => c.postId !== postId);
+    saveData();
+    closeDetailModal();
+    filterPosts();
+    showToast('게시글이 삭제되었습니다.', 'success');
+  }
+}
+
+// ── 댓글 추가 ──
+async function addComment(postId) {
+  const author = document.getElementById('commentAuthor').value.trim();
+  const content = document.getElementById('commentContent').value.trim();
+
+  if (!author || !content) {
+    showToast('작성자와 댓글 내용을 입력해주세요.', 'error');
+    return;
+  }
+
+  if (API_URL) {
+    const result = await saveToAPI('addComment', { postId, author, content });
+    if (result.success) {
+      await loadFromAPI();
+      openDetail(postId);
+      showToast('댓글이 등록되었습니다.', 'success');
+    }
+  } else {
+    comments.push({
+      id: 'cmt_' + Date.now(),
+      postId,
+      author,
+      content,
+      createdAt: new Date().toISOString()
+    });
+    saveData();
+    openDetail(postId);
+    showToast('댓글이 등록되었습니다.', 'success');
+  }
+}
+
+// ── 댓글 삭제 ──
+async function deleteComment(commentId, postId) {
+  if (!confirm('이 댓글을 삭제하시겠습니까?')) return;
+
+  if (API_URL) {
+    const result = await saveToAPI('deleteComment', { id: commentId });
+    if (result.success) {
+      await loadFromAPI();
+      openDetail(postId);
+      showToast('댓글이 삭제되었습니다.', 'success');
+    }
+  } else {
+    comments = comments.filter(c => c.id !== commentId);
+    saveData();
+    openDetail(postId);
+    showToast('댓글이 삭제되었습니다.', 'success');
+  }
+}
+
+// ── 이미지 뷰어 ──
+function openImageViewer(url) {
+  document.getElementById('viewerImage').src = url;
+  document.getElementById('imageViewer').classList.add('active');
+}
+
+function closeImageViewer() {
+  document.getElementById('imageViewer').classList.remove('active');
+}
+
+// ── 유틸리티 ──
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  const now = new Date();
+  const diff = now - d;
+  
+  if (diff < 60000) return '방금 전';
+  if (diff < 3600000) return Math.floor(diff / 60000) + '분 전';
+  if (diff < 86400000) return Math.floor(diff / 3600000) + '시간 전';
+  if (diff < 604800000) return Math.floor(diff / 86400000) + '일 전';
+  
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}.${m}.${day}`;
+}
+
+function showLoading(show) {
+  document.getElementById('loadingOverlay').classList.toggle('active', show);
+}
+
+function showToast(msg, type = 'info') {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.className = `toast ${type} show`;
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+// ── 샘플 데이터 ──
+function getSamplePosts() {
+  const now = new Date();
+  return [
+    {
+      id: 'post_1', category: '절차', author: '관리자',
+      title: '보상판매 절차 안내 (2024년 개정)',
+      content: '보상판매 절차가 아래와 같이 개정되었습니다.\n\n1. 고객 제품 상태 확인\n   - 전원 ON/OFF 확인\n   - 외관 손상 여부 체크\n   - 모델명 및 시리얼 넘버 기록\n\n2. 보상가 산정\n   - ERP 시스템에서 보상가 조회\n   - 고객에게 보상가 안내\n   - 동의서 작성\n\n3. 수거 절차\n   - 수거 박스 준비\n   - 제품 포장 및 라벨 부착\n   - 물류팀 수거 요청\n\n4. 신제품 출고\n   - 보상판매 코드로 주문 등록\n   - 할인 적용 확인\n   - 고객 배송 처리\n\n※ 반드시 고객 동의서를 먼저 받은 후 진행하세요.',
+      images: [],
+      views: 45,
+      createdAt: new Date(now - 86400000 * 2).toISOString(),
+      updatedAt: new Date(now - 86400000 * 2).toISOString()
+    },
+    {
+      id: 'post_2', category: '매뉴얼', author: '관리자',
+      title: 'DR-X500 세척 모듈 분해/조립 매뉴얼',
+      content: 'DR-X500 모델의 세척 모듈 분해 및 조립 절차입니다.\n\n【분해 순서】\n① 전원 차단 및 물 배수 확인\n② 상단 커버 볼트 4개 제거 (십자 드라이버 PH2)\n③ 커넥터 2개 분리 (빨간색 먼저, 파란색 후)\n④ 세척 모듈 상단으로 들어올려 분리\n\n【조립 순서】\n분해의 역순으로 진행\n※ 커넥터 결합 시 "딸깍" 소리 확인 필수\n※ 볼트 토크: 2.5Nm\n\n【주의사항】\n- 분해 전 반드시 사진 촬영\n- ESD 방지 장갑 착용\n- 세척 모듈 내부에 물기가 있으면 완전 건조 후 작업',
+      images: [],
+      views: 32,
+      createdAt: new Date(now - 86400000 * 5).toISOString(),
+      updatedAt: new Date(now - 86400000 * 5).toISOString()
+    },
+    {
+      id: 'post_3', category: '공지', author: '관리자',
+      title: '6월 정기 교육 일정 안내',
+      content: '6월 정기 교육 일정을 안내드립니다.\n\n■ 신제품 교육\n  - 일시: 6월 10일(월) 14:00~16:00\n  - 장소: 본사 3층 교육실\n  - 내용: HQ-700 시리즈 신모델 구조 및 수리 포인트\n\n■ 안전 교육\n  - 일시: 6월 17일(월) 10:00~12:00\n  - 장소: 온라인 (Zoom)\n  - 내용: 하절기 안전 관리 및 화학물질 취급\n\n참석 필수이며, 불참 시 사전에 팀장님께 보고 바랍니다.',
+      images: [],
+      views: 67,
+      createdAt: new Date(now - 86400000).toISOString(),
+      updatedAt: new Date(now - 86400000).toISOString()
+    },
+    {
+      id: 'post_4', category: '참고', author: '김테크',
+      title: '자주 발생하는 E03 에러 해결 팁',
+      content: 'E03 에러 코드는 수위 센서 관련 문제입니다.\n\n대부분의 경우 아래 순서로 해결됩니다:\n\n1. 수위 센서 커넥터 재결합 (80% 해결)\n2. 센서 핀 부식 확인 → 부식 시 접점 클리너로 세척\n3. 센서 저항값 측정 (정상: 4.7kΩ ±10%)\n4. 위 방법으로 안 될 경우 센서 교체\n\n교체 부품번호: SEN-WL-003\n재고 확인: ERP → 부품조회 → SEN-WL-003\n\n참고로 겨울철에는 동결로 인한 센서 오작동도 있으니\n배관 동결 여부도 같이 확인하세요.',
+      images: [],
+      views: 89,
+      createdAt: new Date(now - 86400000 * 3).toISOString(),
+      updatedAt: new Date(now - 86400000 * 3).toISOString()
+    },
+    {
+      id: 'post_5', category: '절차', author: '관리자',
+      title: '콜 접수 및 방문 수리 처리 절차',
+      content: '콜 접수부터 방문 수리 완료까지의 표준 절차입니다.\n\n【콜 접수】\n1. 고객 정보 확인 (이름, 연락처, 주소)\n2. 제품 모델명 및 증상 기록\n3. 방문 가능 일자 조율\n4. ERP 콜 등록\n\n【방문 전 준비】\n1. 해당 모델 매뉴얼 확인\n2. 예상 부품 준비\n3. 공구 체크리스트 확인\n\n【방문 수리】\n1. 고객 인사 및 신분증 제시\n2. 증상 재확인\n3. 수리 진행\n4. 고객 확인 서명\n5. ERP 완료 처리\n\n【사후 관리】\n- 수리 완료 3일 후 해피콜\n- 재발 시 우선 방문 처리',
+      images: [],
+      views: 56,
+      createdAt: new Date(now - 86400000 * 7).toISOString(),
+      updatedAt: new Date(now - 86400000 * 7).toISOString()
+    }
+  ];
+}
+
+function getSampleComments() {
+  const now = new Date();
+  return [
+    { id: 'cmt_1', postId: 'post_1', author: '박기사', content: '보상가 산정할 때 ERP 메뉴가 어디인지 추가해주시면 좋겠습니다.', createdAt: new Date(now - 86400000).toISOString() },
+    { id: 'cmt_2', postId: 'post_1', author: '관리자', content: 'ERP → 영업관리 → 보상판매 → 보상가 조회입니다. 본문에 추가하겠습니다.', createdAt: new Date(now - 43200000).toISOString() },
+    { id: 'cmt_3', postId: 'post_4', author: '이엔지', content: '커넥터 재결합으로 해결했습니다. 감사합니다!', createdAt: new Date(now - 86400000 * 2).toISOString() },
+    { id: 'cmt_4', postId: 'post_4', author: '정수리', content: '저는 부식이 심해서 센서 교체했는데, 해안가 지역은 부식 빈도가 높은 것 같습니다.', createdAt: new Date(now - 86400000).toISOString() },
+  ];
+}
+
+// ── 키보드 이벤트 ──
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    if (document.getElementById('imageViewer').classList.contains('active')) {
+      closeImageViewer();
+    } else if (document.getElementById('detailModal').classList.contains('active')) {
+      closeDetailModal();
+    } else if (document.getElementById('writeModal').classList.contains('active')) {
+      closeWriteModal();
+    }
+  }
+});
+
+// ── 시작 ──
+init();
+</script>
+</body>
+</html>
