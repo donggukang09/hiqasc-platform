@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 2.7.0 | Updated: 2026-02-17 | Repair Timer Added -->
+<!-- Version: 2.8.0 | Updated: 2026-03-04 | Board Added -->
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -932,6 +932,21 @@
                         <span class="card-badge">운영중</span>
                     </div>
 
+                    <!-- 업무 게시판 -->
+                    <div class="card" onclick="openApp('board')">
+                        <div class="card-icon">
+                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9v-2h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z"/>
+                            </svg>
+                        </div>
+                        <h3 class="card-title">업무 게시판</h3>
+                        <p class="card-description">
+                            업무 절차, 매뉴얼 등 필요한 정보를 등록하고 검색합니다.
+                            카테고리별 분류와 댓글 기능을 제공합니다.
+                        </p>
+                        <span class="card-badge">운영중</span>
+                    </div>
+
                     <!-- 수리 분석 대시보드 -->
                     <div class="card card-disabled" onclick="alert('개발 준비중입니다.')">
                         <div class="card-icon">D</div>
@@ -991,7 +1006,8 @@
             wiki: 'https://donggukang09.github.io/hiqasc-platform/wiki-system.html',
             consumablesInventory: 'https://donggukang09.github.io/hiqasc-platform/consumables-inventory.html',
             nespressoGuide: 'https://donggukang09.github.io/hiqasc-platform/nespresso-machine-guide.html',
-            weeklyClosing: 'https://donggukang09.github.io/hiqasc-platform/weekly-closing-dashboard.html'
+            weeklyClosing: 'https://donggukang09.github.io/hiqasc-platform/weekly-closing-dashboard.html',
+            board: 'https://donggukang09.github.io/hiqasc-platform/board.html'
         };
 
         // 비밀번호 확인
