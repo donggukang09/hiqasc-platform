@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 2.8.0 | Updated: 2026-03-05 | Board Added -->
+<!-- Version: 2.8.1 | Updated: 2026-03-08 | Board Card Fix -->
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -322,8 +322,7 @@
         }
 
         .highlight-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            display: flex;
             gap: 20px;
             margin-bottom: 40px;
         }
@@ -341,6 +340,8 @@
             gap: 18px;
             position: relative;
             overflow: hidden;
+            flex: 1;
+            min-width: 0;
         }
 
         .highlight-card::before {
@@ -400,19 +401,13 @@
             flex-shrink: 0;
         }
 
-        @media (max-width: 1024px) {
-            .highlight-grid {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
-
         @media (max-width: 768px) {
             .highlight-card {
                 flex-direction: column;
                 text-align: center;
             }
             .highlight-grid {
-                grid-template-columns: 1fr;
+                flex-direction: column;
             }
         }
 
