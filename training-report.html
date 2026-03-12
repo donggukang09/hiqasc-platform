@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>사내 교육 보고서</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&family=Nanum+Gothic:wght@400;700;800&display=swap');
+
+  :root {
+    --navy: #1a2744;
+    --navy-mid: #243258;
+    --accent: #c8a96e;
+    --accent-light: #e8c98e;
+    --bg: #f4f2ee;
+    --white: #ffffff;
+    --gray-100: #f9f8f6;
+    --gray-200: #ece9e4;
+    --gray-400: #b0aa9f;
+    --gray-600: #6e6860;
+    --gray-800: #2c2821;
+    --border: #d6d0c7;
+    --red: #c0392b;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--bg);
+    color: var(--gray-800);
+    min-height: 100vh;
+    padding: 32px 16px;
+  }
+
+  /* ── TOOLBAR ── */
+  .toolbar {
+    max-width: 860px;
+    margin: 0 auto 20px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 22px;
+    border-radius: 4px;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all .2s;
+    letter-spacing: .3px;
+  }
+  .btn-primary {
+    background: var(--navy);
+    color: var(--white);
+  }
+  .btn-primary:hover { background: var(--navy-mid); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(26,39,68,.25); }
+  .btn-secondary {
+    background: var(--white);
+    color: var(--navy);
+    border: 1.5px solid var(--navy);
+  }
+  .btn-secondary:hover { background: var(--gray-100); }
+
+  /* ── FORM WRAPPER ── */
+  #reportForm {
+    max-width: 860px;
+    margin: 0 auto;
+    background: var(--white);
+    box-shadow: 0 2px 24px rgba(0,0,0,.10);
+  }
+
+  /* ── HEADER ── */
+  .doc-header {
+    background: var(--navy);
+    padding: 36px 48px 30px;
+    position: relative;
+    overflow: hidden;
+  }
+  .doc-header::before {
+    content: '';
+    position: absolute;
+    right: -30px; top: -30px;
+    width: 200px; height: 200px;
+    border-radius: 50%;
+    background: rgba(200,169,110,.12);
+  }
+  .doc-header::after {
+    content: '';
+    position: absolute;
+    right: 60px; top: 40px;
+    width: 100px; height: 100px;
+    border-radius: 50%;
+    background: rgba(200,169,110,.08);
+  }
+  .header-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .header-title {
+    font-family: 'Nanum Gothic', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--white);
+    margin-bottom: 6px;
+    line-height: 1.2;
+  }
+  .header-sub {
+    font-size: 13px;
+    color: rgba(255,255,255,.5);
+    letter-spacing: .5px;
+  }
+  .header-accent-line {
+    width: 48px; height: 3px;
+    background: var(--accent);
+    margin: 14px 0 0;
+    border-radius: 2px;
+  }
+
+  /* ── SECTIONS ── */
+  .section {
+    padding: 32px 48px;
+    border-bottom: 1px solid var(--gray-200);
+  }
+  .section:last-of-type { border-bottom: none; }
+
+  .section-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2.5px;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 22px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--gray-200);
+  }
+
+  /* ── GRID FIELDS ── */
+  .fields-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px 28px;
+  }
+  .field-full { grid-column: 1 / -1; }
+
+  .field-group { display: flex; flex-direction: column; gap: 6px; }
+  .field-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--gray-600);
+    letter-spacing: .8px;
+  }
+  .field-input, .field-textarea, .field-select {
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 13px;
+    color: var(--gray-800);
+    background: var(--gray-100);
+    border: 1.5px solid var(--border);
+    border-radius: 4px;
+    padding: 9px 12px;
+    outline: none;
+    transition: border-color .2s, background .2s;
+    width: 100%;
+  }
+  .field-input:focus, .field-textarea:focus, .field-select:focus {
+    border-color: var(--navy);
+    background: var(--white);
+  }
+  .field-textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
+
+  /* ── ATTENDEE TABLE ── */
+  .attendee-table-wrap { overflow-x: auto; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    table-layout: fixed;
+  }
+  thead tr {
+    background: var(--navy);
+    color: var(--white);
+  }
+  thead th {
+    padding: 11px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+    white-space: nowrap;
+    font-family: 'Noto Sans KR', sans-serif;
+  }
+  tbody tr { border-bottom: 1px solid var(--gray-200); }
+  tbody tr:hover { background: var(--gray-100); }
+  tbody td {
+    padding: 10px 6px;
+    text-align: center;
+    line-height: 1.8;
+  }
+  tbody td input {
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 13px;
+    line-height: 2;
+    width: 100%;
+    border: 1.5px solid transparent;
+    border-radius: 3px;
+    padding: 6px 8px;
+    background: transparent;
+    text-align: center;
+    outline: none;
+    transition: border-color .2s, background .2s;
+  }
+  tbody td input:focus {
+    border-color: var(--navy);
+    background: var(--white);
+  }
+  .no-col { width: 44px; color: var(--gray-400); font-size: 13px; }
+  .del-col { width: 40px; }
+  .del-btn {
+    background: none;
+    border: none;
+    color: var(--gray-400);
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    padding: 2px 6px;
+    border-radius: 3px;
+    transition: color .2s, background .2s;
+  }
+  .del-btn:hover { color: var(--red); background: #fdf0ef; }
+
+  .add-row-btn {
+    margin-top: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--navy);
+    background: var(--gray-100);
+    border: 1.5px dashed var(--border);
+    border-radius: 4px;
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: all .2s;
+    width: 100%;
+    justify-content: center;
+  }
+  .add-row-btn:hover { background: var(--gray-200); border-color: var(--navy); }
+
+  /* ── PHOTO SECTION ── */
+  .photo-upload-area {
+    border: 2px dashed var(--border);
+    border-radius: 6px;
+    padding: 30px;
+    text-align: center;
+    cursor: pointer;
+    transition: all .2s;
+    background: var(--gray-100);
+    position: relative;
+  }
+  .photo-upload-area:hover, .photo-upload-area.drag-over {
+    border-color: var(--navy);
+    background: rgba(26,39,68,.04);
+  }
+  .photo-upload-area input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+  .upload-icon { font-size: 32px; margin-bottom: 10px; }
+  .upload-text { font-size: 13px; color: var(--gray-600); line-height: 1.6; }
+  .upload-text strong { color: var(--navy); }
+
+  .photo-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 16px;
+  }
+  .photo-item {
+    position: relative;
+    border-radius: 5px;
+    overflow: hidden;
+    width: 100%;
+    background: var(--gray-200);
+  }
+  .photo-item img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  .photo-caption {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    background: rgba(26,39,68,.75);
+    padding: 4px 8px;
+  }
+  .photo-caption input {
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 11px;
+    color: var(--white);
+    background: transparent;
+    border: none;
+    outline: none;
+    width: 100%;
+    text-align: center;
+  }
+  .photo-caption input::placeholder { color: rgba(255,255,255,.55); }
+  .photo-remove {
+    position: absolute;
+    top: 5px; right: 5px;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: rgba(0,0,0,.55);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .2s;
+  }
+  .photo-remove:hover { background: var(--red); }
+
+  /* ── FOOTER ── */
+  .doc-footer {
+    background: var(--navy);
+    padding: 18px 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    color: rgba(255,255,255,.4);
+    letter-spacing: .5px;
+  }
+  .footer-company { color: var(--accent); font-weight: 600; letter-spacing: 1px; }
+
+  /* ── PAGE BREAK ── */
+  .page-break-before {
+    page-break-before: always;
+    break-before: page;
+  }
+  @media print {
+    body { background: white; padding: 0; }
+    .toolbar { display: none; }
+    #reportForm { box-shadow: none; max-width: 100%; }
+    .add-row-btn, .del-btn { display: none; }
+    .photo-upload-area .upload-prompt { display: none; }
+  }
+
+  /* ── LOADING OVERLAY ── */
+  .loading-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(26,39,68,.7);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 16px;
+    color: white;
+    font-size: 14px;
+    font-family: 'Noto Sans KR', sans-serif;
+  }
+  .loading-overlay.show { display: flex; }
+  .spinner {
+    width: 40px; height: 40px;
+    border: 3px solid rgba(255,255,255,.3);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <span>PDF 생성 중입니다...</span>
+</div>
+
+<!-- TOOLBAR -->
+<div class="toolbar">
+  <button class="btn btn-secondary" onclick="resetForm()">🗑 초기화</button>
+  <button class="btn btn-primary" onclick="exportPDF()">📄 PDF 저장</button>
+</div>
+
+<!-- REPORT FORM -->
+<div id="reportForm">
+
+  <!-- HEADER -->
+  <div class="doc-header">
+    <div class="header-label">Internal Education Report</div>
+    <div class="header-title">사내 교육 보고서</div>
+    <div class="header-sub">HIQASC Co., Ltd.</div>
+    <div class="header-accent-line"></div>
+  </div>
+
+  <!-- 1. 기본 정보 -->
+  <div class="section">
+    <div class="section-title">기본 정보</div>
+    <div class="fields-grid">
+      <div class="field-group field-full">
+        <label class="field-label">교육명</label>
+        <input class="field-input" type="text" placeholder="예) Nespresso 기기 수리 실무 교육" id="f_title">
+      </div>
+      <div class="field-group">
+        <label class="field-label">교육 일시</label>
+        <input class="field-input" type="datetime-local" id="f_date">
+      </div>
+      <div class="field-group">
+        <label class="field-label">교육 장소</label>
+        <input class="field-input" type="text" placeholder="예) 회의실 B동 3층" id="f_location">
+      </div>
+      <div class="field-group">
+        <label class="field-label">교육 주관 부서</label>
+        <input class="field-input" type="text" placeholder="예) 수리팀" id="f_dept">
+      </div>
+      <div class="field-group">
+        <label class="field-label">강사 / 진행자</label>
+        <input class="field-input" type="text" placeholder="성명 (직책)" id="f_instructor">
+      </div>
+      <div class="field-group">
+        <label class="field-label">교육 구분</label>
+        <select class="field-select" id="f_type">
+          <option value="">선택하세요</option>
+          <option>직무 교육</option>
+          <option>안전 교육</option>
+          <option>기술 교육</option>
+          <option>소양 교육</option>
+          <option>신입 교육</option>
+          <option>기타</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">교육 시간 (총 시간)</label>
+        <input class="field-input" type="text" placeholder="예) 3시간 (09:00 ~ 12:00)" id="f_duration">
+      </div>
+      <div class="field-group field-full">
+        <label class="field-label">교육 목적 / 개요</label>
+        <textarea class="field-textarea" placeholder="이번 교육의 목적과 배경을 간략히 기술하세요." id="f_purpose"></textarea>
+      </div>
+      <div class="field-group field-full">
+        <label class="field-label">교육 내용 (주요 항목)</label>
+        <textarea class="field-textarea" style="min-height:100px" placeholder="교육에서 다룬 주요 내용을 항목별로 기재하세요." id="f_content"></textarea>
+      </div>
+      <div class="field-group field-full">
+        <label class="field-label">특이사항 / 결론</label>
+        <textarea class="field-textarea" placeholder="교육 결과, 향후 조치사항 등을 기재하세요." id="f_remarks"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. 참석자 명단 -->
+  <div class="section page-break-before">
+    <div class="section-title">참석자 명단</div>
+    <div class="attendee-table-wrap">
+      <table id="attendeeTable">
+        <thead>
+          <tr>
+            <th class="no-col">No.</th>
+            <th>성명</th>
+            <th>부서</th>
+            <th>직책</th>
+            <th>서명 / 확인</th>
+            <th class="del-col"></th>
+          </tr>
+        </thead>
+        <tbody id="attendeeBody"></tbody>
+      </table>
+    </div>
+    <button class="add-row-btn" onclick="addRow()">＋ 참석자 추가</button>
+  </div>
+
+  <!-- 3. 교육 사진 -->
+  <div class="section">
+    <div class="section-title">교육 사진</div>
+    <div class="photo-upload-area upload-prompt" id="photoDropZone">
+      <input type="file" id="photoInput" accept="image/*" multiple onchange="handlePhotos(this.files)">
+      <div class="upload-icon">📷</div>
+      <div class="upload-text">
+        <strong>클릭하거나 이미지를 드래그</strong>하여 업로드<br>
+        <span>JPG, PNG, WEBP 지원 · 여러 장 선택 가능</span>
+      </div>
+    </div>
+    <div class="photo-grid" id="photoGrid"></div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="doc-footer">
+    <span class="footer-company">HIQASC</span>
+    <span>DEVELOPED BY DONGGU KANG</span>
+    <span id="footerDate"></span>
+  </div>
+</div>
+
+<script>
+// ── DATE ──
+const today = new Date();
+document.getElementById('footerDate').textContent = today.toLocaleDateString('ko-KR', { year:'numeric', month:'long', day:'numeric' });
+
+// ── ATTENDEE ROWS ──
+let rowCount = 0;
+
+function addRow(data = {}) {
+  rowCount++;
+  const tbody = document.getElementById('attendeeBody');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td class="no-col">${rowCount}</td>
+    <td><input type="text" placeholder="홍길동" value="${data.name||''}"></td>
+    <td><input type="text" placeholder="B2C 테크니션" value="${data.dept||''}"></td>
+    <td><input type="text" placeholder="사원" value="${data.pos||''}"></td>
+    <td><input type="text" placeholder="서명" value="${data.sig||''}"></td>
+    <td><button class="del-btn" onclick="this.closest('tr').remove(); renumber();" title="삭제">×</button></td>
+  `;
+  tbody.appendChild(tr);
+}
+
+function renumber() {
+  document.querySelectorAll('#attendeeBody tr').forEach((tr, i) => {
+    tr.querySelector('.no-col').textContent = i + 1;
+  });
+  rowCount = document.querySelectorAll('#attendeeBody tr').length;
+}
+
+// Initial rows
+for (let i = 0; i < 5; i++) addRow();
+
+// ── PHOTOS ──
+const photos = [];
+
+function handlePhotos(files) {
+  Array.from(files).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const id = 'photo_' + Date.now() + '_' + Math.random();
+      photos.push({ id, src: e.target.result });
+      renderPhoto({ id, src: e.target.result });
+    };
+    reader.readAsDataURL(file);
+  });
+  document.getElementById('photoInput').value = '';
+}
+
+function renderPhoto({ id, src }) {
+  const grid = document.getElementById('photoGrid');
+  const div = document.createElement('div');
+  div.className = 'photo-item';
+  div.id = id;
+  div.innerHTML = `
+    <img src="${src}" alt="교육사진">
+    <button class="photo-remove" onclick="removePhoto('${id}')">×</button>
+  `;
+  grid.appendChild(div);
+}
+
+function removePhoto(id) {
+  const idx = photos.findIndex(p => p.id === id);
+  if (idx > -1) photos.splice(idx, 1);
+  const el = document.getElementById(id);
+  if (el) el.remove();
+}
+
+// Drag & Drop
+const dz = document.getElementById('photoDropZone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+dz.addEventListener('drop', e => {
+  e.preventDefault();
+  dz.classList.remove('drag-over');
+  handlePhotos(e.dataTransfer.files);
+});
+
+// ── RESET ──
+function resetForm() {
+  if (!confirm('모든 입력 내용을 초기화하시겠습니까?')) return;
+  ['f_title','f_date','f_location','f_dept','f_instructor','f_duration','f_purpose','f_content','f_remarks'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('f_type').selectedIndex = 0;
+  document.getElementById('attendeeBody').innerHTML = '';
+  document.getElementById('photoGrid').innerHTML = '';
+  photos.length = 0;
+  rowCount = 0;
+  for (let i = 0; i < 5; i++) addRow();
+}
+
+// ── PDF EXPORT ──
+async function exportPDF() {
+  const overlay = document.getElementById('loadingOverlay');
+  const toolbar = document.querySelector('.toolbar');
+  const delBtns = document.querySelectorAll('.del-btn');
+  const addBtn = document.querySelector('.add-row-btn');
+  const photoDropZone = document.getElementById('photoDropZone');
+  const photoRemoveBtns = document.querySelectorAll('.photo-remove');
+  const photoGrid = document.getElementById('photoGrid');
+  const delColTh = document.querySelector('thead th.del-col');
+
+  overlay.classList.add('show');
+
+  toolbar.style.display = 'none';
+  delBtns.forEach(b => b.style.visibility = 'hidden');
+  addBtn.style.display = 'none';
+  photoDropZone.style.display = 'none';
+  photoRemoveBtns.forEach(b => b.style.display = 'none');
+  if (delColTh) delColTh.style.display = 'none';
+  photoGrid.classList.add('pdf-mode');
+
+  await new Promise(r => setTimeout(r, 400));
+
+  try {
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+    const pdfW = 210;
+    const pageH = pdf.internal.pageSize.getHeight();
+
+    // 섹션별로 분리해서 캔버스 생성
+    const allSections = document.querySelectorAll('#reportForm .section');
+    const docHeader = document.querySelector('.doc-header');
+    const docFooter = document.querySelector('.doc-footer');
+
+    // 페이지 1: 헤더 + 기본정보 섹션
+    // 페이지 2~: 참석자 명단 + 사진 섹션 (헤더 없이)
+    const page1Elements = [docHeader, allSections[0]]; // 헤더 + 기본정보
+    const page2Elements = [allSections[1], allSections[2], docFooter]; // 참석자 + 사진 + 푸터
+
+    async function renderElements(elements) {
+      // 임시 wrapper div 생성
+      const wrapper = document.createElement('div');
+      wrapper.style.cssText = `
+        position: fixed; left: -9999px; top: 0;
+        width: ${document.getElementById('reportForm').offsetWidth}px;
+        background: #ffffff;
+        font-family: 'Noto Sans KR', sans-serif;
+      `;
+      elements.forEach(el => {
+        if (el) wrapper.appendChild(el.cloneNode(true));
+      });
+      document.body.appendChild(wrapper);
+      await new Promise(r => setTimeout(r, 100));
+      const canvas = await html2canvas(wrapper, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+        width: wrapper.offsetWidth,
+        height: wrapper.scrollHeight,
+      });
+      document.body.removeChild(wrapper);
+      return canvas;
+    }
+
+    // 페이지 1
+    const canvas1 = await renderElements(page1Elements);
+    const img1 = canvas1.toDataURL('image/jpeg', 0.95);
+    const h1 = (canvas1.height * pdfW) / canvas1.width;
+    let posY = 0;
+    while (posY < h1) {
+      if (posY > 0) pdf.addPage();
+      pdf.addImage(img1, 'JPEG', 0, -posY, pdfW, h1);
+      posY += pageH;
+    }
+
+    // 페이지 2
+    const canvas2 = await renderElements(page2Elements);
+    const img2 = canvas2.toDataURL('image/jpeg', 0.95);
+    const h2 = (canvas2.height * pdfW) / canvas2.width;
+    posY = 0;
+    pdf.addPage();
+    while (posY < h2) {
+      if (posY > 0) pdf.addPage();
+      pdf.addImage(img2, 'JPEG', 0, -posY, pdfW, h2);
+      posY += pageH;
+    }
+
+    const d = new Date();
+    const stamp = `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+    const title = document.getElementById('f_title').value.trim() || '사내교육보고서';
+    pdf.save(`${stamp}_${title}.pdf`);
+  } catch (e) {
+    alert('PDF 생성 중 오류가 발생했습니다.\n' + e.message);
+    console.error(e);
+  } finally {
+    toolbar.style.display = '';
+    delBtns.forEach(b => b.style.visibility = '');
+    addBtn.style.display = '';
+    photoDropZone.style.display = '';
+    photoRemoveBtns.forEach(b => b.style.display = '');
+    if (delColTh) delColTh.style.display = '';
+    photoGrid.classList.remove('pdf-mode');
+    overlay.classList.remove('show');
+  }
+}
+</script>
+</body>
+</html>
