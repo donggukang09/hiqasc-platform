@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HIQASC 알림 시스템</title>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0e1a;
+            --bg-card: #111827;
+            --bg-card-hover: #1a2235;
+            --border-color: #1e2a3a;
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --accent-blue: #3b82f6;
+            --accent-blue-glow: rgba(59, 130, 246, 0.3);
+            --accent-red: #ef4444;
+            --accent-red-glow: rgba(239, 68, 68, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Manrope', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ── 헤더 ── */
+        .header {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            border-bottom: 1px solid var(--border-color);
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #60a5fa, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header h1 .icon {
+            font-size: 24px;
+            -webkit-text-fill-color: initial;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .history-btn {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: #60a5fa;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-family: 'Manrope', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .history-btn:hover {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: rgba(59, 130, 246, 0.5);
+        }
+
+        /* ── 메인 레이아웃 ── */
+        .main-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 32px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* ── 카드 공통 ── */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+        }
+
+        .card-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-title .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent-blue);
+            box-shadow: 0 0 8px var(--accent-blue-glow);
+        }
+
+        /* ── 메시지 입력 영역 ── */
+        .input-section textarea {
+            width: 100%;
+            height: 120px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            color: var(--text-primary);
+            font-family: 'Manrope', sans-serif;
+            font-size: 16px;
+            font-weight: 500;
+            resize: vertical;
+            transition: border-color 0.2s;
+            line-height: 1.6;
+        }
+
+        .input-section textarea:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px var(--accent-blue-glow);
+        }
+
+        .input-section textarea::placeholder {
+            color: #475569;
+        }
+
+        /* ── 설정 행 ── */
+        .settings-row {
+            display: flex;
+            gap: 16px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .setting-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .setting-group label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .setting-group select,
+        .setting-group input[type="number"] {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: var(--text-primary);
+            font-family: 'Manrope', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .setting-group select:focus,
+        .setting-group input[type="number"]:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+
+        .setting-group input[type="number"] {
+            width: 70px;
+            text-align: center;
+        }
+
+        /* ── 버튼 ── */
+        .btn-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .btn-alert {
+            flex: 1;
+            padding: 16px 24px;
+            border: none;
+            border-radius: 12px;
+            font-family: 'Manrope', sans-serif;
+            font-size: 17px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.25s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-send {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            box-shadow: 0 4px 20px rgba(239, 68, 68, 0.35);
+        }
+
+        .btn-send:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 28px rgba(239, 68, 68, 0.5);
+        }
+
+        .btn-send:active {
+            transform: translateY(0);
+        }
+
+        .btn-preview {
+            flex: 0.4;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: #60a5fa;
+        }
+
+        .btn-preview:hover {
+            background: rgba(59, 130, 246, 0.2);
+        }
+
+        /* ── 템플릿 영역 ── */
+        .templates-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 10px;
+        }
+
+        .template-chip {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-family: 'Manrope', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            line-height: 1.4;
+        }
+
+        .template-chip:hover {
+            border-color: var(--accent-blue);
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .template-chip .emoji {
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .template-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .template-add-btn {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px dashed rgba(59, 130, 246, 0.4);
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-family: 'Manrope', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            color: #60a5fa;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .template-add-btn:hover {
+            background: rgba(59, 130, 246, 0.2);
+        }
+
+        .template-edit-btn {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-family: 'Manrope', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            color: #f59e0b;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .template-edit-btn:hover {
+            background: rgba(245, 158, 11, 0.2);
+        }
+
+        .template-edit-btn.active {
+            background: rgba(245, 158, 11, 0.25);
+            border-color: #f59e0b;
+        }
+
+        .template-chip-wrap {
+            position: relative;
+        }
+
+        .template-delete-btn {
+            display: none;
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #ef4444;
+            color: white;
+            border: 2px solid var(--bg-card);
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            padding: 0;
+            z-index: 2;
+            transition: transform 0.15s;
+        }
+
+        .template-delete-btn:hover {
+            transform: scale(1.2);
+            background: #dc2626;
+        }
+
+        .editing .template-delete-btn {
+            display: flex;
+        }
+
+        .editing .template-chip {
+            animation: chipShake 0.3s ease-in-out infinite alternate;
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+
+        @keyframes chipShake {
+            0% { transform: rotate(-0.5deg); }
+            100% { transform: rotate(0.5deg); }
+        }
+
+        /* ── 알림 팝업 오버레이 ── */
+        .alert-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            background: rgba(255, 255, 255, 0.97);
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            animation: overlayIn 0.3s ease-out;
+        }
+
+        .alert-overlay.active {
+            display: flex;
+        }
+
+        @keyframes overlayIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .alert-border-flash {
+            position: absolute;
+            inset: 0;
+            border: 8px solid var(--accent-red);
+            pointer-events: none;
+            animation: borderPulse 1.2s ease-in-out infinite;
+        }
+
+        @keyframes borderPulse {
+            0%, 100% { border-color: #ef4444; box-shadow: inset 0 0 40px rgba(239, 68, 68, 0.1); }
+            50% { border-color: #fca5a5; box-shadow: inset 0 0 80px rgba(239, 68, 68, 0.15); }
+        }
+
+        .alert-icon-top {
+            font-size: 64px;
+            margin-bottom: 20px;
+            animation: iconBounce 0.6s ease-out;
+        }
+
+        @keyframes iconBounce {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+
+        .alert-message {
+            font-size: clamp(36px, 6vw, 72px);
+            font-weight: 800;
+            color: #1a1a1a;
+            text-align: center;
+            line-height: 1.4;
+            max-width: 90%;
+            word-break: keep-all;
+        }
+
+        .alert-message.blink {
+            animation: textBlink 1s ease-in-out infinite;
+        }
+
+        @keyframes textBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.2; }
+        }
+
+        .alert-accent-bar {
+            width: 120px;
+            height: 5px;
+            background: linear-gradient(90deg, #ef4444, #f97316);
+            border-radius: 3px;
+            margin: 24px 0;
+        }
+
+        .alert-timer-display {
+            font-size: 18px;
+            font-weight: 600;
+            color: #94a3b8;
+            margin-top: 16px;
+            letter-spacing: 1px;
+        }
+
+        .alert-close-btn {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: #ef4444;
+            color: white;
+            border: none;
+            font-size: 24px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            box-shadow: 0 4px 16px rgba(239, 68, 68, 0.4);
+            z-index: 10;
+        }
+
+        .alert-close-btn:hover {
+            transform: scale(1.1);
+            background: #dc2626;
+        }
+
+        /* ── 히스토리 패널 ── */
+        .history-panel {
+            display: none;
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 420px;
+            max-width: 90vw;
+            height: 100vh;
+            background: var(--bg-card);
+            border-left: 1px solid var(--border-color);
+            z-index: 5000;
+            flex-direction: column;
+            animation: slideIn 0.3s ease-out;
+            box-shadow: -8px 0 40px rgba(0,0,0,0.5);
+        }
+
+        .history-panel.active {
+            display: flex;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+
+        .history-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .history-header h3 {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .history-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .history-close:hover { color: var(--text-primary); }
+
+        .history-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+        }
+
+        .history-item {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .history-item:hover {
+            border-color: var(--accent-blue);
+        }
+
+        .history-item-msg {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+            line-height: 1.4;
+        }
+
+        .history-item-time {
+            font-size: 11px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .history-empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .history-clear-btn {
+            margin: 16px;
+            padding: 10px;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            background: rgba(239, 68, 68, 0.08);
+            color: #f87171;
+            border-radius: 8px;
+            font-family: 'Manrope', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .history-clear-btn:hover {
+            background: rgba(239, 68, 68, 0.15);
+        }
+
+        .history-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.4);
+            z-index: 4999;
+        }
+
+        .history-backdrop.active { display: block; }
+
+        /* ── 커스텀 모달 (템플릿 추가) ── */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 8000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 28px;
+            width: 440px;
+            max-width: 90vw;
+            animation: modalPop 0.25s ease-out;
+        }
+
+        @keyframes modalPop {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-box h3 {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: var(--text-primary);
+        }
+
+        .modal-box input,
+        .modal-box textarea {
+            width: 100%;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px 14px;
+            color: var(--text-primary);
+            font-family: 'Manrope', sans-serif;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .modal-box input:focus,
+        .modal-box textarea:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+
+        .modal-btns {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 8px;
+        }
+
+        .modal-btns button {
+            padding: 8px 20px;
+            border-radius: 8px;
+            font-family: 'Manrope', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+
+        .modal-cancel {
+            background: var(--bg-primary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color) !important;
+        }
+
+        .modal-confirm {
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        .modal-confirm:hover { filter: brightness(1.1); }
+
+        /* ── 반응형 ── */
+        @media (max-width: 640px) {
+            .main-container { padding: 16px; }
+            .settings-row { flex-direction: column; align-items: stretch; }
+            .btn-row { flex-direction: column; }
+            .btn-preview { flex: 1; }
+            .templates-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- 헤더 -->
+<div class="header">
+    <h1><span class="icon">🔔</span> 알림 시스템</h1>
+    <div class="header-right">
+        <button class="history-btn" onclick="toggleHistory()">
+            📋 기록 <span id="historyCount" style="background:rgba(59,130,246,0.3); padding:2px 8px; border-radius:10px; font-size:11px;">0</span>
+        </button>
+    </div>
+</div>
+
+<!-- 메인 -->
+<div class="main-container">
+
+    <!-- 메시지 입력 -->
+    <div class="card input-section">
+        <div class="card-title"><span class="dot"></span>메시지 입력</div>
+        <textarea id="msgInput" placeholder="알림 메시지를 입력하세요&#10;예: 장균수님 제자리로 와주세요"></textarea>
+
+        <div class="settings-row">
+            <div class="setting-group">
+                <label>⏱ 자동 닫힘</label>
+                <input type="number" id="autoCloseTime" value="15" min="0" max="120" step="5">
+                <label>초 (0=수동)</label>
+            </div>
+            <div class="setting-group">
+                <label>🔊 알람</label>
+                <select id="soundSelect">
+                    <option value="chime">차임벨</option>
+                    <option value="alert">경고음</option>
+                    <option value="bell">종소리</option>
+                    <option value="none">없음</option>
+                </select>
+            </div>
+            <div class="setting-group">
+                <label>✨ 깜빡임</label>
+                <select id="blinkSelect">
+                    <option value="on">켜기</option>
+                    <option value="off">끄기</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="btn-row">
+            <button class="btn-alert btn-send" onclick="sendAlert()">
+                🚨 출력하기
+            </button>
+            <button class="btn-alert btn-preview" onclick="previewSound()">
+                🔊 소리 미리듣기
+            </button>
+        </div>
+    </div>
+
+    <!-- 템플릿 -->
+    <div class="card">
+        <div class="card-title"><span class="dot"></span>빠른 템플릿</div>
+        <div class="templates-grid" id="templatesGrid"></div>
+        <div class="template-actions">
+            <button class="template-add-btn" onclick="openAddTemplate()">
+                ＋ 템플릿 추가
+            </button>
+            <button class="template-edit-btn" id="editModeBtn" onclick="toggleEditMode()">
+                ✏️ 편집
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- 알림 오버레이 -->
+<div class="alert-overlay" id="alertOverlay">
+    <div class="alert-border-flash"></div>
+    <button class="alert-close-btn" onclick="closeAlert()">✕</button>
+    <div class="alert-icon-top">🔔</div>
+    <div class="alert-message" id="alertMessage"></div>
+    <div class="alert-accent-bar"></div>
+    <div class="alert-timer-display" id="alertTimer"></div>
+</div>
+
+<!-- 히스토리 패널 -->
+<div class="history-backdrop" id="historyBackdrop" onclick="toggleHistory()"></div>
+<div class="history-panel" id="historyPanel">
+    <div class="history-header">
+        <h3>📋 알림 기록</h3>
+        <button class="history-close" onclick="toggleHistory()">✕</button>
+    </div>
+    <div class="history-list" id="historyList"></div>
+    <button class="history-clear-btn" onclick="clearHistory()">기록 전체 삭제</button>
+</div>
+
+<!-- 템플릿 추가 모달 -->
+<div class="modal-overlay" id="templateModal">
+    <div class="modal-box">
+        <h3>새 템플릿 추가</h3>
+        <input type="text" id="tplEmoji" placeholder="이모지 (예: 📢)" maxlength="4">
+        <textarea id="tplText" rows="2" placeholder="템플릿 메시지 내용"></textarea>
+        <div class="modal-btns">
+            <button class="modal-cancel" onclick="closeAddTemplate()">취소</button>
+            <button class="modal-confirm" onclick="saveTemplate()">저장</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ═══════════════════════════════════════
+    //  데이터 저장 (localStorage)
+    // ═══════════════════════════════════════
+    const STORAGE_KEYS = {
+        templates: 'hiqasc_alert_templates',
+        history: 'hiqasc_alert_history'
+    };
+
+    const DEFAULT_TEMPLATES = [
+        { emoji: '📢', text: '{이름}님 제자리로 와주세요' },
+        { emoji: '📞', text: '{이름}님 전화 왔습니다' },
+        { emoji: '🚨', text: '긴급 공지: 전원 사무실로 모여주세요' },
+        { emoji: '☕', text: '휴식 시간입니다' },
+        { emoji: '🔧', text: '{이름}님 수리 건 확인 부탁드립니다' },
+        { emoji: '📦', text: '자재 입고되었습니다. 확인 바랍니다' }
+    ];
+
+    function loadTemplates() {
+        const saved = localStorage.getItem(STORAGE_KEYS.templates);
+        return saved ? JSON.parse(saved) : [...DEFAULT_TEMPLATES];
+    }
+
+    function saveTemplates(templates) {
+        localStorage.setItem(STORAGE_KEYS.templates, JSON.stringify(templates));
+    }
+
+    function loadHistory() {
+        const saved = localStorage.getItem(STORAGE_KEYS.history);
+        return saved ? JSON.parse(saved) : [];
+    }
+
+    function saveHistory(history) {
+        localStorage.setItem(STORAGE_KEYS.history, JSON.stringify(history));
+    }
+
+    // ═══════════════════════════════════════
+    //  Web Audio API 사운드 생성
+    // ═══════════════════════════════════════
+    let audioCtx = null;
+
+    function getAudioCtx() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        return audioCtx;
+    }
+
+    function playChime() {
+        const ctx = getAudioCtx();
+        const now = ctx.currentTime;
+        const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+
+        notes.forEach((freq, i) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            const delay = i * 0.18;
+
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, now + delay);
+
+            gain.gain.setValueAtTime(0, now + delay);
+            gain.gain.linearRampToValueAtTime(0.3, now + delay + 0.04);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + delay + 1.0);
+
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(now + delay);
+            osc.stop(now + delay + 1.0);
+        });
+    }
+
+    function playAlertSound() {
+        const ctx = getAudioCtx();
+        const now = ctx.currentTime;
+
+        for (let r = 0; r < 3; r++) {
+            const d = r * 0.35;
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(880, now + d);
+            osc.frequency.setValueAtTime(660, now + d + 0.1);
+            gain.gain.setValueAtTime(0.2, now + d);
+            gain.gain.linearRampToValueAtTime(0, now + d + 0.25);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(now + d);
+            osc.stop(now + d + 0.25);
+        }
+    }
+
+    function playBellSound() {
+        const ctx = getAudioCtx();
+        const now = ctx.currentTime;
+        const freqs = [440, 880, 1320];
+
+        freqs.forEach(freq => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(freq === 440 ? 0.25 : 0.08, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 2.0);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(now);
+            osc.stop(now + 2.0);
+        });
+    }
+
+    function playSound(type) {
+        switch (type) {
+            case 'chime': playChime(); break;
+            case 'alert': playAlertSound(); break;
+            case 'bell': playBellSound(); break;
+        }
+    }
+
+    // ═══════════════════════════════════════
+    //  알림 팝업
+    // ═══════════════════════════════════════
+    let alertTimeout = null;
+    let countdownInterval = null;
+
+    function sendAlert() {
+        const msg = document.getElementById('msgInput').value.trim();
+        if (!msg) {
+            document.getElementById('msgInput').focus();
+            return;
+        }
+
+        const soundType = document.getElementById('soundSelect').value;
+        const blink = document.getElementById('blinkSelect').value === 'on';
+        const autoClose = parseInt(document.getElementById('autoCloseTime').value) || 0;
+
+        // 알림 표시
+        const overlay = document.getElementById('alertOverlay');
+        const alertMsg = document.getElementById('alertMessage');
+        const alertTimerEl = document.getElementById('alertTimer');
+
+        alertMsg.textContent = msg;
+        alertMsg.className = 'alert-message' + (blink ? ' blink' : '');
+        overlay.classList.add('active');
+
+        // 사운드 재생
+        if (soundType !== 'none') {
+            playSound(soundType);
+            // 3초 후 한번 더 재생
+            setTimeout(() => playSound(soundType), 3000);
+        }
+
+        // 자동 닫힘
+        clearTimeout(alertTimeout);
+        clearInterval(countdownInterval);
+
+        if (autoClose > 0) {
+            let remaining = autoClose;
+            alertTimerEl.textContent = `${remaining}초 후 자동 닫힘`;
+
+            countdownInterval = setInterval(() => {
+                remaining--;
+                if (remaining > 0) {
+                    alertTimerEl.textContent = `${remaining}초 후 자동 닫힘`;
+                } else {
+                    alertTimerEl.textContent = '';
+                    clearInterval(countdownInterval);
+                }
+            }, 1000);
+
+            alertTimeout = setTimeout(() => closeAlert(), autoClose * 1000);
+        } else {
+            alertTimerEl.textContent = '';
+        }
+
+        // 기록 저장
+        addHistory(msg);
+    }
+
+    function closeAlert() {
+        document.getElementById('alertOverlay').classList.remove('active');
+        clearTimeout(alertTimeout);
+        clearInterval(countdownInterval);
+    }
+
+    function previewSound() {
+        const soundType = document.getElementById('soundSelect').value;
+        if (soundType !== 'none') playSound(soundType);
+    }
+
+    // ═══════════════════════════════════════
+    //  기록
+    // ═══════════════════════════════════════
+    function addHistory(msg) {
+        const history = loadHistory();
+        history.unshift({
+            message: msg,
+            time: new Date().toLocaleString('ko-KR')
+        });
+        // 최대 50개
+        if (history.length > 50) history.pop();
+        saveHistory(history);
+        renderHistory();
+    }
+
+    function renderHistory() {
+        const history = loadHistory();
+        const container = document.getElementById('historyList');
+        document.getElementById('historyCount').textContent = history.length;
+
+        if (history.length === 0) {
+            container.innerHTML = '<div class="history-empty">아직 기록이 없습니다</div>';
+            return;
+        }
+
+        container.innerHTML = history.map((item, i) =>
+            `<div class="history-item" onclick="reuseHistory(${i})">
+                <div class="history-item-msg">${escapeHtml(item.message)}</div>
+                <div class="history-item-time">${item.time}</div>
+            </div>`
+        ).join('');
+    }
+
+    function reuseHistory(index) {
+        const history = loadHistory();
+        if (history[index]) {
+            document.getElementById('msgInput').value = history[index].message;
+            toggleHistory();
+        }
+    }
+
+    function clearHistory() {
+        if (confirm('알림 기록을 모두 삭제하시겠습니까?')) {
+            saveHistory([]);
+            renderHistory();
+        }
+    }
+
+    function toggleHistory() {
+        document.getElementById('historyPanel').classList.toggle('active');
+        document.getElementById('historyBackdrop').classList.toggle('active');
+    }
+
+    // ═══════════════════════════════════════
+    //  템플릿
+    // ═══════════════════════════════════════
+    let editMode = false;
+
+    function renderTemplates() {
+        const templates = loadTemplates();
+        const grid = document.getElementById('templatesGrid');
+
+        grid.innerHTML = templates.map((tpl, i) =>
+            `<div class="template-chip-wrap">
+                <button class="template-delete-btn" onclick="deleteTemplate(event, ${i})">✕</button>
+                <button class="template-chip" onclick="useTemplate(${i})">
+                    <span class="emoji">${tpl.emoji}</span>
+                    <span>${escapeHtml(tpl.text)}</span>
+                </button>
+            </div>`
+        ).join('');
+
+        // 편집 모드 상태 유지
+        if (editMode) {
+            grid.classList.add('editing');
+        } else {
+            grid.classList.remove('editing');
+        }
+    }
+
+    function toggleEditMode() {
+        editMode = !editMode;
+        const btn = document.getElementById('editModeBtn');
+        const grid = document.getElementById('templatesGrid');
+
+        if (editMode) {
+            btn.classList.add('active');
+            btn.innerHTML = '✅ 완료';
+            grid.classList.add('editing');
+        } else {
+            btn.classList.remove('active');
+            btn.innerHTML = '✏️ 편집';
+            grid.classList.remove('editing');
+        }
+    }
+
+    function deleteTemplate(event, index) {
+        event.stopPropagation();
+        const templates = loadTemplates();
+        if (templates[index]) {
+            const msg = templates[index].text;
+            if (confirm(`이 템플릿을 삭제하시겠습니까?\n\n"${msg}"`)) {
+                templates.splice(index, 1);
+                saveTemplates(templates);
+                renderTemplates();
+            }
+        }
+    }
+
+    function useTemplate(index) {
+        const templates = loadTemplates();
+        if (templates[index]) {
+            document.getElementById('msgInput').value = templates[index].text;
+            document.getElementById('msgInput').focus();
+        }
+    }
+
+    function openAddTemplate() {
+        document.getElementById('tplEmoji').value = '';
+        document.getElementById('tplText').value = '';
+        document.getElementById('templateModal').classList.add('active');
+    }
+
+    function closeAddTemplate() {
+        document.getElementById('templateModal').classList.remove('active');
+    }
+
+    function saveTemplate() {
+        const emoji = document.getElementById('tplEmoji').value.trim() || '📌';
+        const text = document.getElementById('tplText').value.trim();
+        if (!text) return;
+
+        const templates = loadTemplates();
+        templates.push({ emoji, text });
+        saveTemplates(templates);
+        renderTemplates();
+        closeAddTemplate();
+    }
+
+    // ═══════════════════════════════════════
+    //  유틸리티
+    // ═══════════════════════════════════════
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
+    // ESC 키로 닫기
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeAlert();
+            if (document.getElementById('historyPanel').classList.contains('active')) {
+                toggleHistory();
+            }
+            closeAddTemplate();
+        }
+    });
+
+    // ═══════════════════════════════════════
+    //  초기화
+    // ═══════════════════════════════════════
+    renderTemplates();
+    renderHistory();
+</script>
+</body>
+</html>
