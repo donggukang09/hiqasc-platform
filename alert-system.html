@@ -744,6 +744,13 @@
                     <option value="off">끄기</option>
                 </select>
             </div>
+            <div class="setting-group">
+                <label>🗣 음성 읽기</label>
+                <select id="ttsSelect">
+                    <option value="on">켜기</option>
+                    <option value="off">끄기</option>
+                </select>
+            </div>
         </div>
 
         <div class="btn-row">
@@ -752,6 +759,9 @@
             </button>
             <button class="btn-alert btn-preview" onclick="previewSound()">
                 🔊 소리 미리듣기
+            </button>
+            <button class="btn-alert btn-preview" onclick="previewTTS()">
+                🗣 음성 미리듣기
             </button>
         </div>
     </div>
@@ -923,6 +933,35 @@
     }
 
     // ═══════════════════════════════════════
+    //  음성 읽기 (TTS)
+    // ═══════════════════════════════════════
+    function speakMessage(text) {
+        if (!('speechSynthesis' in window)) return;
+
+        // 진행 중인 음성 중단
+        window.speechSynthesis.cancel();
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'ko-KR';
+        utterance.rate = 0.9;
+        utterance.pitch = 1.0;
+        utterance.volume = 1.0;
+
+        // 한국어 음성 우선 선택
+        const voices = window.speechSynthesis.getVoices();
+        const koVoice = voices.find(v => v.lang.startsWith('ko'));
+        if (koVoice) utterance.voice = koVoice;
+
+        window.speechSynthesis.speak(utterance);
+    }
+
+    // 음성 목록 로드 (일부 브라우저에서 비동기 로드)
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.getVoices();
+        window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+    }
+
+    // ═══════════════════════════════════════
     //  알림 팝업
     // ═══════════════════════════════════════
     let alertTimeout = null;
@@ -937,6 +976,7 @@
 
         const soundType = document.getElementById('soundSelect').value;
         const blink = document.getElementById('blinkSelect').value === 'on';
+        const ttsOn = document.getElementById('ttsSelect').value === 'on';
         const autoClose = parseInt(document.getElementById('autoCloseTime').value) || 0;
 
         // 알림 표시
@@ -953,6 +993,11 @@
             playSound(soundType);
             // 3초 후 한번 더 재생
             setTimeout(() => playSound(soundType), 3000);
+        }
+
+        // 음성 읽기 (사운드 후 1.5초 뒤 시작)
+        if (ttsOn) {
+            setTimeout(() => speakMessage(msg), 1500);
         }
 
         // 자동 닫힘
@@ -986,11 +1031,18 @@
         document.getElementById('alertOverlay').classList.remove('active');
         clearTimeout(alertTimeout);
         clearInterval(countdownInterval);
+        // 음성 중단
+        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
     }
 
     function previewSound() {
         const soundType = document.getElementById('soundSelect').value;
         if (soundType !== 'none') playSound(soundType);
+    }
+
+    function previewTTS() {
+        const msg = document.getElementById('msgInput').value.trim();
+        speakMessage(msg || '알림 음성 테스트입니다');
     }
 
     // ═══════════════════════════════════════
