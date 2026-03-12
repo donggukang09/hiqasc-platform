@@ -998,9 +998,17 @@
             setTimeout(() => playSound(soundType), 3000);
         }
 
-        // 음성 읽기 (사운드 후 1.5초 뒤 시작)
+        // 음성 읽기 (사운드 후 1.5초 뒤 시작, 2회 반복)
         if (ttsOn) {
-            setTimeout(() => speakMessage(msg), 1500);
+            setTimeout(() => {
+                speakMessage(msg);
+                const checkEnd = setInterval(() => {
+                    if (!window.speechSynthesis.speaking) {
+                        clearInterval(checkEnd);
+                        setTimeout(() => speakMessage(msg), 800);
+                    }
+                }, 200);
+            }, 1500);
         }
 
         // 자동 닫힘
