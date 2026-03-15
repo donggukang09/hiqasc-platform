@@ -359,7 +359,32 @@
   }
   .footer-company { color: var(--accent); font-weight: 600; letter-spacing: 1px; }
 
-  /* ── PAGE BREAK ── */
+  /* ── PDF TEXT DIV (input 대체용) ── */
+  .pdf-text-div {
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 13px;
+    color: var(--gray-800);
+    background: var(--gray-100);
+    border: 1.5px solid var(--border);
+    border-radius: 4px;
+    padding: 9px 12px;
+    width: 100%;
+    line-height: 1.8;
+    min-height: 38px;
+    word-break: break-all;
+    white-space: pre-wrap;
+  }
+  .pdf-text-div.textarea-div {
+    min-height: 80px;
+  }
+  .pdf-cell-div {
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 13px;
+    line-height: 2;
+    color: var(--gray-800);
+    padding: 6px 8px;
+    text-align: center;
+  }
   .page-break-before {
     page-break-before: always;
     break-before: page;
@@ -617,107 +642,141 @@ function resetForm() {
 // ── PDF EXPORT ──
 async function exportPDF() {
   const overlay = document.getElementById('loadingOverlay');
-  const toolbar = document.querySelector('.toolbar');
-  const delBtns = document.querySelectorAll('.del-btn');
-  const addBtn = document.querySelector('.add-row-btn');
-  const photoDropZone = document.getElementById('photoDropZone');
-  const photoRemoveBtns = document.querySelectorAll('.photo-remove');
-  const photoGrid = document.getElementById('photoGrid');
-  const delColTh = document.querySelector('thead th.del-col');
-
   overlay.classList.add('show');
 
-  toolbar.style.display = 'none';
-  delBtns.forEach(b => b.style.visibility = 'hidden');
-  addBtn.style.display = 'none';
+  // ── 1. UI 전용 요소 숨김 ──
+  const toolbar       = document.querySelector('.toolbar');
+  const delBtns       = document.querySelectorAll('.del-btn');
+  const addBtn        = document.querySelector('.add-row-btn');
+  const photoDropZone = document.getElementById('photoDropZone');
+  const photoRemoves  = document.querySelectorAll('.photo-remove');
+  const photoGrid     = document.getElementById('photoGrid');
+  const delColTh      = document.querySelector('thead th.del-col');
+
+  toolbar.style.display       = 'none';
+  addBtn.style.display        = 'none';
   photoDropZone.style.display = 'none';
-  photoRemoveBtns.forEach(b => b.style.display = 'none');
+  delBtns.forEach(b  => b.style.display = 'none');
+  photoRemoves.forEach(b => b.style.display = 'none');
   if (delColTh) delColTh.style.display = 'none';
   photoGrid.classList.add('pdf-mode');
 
-  await new Promise(r => setTimeout(r, 400));
+  // ── 2. input/textarea/select → div 교체 (텍스트 잘림 방지) ──
+  const replacements = [];
+
+  // 기본정보 필드
+  document.querySelectorAll('.field-input, .field-textarea, .field-select').forEach(el => {
+    const isTextarea = el.tagName === 'TEXTAREA';
+    const isSelect   = el.tagName === 'SELECT';
+    let val = '';
+    if (isSelect) {
+      val = el.options[el.selectedIndex]?.text || '';
+      if (el.selectedIndex === 0) val = '';
+    } else {
+      if (el.type === 'datetime-local' && el.value) {
+        const d = new Date(el.value);
+        val = d.toLocaleString('ko-KR', { year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit' });
+      } else {
+        val = el.value || '';
+      }
+    }
+    const div = document.createElement('div');
+    div.className = 'pdf-text-div' + (isTextarea ? ' textarea-div' : '');
+    div.textContent = val;
+    el.parentNode.insertBefore(div, el);
+    el.style.display = 'none';
+    replacements.push({ el, div });
+  });
+
+  // 참석자 테이블 셀 input → div
+  document.querySelectorAll('#attendeeBody td input').forEach(inp => {
+    const div = document.createElement('div');
+    div.className = 'pdf-cell-div';
+    div.textContent = inp.value || '';
+    inp.parentNode.insertBefore(div, inp);
+    inp.style.display = 'none';
+    replacements.push({ el: inp, div });
+  });
+
+  await new Promise(r => setTimeout(r, 300));
 
   try {
     const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
-    const pdfW = 210;
-    const pageH = pdf.internal.pageSize.getHeight();
+    const pdf    = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+    const pdfW   = 210;
+    const pageH  = pdf.internal.pageSize.getHeight();
+    const formW  = document.getElementById('reportForm').offsetWidth;
 
-    // 섹션별로 분리해서 캔버스 생성
     const allSections = document.querySelectorAll('#reportForm .section');
-    const docHeader = document.querySelector('.doc-header');
-    const docFooter = document.querySelector('.doc-footer');
+    const docHeader   = document.querySelector('.doc-header');
+    const docFooter   = document.querySelector('.doc-footer');
 
-    // 페이지 1: 헤더 + 기본정보 섹션
-    // 페이지 2~: 참석자 명단 + 사진 섹션 (헤더 없이)
-    const page1Elements = [docHeader, allSections[0]]; // 헤더 + 기본정보
-    const page2Elements = [allSections[1], allSections[2], docFooter]; // 참석자 + 사진 + 푸터
+    // 페이지별 요소 그룹
+    const pages = [
+      [docHeader, allSections[0]],          // 1p: 헤더 + 기본정보
+      [allSections[1]],                      // 2p: 참석자 명단
+      [allSections[2], docFooter],           // 3p: 교육 사진 + 푸터
+    ];
 
-    async function renderElements(elements) {
-      // 임시 wrapper div 생성
+    async function renderPage(elements, pageIndex) {
       const wrapper = document.createElement('div');
       wrapper.style.cssText = `
         position: fixed; left: -9999px; top: 0;
-        width: ${document.getElementById('reportForm').offsetWidth}px;
+        width: ${formW}px;
         background: #ffffff;
         font-family: 'Noto Sans KR', sans-serif;
       `;
-      elements.forEach(el => {
-        if (el) wrapper.appendChild(el.cloneNode(true));
-      });
+      elements.forEach(el => { if (el) wrapper.appendChild(el.cloneNode(true)); });
       document.body.appendChild(wrapper);
-      await new Promise(r => setTimeout(r, 100));
+      await new Promise(r => setTimeout(r, 120));
       const canvas = await html2canvas(wrapper, {
         scale: 2,
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
         logging: false,
-        width: wrapper.offsetWidth,
+        width: formW,
         height: wrapper.scrollHeight,
       });
       document.body.removeChild(wrapper);
       return canvas;
     }
 
-    // 페이지 1
-    const canvas1 = await renderElements(page1Elements);
-    const img1 = canvas1.toDataURL('image/jpeg', 0.95);
-    const h1 = (canvas1.height * pdfW) / canvas1.width;
-    let posY = 0;
-    while (posY < h1) {
-      if (posY > 0) pdf.addPage();
-      pdf.addImage(img1, 'JPEG', 0, -posY, pdfW, h1);
-      posY += pageH;
+    for (let i = 0; i < pages.length; i++) {
+      if (i > 0) pdf.addPage();
+      const canvas  = await renderPage(pages[i], i);
+      const imgData = canvas.toDataURL('image/jpeg', 0.95);
+      const imgH    = (canvas.height * pdfW) / canvas.width;
+      let posY = 0;
+      while (posY < imgH) {
+        if (posY > 0) { pdf.addPage(); }
+        pdf.addImage(imgData, 'JPEG', 0, -posY, pdfW, imgH);
+        posY += pageH;
+      }
     }
 
-    // 페이지 2
-    const canvas2 = await renderElements(page2Elements);
-    const img2 = canvas2.toDataURL('image/jpeg', 0.95);
-    const h2 = (canvas2.height * pdfW) / canvas2.width;
-    posY = 0;
-    pdf.addPage();
-    while (posY < h2) {
-      if (posY > 0) pdf.addPage();
-      pdf.addImage(img2, 'JPEG', 0, -posY, pdfW, h2);
-      posY += pageH;
-    }
-
-    const d = new Date();
+    const d     = new Date();
     const stamp = `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
     const title = document.getElementById('f_title').value.trim() || '사내교육보고서';
     pdf.save(`${stamp}_${title}.pdf`);
+
   } catch (e) {
     alert('PDF 생성 중 오류가 발생했습니다.\n' + e.message);
     console.error(e);
   } finally {
-    toolbar.style.display = '';
-    delBtns.forEach(b => b.style.visibility = '');
-    addBtn.style.display = '';
+    // ── 복원 ──
+    toolbar.style.display       = '';
+    addBtn.style.display        = '';
     photoDropZone.style.display = '';
-    photoRemoveBtns.forEach(b => b.style.display = '');
+    delBtns.forEach(b  => b.style.display = '');
+    photoRemoves.forEach(b => b.style.display = '');
     if (delColTh) delColTh.style.display = '';
     photoGrid.classList.remove('pdf-mode');
+
+    replacements.forEach(({ el, div }) => {
+      el.style.display = '';
+      div.remove();
+    });
     overlay.classList.remove('show');
   }
 }
