@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>머신 수량 현황 대시보드</title>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -12,26 +11,27 @@
             box-sizing: border-box;
         }
 
-        html, body {
-            font-family: 'Manrope', 'Malgun Gothic', sans-serif;
-            background: #0f1117;
+        body {
+            font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
+            background: #1e1e1e;
             color: #e0e0e0;
-            height: 100vh;
-            overflow: hidden;
+            min-height: 100vh;
         }
 
-        /* ========== 헤더 ========== */
+        /* 헤더 */
         .header {
-            background: linear-gradient(180deg, #181b24 0%, #13151c 100%);
-            border-bottom: 1px solid #2a2d3a;
-            padding: 10px 30px;
-            height: 56px;
-            display: flex;
-            align-items: center;
+            background: #2a2a2a;
+            border-bottom: 1px solid #3a3a3a;
+            padding: 20px 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
 
         .header-container {
-            width: 100%;
+            max-width: 1800px;
+            margin: 0 auto;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -40,95 +40,77 @@
         .header-left {
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 15px;
         }
 
         .header-icon {
-            width: 36px;
-            height: 36px;
+            width: 45px;
+            height: 45px;
             background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
-            border-radius: 8px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
-            font-weight: 800;
-            color: #fff;
+            font-size: 24px;
+            font-weight: 700;
+            color: #ffffff;
         }
 
         .header-info h1 {
-            font-size: 1.3em;
-            font-weight: 700;
-            color: #fff;
-            letter-spacing: -0.02em;
+            font-size: 1.8em;
+            color: #ffffff;
+            margin-bottom: 5px;
         }
 
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 24px;
+        .header-info p {
+            color: #808080;
+            font-size: 0.9em;
         }
 
         .update-info {
             text-align: right;
-            font-size: 0.8em;
-            color: #666;
+            font-size: 0.85em;
+            color: #808080;
         }
 
         .update-time {
             color: #4a90e2;
-            font-weight: 700;
-            font-size: 1.05em;
-        }
-
-        .live-dot {
-            width: 8px;
-            height: 8px;
-            background: #2ecc71;
-            border-radius: 50%;
-            display: inline-block;
-            margin-right: 6px;
-            animation: pulse-dot 2s ease-in-out infinite;
-        }
-
-        @keyframes pulse-dot {
-            0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.5); }
-            50% { opacity: 0.7; box-shadow: 0 0 0 6px rgba(46, 204, 113, 0); }
+            font-weight: 600;
         }
 
         .back-link {
             color: #4a90e2;
             text-decoration: none;
-            padding: 6px 14px;
-            border: 1px solid rgba(74, 144, 226, 0.3);
+            padding: 8px 16px;
+            border: 1px solid #4a90e2;
             border-radius: 6px;
             transition: all 0.2s;
-            font-size: 0.85em;
-            font-weight: 600;
+            font-size: 0.9em;
         }
 
         .back-link:hover {
             background: #4a90e2;
-            color: #fff;
+            color: #ffffff;
         }
 
-        /* ========== 로딩 ========== */
+        /* 메인 컨테이너 */
+        .main-container {
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+
+        /* 로딩 */
         .loading {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: calc(100vh - 56px);
-        }
-
-        .loading-inner {
             text-align: center;
+            padding: 100px 20px;
         }
 
         .loading-spinner {
-            width: 50px;
-            height: 50px;
-            margin: 0 auto 16px;
-            border: 4px solid #2a2d3a;
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 20px;
+            border: 4px solid #3a3a3a;
             border-top: 4px solid #4a90e2;
             border-radius: 50%;
             animation: spin 1s linear infinite;
@@ -140,269 +122,299 @@
         }
 
         .loading-text {
-            color: #666;
-            font-size: 1em;
+            color: #808080;
+            font-size: 1.1em;
         }
 
-        /* ========== 대시보드 메인 ========== */
+        /* 대시보드 */
         .dashboard {
             display: none;
-            height: calc(100vh - 56px);
-            padding: 16px 24px 12px;
         }
 
         .dashboard.active {
-            display: flex;
-            flex-direction: column;
+            display: block;
         }
 
-        /* 상단: 완료/잔여 패널 */
-        .top-area {
-            flex: 1;
+        .split-container {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 20px;
-            min-height: 0;
+            margin-bottom: 30px;
         }
 
-        /* ========== 패널 ========== */
         .panel {
-            background: #181b24;
-            border: 1px solid #2a2d3a;
-            border-radius: 14px;
-            padding: 16px 20px;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
+            background: #2a2a2a;
+            border: 1px solid #3a3a3a;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
 
-        .panel.complete {
-            border-left: 4px solid #2ecc71;
+        .panel-header {
+            text-align: center;
+            margin-bottom: 15px;
         }
 
-        .panel.remaining {
-            border-left: 4px solid #e74c3c;
+        .panel-title {
+            font-size: 3.5em;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 10px;
         }
 
-        /* 패널 헤더 + 총 수량 한 줄 */
-        .panel-top {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            margin-bottom: 14px;
+        .panel.complete .panel-title {
+            color: #2ecc71;
         }
 
-        .panel-label {
-            font-size: 1.6em;
-            font-weight: 800;
-            letter-spacing: -0.02em;
-            white-space: nowrap;
+        .panel.remaining .panel-title {
+            color: #e74c3c;
         }
 
-        .panel.complete .panel-label { color: #2ecc71; }
-        .panel.remaining .panel-label { color: #e74c3c; }
-
-        .panel-total {
-            display: flex;
-            align-items: baseline;
-            gap: 8px;
+        .total-count {
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 15px;
         }
 
-        .panel-total-number {
-            font-size: 5.5em;
-            font-weight: 800;
-            line-height: 1;
-            letter-spacing: -0.03em;
+        .panel.complete .total-count {
+            background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
         }
 
-        .panel.complete .panel-total-number { color: #2ecc71; }
-        .panel.remaining .panel-total-number { color: #e74c3c; }
+        .panel.remaining .total-count {
+            background: linear-gradient(135deg, #c0392b 0%, #a93226 100%);
+        }
 
-        .panel-total-unit {
-            font-size: 1.6em;
+        .total-count h2 {
+            font-size: 1.5em;
+            margin-bottom: 5px;
             font-weight: 600;
-            color: #666;
+            color: rgba(255, 255, 255, 0.9);
         }
 
-        /* 섹션 (ORIGINAL / VERTUO / OTHER) */
-        .sections-area {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            min-height: 0;
-            overflow: hidden;
+        .total-count .count {
+            font-size: 6em;
+            font-weight: bold;
+            color: white;
         }
 
         .section {
-            background: #1e2130;
+            background: #34495e;
             border-radius: 10px;
-            padding: 10px 14px;
-            flex: 1;
-            min-height: 0;
-            overflow: hidden;
+            padding: 15px;
+            margin-bottom: 15px;
         }
 
         .section-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 8px;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #4a5f7f;
         }
 
         .section-title {
-            font-size: 1.15em;
-            font-weight: 700;
+            font-size: 1.4em;
+            font-weight: bold;
         }
 
-        .section.original .section-title { color: #3498db; }
-        .section.vertuo .section-title { color: #9b59b6; }
-        .section.other .section-title { color: #e67e22; }
+        .section.original .section-title {
+            color: #3498db;
+        }
+
+        .section.vertuo .section-title {
+            color: #9b59b6;
+        }
+
+        .section.other .section-title {
+            color: #e67e22;
+        }
 
         .section-count {
-            font-size: 1.8em;
-            font-weight: 800;
-            color: #fff;
-            letter-spacing: -0.02em;
+            font-size: 1.1em;
+            font-weight: bold;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 6px 14px;
+            border-radius: 15px;
+            color: white;
         }
 
-        /* 모델 그리드 */
         .models-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
         }
 
         .model-card {
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px;
             border-radius: 8px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            text-align: center;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .model-card:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
         }
 
         .model-name {
-            font-size: 0.95em;
-            color: #888;
-            font-weight: 600;
+            font-size: 0.9em;
+            color: #b0b0b0;
+            margin-bottom: 6px;
         }
 
         .model-count {
-            font-size: 1.5em;
-            font-weight: 800;
+            font-size: 1.3em;
+            font-weight: bold;
             color: #4a90e2;
         }
 
         .hidden {
-            display: none !important;
+            display: none;
         }
 
-        /* ========== 하단: 테크니션 바 ========== */
-        .tech-bar {
-            margin-top: 14px;
-            background: #181b24;
-            border: 1px solid #2a2d3a;
-            border-radius: 14px;
-            padding: 14px 20px;
-            flex-shrink: 0;
+        /* 테크니션 섹션 */
+        .technician-section {
+            margin-top: 30px;
         }
 
-        .tech-bar-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 12px;
+        .technician-section h2 {
+            font-size: 1.6em;
+            color: #ffffff;
+            margin-bottom: 20px;
+            text-align: center;
         }
 
-        .tech-bar-title {
-            font-size: 1.15em;
-            font-weight: 700;
-            color: #fff;
+        .technician-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
         }
 
-        .tech-bar-title span {
-            color: #666;
-            font-weight: 400;
-            font-size: 0.85em;
-            margin-left: 8px;
-        }
-
-        .tech-grid {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .tech-chip {
-            background: linear-gradient(135deg, #1e2130 0%, #232740 100%);
-            border: 1px solid #2a2d3a;
+        .technician-card {
+            background: #2a2a2a;
+            border: 1px solid #3a3a3a;
             border-radius: 10px;
-            padding: 10px 16px;
-            flex: 1;
-            min-width: 160px;
-            max-width: 240px;
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            transition: border-color 0.2s;
+            padding: 18px;
+            transition: all 0.3s;
         }
 
-        .tech-chip:hover {
+        .technician-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(74, 144, 226, 0.2);
             border-color: #4a90e2;
         }
 
-        .tech-chip-name {
-            font-size: 1.15em;
-            font-weight: 700;
-            color: #fff;
-            white-space: nowrap;
+        .technician-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #4a90e2;
+            margin-bottom: 12px;
+            text-align: center;
         }
 
-        .tech-chip-total {
-            font-size: 2.4em;
-            font-weight: 800;
+        .tech-total {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .tech-total-label {
+            font-size: 0.9em;
+            color: #808080;
+            margin-bottom: 4px;
+        }
+
+        .tech-total-count {
+            font-size: 1.8em;
+            font-weight: bold;
             color: #2ecc71;
-            line-height: 1;
-            letter-spacing: -0.03em;
         }
 
-        .tech-chip-detail {
+        .tech-breakdown {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .tech-line {
+            background: #34495e;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .tech-line-label {
+            font-size: 0.85em;
+            margin-bottom: 4px;
+        }
+
+        .tech-line.original .tech-line-label {
+            color: #3498db;
+        }
+
+        .tech-line.vertuo .tech-line-label {
+            color: #9b59b6;
+        }
+
+        .tech-line-count {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: white;
+        }
+
+        .tech-models {
+            background: #34495e;
+            border-radius: 6px;
+            padding: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .tech-model-item {
             display: flex;
-            flex-direction: column;
-            gap: 2px;
-            margin-left: auto;
+            justify-content: space-between;
+            padding: 6px 8px;
+            margin-bottom: 4px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
         }
 
-        .tech-chip-line {
-            font-size: 0.8em;
-            font-weight: 600;
-            display: flex;
-            gap: 4px;
-            align-items: center;
+        .tech-model-name {
+            font-size: 0.85em;
+            color: #b0b0b0;
         }
 
-        .tech-chip-line .label {
-            color: #555;
+        .tech-model-count {
+            font-size: 0.85em;
+            font-weight: bold;
+            color: #4a90e2;
         }
 
-        .tech-chip-line .value {
-            font-weight: 800;
+        /* 반응형 */
+        @media (max-width: 1200px) {
+            .split-container {
+                grid-template-columns: 1fr;
+            }
         }
 
-        .tech-chip-line.ori .value { color: #3498db; }
-        .tech-chip-line.ver .value { color: #9b59b6; }
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 20px 15px;
+            }
 
-        /* ========== 자동 새로고침 프로그레스 ========== */
-        .refresh-bar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            height: 3px;
-            background: linear-gradient(90deg, #4a90e2, #2ecc71);
-            transition: width 1s linear;
-            opacity: 0.6;
+            .header-container {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .models-grid {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            }
         }
     </style>
     <script src="config.js"></script>
@@ -415,111 +427,112 @@
                 <div class="header-icon">M</div>
                 <div class="header-info">
                     <h1>머신 수량 현황 대시보드</h1>
+                    <p>Machine Quantity Dashboard</p>
                 </div>
             </div>
-            <div class="header-right">
-                <div class="update-info">
-                    <span class="live-dot"></span>
-                    <span style="color:#888;">갱신</span>
-                    <span class="update-time" id="updateTime">-</span>
-                </div>
-                <a href="https://donggukang09.github.io/hiqasc-platform/" class="back-link">🏠 메인으로</a>
+            <div class="update-info">
+                <div>마지막 업데이트</div>
+                <div class="update-time" id="updateTime">-</div>
             </div>
+            <a href="https://donggukang09.github.io/hiqasc-platform/" class="back-link">← 메인으로</a>
         </div>
     </div>
 
     <!-- 로딩 -->
     <div class="loading" id="loading">
-        <div class="loading-inner">
-            <div class="loading-spinner"></div>
-            <div class="loading-text">데이터 로딩 중...</div>
-        </div>
+        <div class="loading-spinner"></div>
+        <div class="loading-text">데이터 로딩 중...</div>
     </div>
 
-    <!-- 대시보드 -->
-    <div class="dashboard" id="dashboard">
-        <!-- 상단: 완료 / 잔여 -->
-        <div class="top-area">
-            <!-- 완료 패널 -->
-            <div class="panel complete">
-                <div class="panel-top">
-                    <div class="panel-label">✓ 완료</div>
-                    <div class="panel-total">
-                        <div class="panel-total-number" id="completeTotalCount">0</div>
-                        <div class="panel-total-unit">대</div>
+    <!-- 메인 컨테이너 -->
+    <div class="main-container">
+        <div class="dashboard" id="dashboard">
+            <!-- 완료/잔여 패널 -->
+            <div class="split-container">
+                <!-- 완료 패널 -->
+                <div class="panel complete">
+                    <div class="panel-header">
+                        <h2 class="panel-title">✓ 완료</h2>
                     </div>
-                </div>
-                <div class="sections-area">
+                    <div class="total-count">
+                        <h2>총 완료 수량</h2>
+                        <div class="count" id="completeTotalCount">0</div>
+                    </div>
+
+                    <!-- ORIGINAL 라인 -->
                     <div class="section original">
                         <div class="section-header">
                             <h3 class="section-title">ORIGINAL</h3>
-                            <span class="section-count" id="completeOriginalCount">0</span>
+                            <span class="section-count" id="completeOriginalCount">0대</span>
                         </div>
                         <div class="models-grid" id="completeOriginalModels"></div>
                     </div>
+
+                    <!-- VERTUO 라인 -->
                     <div class="section vertuo">
                         <div class="section-header">
                             <h3 class="section-title">VERTUO</h3>
-                            <span class="section-count" id="completeVertuoCount">0</span>
+                            <span class="section-count" id="completeVertuoCount">0대</span>
                         </div>
                         <div class="models-grid" id="completeVertuoModels"></div>
                     </div>
-                    <div class="section other hidden" id="completeOtherSection">
+
+                    <!-- OTHER -->
+                    <div class="section other" id="completeOtherSection">
                         <div class="section-header">
                             <h3 class="section-title">OTHER</h3>
-                            <span class="section-count" id="completeOtherCount">0</span>
+                            <span class="section-count" id="completeOtherCount">0대</span>
                         </div>
                         <div class="models-grid" id="completeOtherModels"></div>
                     </div>
                 </div>
-            </div>
 
-            <!-- 잔여 패널 -->
-            <div class="panel remaining">
-                <div class="panel-top">
-                    <div class="panel-label">⏳ 잔여</div>
-                    <div class="panel-total">
-                        <div class="panel-total-number" id="remainingTotalCount">0</div>
-                        <div class="panel-total-unit">대</div>
+                <!-- 잔여 패널 -->
+                <div class="panel remaining">
+                    <div class="panel-header">
+                        <h2 class="panel-title">⏳ 잔여</h2>
                     </div>
-                </div>
-                <div class="sections-area">
+                    <div class="total-count">
+                        <h2>총 잔여 수량</h2>
+                        <div class="count" id="remainingTotalCount">0</div>
+                    </div>
+
+                    <!-- ORIGINAL 라인 -->
                     <div class="section original">
                         <div class="section-header">
                             <h3 class="section-title">ORIGINAL</h3>
-                            <span class="section-count" id="remainingOriginalCount">0</span>
+                            <span class="section-count" id="remainingOriginalCount">0대</span>
                         </div>
                         <div class="models-grid" id="remainingOriginalModels"></div>
                     </div>
+
+                    <!-- VERTUO 라인 -->
                     <div class="section vertuo">
                         <div class="section-header">
                             <h3 class="section-title">VERTUO</h3>
-                            <span class="section-count" id="remainingVertuoCount">0</span>
+                            <span class="section-count" id="remainingVertuoCount">0대</span>
                         </div>
                         <div class="models-grid" id="remainingVertuoModels"></div>
                     </div>
-                    <div class="section other hidden" id="remainingOtherSection">
+
+                    <!-- OTHER -->
+                    <div class="section other" id="remainingOtherSection">
                         <div class="section-header">
                             <h3 class="section-title">OTHER</h3>
-                            <span class="section-count" id="remainingOtherCount">0</span>
+                            <span class="section-count" id="remainingOtherCount">0대</span>
                         </div>
                         <div class="models-grid" id="remainingOtherModels"></div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- 하단: 테크니션 요약 -->
-        <div class="tech-bar">
-            <div class="tech-bar-header">
-                <div class="tech-bar-title">👨‍🔧 테크니션별 완료<span id="techCount"></span></div>
+            <!-- 테크니션 통계 -->
+            <div class="technician-section">
+                <h2>👨‍🔧 테크니션별 완료 현황</h2>
+                <div class="technician-grid" id="technicianGrid"></div>
             </div>
-            <div class="tech-grid" id="technicianGrid"></div>
         </div>
     </div>
-
-    <!-- 새로고침 프로그레스 바 -->
-    <div class="refresh-bar" id="refreshBar"></div>
 
     <script>
         // ============================================
@@ -528,28 +541,14 @@
         const SHEET_ID = SHEETS_CONFIG.machineQuantity;
         const COMPLETE_SHEET_NAME = '완료';
         const REMAINING_SHEET_NAME = '잔여';
-        const MODEL_SHEET_NAME = 'model';
+        const MODEL_SHEET_NAME = 'model'; // 모델 리스트 시트
 
-        let MODEL_DATABASE = [];
+        // ============================================
+        // MODEL DATABASE (수정하지 마세요)
+        // ============================================
+        let MODEL_DATABASE = []; // Google Sheets에서 로드됨
+
         const EXCLUDED_MODELS = ['Vertuo Creatista'];
-
-        // ============================================
-        // 새로고침 타이머
-        // ============================================
-        const REFRESH_INTERVAL = 5 * 60 * 1000; // 5분
-        let refreshTimer = null;
-        let refreshStart = Date.now();
-
-        function startRefreshBar() {
-            refreshStart = Date.now();
-            const bar = document.getElementById('refreshBar');
-            bar.style.transition = 'none';
-            bar.style.width = '0%';
-            requestAnimationFrame(() => {
-                bar.style.transition = `width ${REFRESH_INTERVAL}ms linear`;
-                bar.style.width = '100%';
-            });
-        }
 
         // ============================================
         // 데이터 로드 및 처리
@@ -570,28 +569,29 @@
                 const remainingText = await remainingResponse.text();
                 const modelText = await modelResponse.text();
 
-                MODEL_DATABASE = parseGoogleSheetsData(modelText, true);
+                // 모델 데이터 먼저 로드
+                MODEL_DATABASE = parseGoogleSheetsData(modelText, true); // model 시트용 파싱
                 console.log('✅ 모델 데이터 로드 완료:', MODEL_DATABASE.length, '개');
 
                 const completeData = parseGoogleSheetsData(completeText);
                 const remainingData = parseGoogleSheetsData(remainingText);
 
                 processAllData(completeData, remainingData);
-
+                
+                // 업데이트 시간 표시
                 const now = new Date();
                 document.getElementById('updateTime').textContent = now.toLocaleString('ko-KR');
 
+                // 로딩 숨기고 대시보드 표시
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('dashboard').classList.add('active');
-
-                startRefreshBar();
             } catch (error) {
                 console.error('데이터 로드 오류:', error);
                 document.getElementById('loading').innerHTML = `
-                    <div class="loading-inner" style="color: #e74c3c;">
+                    <div style="color: #e74c3c;">
                         <h3>데이터 로드 실패</h3>
                         <p>Google Sheets에 접근할 수 없습니다.</p>
-                        <p style="font-size: 0.9em; margin-top: 10px; color: #888;">시트가 "링크가 있는 모든 사용자"로 공유되어 있는지 확인하세요.</p>
+                        <p style="font-size: 0.9em; margin-top: 10px;">시트가 "링크가 있는 모든 사용자"로 공유되어 있는지 확인하세요.</p>
                     </div>
                 `;
             }
@@ -600,14 +600,16 @@
         function parseGoogleSheetsData(text, isModelSheet = false) {
             const json = JSON.parse(text.substring(47).slice(0, -2));
             const rows = json.table.rows;
-
+            
             let cols;
             let dataStartRow = 0;
-
+            
             if (isModelSheet) {
+                // model 시트는 헤더를 강제 지정
                 cols = ['International Machine ID', 'model line', 'model'];
-                dataStartRow = 1;
+                dataStartRow = 1; // 첫 행은 헤더이므로 스킵
             } else {
+                // 다른 시트는 기존 방식
                 cols = json.table.cols.map(col => col.label);
                 dataStartRow = 0;
             }
@@ -638,7 +640,7 @@
         function processData(data) {
             const stats = { ORIGINAL: {}, VERTUO: {}, OTHER: {} };
             let totalCount = 0;
-
+            
             data.forEach((row) => {
                 const machineId = row['International Machine ID'];
                 if (!machineId) {
@@ -646,11 +648,11 @@
                     stats.OTHER[key] = (stats.OTHER[key] || 0) + 1;
                     return;
                 }
-
+                
                 const modelInfo = getModelInfo(machineId);
                 const line = modelInfo.line;
                 const modelName = modelInfo.model;
-
+                
                 if (line === 'ORIGINAL' || line === 'VERTUO') {
                     stats[line][modelName] = (stats[line][modelName] || 0) + 1;
                     totalCount += 1;
@@ -658,41 +660,41 @@
                     stats.OTHER[machineId] = (stats.OTHER[machineId] || 0) + 1;
                 }
             });
-
+            
             return { stats, totalCount };
         }
 
         function processTechnicianData(completeData) {
             const techStats = {};
-
+            
             completeData.forEach((row) => {
                 const techName = row['담당자'];
                 const machineId = row['International Machine ID'];
-
+                
                 if (!techName || !machineId) return;
-
+                
                 if (!techStats[techName]) {
                     techStats[techName] = { total: 0, original: 0, vertuo: 0, models: {} };
                 }
-
+                
                 const modelInfo = getModelInfo(machineId);
                 const line = modelInfo.line;
                 const modelName = modelInfo.model;
-
+                
                 techStats[techName].total++;
-
+                
                 if (line === 'ORIGINAL') {
                     techStats[techName].original++;
                 } else if (line === 'VERTUO') {
                     techStats[techName].vertuo++;
                 }
-
+                
                 if (!techStats[techName].models[modelName]) {
                     techStats[techName].models[modelName] = 0;
                 }
                 techStats[techName].models[modelName]++;
             });
-
+            
             return techStats;
         }
 
@@ -700,7 +702,7 @@
             const completeResult = processData(completeData);
             const remainingResult = processData(remainingData);
             const technicianStats = processTechnicianData(completeData);
-
+            
             displayPanel('complete', completeResult.stats, completeResult.totalCount);
             displayPanel('remaining', remainingResult.stats, remainingResult.totalCount);
             displayTechnicianStats(technicianStats);
@@ -708,19 +710,19 @@
 
         function displayPanel(prefix, stats, totalCount) {
             document.getElementById(`${prefix}TotalCount`).textContent = totalCount.toLocaleString();
-
+            
             const originalCount = Object.values(stats.ORIGINAL).reduce((a, b) => a + b, 0);
-            document.getElementById(`${prefix}OriginalCount`).textContent = originalCount.toLocaleString();
+            document.getElementById(`${prefix}OriginalCount`).textContent = `${originalCount.toLocaleString()}대`;
             displayModels(`${prefix}OriginalModels`, stats.ORIGINAL);
-
+            
             const vertuoCount = Object.values(stats.VERTUO).reduce((a, b) => a + b, 0);
-            document.getElementById(`${prefix}VertuoCount`).textContent = vertuoCount.toLocaleString();
+            document.getElementById(`${prefix}VertuoCount`).textContent = `${vertuoCount.toLocaleString()}대`;
             displayModels(`${prefix}VertuoModels`, stats.VERTUO);
-
+            
             const otherCount = Object.values(stats.OTHER).reduce((a, b) => a + b, 0);
-            document.getElementById(`${prefix}OtherCount`).textContent = otherCount.toLocaleString();
+            document.getElementById(`${prefix}OtherCount`).textContent = `${otherCount.toLocaleString()}대`;
             displayModels(`${prefix}OtherModels`, stats.OTHER);
-
+            
             const otherSection = document.getElementById(`${prefix}OtherSection`);
             if (otherCount === 0) {
                 otherSection.classList.add('hidden');
@@ -732,52 +734,62 @@
         function displayModels(containerId, models) {
             const container = document.getElementById(containerId);
             container.innerHTML = '';
-
+            
             const sortedModels = Object.entries(models).sort((a, b) => a[0].localeCompare(b[0]));
-
+            
             sortedModels.forEach(([model, count]) => {
                 const card = document.createElement('div');
                 card.className = 'model-card';
                 card.innerHTML = `
-                    <span class="model-name">${model}</span>
-                    <span class="model-count">${count.toLocaleString()}</span>
+                    <div class="model-name">${model}</div>
+                    <div class="model-count">${count.toLocaleString()}</div>
                 `;
                 container.appendChild(card);
             });
-
+            
             if (sortedModels.length === 0) {
-                container.innerHTML = '<div style="padding: 8px; text-align: center; color: #444; font-size: 0.85em;">데이터 없음</div>';
+                container.innerHTML = '<div style="padding: 15px; text-align: center; color: #606060; font-size: 0.9em;">데이터 없음</div>';
             }
         }
 
         function displayTechnicianStats(techStats) {
             const container = document.getElementById('technicianGrid');
             container.innerHTML = '';
-
+            
             const sortedTechs = Object.entries(techStats).sort((a, b) => b[1].total - a[1].total);
-
-            document.getElementById('techCount').textContent = `${sortedTechs.length}명`;
-
+            
             sortedTechs.forEach(([techName, stats]) => {
-                const chip = document.createElement('div');
-                chip.className = 'tech-chip';
-                chip.innerHTML = `
-                    <div>
-                        <div class="tech-chip-name">${techName}</div>
-                    </div>
-                    <div class="tech-chip-total">${stats.total}</div>
-                    <div class="tech-chip-detail">
-                        <div class="tech-chip-line ori">
-                            <span class="label">ORI</span>
-                            <span class="value">${stats.original}</span>
+                const card = document.createElement('div');
+                card.className = 'technician-card';
+                
+                const modelsList = Object.entries(stats.models)
+                    .sort((a, b) => b[1] - a[1])
+                    .map(([model, count]) => `
+                        <div class="tech-model-item">
+                            <span class="tech-model-name">${model}</span>
+                            <span class="tech-model-count">${count}</span>
                         </div>
-                        <div class="tech-chip-line ver">
-                            <span class="label">VER</span>
-                            <span class="value">${stats.vertuo}</span>
+                    `).join('');
+                
+                card.innerHTML = `
+                    <div class="technician-name">${techName}</div>
+                    <div class="tech-total">
+                        <div class="tech-total-label">총 완료</div>
+                        <div class="tech-total-count">${stats.total}대</div>
+                    </div>
+                    <div class="tech-breakdown">
+                        <div class="tech-line original">
+                            <div class="tech-line-label">ORIGINAL</div>
+                            <div class="tech-line-count">${stats.original}</div>
+                        </div>
+                        <div class="tech-line vertuo">
+                            <div class="tech-line-label">VERTUO</div>
+                            <div class="tech-line-count">${stats.vertuo}</div>
                         </div>
                     </div>
+                    <div class="tech-models">${modelsList}</div>
                 `;
-                container.appendChild(chip);
+                container.appendChild(card);
             });
         }
 
@@ -785,7 +797,7 @@
         loadData();
 
         // 5분마다 자동 새로고침
-        setInterval(loadData, REFRESH_INTERVAL);
+        setInterval(loadData, 5 * 60 * 1000);
     </script>
 </body>
 </html>
