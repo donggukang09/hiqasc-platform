@@ -148,9 +148,13 @@
         .bar-segment .seg-label { font-size: 10px; font-weight: 600; opacity: 0.85; }
 
         .seg-morning { background: linear-gradient(135deg, #3b82f6, #60a5fa); }
-        .seg-afternoon1 { background: linear-gradient(135deg, #2563eb, #3b82f6); }
-        .seg-afternoon2 { background: linear-gradient(135deg, #1d4ed8, #2563eb); }
-        .seg-evening { background: linear-gradient(135deg, #1e40af, #1d4ed8); }
+        .seg-pm13 { background: linear-gradient(135deg, #2563eb, #3b82f6); }
+        .seg-pm14 { background: linear-gradient(135deg, #1d4ed8, #2563eb); }
+        .seg-pm15 { background: linear-gradient(135deg, #1e40af, #1d4ed8); }
+        .seg-pm16 { background: linear-gradient(135deg, #1e3a8a, #1e40af); }
+        .seg-pm17 { background: linear-gradient(135deg, #172554, #1e3a8a); }
+        .seg-pm13 .seg-count, .seg-pm14 .seg-count, .seg-pm15 .seg-count,
+        .seg-pm16 .seg-count, .seg-pm17 .seg-count { font-size: 15px; }
         .seg-lunch {
             background: repeating-linear-gradient(45deg, #e2e8f0, #e2e8f0 5px, #f1f5f9 5px, #f1f5f9 10px);
             top: 4px; height: 48px; border-radius: 0;
@@ -400,9 +404,11 @@
             <div class="bar-track" id="planBar"></div>
             <div class="legend-row">
                 <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(135deg,#3b82f6,#60a5fa)"></div>오전 (09~12) : 60대</div>
-                <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(135deg,#2563eb,#3b82f6)"></div>오후1 (13~15) : 130대</div>
-                <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(135deg,#1d4ed8,#2563eb)"></div>오후2 (15~17) : 170대</div>
-                <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(135deg,#1e40af,#1d4ed8)"></div>마감 (17~18) : 200대(DOA)</div>
+                <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(135deg,#2563eb,#3b82f6)"></div>13~14시 : 90대</div>
+                <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(135deg,#1d4ed8,#2563eb)"></div>14~15시 : 120대</div>
+                <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(135deg,#1e40af,#1d4ed8)"></div>15~16시 : 140대</div>
+                <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(135deg,#1e3a8a,#1e40af)"></div>16~17시 : 170대</div>
+                <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(135deg,#172554,#1e3a8a)"></div>마감 (17~18) : 200대</div>
             </div>
         </div>
     </div>
@@ -469,7 +475,9 @@
         { hour: 9,  cumulative: 0 },
         { hour: 12, cumulative: 60 },
         { hour: 13, cumulative: 60 },
-        { hour: 15, cumulative: 130 },
+        { hour: 14, cumulative: 90 },
+        { hour: 15, cumulative: 120 },
+        { hour: 16, cumulative: 140 },
         { hour: 17, cumulative: 170 },
         { hour: 18, cumulative: 200 }
     ];
@@ -518,9 +526,11 @@
         const segments = [
             { startH:9, endH:12, to:60, cls:'seg-morning', label:'오전' },
             { startH:12, endH:13, to:null, cls:'seg-lunch', label:'점심' },
-            { startH:13, endH:15, to:130, cls:'seg-afternoon1', label:'오후1' },
-            { startH:15, endH:17, to:170, cls:'seg-afternoon2', label:'오후2' },
-            { startH:17, endH:18, to:200, cls:'seg-evening', label:'마감' }
+            { startH:13, endH:14, to:90, cls:'seg-pm13', label:'13~14' },
+            { startH:14, endH:15, to:120, cls:'seg-pm14', label:'14~15' },
+            { startH:15, endH:16, to:140, cls:'seg-pm15', label:'15~16' },
+            { startH:16, endH:17, to:170, cls:'seg-pm16', label:'16~17' },
+            { startH:17, endH:18, to:200, cls:'seg-pm17', label:'마감' }
         ];
         segments.forEach(seg => {
             const left = ((seg.startH - START_HOUR) / TOTAL_HOURS) * 100;
@@ -531,7 +541,7 @@
             div.style.width = width + '%';
             div.innerHTML = seg.cls === 'seg-lunch'
                 ? '<span class="lunch-label">🍚 점심</span>'
-                : `<span class="seg-count">${seg.to}대</span><span class="seg-label">${seg.label} (~${seg.endH}시)</span>`;
+                : `<span class="seg-count">${seg.to}대</span>${seg.endH - seg.startH >= 2 ? '<span class="seg-label">' + seg.label + ' (~' + seg.endH + '시)</span>' : ''}`;
             bar.appendChild(div);
         });
     }
