@@ -844,7 +844,17 @@
 
         // Active state
         document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
-        event.target.classList.add('active');
+        // onclick에서 호출 시 event 존재, init에서 호출 시 없음
+        if (typeof event !== 'undefined' && event && event.target) {
+            event.target.classList.add('active');
+        } else {
+            // init에서 호출된 경우: preset 이름으로 버튼 찾기
+            document.querySelectorAll('.preset-btn').forEach(b => {
+                if (b.getAttribute('onclick')?.includes(`'${preset}'`)) {
+                    b.classList.add('active');
+                }
+            });
+        }
     }
 
     function onDateChange() {
