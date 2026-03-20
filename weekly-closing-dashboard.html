@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HIQASC 주간마감 대시보드</title>
+    <title>HIQASC 마감 대시보드</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -81,17 +81,19 @@
         }
         .logo-text span { color: var(--blue-primary); }
 
-        .week-controls {
+        /* === DATE RANGE CONTROLS === */
+        .date-controls {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
+            flex-wrap: wrap;
         }
-        .week-controls label {
+        .date-controls label {
             font-size: 13px;
             font-weight: 600;
             color: var(--text-secondary);
         }
-        .week-controls input[type="date"] {
+        .date-controls input[type="date"] {
             padding: 8px 14px;
             background: var(--bg-card);
             border: 1px solid var(--border);
@@ -103,24 +105,30 @@
             cursor: pointer;
             transition: border-color 0.2s;
         }
-        .week-controls input[type="date"]:focus {
+        .date-controls input[type="date"]:focus {
             outline: none;
             border-color: var(--blue-primary);
             box-shadow: 0 0 0 3px var(--blue-glow);
         }
-        .week-controls input[type="date"]::-webkit-calendar-picker-indicator {
+        .date-controls input[type="date"]::-webkit-calendar-picker-indicator {
             filter: invert(1);
             cursor: pointer;
         }
-        .week-label {
+        .date-sep {
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .range-label {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 500;
             color: var(--blue-light);
             background: var(--blue-glow);
             padding: 6px 12px;
             border-radius: 6px;
             border: 1px solid rgba(59,130,246,0.2);
+            white-space: nowrap;
         }
         .load-btn {
             padding: 8px 20px;
@@ -149,6 +157,45 @@
         .back-link:hover {
             background: #4a90e2;
             color: #ffffff;
+        }
+
+        /* === PRESET BUTTONS === */
+        .preset-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 0 4px;
+            border-top: 1px solid var(--border);
+        }
+        .preset-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-right: 4px;
+            white-space: nowrap;
+        }
+        .preset-btn {
+            padding: 5px 14px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            font-family: 'Outfit', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .preset-btn:hover {
+            background: rgba(59,130,246,0.1);
+            border-color: var(--blue-primary);
+            color: var(--blue-light);
+        }
+        .preset-btn.active {
+            background: rgba(59,130,246,0.15);
+            border-color: var(--blue-primary);
+            color: var(--blue-light);
         }
 
         /* === TABS === */
@@ -451,7 +498,7 @@
         @media (max-width: 768px) {
             .stats-row { grid-template-columns: 1fr; }
             .header-row { flex-direction: column; gap: 12px; }
-            .week-controls { flex-wrap: wrap; }
+            .date-controls { flex-wrap: wrap; }
             .content-wrap { padding: 20px 16px; }
         }
 
@@ -475,20 +522,31 @@
                         <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
                     </svg>
                 </div>
-                <div class="logo-text">HIQASC <span>주간마감</span></div>
+                <div class="logo-text">HIQASC <span>마감 대시보드</span></div>
             </div>
-            <div class="week-controls">
+            <div class="date-controls">
                 <a href="https://donggukang09.github.io/hiqasc-platform/" class="back-link">← 메인으로</a>
-                <label>📅 기준일 선택:</label>
-                <input type="date" id="datePicker" onchange="onDateChange()">
-                <span class="week-label" id="weekRangeLabel">-</span>
+                <label>📅</label>
+                <input type="date" id="startDate" title="시작일">
+                <span class="date-sep">~</span>
+                <input type="date" id="endDate" title="종료일">
+                <span class="range-label" id="rangeLabel">-</span>
                 <button class="load-btn" onclick="loadData()">🔄 데이터 불러오기</button>
             </div>
         </div>
+        <div class="preset-row">
+            <span class="preset-label">빠른 선택:</span>
+            <button class="preset-btn" onclick="setPreset('today')">📌 오늘</button>
+            <button class="preset-btn" onclick="setPreset('yesterday')">⏪ 어제</button>
+            <button class="preset-btn active" onclick="setPreset('thisWeek')">📅 이번 주</button>
+            <button class="preset-btn" onclick="setPreset('lastWeek')">⏮ 지난 주</button>
+            <button class="preset-btn" onclick="setPreset('thisMonth')">🗓 이번 달</button>
+            <button class="preset-btn" onclick="setPreset('lastMonth')">📆 지난 달</button>
+        </div>
         <div class="tab-row">
-            <button class="tab-btn active" onclick="switchTab('overview', this)">📊 주간 Overview</button>
+            <button class="tab-btn active" onclick="switchTab('overview', this)">📊 기간 Overview</button>
             <button class="tab-btn" onclick="switchTab('technician', this)">👤 테크니션별 분석</button>
-            <button class="tab-btn" onclick="switchTab('ranking', this)">🏆 주간 랭킹</button>
+            <button class="tab-btn" onclick="switchTab('ranking', this)">🏆 실적 랭킹</button>
         </div>
     </div>
 </nav>
@@ -496,17 +554,17 @@
 <!-- TAB 1: OVERVIEW -->
 <div id="overview" class="tab-content active">
     <div class="content-wrap">
-        <h1 class="page-title">주간 입고/완료 현황</h1>
+        <h1 class="page-title" id="overviewTitle">입고/완료 현황</h1>
         <p class="page-subtitle" id="overviewSubtitle">데이터를 불러와 주세요</p>
 
         <div class="stats-row">
             <div class="stat-card blue">
-                <div class="stat-label">📥 주간 총 입고</div>
+                <div class="stat-label">📥 총 입고</div>
                 <div class="stat-number" id="totalIncoming">-</div>
                 <div class="stat-sub" id="avgIncoming">일평균 -</div>
             </div>
             <div class="stat-card green">
-                <div class="stat-label">✅ 주간 총 완료</div>
+                <div class="stat-label">✅ 총 완료</div>
                 <div class="stat-number" id="totalCompleted">-</div>
                 <div class="stat-sub" id="avgCompleted">일평균 -</div>
             </div>
@@ -526,7 +584,7 @@
             <div class="chart-card full">
                 <div class="chart-header">
                     <div class="icon blue">📊</div>
-                    일별 입고 / 완료 수량 (월~금)
+                    <span id="dailyChartTitle">일별 입고 / 완료 수량</span>
                 </div>
                 <canvas id="dailyChart" height="90"></canvas>
             </div>
@@ -555,7 +613,7 @@
 <div id="technician" class="tab-content">
     <div class="content-wrap">
         <h1 class="page-title">테크니션별 상세 분석</h1>
-        <p class="page-subtitle">테크니션을 선택하면 주간 수리 현황을 확인할 수 있습니다</p>
+        <p class="page-subtitle">테크니션을 선택하면 기간 내 수리 현황을 확인할 수 있습니다</p>
 
         <div class="tech-selector-row">
             <label>👤 테크니션 선택:</label>
@@ -567,7 +625,7 @@
         <div id="techContent" style="display:none;">
             <div class="stats-row">
                 <div class="stat-card blue">
-                    <div class="stat-label">🔧 주간 총 수리</div>
+                    <div class="stat-label">🔧 기간 총 수리</div>
                     <div class="stat-number" id="techTotal">-</div>
                 </div>
                 <div class="stat-card green">
@@ -588,7 +646,7 @@
                 <div class="chart-card">
                     <div class="chart-header">
                         <div class="icon blue">📊</div>
-                        일별 수리 수량 (월~금)
+                        <span id="techDailyChartTitle">일별 수리 수량</span>
                     </div>
                     <canvas id="techDailyChart" height="130"></canvas>
                 </div>
@@ -607,13 +665,13 @@
 <!-- TAB 3: RANKING -->
 <div id="ranking" class="tab-content">
     <div class="content-wrap">
-        <h1 class="page-title">🏆 주간 수리 랭킹</h1>
-        <p class="page-subtitle">이번 주 테크니션 실적 순위</p>
+        <h1 class="page-title">🏆 수리 실적 랭킹</h1>
+        <p class="page-subtitle" id="rankingSubtitle">기간 내 테크니션 실적 순위</p>
 
         <div class="chart-card" style="margin-bottom: 24px;">
             <div class="chart-header">
                 <div class="icon purple">📊</div>
-                테크니션별 주간 수리 실적
+                <span id="rankingChartTitle">테크니션별 수리 실적</span>
             </div>
             <canvas id="rankingChart" height="100"></canvas>
         </div>
@@ -624,9 +682,9 @@
                     <tr>
                         <th style="width:60px; text-align:center;">순위</th>
                         <th>이름</th>
-                        <th style="text-align:center;">주간 완료</th>
+                        <th style="text-align:center;">기간 완료</th>
                         <th style="text-align:center;">일평균</th>
-                        <th style="width:30%;">달성률 (목표: 일 15대)</th>
+                        <th style="width:30%;" id="targetHeader">달성률 (목표: 일 15대)</th>
                     </tr>
                 </thead>
                 <tbody id="rankingTableBody"></tbody>
@@ -638,10 +696,10 @@
 <!-- FOOTER -->
 <div class="footer">
     <p><strong>DEVELOPED BY DONGGU KANG</strong></p>
-    <p style="margin-top: 6px;">HIQASC 주간마감 대시보드</p>
+    <p style="margin-top: 6px;">HIQASC 마감 대시보드</p>
 </div>
 
-<!-- LOADING OVERLAY (initially shown) -->
+<!-- LOADING OVERLAY -->
 <div id="loadingMsg" class="loading-overlay" style="display:none;">
     <div class="spinner"></div>
     <div class="loading-text">Google Sheets에서 데이터 불러오는 중... (주간마감 + 주간입고)</div>
@@ -650,17 +708,16 @@
 <script>
     // ===== CONFIGURATION =====
     const SHEET_ID = '111K9l8gt-14roqvynNFEJrT2aLsTYjU8gQBsKNiyFmI';
-    // 탭1: 완료일 기준 → 완료수량, 완료모델, 테크니션 전부
-    // 탭2: 입고일 기준 → 입고수량, 입고모델만
-    const TAB_COMPLETED = '주간마감';   // SELECT X, AM, AU (Machine, 담당자, 완료일)
-    const TAB_INCOMING  = '주간입고';   // SELECT X, AW   (Machine, 수리입고일)
+    const TAB_COMPLETED = '주간마감';
+    const TAB_INCOMING  = '주간입고';
 
     // ===== STATE =====
-    let completedData = [];  // [{machine, technician, completedDate}]
-    let incomingData = [];   // [{machine, incomingDate}]
-    let weekStart = null;     // Monday Date
-    let weekEnd = null;       // Friday Date
-    let weekDates = [];       // ['2026-02-09', '2026-02-10', ...]
+    let completedData = [];
+    let incomingData = [];
+    let rangeDates = [];        // 선택된 기간의 모든 날짜 배열 ['2026-03-01', '2026-03-02', ...]
+    let rangeStartStr = '';
+    let rangeEndStr = '';
+    let currentPreset = 'thisWeek';
 
     // Charts
     let dailyChart = null;
@@ -675,18 +732,6 @@
     Chart.defaults.borderColor = '#1e293b';
     Chart.defaults.font.family = "'Outfit', sans-serif";
 
-    // ===== INIT =====
-    (function init() {
-        // Default: this week's Monday
-        const today = new Date();
-        const dayOfWeek = today.getDay();
-        const diffToMon = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-        const monday = new Date(today);
-        monday.setDate(today.getDate() + diffToMon);
-        document.getElementById('datePicker').value = formatDate(monday);
-        onDateChange();
-    })();
-
     // ===== DATE HELPERS =====
     function formatDate(d) {
         const y = d.getFullYear();
@@ -700,32 +745,141 @@
         return ['일','월','화','수','목','금','토'][d.getDay()];
     }
 
-    function onDateChange() {
-        const picked = document.getElementById('datePicker').value;
-        if (!picked) return;
-
-        const d = new Date(picked + 'T00:00:00');
-        const dayOfWeek = d.getDay();
-        const diffToMon = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-        weekStart = new Date(d);
-        weekStart.setDate(d.getDate() + diffToMon);
-        weekEnd = new Date(weekStart);
-        weekEnd.setDate(weekStart.getDate() + 4);
-
-        weekDates = [];
-        for (let i = 0; i < 5; i++) {
-            const wd = new Date(weekStart);
-            wd.setDate(weekStart.getDate() + i);
-            weekDates.push(formatDate(wd));
-        }
-
-        const startStr = `${weekStart.getMonth()+1}/${weekStart.getDate()}`;
-        const endStr = `${weekEnd.getMonth()+1}/${weekEnd.getDate()}`;
-        document.getElementById('weekRangeLabel').textContent =
-            `${formatDate(weekStart)} (월) ~ ${formatDate(weekEnd)} (금)`;
+    function getWeekdayShort(dateStr) {
+        return getWeekday(dateStr);
     }
 
-    // ===== JSONP 로더 (카운터 기반 - 콜백 충돌 방지) =====
+    // 두 날짜 사이의 모든 날짜 생성 (주말 제외 옵션)
+    function getDateRange(startStr, endStr, excludeWeekends = false) {
+        const dates = [];
+        const start = new Date(startStr + 'T00:00:00');
+        const end = new Date(endStr + 'T00:00:00');
+        const current = new Date(start);
+        while (current <= end) {
+            const day = current.getDay();
+            if (!excludeWeekends || (day !== 0 && day !== 6)) {
+                dates.push(formatDate(current));
+            }
+            current.setDate(current.getDate() + 1);
+        }
+        return dates;
+    }
+
+    // 기간 유형 판별
+    function getPeriodLabel(startStr, endStr) {
+        const start = new Date(startStr + 'T00:00:00');
+        const end = new Date(endStr + 'T00:00:00');
+        const diffDays = Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1;
+
+        if (diffDays === 1) {
+            return `${startStr} (${getWeekday(startStr)}) · 일간`;
+        } else if (diffDays <= 7) {
+            return `${startStr} ~ ${endStr} · ${diffDays}일간`;
+        } else if (diffDays <= 31) {
+            return `${startStr} ~ ${endStr} · ${diffDays}일간`;
+        } else {
+            return `${startStr} ~ ${endStr} · ${diffDays}일간`;
+        }
+    }
+
+    function getPeriodType(startStr, endStr) {
+        const start = new Date(startStr + 'T00:00:00');
+        const end = new Date(endStr + 'T00:00:00');
+        const diffDays = Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1;
+        if (diffDays === 1) return '일간';
+        if (diffDays <= 7) return '주간';
+        if (diffDays <= 31) return '월간';
+        return '기간';
+    }
+
+    // ===== PRESET BUTTONS =====
+    function setPreset(preset) {
+        currentPreset = preset;
+        const today = new Date();
+        let start, end;
+
+        switch (preset) {
+            case 'today':
+                start = end = new Date(today);
+                break;
+            case 'yesterday': {
+                const d = new Date(today);
+                d.setDate(d.getDate() - 1);
+                start = end = d;
+                break;
+            }
+            case 'thisWeek': {
+                const dayOfWeek = today.getDay();
+                const diffToMon = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+                start = new Date(today);
+                start.setDate(today.getDate() + diffToMon);
+                end = new Date(start);
+                end.setDate(start.getDate() + 4); // Friday
+                break;
+            }
+            case 'lastWeek': {
+                const dayOfWeek = today.getDay();
+                const diffToMon = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+                start = new Date(today);
+                start.setDate(today.getDate() + diffToMon - 7);
+                end = new Date(start);
+                end.setDate(start.getDate() + 4);
+                break;
+            }
+            case 'thisMonth': {
+                start = new Date(today.getFullYear(), today.getMonth(), 1);
+                end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+                break;
+            }
+            case 'lastMonth': {
+                start = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+                end = new Date(today.getFullYear(), today.getMonth(), 0);
+                break;
+            }
+        }
+
+        document.getElementById('startDate').value = formatDate(start);
+        document.getElementById('endDate').value = formatDate(end);
+        onDateChange();
+
+        // Active state
+        document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+        event.target.classList.add('active');
+    }
+
+    function onDateChange() {
+        const startVal = document.getElementById('startDate').value;
+        const endVal = document.getElementById('endDate').value;
+        if (!startVal || !endVal) return;
+
+        // endDate가 startDate보다 앞서면 보정
+        if (endVal < startVal) {
+            document.getElementById('endDate').value = startVal;
+        }
+
+        rangeStartStr = document.getElementById('startDate').value;
+        rangeEndStr = document.getElementById('endDate').value;
+
+        // 기간 내 모든 날짜 (주말 포함)
+        rangeDates = getDateRange(rangeStartStr, rangeEndStr, false);
+
+        // 레이블 업데이트
+        document.getElementById('rangeLabel').textContent = getPeriodLabel(rangeStartStr, rangeEndStr);
+
+        // 프리셋 버튼 active 해제 (수동 변경 시)
+        document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+    }
+
+    // ===== INIT =====
+    (function init() {
+        setPreset('thisWeek');
+    })();
+
+    // date picker 변경 시 자동 업데이트
+    document.getElementById('startDate').addEventListener('change', onDateChange);
+    document.getElementById('endDate').addEventListener('change', onDateChange);
+
+    // ===== JSONP LOADER =====
     let _cbCounter = 0;
     function loadFromSheet(tabName, query, onSuccess, onError) {
         _cbCounter++;
@@ -751,8 +905,13 @@
         function cleanup() { delete window[cbName]; if (s.parentNode) s.parentNode.removeChild(s); }
     }
 
-    // ===== DATA LOADING (2탭 병렬 로드) =====
+    // ===== DATA LOADING =====
     function loadData() {
+        if (!rangeStartStr || !rangeEndStr) {
+            alert('시작일과 종료일을 선택해주세요.');
+            return;
+        }
+
         const loadingEl = document.getElementById('loadingMsg');
         loadingEl.style.display = 'flex';
         let loaded = 0;
@@ -809,7 +968,6 @@
     function parseGvizDate(val, cell) {
         if (!val && !cell) return '';
 
-        // Case 1: Date object from gviz "Date(2026,0,23)"
         if (typeof val === 'string' && val.startsWith('Date(')) {
             const parts = val.match(/Date\((\d+),\s*(\d+),\s*(\d+)\)/);
             if (parts) {
@@ -820,19 +978,14 @@
             }
         }
 
-        // Case 2: formatted value "2026-01-23" or similar
         if (cell && cell.f) {
             const f = cell.f.trim();
-            // Try YYYY-MM-DD
             if (/^\d{4}-\d{2}-\d{2}$/.test(f)) return f;
-            // Try YYYY/MM/DD
             if (/^\d{4}\/\d{2}\/\d{2}$/.test(f)) return f.replace(/\//g, '-');
-            // Try MM/DD/YYYY
             const mdy = f.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
             if (mdy) return `${mdy[3]}-${mdy[1].padStart(2,'0')}-${mdy[2].padStart(2,'0')}`;
         }
 
-        // Case 3: raw val is already a date string
         if (typeof val === 'string') {
             const trimmed = val.trim();
             if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
@@ -844,23 +997,22 @@
 
     // ===== DATA PROCESSING =====
     function processAndRender() {
-        if (!weekDates.length) return;
+        if (!rangeDates.length) return;
 
-        const weekStartStr = weekDates[0];
-        const weekEndStr = weekDates[weekDates.length - 1];
+        const periodType = getPeriodType(rangeStartStr, rangeEndStr);
 
         const dailyIncoming = {};
         const dailyCompleted = {};
-        weekDates.forEach(d => { dailyIncoming[d] = 0; dailyCompleted[d] = 0; });
+        rangeDates.forEach(d => { dailyIncoming[d] = 0; dailyCompleted[d] = 0; });
 
         const techData = {};
         const incomingModels = {};
         const completedModels = {};
         const allTechs = new Set();
 
-        // === 입고 데이터 (주간입고 탭) → 입고수량 + 입고모델 ===
+        // 입고 데이터
         incomingData.forEach(row => {
-            if (row.incomingDate >= weekStartStr && row.incomingDate <= weekEndStr) {
+            if (row.incomingDate >= rangeStartStr && row.incomingDate <= rangeEndStr) {
                 if (dailyIncoming[row.incomingDate] !== undefined) {
                     dailyIncoming[row.incomingDate]++;
                 }
@@ -870,9 +1022,9 @@
             }
         });
 
-        // === 완료 데이터 (주간마감 탭) → 완료수량 + 완료모델 + 테크니션 ===
+        // 완료 데이터
         completedData.forEach(row => {
-            if (row.completedDate >= weekStartStr && row.completedDate <= weekEndStr) {
+            if (row.completedDate >= rangeStartStr && row.completedDate <= rangeEndStr) {
                 if (dailyCompleted[row.completedDate] !== undefined) {
                     dailyCompleted[row.completedDate]++;
                 }
@@ -884,7 +1036,7 @@
                     allTechs.add(tech);
                     if (!techData[tech]) {
                         techData[tech] = { daily: {}, models: {} };
-                        weekDates.forEach(d => techData[tech].daily[d] = 0);
+                        rangeDates.forEach(d => techData[tech].daily[d] = 0);
                     }
                     if (techData[tech].daily[row.completedDate] !== undefined) {
                         techData[tech].daily[row.completedDate]++;
@@ -901,14 +1053,27 @@
 
         const totalIn = Object.values(dailyIncoming).reduce((a, b) => a + b, 0);
         const totalComp = Object.values(dailyCompleted).reduce((a, b) => a + b, 0);
-        console.log(`📊 기간: ${weekStartStr} ~ ${weekEndStr}`);
-        console.log(`📊 입고(주간입고탭): ${totalIn} | 완료(주간마감탭): ${totalComp}`);
-        console.log(`📊 일별 입고:`, dailyIncoming);
-        console.log(`📊 일별 완료:`, dailyCompleted);
-        const workDays = weekDates.filter(d => dailyCompleted[d] > 0 || dailyIncoming[d] > 0).length || 1;
+        // 실제 데이터가 있는 날만 근무일로 계산
+        const workDays = rangeDates.filter(d => dailyCompleted[d] > 0 || dailyIncoming[d] > 0).length || 1;
+
+        console.log(`📊 기간: ${rangeStartStr} ~ ${rangeEndStr} (${rangeDates.length}일, 근무일 ${workDays}일)`);
+        console.log(`📊 입고: ${totalIn} | 완료: ${totalComp}`);
+
+        // 기간명 동적 표시
+        const startDisplay = rangeStartStr.replace(/-/g, '.');
+        const endDisplay = rangeEndStr.replace(/-/g, '.');
+        const diffDays = rangeDates.length;
+
+        document.getElementById('overviewTitle').textContent =
+            diffDays === 1 ? `일간 입고/완료 현황` :
+            diffDays <= 7 ? `주간 입고/완료 현황` :
+            diffDays <= 31 ? `월간 입고/완료 현황` : `기간별 입고/완료 현황`;
 
         document.getElementById('overviewSubtitle').textContent =
-            `${weekDates[0]} (월) ~ ${weekDates[4]} (금) 기간 데이터`;
+            diffDays === 1
+            ? `${startDisplay} (${getWeekday(rangeStartStr)}) 데이터`
+            : `${startDisplay} ~ ${endDisplay} (${diffDays}일간, 근무일 ${workDays}일) 데이터`;
+
         document.getElementById('totalIncoming').textContent = totalIn.toLocaleString();
         document.getElementById('totalCompleted').textContent = totalComp.toLocaleString();
         document.getElementById('avgIncoming').textContent = `일평균 ${(totalIn / workDays).toFixed(1)}대`;
@@ -921,37 +1086,50 @@
         const avgPP = allTechs.size > 0 ? (totalComp / allTechs.size).toFixed(1) : '-';
         document.getElementById('avgPerPerson').textContent = `인당 평균 ${avgPP}대`;
 
-        // Daily chart
-        const dayLabels = weekDates.map(d => {
+        // === DAILY CHART ===
+        // 기간이 길면 라벨 축약
+        const dayLabels = rangeDates.map(d => {
             const parts = d.split('-');
-            return `${parts[1]}/${parts[2]} (${getWeekday(d)})`;
+            if (diffDays <= 14) {
+                return `${parts[1]}/${parts[2]} (${getWeekday(d)})`;
+            } else {
+                return `${parts[1]}/${parts[2]}`;
+            }
         });
 
+        // 차트 높이 동적 조절
+        const dailyCanvas = document.getElementById('dailyChart');
+        if (diffDays > 20) {
+            dailyCanvas.height = 120;
+        } else {
+            dailyCanvas.height = 90;
+        }
+
         if (dailyChart) dailyChart.destroy();
-        dailyChart = new Chart(document.getElementById('dailyChart'), {
+        dailyChart = new Chart(dailyCanvas, {
             type: 'bar',
             data: {
                 labels: dayLabels,
                 datasets: [
                     {
                         label: '입고',
-                        data: weekDates.map(d => dailyIncoming[d]),
+                        data: rangeDates.map(d => dailyIncoming[d]),
                         backgroundColor: 'rgba(59, 130, 246, 0.8)',
                         borderColor: '#3b82f6',
                         borderWidth: 1,
-                        borderRadius: 6,
-                        barPercentage: 0.4,
-                        categoryPercentage: 0.7
+                        borderRadius: diffDays > 20 ? 3 : 6,
+                        barPercentage: diffDays > 20 ? 0.7 : 0.4,
+                        categoryPercentage: diffDays > 20 ? 0.9 : 0.7
                     },
                     {
                         label: '완료',
-                        data: weekDates.map(d => dailyCompleted[d]),
+                        data: rangeDates.map(d => dailyCompleted[d]),
                         backgroundColor: 'rgba(16, 185, 129, 0.8)',
                         borderColor: '#10b981',
                         borderWidth: 1,
-                        borderRadius: 6,
-                        barPercentage: 0.4,
-                        categoryPercentage: 0.7
+                        borderRadius: diffDays > 20 ? 3 : 6,
+                        barPercentage: diffDays > 20 ? 0.7 : 0.4,
+                        categoryPercentage: diffDays > 20 ? 0.9 : 0.7
                     }
                 ]
             },
@@ -963,13 +1141,22 @@
                     datalabels: {
                         anchor: 'end',
                         align: 'top',
-                        font: { weight: '700', size: 13, family: "'JetBrains Mono'" },
+                        font: { weight: '700', size: diffDays > 14 ? 10 : 13, family: "'JetBrains Mono'" },
                         color: '#e2e8f0',
-                        formatter: v => v > 0 ? v : ''
+                        formatter: v => v > 0 ? v : '',
+                        display: diffDays > 25 ? false : true  // 날짜 많으면 라벨 숨김
                     }
                 },
                 scales: {
-                    x: { grid: { display: false }, ticks: { font: { weight: '600' } } },
+                    x: {
+                        grid: { display: false },
+                        ticks: {
+                            font: { weight: '600', size: diffDays > 20 ? 9 : 12 },
+                            maxRotation: diffDays > 14 ? 45 : 0,
+                            autoSkip: diffDays > 25,
+                            maxTicksLimit: 20
+                        }
+                    },
                     y: { beginAtZero: true, grid: { color: 'rgba(30,41,59,0.5)' } }
                 }
             },
@@ -980,7 +1167,7 @@
         renderModelChart('incomingModelChart', incomingModels, 'incomingModelChart', '#3b82f6', '#60a5fa');
         renderModelChart('completedModelChart', completedModels, 'completedModelChart', '#10b981', '#34d399');
 
-        // Populate technician dropdown
+        // Technician dropdown
         const techSelect = document.getElementById('techSelect');
         techSelect.innerHTML = '<option value="">-- 선택하세요 --</option>';
         const sortedTechs = [...allTechs].sort((a, b) => {
@@ -996,7 +1183,7 @@
             techSelect.appendChild(opt);
         });
 
-        // Render ranking
+        // Ranking
         renderRanking(techData);
     }
 
@@ -1062,7 +1249,7 @@
         contentDiv.style.display = 'block';
 
         const data = window._techData[name];
-        const dailyValues = weekDates.map(d => data.daily[d] || 0);
+        const dailyValues = rangeDates.map(d => data.daily[d] || 0);
         const total = dailyValues.reduce((a, b) => a + b, 0);
         const workDays = dailyValues.filter(v => v > 0).length || 1;
         const avg = (total / workDays).toFixed(1);
@@ -1075,9 +1262,14 @@
         document.getElementById('techModelCount').textContent = modelCount;
 
         // Daily chart
-        const dayLabels = weekDates.map(d => {
+        const diffDays = rangeDates.length;
+        const dayLabels = rangeDates.map(d => {
             const parts = d.split('-');
-            return `${parts[1]}/${parts[2]} (${getWeekday(d)})`;
+            if (diffDays <= 14) {
+                return `${parts[1]}/${parts[2]} (${getWeekday(d)})`;
+            } else {
+                return `${parts[1]}/${parts[2]}`;
+            }
         });
 
         if (techDailyChart) techDailyChart.destroy();
@@ -1091,8 +1283,8 @@
                     backgroundColor: 'rgba(59, 130, 246, 0.8)',
                     borderColor: '#3b82f6',
                     borderWidth: 1,
-                    borderRadius: 6,
-                    barPercentage: 0.5
+                    borderRadius: diffDays > 20 ? 3 : 6,
+                    barPercentage: diffDays > 20 ? 0.7 : 0.5
                 }]
             },
             options: {
@@ -1103,13 +1295,22 @@
                     datalabels: {
                         anchor: 'end',
                         align: 'top',
-                        font: { weight: '700', size: 14, family: "'JetBrains Mono'" },
+                        font: { weight: '700', size: diffDays > 14 ? 10 : 14, family: "'JetBrains Mono'" },
                         color: '#60a5fa',
-                        formatter: v => v > 0 ? v : ''
+                        formatter: v => v > 0 ? v : '',
+                        display: diffDays > 25 ? false : true
                     }
                 },
                 scales: {
-                    x: { grid: { display: false }, ticks: { font: { weight: '600' } } },
+                    x: {
+                        grid: { display: false },
+                        ticks: {
+                            font: { weight: '600', size: diffDays > 20 ? 9 : 12 },
+                            maxRotation: diffDays > 14 ? 45 : 0,
+                            autoSkip: diffDays > 25,
+                            maxTicksLimit: 20
+                        }
+                    },
                     y: { beginAtZero: true, grid: { color: 'rgba(30,41,59,0.5)' } }
                 }
             },
@@ -1162,21 +1363,27 @@
         for (const name in techData) {
             const total = Object.values(techData[name].daily).reduce((s, v) => s + v, 0);
             const workDays = Object.values(techData[name].daily).filter(v => v > 0).length || 1;
-            techArray.push({ name, total, avg: (total / workDays).toFixed(1) });
+            techArray.push({ name, total, avg: (total / workDays).toFixed(1), workDays });
         }
-        // 그래프용: 수량순 / 테이블용: 달성률순
         const chartArray = [...techArray].sort((a, b) => b.total - a.total);
         const rankArray  = [...techArray].sort((a, b) => parseFloat(b.avg) - parseFloat(a.avg));
 
-        const TARGET_DAILY = 15; // 일일 목표 수량
+        const TARGET_DAILY = 15;
 
-        // Table (달성률순)
+        // 기간 유형에 따른 부제
+        const diffDays = rangeDates.length;
+        const periodName = diffDays === 1 ? '일간' : diffDays <= 7 ? '주간' : diffDays <= 31 ? '월간' : '기간';
+        document.getElementById('rankingSubtitle').textContent = `${rangeStartStr} ~ ${rangeEndStr} 테크니션 실적 순위`;
+        document.getElementById('rankingChartTitle').textContent = `테크니션별 ${periodName} 수리 실적`;
+        document.getElementById('targetHeader').textContent = `달성률 (목표: 일 ${TARGET_DAILY}대)`;
+
+        // Table
         const tbody = document.getElementById('rankingTableBody');
         tbody.innerHTML = '';
         const medals = ['🥇', '🥈', '🥉'];
         rankArray.forEach((t, i) => {
             const pct = Math.round((parseFloat(t.avg) / TARGET_DAILY) * 100);
-            const barWidth = Math.min(pct, 100); // 바는 최대 100%
+            const barWidth = Math.min(pct, 100);
             const pctColor = pct >= 100 ? 'var(--green-light)' : pct >= 80 ? 'var(--amber)' : 'var(--red)';
             const barColor = pct >= 100
                 ? 'linear-gradient(90deg, #10b981, #34d399)'
@@ -1199,14 +1406,14 @@
             tbody.appendChild(row);
         });
 
-        // Bar chart (수량순)
+        // Bar chart
         if (rankingChart) rankingChart.destroy();
         rankingChart = new Chart(document.getElementById('rankingChart'), {
             type: 'bar',
             data: {
                 labels: chartArray.map(t => t.name),
                 datasets: [{
-                    label: '주간 완료',
+                    label: `${periodName} 완료`,
                     data: chartArray.map(t => t.total),
                     backgroundColor: chartArray.map((_, i) => {
                         if (i === 0) return 'rgba(245, 158, 11, 0.9)';
