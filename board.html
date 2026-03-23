@@ -609,11 +609,11 @@ body {
 .image-preview-item:hover .remove-img { opacity: 1; }
 
 /* ── PDF 미리보기 ── */
-.pdf-preview {
+.pdf-preview, .file-preview {
   background: var(--bg-input) !important;
 }
 
-.pdf-icon-box {
+.pdf-icon-box, .file-icon-box {
   width: 100%;
   height: 100%;
   display: flex;
@@ -623,12 +623,20 @@ body {
   gap: 6px;
 }
 
-.pdf-icon-box i {
+.pdf-icon-box i, .file-icon-box i {
   font-size: 32px;
-  color: var(--accent-red);
 }
 
-.pdf-icon-box .pdf-name {
+.pdf-icon-box i { color: var(--accent-red); }
+.file-icon-box i.fa-file-excel { color: #10b981; }
+.file-icon-box i.fa-file-word { color: #3b82f6; }
+.file-icon-box i.fa-file-powerpoint { color: #f59e0b; }
+.file-icon-box i.fa-file-archive { color: #8b5cf6; }
+.file-icon-box i.fa-file-video { color: #ec4899; }
+.file-icon-box i.fa-file-audio { color: #06b6d4; }
+.file-icon-box i.fa-file-alt { color: var(--text-secondary); }
+
+.pdf-icon-box .pdf-name, .file-icon-box .file-name {
   font-size: 10px;
   color: var(--text-secondary);
   text-align: center;
@@ -636,8 +644,8 @@ body {
   word-break: break-all;
 }
 
-/* ── PDF 첨부 링크 (상세보기) ── */
-.pdf-attachment {
+/* ── 파일 첨부 링크 (상세보기) ── */
+.file-attachment {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -650,17 +658,42 @@ body {
   font-size: 14px;
   font-weight: 500;
   transition: var(--transition);
-  width: fit-content;
+  min-width: 200px;
 }
 
-.pdf-attachment:hover {
-  border-color: var(--accent-red);
-  background: rgba(239,68,68,0.05);
+.file-attachment:hover {
+  border-color: var(--accent-blue);
+  background: rgba(59,130,246,0.05);
 }
 
-.pdf-attachment i.fa-file-pdf {
+.file-attachment .file-att-icon {
   font-size: 24px;
-  color: var(--accent-red);
+  flex-shrink: 0;
+}
+
+.file-attachment .file-att-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.file-attachment .file-att-name {
+  font-size: 13px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-attachment .file-att-action {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.file-attachment .file-att-download {
+  font-size: 16px;
+  color: var(--accent-blue);
+  flex-shrink: 0;
 }
 
 /* ── 폼 버튼 ── */
@@ -772,6 +805,29 @@ body {
 
 .detail-images img:hover {
   border-color: var(--accent-blue);
+}
+
+.img-download-btn {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  width: 32px;
+  height: 32px;
+  background: rgba(59,130,246,0.9);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 13px;
+  text-decoration: none;
+  opacity: 0;
+  transition: var(--transition);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.detail-images div:hover .img-download-btn {
+  opacity: 1;
 }
 
 .detail-actions {
@@ -1134,12 +1190,12 @@ body {
 
       <div class="form-group">
         <label>파일 첨부</label>
-        <div class="image-upload-area" onclick="document.getElementById('imageInput').click()">
+        <div class="image-upload-area" onclick="document.getElementById('fileInput').click()">
           <i class="fas fa-cloud-upload-alt"></i>
           <p>클릭하여 파일을 선택하세요</p>
-          <p class="hint">이미지(JPG, PNG, GIF) 및 PDF / 최대 5개 / 각 10MB 이하</p>
+          <p class="hint">모든 파일 형식 지원 / 최대 5개 / 각 10MB 이하</p>
         </div>
-        <input type="file" id="imageInput" accept="image/*,.pdf" multiple style="display:none" onchange="handleImageSelect(event)">
+        <input type="file" id="fileInput" multiple style="display:none" onchange="handleFileSelect(event)">
         <div class="image-preview-list" id="imagePreviewList"></div>
       </div>
 
@@ -1194,7 +1250,7 @@ let posts = [];
 let comments = [];
 let filteredPosts = [];
 let currentPage = 1;
-let selectedImages = []; // { file, base64, name }
+let selectedImages = []; // { file, base64, name, type }
 
 // ── 초기화 ──
 async function init() {
@@ -1359,11 +1415,11 @@ function renderPosts() {
   list.innerHTML = pagePosts.map((post, i) => {
     const num = filteredPosts.length - start - i;
     const commentCount = comments.filter(c => c.postId === post.id).length;
-    const hasImages = post.images && post.images.length > 0;
-    const hasPdf = hasImages && post.images.some(url => url.includes('type=pdf') || url.includes('.pdf') || url.includes('application/pdf'));
+    const hasFiles = post.images && post.images.length > 0;
+    const hasNonImage = hasFiles && post.images.some(url => !url.includes('thumbnail'));
     const catClass = `cat-${post.category}`;
     const date = formatDate(post.createdAt);
-    const attachIcon = hasPdf ? '<i class="fas fa-paperclip"></i>' : '<i class="fas fa-image"></i>';
+    const attachIcon = hasNonImage ? '<i class="fas fa-paperclip"></i>' : '<i class="fas fa-image"></i>';
     
     return `
       <div class="post-item" onclick="openDetail('${post.id}')">
@@ -1372,7 +1428,7 @@ function renderPosts() {
           <div class="post-title-row">
             <span class="post-category ${catClass}">${post.category}</span>
             <span class="post-title">${escapeHtml(post.title)}${commentCount > 0 ? `<span class="comment-count">[${commentCount}]</span>` : ''}</span>
-            ${hasImages ? `<span class="post-has-image">${attachIcon}</span>` : ''}
+            ${hasFiles ? `<span class="post-has-image">${attachIcon}</span>` : ''}
           </div>
           <div class="post-meta">
             <span><i class="fas fa-user"></i>${escapeHtml(post.author)}</span>
@@ -1440,9 +1496,9 @@ function openWriteModal(editId) {
       
       if (post.images && post.images.length > 0) {
         selectedImages = post.images.map((url, idx) => {
-          const fileType = (post.fileTypes && post.fileTypes[idx]) || 'image';
-          const isPdf = fileType === 'pdf' || url.includes('.pdf') || url.includes('application/pdf');
-          return { base64: url, name: isPdf ? 'file.pdf' : 'existing', file: null, type: isPdf ? 'pdf' : 'image' };
+          const fileType = (post.fileTypes && post.fileTypes[idx]) || detectFileType(url);
+          const name = getFileNameFromType(fileType);
+          return { base64: url, name: name, file: null, type: fileType };
         });
         renderImagePreviews();
       }
@@ -1464,8 +1520,8 @@ function closeWriteModal() {
   document.body.style.overflow = '';
 }
 
-// ── 이미지 선택 ──
-function handleImageSelect(event) {
+// ── 파일 선택 ──
+function handleFileSelect(event) {
   const files = Array.from(event.target.files);
   
   if (selectedImages.length + files.length > 5) {
@@ -1478,10 +1534,10 @@ function handleImageSelect(event) {
       showToast(`${file.name}: 10MB를 초과합니다.`, 'error');
       return;
     }
-    const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+    const fileType = getFileTypeFromMime(file.type, file.name);
     const reader = new FileReader();
     reader.onload = (e) => {
-      selectedImages.push({ file, base64: e.target.result, name: file.name, type: isPdf ? 'pdf' : 'image' });
+      selectedImages.push({ file, base64: e.target.result, name: file.name, type: fileType });
       renderImagePreviews();
     };
     reader.readAsDataURL(file);
@@ -1490,25 +1546,89 @@ function handleImageSelect(event) {
   event.target.value = '';
 }
 
+// 파일 타입 감지 (MIME + 확장자)
+function getFileTypeFromMime(mime, name) {
+  const ext = name.toLowerCase().split('.').pop();
+  if (mime.startsWith('image/')) return 'image';
+  if (mime === 'application/pdf' || ext === 'pdf') return 'pdf';
+  if (['xls', 'xlsx', 'xlsm', 'csv'].includes(ext) || mime.includes('spreadsheet') || mime.includes('excel')) return 'excel';
+  if (['doc', 'docx'].includes(ext) || mime.includes('word') || mime.includes('document')) return 'word';
+  if (['ppt', 'pptx'].includes(ext) || mime.includes('presentation') || mime.includes('powerpoint')) return 'ppt';
+  if (['zip', 'rar', '7z', 'tar', 'gz'].includes(ext) || mime.includes('zip') || mime.includes('compressed')) return 'archive';
+  if (mime.startsWith('video/') || ['mp4', 'avi', 'mov', 'mkv'].includes(ext)) return 'video';
+  if (mime.startsWith('audio/') || ['mp3', 'wav', 'ogg', 'flac'].includes(ext)) return 'audio';
+  if (['txt', 'log', 'md', 'json', 'xml', 'html', 'css', 'js'].includes(ext) || mime.startsWith('text/')) return 'text';
+  return 'file';
+}
+
+// URL에서 파일 타입 추측
+function detectFileType(url) {
+  if (url.includes('type=pdf')) return 'pdf';
+  if (url.includes('type=excel')) return 'excel';
+  if (url.includes('type=word')) return 'word';
+  if (url.includes('type=ppt')) return 'ppt';
+  if (url.includes('type=archive')) return 'archive';
+  if (url.includes('type=video')) return 'video';
+  if (url.includes('type=audio')) return 'audio';
+  if (url.includes('type=text')) return 'text';
+  if (url.includes('type=file')) return 'file';
+  if (url.includes('thumbnail')) return 'image';
+  return 'file';
+}
+
+// 파일 타입별 아이콘
+function getFileIcon(type) {
+  const icons = {
+    image: 'fa-file-image', pdf: 'fa-file-pdf', excel: 'fa-file-excel',
+    word: 'fa-file-word', ppt: 'fa-file-powerpoint', archive: 'fa-file-archive',
+    video: 'fa-file-video', audio: 'fa-file-audio', text: 'fa-file-alt', file: 'fa-file'
+  };
+  return icons[type] || 'fa-file';
+}
+
+// 파일 타입별 표시 이름
+function getFileNameFromType(type) {
+  const names = {
+    image: 'image', pdf: 'file.pdf', excel: 'file.xlsx',
+    word: 'file.docx', ppt: 'file.pptx', archive: 'file.zip',
+    video: 'video', audio: 'audio', text: 'file.txt', file: 'file'
+  };
+  return names[type] || 'file';
+}
+
+// Google Drive URL에서 다운로드 URL 추출
+function getDownloadUrl(url) {
+  // thumbnail URL: https://drive.google.com/thumbnail?id=FILEID&sz=w800
+  let match = url.match(/thumbnail\?id=([^&]+)/);
+  if (match) return 'https://drive.google.com/uc?export=download&id=' + match[1];
+  // file view URL: https://drive.google.com/file/d/FILEID/view
+  match = url.match(/\/file\/d\/([^\/]+)/);
+  if (match) return 'https://drive.google.com/uc?export=download&id=' + match[1];
+  // base64 or other URL → return as-is
+  return url;
+}
+
 function renderImagePreviews() {
   const container = document.getElementById('imagePreviewList');
   container.innerHTML = selectedImages.map((img, i) => {
-    const isPdf = img.type === 'pdf' || img.name.toLowerCase().endsWith('.pdf') || (img.base64 && img.base64.startsWith('data:application/pdf'));
-    if (isPdf) {
+    const isImage = img.type === 'image' || (!img.type && img.base64 && img.base64.startsWith('data:image/'));
+    if (isImage) {
       return `
-        <div class="image-preview-item pdf-preview">
-          <div class="pdf-icon-box">
-            <i class="fas fa-file-pdf"></i>
-            <span class="pdf-name">${escapeHtml(img.name.length > 12 ? img.name.substring(0, 10) + '...' : img.name)}</span>
-          </div>
+        <div class="image-preview-item">
+          <img src="${img.base64}" alt="${escapeHtml(img.name)}">
           <button class="remove-img" onclick="event.stopPropagation(); removeImage(${i})">
             <i class="fas fa-times"></i>
           </button>
         </div>`;
     }
+    const iconClass = getFileIcon(img.type || 'file');
+    const shortName = img.name.length > 12 ? img.name.substring(0, 10) + '...' : img.name;
     return `
-      <div class="image-preview-item">
-        <img src="${img.base64}" alt="${img.name}">
+      <div class="image-preview-item file-preview">
+        <div class="file-icon-box">
+          <i class="fas ${iconClass}"></i>
+          <span class="file-name">${escapeHtml(shortName)}</span>
+        </div>
         <button class="remove-img" onclick="event.stopPropagation(); removeImage(${i})">
           <i class="fas fa-times"></i>
         </button>
@@ -1536,6 +1656,7 @@ async function submitPost() {
 
   const imageUrls = selectedImages.map(img => img.base64);
   const fileTypes = selectedImages.map(img => img.type || 'image');
+  const fileNames = selectedImages.map(img => img.name || 'file');
 
   if (API_URL) {
     // API 모드
@@ -1543,7 +1664,8 @@ async function submitPost() {
       id: editId || undefined,
       category, author, title, content,
       images: imageUrls,
-      fileTypes: fileTypes
+      fileTypes: fileTypes,
+      fileNames: fileNames
     });
     if (result.success) {
       showToast(editId ? '글이 수정되었습니다.' : '글이 등록되었습니다.', 'success');
@@ -1563,6 +1685,7 @@ async function submitPost() {
           category, author, title, content,
           images: imageUrls,
           fileTypes: fileTypes,
+          fileNames: fileNames,
           updatedAt: new Date().toISOString()
         };
       }
@@ -1573,6 +1696,7 @@ async function submitPost() {
         category, author, title, content,
         images: imageUrls,
         fileTypes: fileTypes,
+        fileNames: fileNames,
         views: 0,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
@@ -1616,16 +1740,30 @@ function openDetail(postId) {
 
     ${post.images && post.images.length > 0 ? `
       <div class="detail-images">
-        ${post.images.map(url => {
-          const isPdf = url.includes('type=pdf') || url.includes('.pdf') || url.includes('application/pdf') || (post.fileTypes && post.fileTypes[post.images.indexOf(url)] === 'pdf');
-          if (isPdf) {
-            return `<a href="${url}" target="_blank" class="pdf-attachment" onclick="event.stopPropagation();">
-              <i class="fas fa-file-pdf"></i>
-              <span>PDF 파일 열기</span>
-              <i class="fas fa-external-link-alt" style="font-size:11px; margin-left:auto;"></i>
-            </a>`;
+        ${post.images.map((url, idx) => {
+          const fileType = (post.fileTypes && post.fileTypes[idx]) || detectFileType(url);
+          const isImage = fileType === 'image';
+          const downloadUrl = getDownloadUrl(url);
+          
+          if (isImage) {
+            return `<div style="position:relative; display:inline-block;">
+              <img src="${url}" onclick="event.stopPropagation(); openImageViewer('${url.replace(/'/g, "\\'")}')" alt="첨부이미지">
+              <a href="${downloadUrl}" download class="img-download-btn" onclick="event.stopPropagation();" title="다운로드">
+                <i class="fas fa-download"></i>
+              </a>
+            </div>`;
           }
-          return `<img src="${url}" onclick="event.stopPropagation(); openImageViewer('${url.replace(/'/g, "\\'")}')" alt="첨부이미지">`;
+          
+          const iconClass = getFileIcon(fileType);
+          const fileName = (post.fileNames && post.fileNames[idx]) || getFileNameFromType(fileType);
+          return `<a href="${downloadUrl}" ${isImage ? '' : 'target="_blank"'} class="file-attachment" onclick="event.stopPropagation();">
+            <i class="fas ${iconClass} file-att-icon"></i>
+            <div class="file-att-info">
+              <div class="file-att-name">${escapeHtml(fileName)}</div>
+              <div class="file-att-action">클릭하여 열기 / 다운로드</div>
+            </div>
+            <i class="fas fa-download file-att-download"></i>
+          </a>`;
         }).join('')}
       </div>
     ` : ''}
