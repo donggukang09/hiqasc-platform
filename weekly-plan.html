@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>주간 플랜 - HIQASC</title>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Manrope', sans-serif; background: #f0f4f8; color: #1a202c; min-height: 100vh; }
+
+        .header {
+            background: linear-gradient(135deg, #1e3a5f 0%, #2d5a8e 50%, #3b7dd8 100%);
+            padding: 20px 32px; display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 4px 20px rgba(30,58,95,0.3);
+        }
+        .header h1 { color: #fff; font-size: 22px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+        .header h1 .icon { font-size: 26px; }
+        .header-right { display: flex; align-items: center; gap: 10px; }
+        .hdr-btn {
+            background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3);
+            padding: 8px 18px; border-radius: 8px; font-family: 'Manrope', sans-serif;
+            font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; transition: all 0.2s;
+        }
+        .hdr-btn:hover { background: rgba(255,255,255,0.25); }
+        .hdr-btn.save { background: rgba(34,197,94,0.7); border-color: rgba(34,197,94,0.5); }
+        .hdr-btn.pdf { background: rgba(220,38,38,0.7); border-color: rgba(220,38,38,0.5); }
+
+        .container { max-width: 1300px; margin: 24px auto; padding: 0 24px; }
+
+        /* 주차 네비게이션 */
+        .week-nav {
+            background: #fff; border-radius: 16px; padding: 16px 24px; margin-bottom: 20px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .week-nav-left { display: flex; align-items: center; gap: 16px; }
+        .week-nav button {
+            background: #f1f5f9; border: 1px solid #e2e8f0; color: #475569;
+            width: 36px; height: 36px; border-radius: 10px; font-size: 16px; font-weight: 700;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+        }
+        .week-nav button:hover { background: #e2e8f0; }
+        .week-label { font-size: 18px; font-weight: 800; color: #1e3a5f; min-width: 220px; text-align: center; }
+        .week-range { font-size: 13px; font-weight: 600; color: #64748b; }
+        .this-week-btn {
+            background: linear-gradient(135deg, #2d5a8e, #3b7dd8); color: #fff; border: none;
+            padding: 8px 16px; border-radius: 8px; font-family: 'Manrope', sans-serif;
+            font-size: 13px; font-weight: 700; cursor: pointer;
+        }
+        .week-nav-right { display: flex; align-items: center; gap: 10px; }
+        .status-badge { padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+        .status-badge.saved { background: #dcfce7; color: #16a34a; }
+        .status-badge.unsaved { background: #fef3c7; color: #d97706; }
+        .status-badge.new { background: #f1f5f9; color: #64748b; }
+
+        /* 주간 총 요약 */
+        .week-summary {
+            display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;
+        }
+        .ws-card {
+            flex: 1; min-width: 160px; background: #fff; border-radius: 12px; padding: 16px;
+            text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .ws-card .ws-label { font-size: 12px; font-weight: 600; color: #94a3b8; margin-bottom: 4px; }
+        .ws-card .ws-value { font-size: 22px; font-weight: 800; }
+        .ws-card .ws-value.blue { color: #2563eb; }
+        .ws-card .ws-value.green { color: #16a34a; }
+
+        /* ═══ 요일 카드 ═══ */
+        .day-card {
+            background: #fff; border-radius: 16px; padding: 20px 24px; margin-bottom: 16px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06); border-left: 5px solid #3b82f6;
+        }
+        .day-card.mon { border-left-color: #3b82f6; }
+        .day-card.tue { border-left-color: #2563eb; }
+        .day-card.wed { border-left-color: #1d4ed8; }
+        .day-card.thu { border-left-color: #1e40af; }
+        .day-card.fri { border-left-color: #1e3a8a; }
+
+        .day-header {
+            display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;
+            flex-wrap: wrap; gap: 10px;
+        }
+        .day-title { display: flex; align-items: center; gap: 10px; }
+        .day-name {
+            font-size: 13px; font-weight: 800; color: #fff; padding: 4px 14px; border-radius: 8px;
+            min-width: 36px; text-align: center;
+        }
+        .day-name.mon { background: #3b82f6; }
+        .day-name.tue { background: #2563eb; }
+        .day-name.wed { background: #1d4ed8; }
+        .day-name.thu { background: #1e40af; }
+        .day-name.fri { background: #1e3a8a; }
+
+        .day-date { font-size: 15px; font-weight: 700; color: #1e3a5f; }
+
+        .day-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .day-controls label { font-size: 13px; font-weight: 600; color: #64748b; }
+        .day-controls input[type="number"] {
+            width: 80px; padding: 6px 10px; border: 2px solid #e2e8f0; border-radius: 8px;
+            font-family: 'Manrope', sans-serif; font-size: 15px; font-weight: 700;
+            color: #1e3a5f; text-align: center; outline: none;
+        }
+        .day-controls input:focus { border-color: #3b82f6; }
+        .day-controls .unit { font-size: 13px; font-weight: 600; color: #94a3b8; }
+
+        .predict-info {
+            display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+        }
+        .predict-tag {
+            display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700;
+        }
+        .predict-tag .pt-label { color: #64748b; }
+        .predict-tag .pt-value { color: #16a34a; font-size: 15px; }
+        .predict-tag .pt-value.red { color: #dc2626; }
+        .predict-tag .pt-value.orange { color: #ea580c; }
+
+        /* 미니 타임바 */
+        .mini-bar-wrap { margin: 12px 0; }
+        .mini-bar {
+            position: relative; height: 36px; background: #f1f5f9; border-radius: 10px;
+            overflow: visible;
+        }
+        .mini-bar .mb-fill {
+            position: absolute; top: 3px; left: 0; height: 30px; border-radius: 8px;
+            background: linear-gradient(135deg, #16a34a, #22c55e);
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; font-size: 12px; font-weight: 800; transition: width 0.4s;
+        }
+        .mini-bar .mb-marker {
+            position: absolute; top: -6px; bottom: -6px; width: 3px; background: #dc2626;
+            border-radius: 3px; z-index: 10;
+        }
+        .mini-bar .mb-marker::after {
+            content: attr(data-label); position: absolute; top: -18px; left: 50%; transform: translateX(-50%);
+            font-size: 10px; font-weight: 800; color: #dc2626; white-space: nowrap; background: #fff;
+            padding: 1px 5px; border-radius: 3px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .mini-bar-labels { display: flex; justify-content: space-between; margin-top: 3px; }
+        .mini-bar-labels span { font-size: 9px; font-weight: 600; color: #94a3b8; }
+
+        /* 활동 슬롯 (컴팩트) */
+        .mini-activity { display: flex; gap: 4px; margin: 10px 0 6px; }
+        .mini-slot {
+            flex: 1; height: 34px; background: #f1f5f9; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.15s; overflow: hidden; position: relative;
+        }
+        .mini-slot:hover { background: #e2e8f0; }
+        .mini-slot.filled { background: linear-gradient(135deg, #2563eb, #3b82f6); }
+        .mini-slot.filled:hover { background: linear-gradient(135deg, #1d4ed8, #2563eb); }
+        .mini-slot.disabled { background: #dbeafe; opacity: 0.35; cursor: not-allowed; }
+        .mini-slot.lunch { background: repeating-linear-gradient(45deg, #e2e8f0, #e2e8f0 4px, #f1f5f9 4px, #f1f5f9 8px); cursor: default; opacity: 0.5; }
+        .mini-slot .ms-text { font-size: 10px; font-weight: 800; color: #fff; text-shadow: 0 1px 1px rgba(0,0,0,0.2); text-align: center; padding: 0 2px; }
+        .mini-slot .ms-plus { font-size: 14px; color: #cbd5e1; }
+        .mini-slot .ms-disabled-text { font-size: 9px; font-weight: 700; color: #3b82f6; }
+        .mini-activity-labels { display: flex; gap: 4px; }
+        .mini-activity-labels span { flex: 1; text-align: center; font-size: 9px; font-weight: 600; color: #94a3b8; }
+
+        /* 메모 */
+        .day-memo {
+            margin-top: 8px;
+        }
+        .day-memo label { font-size: 12px; font-weight: 700; color: #94a3b8; display: flex; align-items: center; gap: 4px; }
+        .day-memo textarea {
+            width: 100%; margin-top: 4px; padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 10px;
+            font-family: 'Manrope', sans-serif; font-size: 13px; font-weight: 500; color: #1e293b;
+            resize: none; height: 48px; outline: none; line-height: 1.4;
+        }
+        .day-memo textarea:focus { border-color: #3b7dd8; }
+
+        /* 모달 */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+            z-index: 1000; align-items: center; justify-content: center;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-box { background: #fff; border-radius: 16px; padding: 28px; width: 340px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+        .modal-box h3 { font-size: 16px; font-weight: 700; color: #1e3a5f; margin-bottom: 16px; }
+        .modal-box input[type="text"] {
+            width: 100%; padding: 10px 14px; border: 2px solid #e2e8f0; border-radius: 8px;
+            font-family: 'Manrope', sans-serif; font-size: 14px; font-weight: 600; outline: none; margin-bottom: 16px;
+        }
+        .modal-btns { display: flex; gap: 8px; justify-content: flex-end; }
+        .modal-btns button { padding: 8px 20px; border-radius: 8px; font-family: 'Manrope', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; border: none; }
+        .btn-cancel { background: #f1f5f9; color: #64748b; }
+        .btn-save { background: linear-gradient(135deg, #2563eb, #3b82f6); color: #fff; }
+        .btn-delete { background: #fee2e2; color: #dc2626; }
+
+        /* 로딩 / 토스트 */
+        .loading-overlay { display: none; position: fixed; inset: 0; background: rgba(255,255,255,0.7); z-index: 2000; align-items: center; justify-content: center; flex-direction: column; gap: 12px; }
+        .loading-overlay.active { display: flex; }
+        .loading-spinner { width: 40px; height: 40px; border: 4px solid #e2e8f0; border-top-color: #3b82f6; border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-text { font-size: 14px; font-weight: 700; color: #475569; }
+        .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px); padding: 14px 28px; border-radius: 12px; font-family: 'Manrope', sans-serif; font-size: 14px; font-weight: 700; color: #fff; z-index: 3000; transition: transform 0.3s; box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
+        .toast.show { transform: translateX(-50%) translateY(0); }
+        .toast.success { background: #16a34a; }
+        .toast.error { background: #dc2626; }
+
+        /* PDF */
+        .print-header { display: none; }
+        @media print {
+            @page { size: A4 portrait; margin: 10mm 12mm; }
+            body { background: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .header, .week-nav, .loading-overlay, .toast, .modal-overlay,
+            .ms-plus, .day-controls input, .day-memo textarea { }
+            .header, .week-nav .this-week-btn, .hdr-btn, .loading-overlay, .toast, .modal-overlay { display: none !important; }
+            .container { max-width: 100%; margin: 0; padding: 0; }
+            .print-header { display: block !important; text-align: center; margin-bottom: 12px; }
+            .print-header h2 { font-size: 20px; font-weight: 800; color: #1e3a5f; }
+            .print-header p { font-size: 13px; color: #64748b; font-weight: 600; margin-top: 2px; }
+            .week-nav { box-shadow: none; border: 1px solid #e2e8f0; margin-bottom: 12px; }
+            .day-card { box-shadow: none; border: 1px solid #e2e8f0; margin-bottom: 10px; page-break-inside: avoid; padding: 14px 18px; }
+            .ws-card { box-shadow: none; border: 1px solid #e2e8f0; }
+            .day-memo textarea { border: none !important; background: transparent !important; }
+            .day-controls input[type="number"] { border: none !important; background: transparent !important; }
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 0 12px; }
+            .week-nav { flex-direction: column; gap: 12px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1><span class="icon">📅</span> 주간 플랜</h1>
+    <div class="header-right">
+        <button class="hdr-btn save" onclick="saveToSheets()">💾 저장</button>
+        <button class="hdr-btn pdf" onclick="window.print()">📄 PDF</button>
+        <a href="index.html" class="hdr-btn">🏠 메인으로</a>
+    </div>
+</div>
+
+<div class="container">
+    <div class="print-header" id="printHeader">
+        <h2>📅 HIQASC 주간 플랜</h2>
+        <p id="printWeekRange"></p>
+    </div>
+
+    <!-- 주차 네비게이션 -->
+    <div class="week-nav">
+        <div class="week-nav-left">
+            <button onclick="changeWeek(-1)">◀</button>
+            <div>
+                <div class="week-label" id="weekLabel"></div>
+                <div class="week-range" id="weekRange"></div>
+            </div>
+            <button onclick="changeWeek(1)">▶</button>
+            <button class="this-week-btn" onclick="goThisWeek()">이번 주</button>
+        </div>
+        <div class="week-nav-right">
+            <span class="status-badge new" id="statusBadge">새 플랜</span>
+        </div>
+    </div>
+
+    <!-- 주간 총 요약 -->
+    <div class="week-summary">
+        <div class="ws-card"><div class="ws-label">주간 총 예상 입고</div><div class="ws-value blue" id="wsTotalQty">0대</div></div>
+        <div class="ws-card"><div class="ws-label">일 평균 예상</div><div class="ws-value blue" id="wsAvgQty">0대</div></div>
+        <div class="ws-card"><div class="ws-label">잔여 시간 합계</div><div class="ws-value green" id="wsTotalRemain">0시간</div></div>
+    </div>
+
+    <!-- 요일 카드들 -->
+    <div id="dayCardsContainer"></div>
+</div>
+
+<!-- 모달 -->
+<div class="modal-overlay" id="actModal">
+    <div class="modal-box">
+        <h3 id="actModalTitle">활동 입력</h3>
+        <input type="text" id="actModalInput" placeholder="활동 내용 입력" maxlength="20">
+        <div class="modal-btns">
+            <button class="btn-delete" id="actModalDeleteBtn" style="display:none;" onclick="deleteSlotActivity()">삭제</button>
+            <button class="btn-cancel" onclick="closeActModal()">취소</button>
+            <button class="btn-save" onclick="saveSlotActivity()">저장</button>
+        </div>
+    </div>
+</div>
+<div class="loading-overlay" id="loadingOverlay"><div class="loading-spinner"></div><div class="loading-text" id="loadingText"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/library/d/1f7PNyKGFVhw1bbtZmP0pfYOtbgf5nPE_eMiPYfz2uU8ROauy9eo4HcAH/2';
+const START_HOUR = 9, END_HOUR = 18, TOTAL_HOURS = 9;
+const PLAN_CHECKPOINTS = [
+    {hour:9,cum:0},{hour:12,cum:60},{hour:13,cum:60},{hour:14,cum:90},
+    {hour:15,cum:120},{hour:16,cum:140},{hour:17,cum:170},{hour:18,cum:200}
+];
+const DAY_NAMES = ['월','화','수','목','금'];
+const DAY_CLS = ['mon','tue','wed','thu','fri'];
+
+let weekOffset = 0;
+let weekDates = []; // [Date x 5]
+let weekData = {}; // { 0:{qty,activities:{h:{title}},memo}, 1:{...}, ... }
+let isDirty = false;
+let currentModalDay = null, currentModalHour = null;
+let jsonpCounter = 0;
+
+function init() {
+    goThisWeek();
+}
+
+// ═══ 주차 계산 ═══
+function getMonday(d) {
+    const date = new Date(d);
+    const day = date.getDay();
+    const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+    return new Date(date.setDate(diff));
+}
+
+function calcWeekDates() {
+    const today = new Date();
+    const monday = getMonday(today);
+    monday.setDate(monday.getDate() + weekOffset * 7);
+    weekDates = [];
+    for (let i = 0; i < 5; i++) {
+        const d = new Date(monday);
+        d.setDate(monday.getDate() + i);
+        weekDates.push(d);
+    }
+}
+
+function getWeekKey() {
+    const mon = weekDates[0];
+    return mon.getFullYear() + '-W' + String(getISOWeek(mon)).padStart(2, '0');
+}
+
+function getISOWeek(d) {
+    const date = new Date(d.getTime());
+    date.setHours(0, 0, 0, 0);
+    date.setDate(date.getDate() + 3 - (date.getDay() + 6) % 7);
+    const week1 = new Date(date.getFullYear(), 0, 4);
+    return 1 + Math.round(((date.getTime() - week1.getTime()) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
+}
+
+function fmtDate(d) { return `${d.getMonth()+1}/${d.getDate()}`; }
+function fmtDateFull(d) { return `${d.getFullYear()}.${d.getMonth()+1}.${d.getDate()}`; }
+
+function updateWeekNav() {
+    const mon = weekDates[0], fri = weekDates[4];
+    const weekNum = getISOWeek(mon);
+    document.getElementById('weekLabel').textContent = `${mon.getFullYear()}년 ${mon.getMonth()+1}월 ${weekNum}주차`;
+    const rangeStr = `${fmtDateFull(mon)} ~ ${fmtDateFull(fri)}`;
+    document.getElementById('weekRange').textContent = rangeStr;
+    document.getElementById('printWeekRange').textContent = rangeStr;
+}
+
+function changeWeek(delta) {
+    if (isDirty && !confirm('저장하지 않은 변경사항이 있습니다.\n이동하시겠습니까?')) return;
+    weekOffset += delta;
+    loadWeek();
+}
+
+function goThisWeek() {
+    if (isDirty && !confirm('저장하지 않은 변경사항이 있습니다.\n이동하시겠습니까?')) return;
+    weekOffset = 0;
+    loadWeek();
+}
+
+function loadWeek() {
+    calcWeekDates();
+    updateWeekNav();
+    weekData = {};
+    for (let i = 0; i < 5; i++) weekData[i] = { qty: 0, activities: {}, memo: '' };
+    isDirty = false;
+    renderDayCards();
+    updateWeekSummary();
+    updateStatus('new');
+    loadFromSheets();
+}
+
+function markDirty() { isDirty = true; updateStatus('unsaved'); }
+
+function updateStatus(t) {
+    const b = document.getElementById('statusBadge');
+    if (t === 'saved') { b.textContent = '저장됨'; b.className = 'status-badge saved'; }
+    else if (t === 'unsaved') { b.textContent = '변경사항 있음'; b.className = 'status-badge unsaved'; }
+    else { b.textContent = '새 플랜'; b.className = 'status-badge new'; }
+}
+
+// ═══ 예측 ═══
+function getHourForQty(q) {
+    if (q <= 0) return START_HOUR;
+    if (q >= 200) return END_HOUR;
+    for (let i = 1; i < PLAN_CHECKPOINTS.length; i++) {
+        const p = PLAN_CHECKPOINTS[i-1], c = PLAN_CHECKPOINTS[i];
+        if (q <= c.cum) {
+            if (c.cum === p.cum) return c.hour;
+            return p.hour + (q - p.cum) / (c.cum - p.cum) * (c.hour - p.hour);
+        }
+    }
+    return END_HOUR;
+}
+
+function fmtHour(h) { return `${String(Math.floor(h)).padStart(2,'0')}:${String(Math.round((h-Math.floor(h))*60)).padStart(2,'0')}`; }
+
+// ═══ 렌더링 ═══
+function renderDayCards() {
+    const container = document.getElementById('dayCardsContainer');
+    container.innerHTML = '';
+
+    for (let di = 0; di < 5; di++) {
+        const d = weekDates[di];
+        const dd = weekData[di];
+        const predictH = dd.qty > 0 ? getHourForQty(dd.qty) : null;
+        const remain = predictH ? Math.max(0, END_HOUR - predictH) : null;
+
+        const card = document.createElement('div');
+        card.className = 'day-card ' + DAY_CLS[di];
+        card.innerHTML = buildDayCardHTML(di, d, dd, predictH, remain);
+        container.appendChild(card);
+    }
+}
+
+function buildDayCardHTML(di, d, dd, predictH, remain) {
+    const dayStr = `${d.getMonth()+1}/${d.getDate()}`;
+
+    // 미니 바
+    let barHTML = '';
+    if (dd.qty > 0 && predictH) {
+        const pct = Math.min(((predictH - START_HOUR) / TOTAL_HOURS) * 100, 100);
+        barHTML = `<div class="mini-bar-wrap">
+            <div class="mini-bar">
+                <div class="mb-fill" style="width:${pct}%">${dd.qty}대</div>
+                ${pct < 100 ? `<div class="mb-marker" style="left:${pct}%" data-label="${fmtHour(predictH)}"></div>` : ''}
+            </div>
+            <div class="mini-bar-labels"><span>09:00</span><span>12:00</span><span>15:00</span><span>18:00</span></div>
+        </div>`;
+    }
+
+    // 예측 정보
+    let predictHTML = '';
+    if (dd.qty > 0 && predictH) {
+        const rh = remain ? Math.floor(remain) : 0;
+        const rm = remain ? Math.round((remain - rh) * 60) : 0;
+        const remainStr = remain > 0 ? rh + '시간' + (rm > 0 ? ' ' + rm + '분' : '') : '없음';
+        predictHTML = `<div class="predict-info">
+            <div class="predict-tag"><span class="pt-label">완료 예상</span><span class="pt-value">${fmtHour(predictH)}</span></div>
+            <div class="predict-tag"><span class="pt-label">잔여</span><span class="pt-value ${remain > 0 ? 'orange' : 'red'}">${remainStr}</span></div>
+        </div>`;
+    }
+
+    // 미니 활동 슬롯
+    let slotsHTML = '<div class="mini-activity">';
+    let labelsHTML = '<div class="mini-activity-labels">';
+    for (let h = START_HOUR; h < END_HOUR; h++) {
+        const isLunch = h === 12;
+        const isRepair = predictH && dd.qty > 0 && h < Math.ceil(predictH);
+        const act = dd.activities[h];
+
+        if (isLunch) {
+            slotsHTML += `<div class="mini-slot lunch"><span style="font-size:10px;color:#94a3b8;">🍚</span></div>`;
+        } else if (isRepair) {
+            slotsHTML += `<div class="mini-slot disabled"><span class="ms-disabled-text">수리</span></div>`;
+        } else if (act) {
+            slotsHTML += `<div class="mini-slot filled" onclick="openActModal(${di},${h})"><span class="ms-text">${act.title}</span></div>`;
+        } else {
+            slotsHTML += `<div class="mini-slot" onclick="openActModal(${di},${h})"><span class="ms-plus">+</span></div>`;
+        }
+        labelsHTML += `<span>${String(h).padStart(2,'0')}</span>`;
+    }
+    slotsHTML += '</div>';
+    labelsHTML += '</div>';
+
+    // 메모
+    const memoHTML = `<div class="day-memo">
+        <label>📝 메모</label>
+        <textarea placeholder="간단한 메모..." oninput="updateMemo(${di},this.value)">${dd.memo || ''}</textarea>
+    </div>`;
+
+    return `
+        <div class="day-header">
+            <div class="day-title">
+                <span class="day-name ${DAY_CLS[di]}">${DAY_NAMES[di]}</span>
+                <span class="day-date">${dayStr}</span>
+            </div>
+            <div class="day-controls">
+                <label>예상 입고</label>
+                <input type="number" value="${dd.qty || ''}" placeholder="0" min="0" max="500"
+                    onchange="updateQty(${di}, this.value)" oninput="updateQty(${di}, this.value)">
+                <span class="unit">대</span>
+            </div>
+        </div>
+        ${predictHTML}
+        ${barHTML}
+        ${slotsHTML}
+        ${labelsHTML}
+        ${memoHTML}
+    `;
+}
+
+function updateQty(di, val) {
+    weekData[di].qty = parseInt(val) || 0;
+    markDirty();
+    renderDayCards();
+    updateWeekSummary();
+}
+
+function updateMemo(di, val) {
+    weekData[di].memo = val;
+    markDirty();
+}
+
+function updateWeekSummary() {
+    let totalQty = 0, totalRemain = 0, days = 0;
+    for (let i = 0; i < 5; i++) {
+        const q = weekData[i].qty;
+        if (q > 0) {
+            totalQty += q;
+            days++;
+            const ph = getHourForQty(q);
+            totalRemain += Math.max(0, END_HOUR - ph);
+        }
+    }
+    document.getElementById('wsTotalQty').textContent = totalQty + '대';
+    document.getElementById('wsAvgQty').textContent = days > 0 ? Math.round(totalQty / days) + '대' : '0대';
+    const rh = Math.floor(totalRemain), rm = Math.round((totalRemain - rh) * 60);
+    document.getElementById('wsTotalRemain').textContent = totalRemain > 0 ? rh + '시간' + (rm > 0 ? ' ' + rm + '분' : '') : '0시간';
+}
+
+// ═══ 활동 모달 ═══
+function openActModal(di, h) {
+    currentModalDay = di; currentModalHour = h;
+    const act = weekData[di].activities[h];
+    document.getElementById('actModalTitle').textContent = `${DAY_NAMES[di]} ${String(h).padStart(2,'0')}:00~${String(h+1).padStart(2,'0')}:00`;
+    document.getElementById('actModalInput').value = act ? act.title : '';
+    document.getElementById('actModalDeleteBtn').style.display = act ? 'inline-block' : 'none';
+    document.getElementById('actModal').classList.add('active');
+    setTimeout(() => document.getElementById('actModalInput').focus(), 100);
+}
+
+function closeActModal() {
+    document.getElementById('actModal').classList.remove('active');
+    currentModalDay = null; currentModalHour = null;
+}
+
+function saveSlotActivity() {
+    const val = document.getElementById('actModalInput').value.trim();
+    if (val) {
+        weekData[currentModalDay].activities[currentModalHour] = { title: val };
+        markDirty();
+    }
+    closeActModal();
+    renderDayCards();
+}
+
+function deleteSlotActivity() {
+    delete weekData[currentModalDay].activities[currentModalHour];
+    markDirty();
+    closeActModal();
+    renderDayCards();
+}
+
+// ═══ Sheets 연동 ═══
+function loadFromSheets() {
+    if (APPS_SCRIPT_URL === 'https://script.google.com/macros/library/d/1f7PNyKGFVhw1bbtZmP0pfYOtbgf5nPE_eMiPYfz2uU8ROauy9eo4HcAH/2') return;
+    showLoading('불러오는 중...');
+    const wk = getWeekKey(), cb = 'wkCb_' + (++jsonpCounter);
+    window[cb] = function(r) {
+        hideLoading();
+        if (r.success && r.weekData) {
+            for (let i = 0; i < 5; i++) {
+                if (r.weekData[i]) {
+                    weekData[i].qty = r.weekData[i].qty || 0;
+                    weekData[i].activities = r.weekData[i].activities || {};
+                    weekData[i].memo = r.weekData[i].memo || '';
+                }
+            }
+            isDirty = false;
+            updateStatus('saved');
+            renderDayCards();
+            updateWeekSummary();
+        }
+        delete window[cb];
+        const s = document.getElementById('s_' + cb); if (s) s.remove();
+    };
+    const s = document.createElement('script'); s.id = 's_' + cb;
+    s.src = APPS_SCRIPT_URL + '?action=loadWeek&weekKey=' + wk + '&callback=' + cb + '&t=' + Date.now();
+    document.body.appendChild(s);
+}
+
+function saveToSheets() {
+    if (APPS_SCRIPT_URL === 'https://script.google.com/macros/library/d/1f7PNyKGFVhw1bbtZmP0pfYOtbgf5nPE_eMiPYfz2uU8ROauy9eo4HcAH/2') { showToast('Apps Script URL을 설정해주세요.', 'error'); return; }
+    showLoading('저장 중...');
+    const payload = { action: 'saveWeek', weekKey: getWeekKey(), weekData: weekData };
+    fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+    .then(() => { hideLoading(); isDirty = false; updateStatus('saved'); showToast('저장되었습니다!', 'success'); })
+    .catch(() => { hideLoading(); showToast('저장 실패', 'error'); });
+}
+
+function showLoading(t) { document.getElementById('loadingText').textContent = t; document.getElementById('loadingOverlay').classList.add('active'); }
+function hideLoading() { document.getElementById('loadingOverlay').classList.remove('active'); }
+function showToast(m, t) { const el = document.getElementById('toast'); el.textContent = m; el.className = 'toast ' + t; setTimeout(() => el.classList.add('show'), 10); setTimeout(() => el.classList.remove('show'), 2500); }
+
+// ═══ 키보드 ═══
+document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && document.getElementById('actModal').classList.contains('active')) saveSlotActivity();
+    if (e.key === 'Escape') closeActModal();
+});
+window.addEventListener('beforeunload', e => { if (isDirty) { e.preventDefault(); e.returnValue = ''; } });
+
+init();
+</script>
+</body>
+</html>
