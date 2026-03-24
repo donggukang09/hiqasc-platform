@@ -508,7 +508,7 @@
 // ═══════════════════════════════════════
 // 설정
 // ═══════════════════════════════════════
-const APPS_SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzNa0c3E08tipY-lM0D7fJB1ouwRvrkwPg0nOGd6xpUoV5i6DqoVtasFPclw6BzlzqF/exec';
 const START_HOUR = 9, END_HOUR = 18, TOTAL_HOURS = 9;
 const PLAN_CHECKPOINTS = [
     { hour:9, cumulative:0 }, { hour:12, cumulative:60 }, { hour:13, cumulative:60 },
@@ -592,7 +592,7 @@ function selectDate(date){
 
 // ═══ Sheets 연동 ═══
 function loadCalendarData(year,month){
-    if(APPS_SCRIPT_URL==='YOUR_APPS_SCRIPT_URL_HERE')return;
+    if(APPS_SCRIPT_URL==='https://script.google.com/macros/s/AKfycbzNa0c3E08tipY-lM0D7fJB1ouwRvrkwPg0nOGd6xpUoV5i6DqoVtasFPclw6BzlzqF/exec')return;
     const ck=year+'-'+String(month).padStart(2,'0'),cb='calCb_'+(++jsonpCounter);
     window[cb]=function(r){if(r.success){calendarCache[ck]=r.dates;renderCalDots(ck);}delete window[cb];const s=document.getElementById('s_'+cb);if(s)s.remove();};
     const s=document.createElement('script');s.id='s_'+cb;s.src=APPS_SCRIPT_URL+'?action=calendar&year='+year+'&month='+month+'&callback='+cb+'&t='+Date.now();document.body.appendChild(s);
@@ -605,7 +605,7 @@ function renderCalDots(ck){
 }
 
 function loadFromSheets(dateStr){
-    if(APPS_SCRIPT_URL==='YOUR_APPS_SCRIPT_URL_HERE'){updateStatus('new');return;}
+    if(APPS_SCRIPT_URL==='https://script.google.com/macros/s/AKfycbzNa0c3E08tipY-lM0D7fJB1ouwRvrkwPg0nOGd6xpUoV5i6DqoVtasFPclw6BzlzqF/exec'){updateStatus('new');return;}
     showLoading('불러오는 중...');
     const cb='loadCb_'+(++jsonpCounter);
     window[cb]=function(r){
@@ -660,7 +660,7 @@ function getExecData(){
 }
 
 function saveToSheets(){
-    if(APPS_SCRIPT_URL==='YOUR_APPS_SCRIPT_URL_HERE'){showToast('Apps Script URL을 설정해주세요.','error');return;}
+    if(APPS_SCRIPT_URL==='https://script.google.com/macros/s/AKfycbzNa0c3E08tipY-lM0D7fJB1ouwRvrkwPg0nOGd6xpUoV5i6DqoVtasFPclw6BzlzqF/exec'){showToast('Apps Script URL을 설정해주세요.','error');return;}
     const dateStr=fmtDate(selectedDate);
     const actList=[];Object.keys(activities).forEach(h=>{const a=activities[h];actList.push({hour:parseInt(h),title:a.title,detail:a.detail||'',participants:a.participants||''});});
     const payload={action:'saveAll',date:dateStr,qty:currentQty,activities:actList,execData:getExecData()};
