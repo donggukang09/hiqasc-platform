@@ -28,7 +28,6 @@
 
         .container { max-width: 1300px; margin: 24px auto; padding: 0 24px; }
 
-        /* 주차 네비게이션 */
         .week-nav {
             background: #fff; border-radius: 16px; padding: 16px 24px; margin-bottom: 20px;
             box-shadow: 0 2px 12px rgba(0,0,0,0.06);
@@ -54,10 +53,7 @@
         .status-badge.unsaved { background: #fef3c7; color: #d97706; }
         .status-badge.new { background: #f1f5f9; color: #64748b; }
 
-        /* 주간 총 요약 */
-        .week-summary {
-            display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;
-        }
+        .week-summary { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
         .ws-card {
             flex: 1; min-width: 160px; background: #fff; border-radius: 12px; padding: 16px;
             text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
@@ -67,7 +63,6 @@
         .ws-card .ws-value.blue { color: #2563eb; }
         .ws-card .ws-value.green { color: #16a34a; }
 
-        /* ═══ 요일 카드 ═══ */
         .day-card {
             background: #fff; border-radius: 16px; padding: 20px 24px; margin-bottom: 16px;
             box-shadow: 0 2px 12px rgba(0,0,0,0.06); border-left: 5px solid #3b82f6;
@@ -92,7 +87,6 @@
         .day-name.wed { background: #1d4ed8; }
         .day-name.thu { background: #1e40af; }
         .day-name.fri { background: #1e3a8a; }
-
         .day-date { font-size: 15px; font-weight: 700; color: #1e3a5f; }
 
         .day-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
@@ -105,23 +99,15 @@
         .day-controls input:focus { border-color: #3b82f6; }
         .day-controls .unit { font-size: 13px; font-weight: 600; color: #94a3b8; }
 
-        .predict-info {
-            display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
-        }
-        .predict-tag {
-            display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700;
-        }
+        .predict-info { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+        .predict-tag { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; }
         .predict-tag .pt-label { color: #64748b; }
         .predict-tag .pt-value { color: #16a34a; font-size: 15px; }
         .predict-tag .pt-value.red { color: #dc2626; }
         .predict-tag .pt-value.orange { color: #ea580c; }
 
-        /* 미니 타임바 */
         .mini-bar-wrap { margin: 12px 0; }
-        .mini-bar {
-            position: relative; height: 36px; background: #f1f5f9; border-radius: 10px;
-            overflow: visible;
-        }
+        .mini-bar { position: relative; height: 36px; background: #f1f5f9; border-radius: 10px; overflow: visible; }
         .mini-bar .mb-fill {
             position: absolute; top: 3px; left: 0; height: 30px; border-radius: 8px;
             background: linear-gradient(135deg, #16a34a, #22c55e);
@@ -140,7 +126,6 @@
         .mini-bar-labels { display: flex; justify-content: space-between; margin-top: 3px; }
         .mini-bar-labels span { font-size: 9px; font-weight: 600; color: #94a3b8; }
 
-        /* 활동 슬롯 (컴팩트) */
         .mini-activity { display: flex; gap: 4px; margin: 10px 0 6px; }
         .mini-slot {
             flex: 1; height: 34px; background: #f1f5f9; border-radius: 8px;
@@ -158,10 +143,7 @@
         .mini-activity-labels { display: flex; gap: 4px; }
         .mini-activity-labels span { flex: 1; text-align: center; font-size: 9px; font-weight: 600; color: #94a3b8; }
 
-        /* 메모 */
-        .day-memo {
-            margin-top: 8px;
-        }
+        .day-memo { margin-top: 8px; }
         .day-memo label { font-size: 12px; font-weight: 700; color: #94a3b8; display: flex; align-items: center; gap: 4px; }
         .day-memo textarea {
             width: 100%; margin-top: 4px; padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 10px;
@@ -170,7 +152,6 @@
         }
         .day-memo textarea:focus { border-color: #3b7dd8; }
 
-        /* 모달 */
         .modal-overlay {
             display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4);
             z-index: 1000; align-items: center; justify-content: center;
@@ -188,7 +169,6 @@
         .btn-save { background: linear-gradient(135deg, #2563eb, #3b82f6); color: #fff; }
         .btn-delete { background: #fee2e2; color: #dc2626; }
 
-        /* 로딩 / 토스트 */
         .loading-overlay { display: none; position: fixed; inset: 0; background: rgba(255,255,255,0.7); z-index: 2000; align-items: center; justify-content: center; flex-direction: column; gap: 12px; }
         .loading-overlay.active { display: flex; }
         .loading-spinner { width: 40px; height: 40px; border: 4px solid #e2e8f0; border-top-color: #3b82f6; border-radius: 50%; animation: spin 0.8s linear infinite; }
@@ -199,13 +179,10 @@
         .toast.success { background: #16a34a; }
         .toast.error { background: #dc2626; }
 
-        /* PDF */
         .print-header { display: none; }
         @media print {
             @page { size: A4 portrait; margin: 10mm 12mm; }
             body { background: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            .header, .week-nav, .loading-overlay, .toast, .modal-overlay,
-            .ms-plus, .day-controls input, .day-memo textarea { }
             .header, .week-nav .this-week-btn, .hdr-btn, .loading-overlay, .toast, .modal-overlay { display: none !important; }
             .container { max-width: 100%; margin: 0; padding: 0; }
             .print-header { display: block !important; text-align: center; margin-bottom: 12px; }
@@ -241,7 +218,6 @@
         <p id="printWeekRange"></p>
     </div>
 
-    <!-- 주차 네비게이션 -->
     <div class="week-nav">
         <div class="week-nav-left">
             <button onclick="changeWeek(-1)">◀</button>
@@ -257,18 +233,15 @@
         </div>
     </div>
 
-    <!-- 주간 총 요약 -->
     <div class="week-summary">
         <div class="ws-card"><div class="ws-label">주간 총 예상 입고</div><div class="ws-value blue" id="wsTotalQty">0대</div></div>
         <div class="ws-card"><div class="ws-label">일 평균 예상</div><div class="ws-value blue" id="wsAvgQty">0대</div></div>
         <div class="ws-card"><div class="ws-label">잔여 시간 합계</div><div class="ws-value green" id="wsTotalRemain">0시간</div></div>
     </div>
 
-    <!-- 요일 카드들 -->
     <div id="dayCardsContainer"></div>
 </div>
 
-<!-- 모달 -->
 <div class="modal-overlay" id="actModal">
     <div class="modal-box">
         <h3 id="actModalTitle">활동 입력</h3>
@@ -293,35 +266,22 @@ const PLAN_CHECKPOINTS = [
 const DAY_NAMES = ['월','화','수','목','금'];
 const DAY_CLS = ['mon','tue','wed','thu','fri'];
 
-let weekOffset = 0;
-let weekDates = []; // [Date x 5]
-let weekData = {}; // { 0:{qty,activities:{h:{title}},memo}, 1:{...}, ... }
-let isDirty = false;
-let currentModalDay = null, currentModalHour = null;
-let jsonpCounter = 0;
+let weekOffset = 0, weekDates = [], weekData = {}, isDirty = false;
+let currentModalDay = null, currentModalHour = null, jsonpCounter = 0;
 
-function init() {
-    goThisWeek();
-}
+function init() { goThisWeek(); }
 
-// ═══ 주차 계산 ═══
 function getMonday(d) {
-    const date = new Date(d);
-    const day = date.getDay();
+    const date = new Date(d); const day = date.getDay();
     const diff = date.getDate() - day + (day === 0 ? -6 : 1);
     return new Date(date.setDate(diff));
 }
 
 function calcWeekDates() {
-    const today = new Date();
-    const monday = getMonday(today);
+    const today = new Date(); const monday = getMonday(today);
     monday.setDate(monday.getDate() + weekOffset * 7);
     weekDates = [];
-    for (let i = 0; i < 5; i++) {
-        const d = new Date(monday);
-        d.setDate(monday.getDate() + i);
-        weekDates.push(d);
-    }
+    for (let i = 0; i < 5; i++) { const d = new Date(monday); d.setDate(monday.getDate() + i); weekDates.push(d); }
 }
 
 function getWeekKey() {
@@ -330,19 +290,16 @@ function getWeekKey() {
 }
 
 function getISOWeek(d) {
-    const date = new Date(d.getTime());
-    date.setHours(0, 0, 0, 0);
+    const date = new Date(d.getTime()); date.setHours(0,0,0,0);
     date.setDate(date.getDate() + 3 - (date.getDay() + 6) % 7);
     const week1 = new Date(date.getFullYear(), 0, 4);
     return 1 + Math.round(((date.getTime() - week1.getTime()) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
 }
 
-function fmtDate(d) { return `${d.getMonth()+1}/${d.getDate()}`; }
 function fmtDateFull(d) { return `${d.getFullYear()}.${d.getMonth()+1}.${d.getDate()}`; }
 
 function updateWeekNav() {
-    const mon = weekDates[0], fri = weekDates[4];
-    const weekNum = getISOWeek(mon);
+    const mon = weekDates[0], fri = weekDates[4], weekNum = getISOWeek(mon);
     document.getElementById('weekLabel').textContent = `${mon.getFullYear()}년 ${mon.getMonth()+1}월 ${weekNum}주차`;
     const rangeStr = `${fmtDateFull(mon)} ~ ${fmtDateFull(fri)}`;
     document.getElementById('weekRange').textContent = rangeStr;
@@ -351,26 +308,18 @@ function updateWeekNav() {
 
 function changeWeek(delta) {
     if (isDirty && !confirm('저장하지 않은 변경사항이 있습니다.\n이동하시겠습니까?')) return;
-    weekOffset += delta;
-    loadWeek();
+    weekOffset += delta; loadWeek();
 }
 
 function goThisWeek() {
     if (isDirty && !confirm('저장하지 않은 변경사항이 있습니다.\n이동하시겠습니까?')) return;
-    weekOffset = 0;
-    loadWeek();
+    weekOffset = 0; loadWeek();
 }
 
 function loadWeek() {
-    calcWeekDates();
-    updateWeekNav();
-    weekData = {};
+    calcWeekDates(); updateWeekNav(); weekData = {};
     for (let i = 0; i < 5; i++) weekData[i] = { qty: 0, activities: {}, memo: '' };
-    isDirty = false;
-    renderDayCards();
-    updateWeekSummary();
-    updateStatus('new');
-    loadFromSheets();
+    isDirty = false; renderDayCards(); updateWeekSummary(); updateStatus('new'); loadFromSheets();
 }
 
 function markDirty() { isDirty = true; updateStatus('unsaved'); }
@@ -382,150 +331,68 @@ function updateStatus(t) {
     else { b.textContent = '새 플랜'; b.className = 'status-badge new'; }
 }
 
-// ═══ 예측 ═══
 function getHourForQty(q) {
-    if (q <= 0) return START_HOUR;
-    if (q >= 200) return END_HOUR;
+    if (q <= 0) return START_HOUR; if (q >= 200) return END_HOUR;
     for (let i = 1; i < PLAN_CHECKPOINTS.length; i++) {
         const p = PLAN_CHECKPOINTS[i-1], c = PLAN_CHECKPOINTS[i];
-        if (q <= c.cum) {
-            if (c.cum === p.cum) return c.hour;
-            return p.hour + (q - p.cum) / (c.cum - p.cum) * (c.hour - p.hour);
-        }
+        if (q <= c.cum) { if (c.cum === p.cum) return c.hour; return p.hour + (q - p.cum) / (c.cum - p.cum) * (c.hour - p.hour); }
     }
     return END_HOUR;
 }
 
 function fmtHour(h) { return `${String(Math.floor(h)).padStart(2,'0')}:${String(Math.round((h-Math.floor(h))*60)).padStart(2,'0')}`; }
 
-// ═══ 렌더링 ═══
 function renderDayCards() {
-    const container = document.getElementById('dayCardsContainer');
-    container.innerHTML = '';
-
+    const container = document.getElementById('dayCardsContainer'); container.innerHTML = '';
     for (let di = 0; di < 5; di++) {
-        const d = weekDates[di];
-        const dd = weekData[di];
+        const d = weekDates[di], dd = weekData[di];
         const predictH = dd.qty > 0 ? getHourForQty(dd.qty) : null;
         const remain = predictH ? Math.max(0, END_HOUR - predictH) : null;
-
-        const card = document.createElement('div');
-        card.className = 'day-card ' + DAY_CLS[di];
-        card.innerHTML = buildDayCardHTML(di, d, dd, predictH, remain);
-        container.appendChild(card);
+        const card = document.createElement('div'); card.className = 'day-card ' + DAY_CLS[di];
+        card.innerHTML = buildDayCardHTML(di, d, dd, predictH, remain); container.appendChild(card);
     }
 }
 
 function buildDayCardHTML(di, d, dd, predictH, remain) {
     const dayStr = `${d.getMonth()+1}/${d.getDate()}`;
-
-    // 미니 바
     let barHTML = '';
     if (dd.qty > 0 && predictH) {
         const pct = Math.min(((predictH - START_HOUR) / TOTAL_HOURS) * 100, 100);
-        barHTML = `<div class="mini-bar-wrap">
-            <div class="mini-bar">
-                <div class="mb-fill" style="width:${pct}%">${dd.qty}대</div>
-                ${pct < 100 ? `<div class="mb-marker" style="left:${pct}%" data-label="${fmtHour(predictH)}"></div>` : ''}
-            </div>
-            <div class="mini-bar-labels"><span>09:00</span><span>12:00</span><span>15:00</span><span>18:00</span></div>
-        </div>`;
+        barHTML = `<div class="mini-bar-wrap"><div class="mini-bar"><div class="mb-fill" style="width:${pct}%">${dd.qty}대</div>${pct < 100 ? `<div class="mb-marker" style="left:${pct}%" data-label="${fmtHour(predictH)}"></div>` : ''}</div><div class="mini-bar-labels"><span>09:00</span><span>12:00</span><span>15:00</span><span>18:00</span></div></div>`;
     }
-
-    // 예측 정보
     let predictHTML = '';
     if (dd.qty > 0 && predictH) {
-        const rh = remain ? Math.floor(remain) : 0;
-        const rm = remain ? Math.round((remain - rh) * 60) : 0;
+        const rh = remain ? Math.floor(remain) : 0, rm = remain ? Math.round((remain - rh) * 60) : 0;
         const remainStr = remain > 0 ? rh + '시간' + (rm > 0 ? ' ' + rm + '분' : '') : '없음';
-        predictHTML = `<div class="predict-info">
-            <div class="predict-tag"><span class="pt-label">완료 예상</span><span class="pt-value">${fmtHour(predictH)}</span></div>
-            <div class="predict-tag"><span class="pt-label">잔여</span><span class="pt-value ${remain > 0 ? 'orange' : 'red'}">${remainStr}</span></div>
-        </div>`;
+        predictHTML = `<div class="predict-info"><div class="predict-tag"><span class="pt-label">완료 예상</span><span class="pt-value">${fmtHour(predictH)}</span></div><div class="predict-tag"><span class="pt-label">잔여</span><span class="pt-value ${remain > 0 ? 'orange' : 'red'}">${remainStr}</span></div></div>`;
     }
-
-    // 미니 활동 슬롯
-    let slotsHTML = '<div class="mini-activity">';
-    let labelsHTML = '<div class="mini-activity-labels">';
+    let slotsHTML = '<div class="mini-activity">', labelsHTML = '<div class="mini-activity-labels">';
     for (let h = START_HOUR; h < END_HOUR; h++) {
-        const isLunch = h === 12;
-        const isRepair = predictH && dd.qty > 0 && h < Math.ceil(predictH);
-        const act = dd.activities[h];
-
-        if (isLunch) {
-            slotsHTML += `<div class="mini-slot lunch"><span style="font-size:10px;color:#94a3b8;">🍚</span></div>`;
-        } else if (isRepair) {
-            slotsHTML += `<div class="mini-slot disabled"><span class="ms-disabled-text">수리</span></div>`;
-        } else if (act) {
-            slotsHTML += `<div class="mini-slot filled" onclick="openActModal(${di},${h})"><span class="ms-text">${act.title}</span></div>`;
-        } else {
-            slotsHTML += `<div class="mini-slot" onclick="openActModal(${di},${h})"><span class="ms-plus">+</span></div>`;
-        }
+        const isLunch = h === 12, isRepair = predictH && dd.qty > 0 && h < Math.ceil(predictH), act = dd.activities[h];
+        if (isLunch) slotsHTML += `<div class="mini-slot lunch"><span style="font-size:10px;color:#94a3b8;">🍚</span></div>`;
+        else if (isRepair) slotsHTML += `<div class="mini-slot disabled"><span class="ms-disabled-text">수리</span></div>`;
+        else if (act) slotsHTML += `<div class="mini-slot filled" onclick="openActModal(${di},${h})"><span class="ms-text">${act.title}</span></div>`;
+        else slotsHTML += `<div class="mini-slot" onclick="openActModal(${di},${h})"><span class="ms-plus">+</span></div>`;
         labelsHTML += `<span>${String(h).padStart(2,'0')}</span>`;
     }
-    slotsHTML += '</div>';
-    labelsHTML += '</div>';
-
-    // 메모
-    const memoHTML = `<div class="day-memo">
-        <label>📝 메모</label>
-        <textarea placeholder="간단한 메모..." oninput="updateMemo(${di},this.value)">${dd.memo || ''}</textarea>
-    </div>`;
-
-    return `
-        <div class="day-header">
-            <div class="day-title">
-                <span class="day-name ${DAY_CLS[di]}">${DAY_NAMES[di]}</span>
-                <span class="day-date">${dayStr}</span>
-            </div>
-            <div class="day-controls">
-                <label>예상 입고</label>
-                <input type="number" value="${dd.qty || ''}" placeholder="0" min="0" max="500"
-                    onchange="updateQty(${di}, this.value)" oninput="updateQty(${di}, this.value)">
-                <span class="unit">대</span>
-            </div>
-        </div>
-        ${predictHTML}
-        ${barHTML}
-        ${slotsHTML}
-        ${labelsHTML}
-        ${memoHTML}
-    `;
+    slotsHTML += '</div>'; labelsHTML += '</div>';
+    return `<div class="day-header"><div class="day-title"><span class="day-name ${DAY_CLS[di]}">${DAY_NAMES[di]}</span><span class="day-date">${dayStr}</span></div><div class="day-controls"><label>예상 입고</label><input type="number" value="${dd.qty || ''}" placeholder="0" min="0" max="500" onchange="updateQty(${di},this.value)" oninput="updateQty(${di},this.value)"><span class="unit">대</span></div></div>${predictHTML}${barHTML}${slotsHTML}${labelsHTML}<div class="day-memo"><label>📝 메모</label><textarea placeholder="간단한 메모..." oninput="updateMemo(${di},this.value)">${dd.memo || ''}</textarea></div>`;
 }
 
-function updateQty(di, val) {
-    weekData[di].qty = parseInt(val) || 0;
-    markDirty();
-    renderDayCards();
-    updateWeekSummary();
-}
-
-function updateMemo(di, val) {
-    weekData[di].memo = val;
-    markDirty();
-}
+function updateQty(di, val) { weekData[di].qty = parseInt(val) || 0; markDirty(); renderDayCards(); updateWeekSummary(); }
+function updateMemo(di, val) { weekData[di].memo = val; markDirty(); }
 
 function updateWeekSummary() {
     let totalQty = 0, totalRemain = 0, days = 0;
-    for (let i = 0; i < 5; i++) {
-        const q = weekData[i].qty;
-        if (q > 0) {
-            totalQty += q;
-            days++;
-            const ph = getHourForQty(q);
-            totalRemain += Math.max(0, END_HOUR - ph);
-        }
-    }
+    for (let i = 0; i < 5; i++) { const q = weekData[i].qty; if (q > 0) { totalQty += q; days++; totalRemain += Math.max(0, END_HOUR - getHourForQty(q)); } }
     document.getElementById('wsTotalQty').textContent = totalQty + '대';
     document.getElementById('wsAvgQty').textContent = days > 0 ? Math.round(totalQty / days) + '대' : '0대';
     const rh = Math.floor(totalRemain), rm = Math.round((totalRemain - rh) * 60);
     document.getElementById('wsTotalRemain').textContent = totalRemain > 0 ? rh + '시간' + (rm > 0 ? ' ' + rm + '분' : '') : '0시간';
 }
 
-// ═══ 활동 모달 ═══
 function openActModal(di, h) {
-    currentModalDay = di; currentModalHour = h;
-    const act = weekData[di].activities[h];
+    currentModalDay = di; currentModalHour = h; const act = weekData[di].activities[h];
     document.getElementById('actModalTitle').textContent = `${DAY_NAMES[di]} ${String(h).padStart(2,'0')}:00~${String(h+1).padStart(2,'0')}:00`;
     document.getElementById('actModalInput').value = act ? act.title : '';
     document.getElementById('actModalDeleteBtn').style.display = act ? 'inline-block' : 'none';
@@ -533,31 +400,19 @@ function openActModal(di, h) {
     setTimeout(() => document.getElementById('actModalInput').focus(), 100);
 }
 
-function closeActModal() {
-    document.getElementById('actModal').classList.remove('active');
-    currentModalDay = null; currentModalHour = null;
-}
+function closeActModal() { document.getElementById('actModal').classList.remove('active'); currentModalDay = null; currentModalHour = null; }
 
 function saveSlotActivity() {
     const val = document.getElementById('actModalInput').value.trim();
-    if (val) {
-        weekData[currentModalDay].activities[currentModalHour] = { title: val };
-        markDirty();
-    }
-    closeActModal();
-    renderDayCards();
+    if (val) { weekData[currentModalDay].activities[currentModalHour] = { title: val }; markDirty(); }
+    closeActModal(); renderDayCards();
 }
 
-function deleteSlotActivity() {
-    delete weekData[currentModalDay].activities[currentModalHour];
-    markDirty();
-    closeActModal();
-    renderDayCards();
-}
+function deleteSlotActivity() { delete weekData[currentModalDay].activities[currentModalHour]; markDirty(); closeActModal(); renderDayCards(); }
 
 // ═══ Sheets 연동 ═══
 function loadFromSheets() {
-    if (APPS_SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbxfv4Vb3Rk9hjsT6tU98Q8Ij4wljhZQZAvyWJ7jT50H2NfD2GPMIONL6GQjqJ0WFWNwzg/exec') return;
+    if (!APPS_SCRIPT_URL) return;
     showLoading('불러오는 중...');
     const wk = getWeekKey(), cb = 'wkCb_' + (++jsonpCounter);
     window[cb] = function(r) {
@@ -570,13 +425,9 @@ function loadFromSheets() {
                     weekData[i].memo = r.weekData[i].memo || '';
                 }
             }
-            isDirty = false;
-            updateStatus('saved');
-            renderDayCards();
-            updateWeekSummary();
+            isDirty = false; updateStatus('saved'); renderDayCards(); updateWeekSummary();
         }
-        delete window[cb];
-        const s = document.getElementById('s_' + cb); if (s) s.remove();
+        delete window[cb]; const s = document.getElementById('s_' + cb); if (s) s.remove();
     };
     const s = document.createElement('script'); s.id = 's_' + cb;
     s.src = APPS_SCRIPT_URL + '?action=loadWeek&weekKey=' + wk + '&callback=' + cb + '&t=' + Date.now();
@@ -584,7 +435,7 @@ function loadFromSheets() {
 }
 
 function saveToSheets() {
-    if (APPS_SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbxfv4Vb3Rk9hjsT6tU98Q8Ij4wljhZQZAvyWJ7jT50H2NfD2GPMIONL6GQjqJ0WFWNwzg/exec') { showToast('Apps Script URL을 설정해주세요.', 'error'); return; }
+    if (!APPS_SCRIPT_URL) { showToast('Apps Script URL을 설정해주세요.', 'error'); return; }
     showLoading('저장 중...');
     const payload = { action: 'saveWeek', weekKey: getWeekKey(), weekData: weekData };
     fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
@@ -596,7 +447,6 @@ function showLoading(t) { document.getElementById('loadingText').textContent = t
 function hideLoading() { document.getElementById('loadingOverlay').classList.remove('active'); }
 function showToast(m, t) { const el = document.getElementById('toast'); el.textContent = m; el.className = 'toast ' + t; setTimeout(() => el.classList.add('show'), 10); setTimeout(() => el.classList.remove('show'), 2500); }
 
-// ═══ 키보드 ═══
 document.addEventListener('keydown', e => {
     if (e.key === 'Enter' && document.getElementById('actModal').classList.contains('active')) saveSlotActivity();
     if (e.key === 'Escape') closeActModal();
