@@ -415,8 +415,22 @@ function loadFromSheets() {
     if (!APPS_SCRIPT_URL) return;
     showLoading('불러오는 중...');
     const wk = getWeekKey(), cb = 'wkCb_' + (++jsonpCounter);
-    window[cb] = function(r) {
+    
+    // 10초 타임아웃
+    const timeout = setTimeout(function() {
         hideLoading();
+        if (window[cb]) {
+            delete window[cb];
+            const s = document.getElementById('s_' + cb); if (s) s.remove();
+            console.error('JSONP 타임아웃 - URL:', APPS_SCRIPT_URL);
+            showToast('서버 응답 없음. 배포 URL을 확인하세요.', 'error');
+        }
+    }, 10000);
+
+    window[cb] = function(r) {
+        clearTimeout(timeout);
+        hideLoading();
+        console.log('서버 응답:', r);
         if (r.success && r.weekData) {
             for (let i = 0; i < 5; i++) {
                 if (r.weekData[i]) {
@@ -430,7 +444,15 @@ function loadFromSheets() {
         delete window[cb]; const s = document.getElementById('s_' + cb); if (s) s.remove();
     };
     const s = document.createElement('script'); s.id = 's_' + cb;
+    s.onerror = function() {
+        clearTimeout(timeout);
+        hideLoading();
+        delete window[cb];
+        console.error('스크립트 로드 실패 - URL:', s.src);
+        showToast('서버 연결 실패. URL을 확인하세요.', 'error');
+    };
     s.src = APPS_SCRIPT_URL + '?action=loadWeek&weekKey=' + wk + '&callback=' + cb + '&t=' + Date.now();
+    console.log('요청 URL:', s.src);
     document.body.appendChild(s);
 }
 
