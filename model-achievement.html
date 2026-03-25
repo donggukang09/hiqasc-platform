@@ -222,8 +222,8 @@ body {
     color: #6b7280;
 }
 .legend-dot {
-    width: 12px; height: 12px;
-    border-radius: 3px;
+    width: 16px; height: 16px;
+    border-radius: 4px;
 }
 .legend-dot.original { background: #3b82f6; }
 .legend-dot.vertuo { background: #f59e0b; }
@@ -282,24 +282,34 @@ body {
 }
 
 /* Line color top borders on model headers */
-.model-header-original { border-top: 3px solid #3b82f6 !important; background: #f8fbff; }
-.model-header-vertuo { border-top: 3px solid #f59e0b !important; background: #fffef8; }
-.model-header-b2b { border-top: 3px solid #8b5cf6 !important; background: #faf8ff; }
+.model-header-original { border-top: 4px solid #3b82f6 !important; background: #dbeafe; }
+.model-header-vertuo { border-top: 4px solid #f59e0b !important; background: #fef3c7; }
+.model-header-b2b { border-top: 4px solid #8b5cf6 !important; background: #ede9fe; }
+
+/* Line group header row */
+.matrix-table thead tr:first-child th.line-original { color: #fff; background: #3b82f6; font-size: 12px; }
+.matrix-table thead tr:first-child th.line-vertuo { color: #fff; background: #f59e0b; font-size: 12px; }
+.matrix-table thead tr:first-child th.line-b2b { color: #fff; background: #8b5cf6; font-size: 12px; }
+
+/* Column background tint per line */
+.col-original { background: rgba(59,130,246,0.04); }
+.col-vertuo { background: rgba(245,158,11,0.04); }
+.col-b2b { background: rgba(139,92,246,0.04); }
 
 .matrix-table tbody tr {
     transition: background 0.15s;
 }
 .matrix-table tbody tr:hover {
-    background: #f8fafc;
+    background: #f0f4ff !important;
 }
 .matrix-table tbody tr:nth-child(even) {
     background: #fafbfc;
 }
 .matrix-table tbody tr:nth-child(even):hover {
-    background: #f0f4f8;
+    background: #f0f4ff !important;
 }
 .matrix-table tbody td {
-    padding: 10px 6px;
+    padding: 8px 4px;
     text-align: center;
     border-bottom: 1px solid #f0f0f0;
     vertical-align: middle;
@@ -313,22 +323,49 @@ body {
     white-space: nowrap;
     position: sticky;
     left: 0;
-    background: inherit;
+    background: #fff;
     z-index: 5;
+    border-right: 2px solid #e5e7eb;
+}
+.matrix-table tbody tr:nth-child(even) td:first-child {
+    background: #fafbfc;
 }
 .matrix-table tbody td:last-child {
     padding-right: 16px;
 }
 
-/* Achievement Cell */
+/* Achievement Cell - BOLD colored blocks */
 .cell-done {
-    color: #22c55e;
-    font-size: 18px;
-    font-weight: 700;
-}
-.cell-empty {
-    color: #e5e7eb;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
     font-size: 16px;
+    font-weight: 800;
+    color: #fff;
+}
+.cell-done.done-original { background: #3b82f6; }
+.cell-done.done-vertuo { background: #f59e0b; }
+.cell-done.done-b2b { background: #8b5cf6; }
+
+.cell-empty {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    background: #f3f4f6;
+    color: #d1d5db;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* Line separator borders between groups */
+.line-separator {
+    border-left: 3px solid #e5e7eb !important;
 }
 
 /* Progress in row */
@@ -797,17 +834,17 @@ function render() {
         orderedLines.forEach(line => {
             const cls = line === 'Original' ? 'line-original' : line === 'Vertuo' ? 'line-vertuo' : 'line-b2b';
             const count = modelsByLine[line].length;
-            html += `<th colspan="${count}" class="${cls}" style="border-radius:8px 8px 0 0;">${line.toUpperCase()} LINE</th>`;
+            html += `<th colspan="${count}" class="${cls}">${line.toUpperCase()} LINE</th>`;
         });
         html += `<th rowspan="2" class="progress-header" style="padding:8px 12px; font-size:11px; font-weight:600; color:#374151;">달성률</th></tr><tr>`;
         
-        // Model name headers
-        orderedLines.forEach(line => {
+        // Model name headers with line separators
+        let isFirstInGroup = true;
+        orderedLines.forEach((line, li) => {
             const cls = line === 'Original' ? 'model-header-original' : line === 'Vertuo' ? 'model-header-vertuo' : 'model-header-b2b';
-            modelsByLine[line].forEach(m => {
-                // Shorten long names for header
-                let displayName = m.name;
-                html += `<th class="${cls}" title="${m.name}">${displayName}</th>`;
+            modelsByLine[line].forEach((m, mi) => {
+                const sep = (li > 0 && mi === 0) ? ' line-separator' : '';
+                html += `<th class="${cls}${sep}" title="${m.name}">${m.name}</th>`;
             });
         });
         html += `</tr></thead><tbody>`;
@@ -821,13 +858,15 @@ function render() {
             const cls = getProgressClass(tp.pct);
             html += `<tr><td>${tp.name}</td>`;
             
-            orderedLines.forEach(line => {
-                modelsByLine[line].forEach(m => {
+            orderedLines.forEach((line, li) => {
+                const lineCls = line === 'Original' ? 'original' : line === 'Vertuo' ? 'vertuo' : 'b2b';
+                modelsByLine[line].forEach((m, mi) => {
+                    const sep = (li > 0 && mi === 0) ? ' line-separator' : '';
                     const done = achievementMap[`${tp.name}|${m.name}`];
                     if (done) {
-                        html += `<td><span class="cell-done">✓</span></td>`;
+                        html += `<td class="col-${lineCls}${sep}"><span class="cell-done done-${lineCls}">✓</span></td>`;
                     } else {
-                        html += `<td><span class="cell-empty">─</span></td>`;
+                        html += `<td class="col-${lineCls}${sep}"><span class="cell-empty">✕</span></td>`;
                     }
                 });
             });
