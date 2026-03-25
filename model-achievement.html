@@ -559,70 +559,91 @@ function parseData(table) {
     models = [];
     achievementMap = {};
     
-    // Column labels from header row
-    const colLabels = cols.map(c => (c.label || '').trim());
+    if (rows.length === 0) return;
     
-    // Find the model columns: columns D onwards (index 3+) that have model names as labels
-    const modelCols = []; // { colIndex, modelName }
-    for (let i = 3; i < colLabels.length; i++) {
-        if (colLabels[i]) {
-            modelCols.push({ colIndex: i, modelName: colLabels[i] });
+    // ── Step 1: Detect header row ──
+    // gviz may or may not treat row 1 as headers.
+    // Check if cols have real labels (D+ columns with model names)
+    const colLabels = cols.map(c => (c.label || '').trim());
+    let headerModelNames = []; // model names from D1 onwards
+    let dataStartIndex = 0;   // which row index to start reading data
+    
+    // Check if cols[3+] have meaningful labels
+    const colsHaveLabels = colLabels.slice(3).some(l => l && l !== '' && !l.match(/^[A-Z]$/));
+    
+    if (colsHaveLabels) {
+        // gviz treated row 1 as headers → cols have labels
+        for (let i = 3; i < colLabels.length; i++) {
+            if (colLabels[i]) headerModelNames.push({ colIndex: i, name: colLabels[i] });
         }
+        dataStartIndex = 0;
+    } else {
+        // gviz did NOT treat row 1 as headers → row 0 is the header row
+        const firstRow = rows[0]?.c || [];
+        for (let i = 3; i < firstRow.length; i++) {
+            const val = firstRow[i]?.v ? String(firstRow[i].v).trim() : '';
+            if (val) headerModelNames.push({ colIndex: i, name: val });
+        }
+        dataStartIndex = 1; // skip header row
     }
     
-    // Parse rows to extract tech names, model definitions, and achievements
-    let currentLine = '';
-    const modelDefs = []; // from columns B-C
-    const techNames = [];
+    console.log('Header model columns:', headerModelNames);
+    console.log('Data starts at row index:', dataStartIndex);
     
-    rows.forEach((row, ri) => {
-        const cells = row.c || [];
+    // ── Step 2: Parse data rows ──
+    let currentLine = '';
+    const modelDefs = []; // from B-C columns
+    
+    for (let ri = dataStartIndex; ri < rows.length; ri++) {
+        const cells = rows[ri]?.c || [];
         const colA = cells[0]?.v ? String(cells[0].v).trim() : '';
         const colB = cells[1]?.v ? String(cells[1].v).trim() : '';
         const colC = cells[2]?.v ? String(cells[2].v).trim() : '';
         
+        // Skip if looks like header row
+        if (colA === '테크니션') continue;
+        
         // Tech names from column A
         if (colA) {
-            techNames.push(colA);
+            technicians.push(colA);
         }
         
-        // Model definitions from columns B-C
+        // Model definitions from columns B-C (build LINE→MODEL mapping)
         if (colB) currentLine = colB;
         if (colC) {
             modelDefs.push({ name: colC, line: currentLine });
         }
         
-        // Achievement data from columns D+
-        if (colA && modelCols.length > 0) {
-            modelCols.forEach(mc => {
-                const val = cells[mc.colIndex]?.v;
+        // Achievement data from D+ columns
+        if (colA && headerModelNames.length > 0) {
+            headerModelNames.forEach(hm => {
+                const val = cells[hm.colIndex]?.v;
                 if (val && String(val).trim().toUpperCase() === 'O') {
-                    achievementMap[`${colA}|${mc.modelName}`] = true;
+                    achievementMap[`${colA}|${hm.name}`] = true;
                 }
             });
         }
-    });
+    }
     
-    technicians = techNames;
+    // ── Step 3: Build models list with LINE info ──
+    // Create a name→line lookup from modelDefs (B-C columns)
+    const lineMap = {};
+    modelDefs.forEach(m => { lineMap[m.name] = m.line; });
     
-    // Use model definitions from columns B-C as the primary model list
-    // But also check if modelCols have extra models not in B-C
-    if (modelDefs.length > 0) {
+    // Use headerModelNames order (D+ columns) as the display order
+    if (headerModelNames.length > 0) {
+        models = headerModelNames.map(hm => ({
+            name: hm.name,
+            line: lineMap[hm.name] || 'Unknown'
+        }));
+    } else {
+        // Fallback: use B-C column definitions
         models = modelDefs;
     }
     
-    // If we have modelCols (D+), ensure all those models are in our list
-    if (modelCols.length > 0) {
-        const existingNames = new Set(models.map(m => m.name));
-        modelCols.forEach(mc => {
-            if (!existingNames.has(mc.modelName)) {
-                // Try to guess the line from existing models
-                models.push({ name: mc.modelName, line: 'Unknown' });
-            }
-        });
-    }
-    
-    // If no achievement columns but we have models, that's ok - show empty matrix
+    console.log('Technicians:', technicians);
+    console.log('Models:', models);
+    console.log('Achievements:', Object.keys(achievementMap).length, 'entries');
 }
 
 // ── Calculations ──
