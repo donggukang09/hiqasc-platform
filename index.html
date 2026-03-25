@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 2.11.0 | Updated: 2026-03-24 | Weekly Plan Added -->
+<!-- Version: 2.12.0 | Updated: 2026-03-25 | Model Achievement Dashboard Added -->
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -725,6 +725,21 @@
                         </p>
                         <span class="card-badge">운영중</span>
                     </div>
+
+                    <!-- 모델 성취도 대시보드 -->
+                    <div class="card" onclick="openApp('modelAchievement')">
+                        <div class="card-icon">
+                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                            </svg>
+                        </div>
+                        <h3 class="card-title">모델 성취도 대시보드</h3>
+                        <p class="card-description">
+                            테크니션별 모델 수리 가능 현황을 매트릭스로 확인합니다.
+                            전 모델 수리 가능을 목표로 한 교육 진행률을 추적합니다.
+                        </p>
+                        <span class="card-badge">운영중</span>
+                    </div>
                 </div>
             </div>
 
@@ -1084,7 +1099,8 @@
             alertSystem: 'https://donggukang09.github.io/hiqasc-platform/alert-system.html',
             trainingReport: 'https://donggukang09.github.io/hiqasc-platform/training-report.html',
             dailyPlan: 'https://donggukang09.github.io/hiqasc-platform/daily-plan.html',
-            weeklyPlan: 'https://donggukang09.github.io/hiqasc-platform/weekly-plan.html'
+            weeklyPlan: 'https://donggukang09.github.io/hiqasc-platform/weekly-plan.html',
+            modelAchievement: 'https://donggukang09.github.io/hiqasc-platform/model-achievement.html'
         };
 
         // 비밀번호 확인

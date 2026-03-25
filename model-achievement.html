@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>모델 성취도 대시보드 - HIQASC</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Manrope', sans-serif;
+    background: #f0f2f5;
+    color: #1a1a2e;
+    min-height: 100vh;
+}
+
+/* ── Top Bar ── */
+.top-bar {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    padding: 16px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+.top-bar-left { display: flex; align-items: center; gap: 16px; }
+.btn-home {
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.2);
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+.btn-home:hover { background: rgba(255,255,255,0.22); }
+.top-bar h1 {
+    color: #fff;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+.top-bar h1 span { color: #60a5fa; }
+.top-bar-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: rgba(255,255,255,0.6);
+    font-size: 13px;
+}
+.refresh-btn {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #fff;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.refresh-btn:hover { background: rgba(255,255,255,0.2); }
+.status-dot {
+    width: 8px; height: 8px;
+    background: #4ade80;
+    border-radius: 50%;
+    display: inline-block;
+    animation: pulse 2s infinite;
+}
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+
+/* ── Loading ── */
+.loading-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 120px 20px;
+    gap: 20px;
+}
+.spinner {
+    width: 48px; height: 48px;
+    border: 4px solid #e5e7eb;
+    border-top-color: #3b82f6;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-screen p { color: #6b7280; font-size: 15px; }
+
+/* ── Overall Progress ── */
+.overview-section {
+    padding: 28px;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 16px;
+}
+.stat-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    position: relative;
+    overflow: hidden;
+}
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+}
+.stat-card.total::before { background: linear-gradient(90deg, #3b82f6, #8b5cf6); }
+.stat-card.original::before { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+.stat-card.vertuo::before { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+.stat-card.b2b::before { background: linear-gradient(90deg, #8b5cf6, #a78bfa); }
+
+.stat-label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #6b7280;
+    margin-bottom: 8px;
+}
+.stat-value {
+    font-size: 36px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    line-height: 1;
+}
+.stat-card.total .stat-value { color: #3b82f6; }
+.stat-card.original .stat-value { color: #3b82f6; }
+.stat-card.vertuo .stat-value { color: #f59e0b; }
+.stat-card.b2b .stat-value { color: #8b5cf6; }
+.stat-sub {
+    font-size: 12px;
+    color: #9ca3af;
+    margin-top: 6px;
+    font-weight: 500;
+}
+
+/* ── Goal Banner ── */
+.goal-banner {
+    margin: 0 28px 20px;
+    background: linear-gradient(135deg, #1e3a5f 0%, #0f3460 100%);
+    border-radius: 16px;
+    padding: 20px 28px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    box-shadow: 0 4px 16px rgba(15,52,96,0.2);
+}
+.goal-icon {
+    font-size: 40px;
+    flex-shrink: 0;
+}
+.goal-info { flex: 1; }
+.goal-info h3 {
+    color: #fff;
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+.goal-bar-track {
+    width: 100%;
+    height: 12px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 6px;
+    overflow: hidden;
+}
+.goal-bar-fill {
+    height: 100%;
+    border-radius: 6px;
+    background: linear-gradient(90deg, #4ade80, #22d3ee);
+    transition: width 1s ease-out;
+}
+.goal-pct {
+    color: #4ade80;
+    font-size: 28px;
+    font-weight: 800;
+    flex-shrink: 0;
+    letter-spacing: -1px;
+}
+
+/* ── Matrix Section ── */
+.matrix-section {
+    padding: 0 28px 28px;
+}
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+.section-header h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a1a2e;
+}
+.legend {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+}
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b7280;
+}
+.legend-dot {
+    width: 12px; height: 12px;
+    border-radius: 3px;
+}
+.legend-dot.original { background: #3b82f6; }
+.legend-dot.vertuo { background: #f59e0b; }
+.legend-dot.b2b { background: #8b5cf6; }
+
+/* Matrix Table */
+.matrix-wrapper {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    overflow-x: auto;
+}
+.matrix-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 13px;
+}
+.matrix-table thead th {
+    padding: 0;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #fff;
+}
+.matrix-table thead tr:first-child th {
+    padding: 12px 6px 4px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-align: center;
+    border-bottom: none;
+}
+.matrix-table thead tr:first-child th.line-original { color: #3b82f6; background: #eff6ff; }
+.matrix-table thead tr:first-child th.line-vertuo { color: #d97706; background: #fffbeb; }
+.matrix-table thead tr:first-child th.line-b2b { color: #7c3aed; background: #f5f3ff; }
+
+.matrix-table thead tr:nth-child(2) th {
+    padding: 4px 6px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #374151;
+    text-align: center;
+    border-bottom: 2px solid #e5e7eb;
+    white-space: nowrap;
+}
+.matrix-table thead tr:nth-child(2) th.tech-header {
+    text-align: left;
+    padding-left: 16px;
+    min-width: 90px;
+}
+.matrix-table thead tr:nth-child(2) th.progress-header {
+    text-align: center;
+    min-width: 140px;
+}
+
+/* Line color top borders on model headers */
+.model-header-original { border-top: 3px solid #3b82f6 !important; background: #f8fbff; }
+.model-header-vertuo { border-top: 3px solid #f59e0b !important; background: #fffef8; }
+.model-header-b2b { border-top: 3px solid #8b5cf6 !important; background: #faf8ff; }
+
+.matrix-table tbody tr {
+    transition: background 0.15s;
+}
+.matrix-table tbody tr:hover {
+    background: #f8fafc;
+}
+.matrix-table tbody tr:nth-child(even) {
+    background: #fafbfc;
+}
+.matrix-table tbody tr:nth-child(even):hover {
+    background: #f0f4f8;
+}
+.matrix-table tbody td {
+    padding: 10px 6px;
+    text-align: center;
+    border-bottom: 1px solid #f0f0f0;
+    vertical-align: middle;
+}
+.matrix-table tbody td:first-child {
+    text-align: left;
+    padding-left: 16px;
+    font-weight: 700;
+    color: #1a1a2e;
+    font-size: 13px;
+    white-space: nowrap;
+    position: sticky;
+    left: 0;
+    background: inherit;
+    z-index: 5;
+}
+.matrix-table tbody td:last-child {
+    padding-right: 16px;
+}
+
+/* Achievement Cell */
+.cell-done {
+    color: #22c55e;
+    font-size: 18px;
+    font-weight: 700;
+}
+.cell-empty {
+    color: #e5e7eb;
+    font-size: 16px;
+}
+
+/* Progress in row */
+.row-progress {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: center;
+    min-width: 130px;
+}
+.row-progress-bar {
+    flex: 1;
+    height: 8px;
+    background: #e5e7eb;
+    border-radius: 4px;
+    overflow: hidden;
+    max-width: 80px;
+}
+.row-progress-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 1s ease-out;
+}
+.row-progress-pct {
+    font-size: 13px;
+    font-weight: 700;
+    min-width: 38px;
+    text-align: right;
+}
+
+/* Color classes for progress */
+.progress-low .row-progress-fill { background: linear-gradient(90deg, #ef4444, #f87171); }
+.progress-low .row-progress-pct { color: #ef4444; }
+.progress-mid .row-progress-fill { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+.progress-mid .row-progress-pct { color: #f59e0b; }
+.progress-high .row-progress-fill { background: linear-gradient(90deg, #22c55e, #4ade80); }
+.progress-high .row-progress-pct { color: #22c55e; }
+.progress-full .row-progress-fill { background: linear-gradient(90deg, #3b82f6, #8b5cf6); }
+.progress-full .row-progress-pct { color: #3b82f6; }
+
+/* ── Technician Cards Section ── */
+.tech-cards-section {
+    padding: 0 28px 40px;
+}
+.tech-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 14px;
+}
+.tech-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 18px 20px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.tech-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+}
+.tech-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+}
+.tech-card-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1a1a2e;
+}
+.tech-card-pct {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+}
+.tech-card-bar {
+    width: 100%;
+    height: 10px;
+    background: #f0f0f0;
+    border-radius: 5px;
+    overflow: hidden;
+    margin-bottom: 14px;
+}
+.tech-card-bar-fill {
+    height: 100%;
+    border-radius: 5px;
+    transition: width 1.2s ease-out;
+}
+.tech-card-models {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+.model-tag {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+}
+.model-tag.done-original { background: #dbeafe; color: #1d4ed8; }
+.model-tag.done-vertuo { background: #fef3c7; color: #b45309; }
+.model-tag.done-b2b { background: #ede9fe; color: #6d28d9; }
+.model-tag.not-done {
+    background: #f3f4f6;
+    color: #c0c0c0;
+    text-decoration: line-through;
+}
+
+/* ── Empty state ── */
+.empty-notice {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin: 0 28px 20px;
+    font-size: 13px;
+    color: #92400e;
+    line-height: 1.7;
+}
+.empty-notice strong { font-weight: 700; }
+.empty-notice code {
+    background: rgba(0,0,0,0.06);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 12px;
+}
+
+/* ── Error ── */
+.error-box {
+    background: #fef2f2;
+    border: 1px solid #fca5a5;
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin: 40px 28px;
+    color: #991b1b;
+    font-size: 14px;
+    text-align: center;
+}
+
+/* ── Responsive ── */
+@media (max-width: 1200px) {
+    .overview-section { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 768px) {
+    .overview-section { grid-template-columns: 1fr; padding: 16px; }
+    .matrix-section, .tech-cards-section { padding: 0 16px 20px; }
+    .goal-banner { margin: 0 16px 16px; flex-direction: column; text-align: center; }
+    .tech-cards-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- Top Bar -->
+<div class="top-bar">
+    <div class="top-bar-left">
+        <a href="index.html" class="btn-home">🏠 메인으로</a>
+        <h1>모델 <span>성취도</span> 대시보드</h1>
+    </div>
+    <div class="top-bar-right">
+        <span class="status-dot"></span>
+        <span id="lastUpdate">불러오는 중...</span>
+        <button class="refresh-btn" onclick="loadData()">↻ 새로고침</button>
+    </div>
+</div>
+
+<!-- Content Container -->
+<div id="content">
+    <div class="loading-screen" id="loadingScreen">
+        <div class="spinner"></div>
+        <p>Google Sheets에서 데이터를 불러오는 중...</p>
+    </div>
+</div>
+
+<script>
+const SHEET_ID = '1cmMEbIkmEL629RT04hpUUgXddnSVLGo1YwRzBwfyzCY';
+const TAB_NAME = '모델성취도';
+
+// ── State ──
+let technicians = [];
+let models = []; // { name, line }
+let achievementMap = {}; // { "techName|modelName": true }
+
+// ── Fetch via JSONP-style gviz ──
+function fetchSheet() {
+    return new Promise((resolve, reject) => {
+        const cbName = 'gvizCb_' + Date.now();
+        const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(TAB_NAME)}&tqx=responseHandler:${cbName}`;
+        
+        window[cbName] = function(response) {
+            delete window[cbName];
+            document.body.removeChild(script);
+            if (response.status === 'error') {
+                reject(new Error(response.errors?.[0]?.message || '시트 로드 실패'));
+                return;
+            }
+            resolve(response.table);
+        };
+        
+        const script = document.createElement('script');
+        script.src = url;
+        script.onerror = () => {
+            delete window[cbName];
+            document.body.removeChild(script);
+            reject(new Error('네트워크 오류'));
+        };
+        document.body.appendChild(script);
+    });
+}
+
+// ── Parse Sheet Data ──
+function parseData(table) {
+    const cols = table.cols || [];
+    const rows = table.rows || [];
+    
+    technicians = [];
+    models = [];
+    achievementMap = {};
+    
+    // Column labels from header row
+    const colLabels = cols.map(c => (c.label || '').trim());
+    
+    // Find the model columns: columns D onwards (index 3+) that have model names as labels
+    const modelCols = []; // { colIndex, modelName }
+    for (let i = 3; i < colLabels.length; i++) {
+        if (colLabels[i]) {
+            modelCols.push({ colIndex: i, modelName: colLabels[i] });
+        }
+    }
+    
+    // Parse rows to extract tech names, model definitions, and achievements
+    let currentLine = '';
+    const modelDefs = []; // from columns B-C
+    const techNames = [];
+    
+    rows.forEach((row, ri) => {
+        const cells = row.c || [];
+        const colA = cells[0]?.v ? String(cells[0].v).trim() : '';
+        const colB = cells[1]?.v ? String(cells[1].v).trim() : '';
+        const colC = cells[2]?.v ? String(cells[2].v).trim() : '';
+        
+        // Tech names from column A
+        if (colA) {
+            techNames.push(colA);
+        }
+        
+        // Model definitions from columns B-C
+        if (colB) currentLine = colB;
+        if (colC) {
+            modelDefs.push({ name: colC, line: currentLine });
+        }
+        
+        // Achievement data from columns D+
+        if (colA && modelCols.length > 0) {
+            modelCols.forEach(mc => {
+                const val = cells[mc.colIndex]?.v;
+                if (val && String(val).trim().toUpperCase() === 'O') {
+                    achievementMap[`${colA}|${mc.modelName}`] = true;
+                }
+            });
+        }
+    });
+    
+    technicians = techNames;
+    
+    // Use model definitions from columns B-C as the primary model list
+    // But also check if modelCols have extra models not in B-C
+    if (modelDefs.length > 0) {
+        models = modelDefs;
+    }
+    
+    // If we have modelCols (D+), ensure all those models are in our list
+    if (modelCols.length > 0) {
+        const existingNames = new Set(models.map(m => m.name));
+        modelCols.forEach(mc => {
+            if (!existingNames.has(mc.modelName)) {
+                // Try to guess the line from existing models
+                models.push({ name: mc.modelName, line: 'Unknown' });
+            }
+        });
+    }
+    
+    // If no achievement columns but we have models, that's ok - show empty matrix
+}
+
+// ── Calculations ──
+function calcTechProgress(techName) {
+    if (models.length === 0) return { done: 0, total: 0, pct: 0 };
+    let done = 0;
+    models.forEach(m => {
+        if (achievementMap[`${techName}|${m.name}`]) done++;
+    });
+    return { done, total: models.length, pct: Math.round((done / models.length) * 100) };
+}
+
+function calcLineProgress(lineName) {
+    const lineModels = models.filter(m => m.line === lineName);
+    if (lineModels.length === 0 || technicians.length === 0) return { done: 0, total: 0, pct: 0 };
+    let done = 0;
+    const total = lineModels.length * technicians.length;
+    technicians.forEach(t => {
+        lineModels.forEach(m => {
+            if (achievementMap[`${t}|${m.name}`]) done++;
+        });
+    });
+    return { done, total, pct: Math.round((done / total) * 100) };
+}
+
+function calcOverall() {
+    if (models.length === 0 || technicians.length === 0) return { done: 0, total: 0, pct: 0 };
+    let done = 0;
+    const total = models.length * technicians.length;
+    technicians.forEach(t => {
+        models.forEach(m => {
+            if (achievementMap[`${t}|${m.name}`]) done++;
+        });
+    });
+    return { done, total, pct: Math.round((done / total) * 100) };
+}
+
+function getProgressClass(pct) {
+    if (pct >= 100) return 'progress-full';
+    if (pct >= 70) return 'progress-high';
+    if (pct >= 40) return 'progress-mid';
+    return 'progress-low';
+}
+
+function getProgressColor(pct) {
+    if (pct >= 100) return '#3b82f6';
+    if (pct >= 70) return '#22c55e';
+    if (pct >= 40) return '#f59e0b';
+    return '#ef4444';
+}
+
+function getBarGradient(pct) {
+    if (pct >= 100) return 'linear-gradient(90deg, #3b82f6, #8b5cf6)';
+    if (pct >= 70) return 'linear-gradient(90deg, #22c55e, #4ade80)';
+    if (pct >= 40) return 'linear-gradient(90deg, #f59e0b, #fbbf24)';
+    return 'linear-gradient(90deg, #ef4444, #f87171)';
+}
+
+// ── Render ──
+function render() {
+    const content = document.getElementById('content');
+    const overall = calcOverall();
+    const lines = [...new Set(models.map(m => m.line))];
+    
+    const origProg = calcLineProgress('Original');
+    const vertuoProg = calcLineProgress('Vertuo');
+    const b2bProg = calcLineProgress('B2B');
+    
+    const hasAchievements = Object.keys(achievementMap).length > 0;
+    
+    let html = '';
+    
+    // ── Overview Cards ──
+    html += `<div class="overview-section">
+        <div class="stat-card total">
+            <div class="stat-label">전체 달성률</div>
+            <div class="stat-value">${overall.pct}%</div>
+            <div class="stat-sub">${overall.done} / ${overall.total} 항목 완료</div>
+        </div>
+        <div class="stat-card original">
+            <div class="stat-label">Original Line</div>
+            <div class="stat-value">${origProg.pct}%</div>
+            <div class="stat-sub">${origProg.done} / ${origProg.total}</div>
+        </div>
+        <div class="stat-card vertuo">
+            <div class="stat-label">Vertuo Line</div>
+            <div class="stat-value">${vertuoProg.pct}%</div>
+            <div class="stat-sub">${vertuoProg.done} / ${vertuoProg.total}</div>
+        </div>
+        <div class="stat-card b2b">
+            <div class="stat-label">B2B Line</div>
+            <div class="stat-value">${b2bProg.pct}%</div>
+            <div class="stat-sub">${b2bProg.done} / ${b2bProg.total}</div>
+        </div>
+    </div>`;
+    
+    // ── Goal Banner ──
+    html += `<div class="goal-banner">
+        <div class="goal-icon">🎯</div>
+        <div class="goal-info">
+            <h3>목표: 전 테크니션 전 모델 수리 가능</h3>
+            <div class="goal-bar-track">
+                <div class="goal-bar-fill" style="width: ${overall.pct}%"></div>
+            </div>
+        </div>
+        <div class="goal-pct">${overall.pct}%</div>
+    </div>`;
+    
+    // ── Empty notice if no achievement data ──
+    if (!hasAchievements && models.length > 0) {
+        html += `<div class="empty-notice">
+            <strong>📋 성취도 데이터 입력 방법</strong><br>
+            Google Sheets의 <strong>[모델성취도]</strong> 탭에서 <strong>D1 셀부터</strong> 각 모델명을 입력하세요.<br>
+            예: D1 = <code>Citiz</code>, E1 = <code>Citiz platinum</code>, F1 = <code>Pixie</code> ... (C열의 모델명과 동일하게)<br>
+            각 테크니션 행에 수리 가능한 모델은 <code>O</code> 입력 → 자동 반영됩니다.
+        </div>`;
+    }
+    
+    // ── Matrix Table ──
+    if (models.length > 0 && technicians.length > 0) {
+        // Group models by line for the header
+        const modelsByLine = {};
+        models.forEach(m => {
+            if (!modelsByLine[m.line]) modelsByLine[m.line] = [];
+            modelsByLine[m.line].push(m);
+        });
+        
+        const lineOrder = ['Original', 'Vertuo', 'B2B'];
+        const orderedLines = lineOrder.filter(l => modelsByLine[l]);
+        // Add any other lines not in order
+        Object.keys(modelsByLine).forEach(l => {
+            if (!orderedLines.includes(l)) orderedLines.push(l);
+        });
+        
+        html += `<div class="matrix-section">
+            <div class="section-header">
+                <h2>📊 테크니션 × 모델 매트릭스</h2>
+                <div class="legend">
+                    <div class="legend-item"><div class="legend-dot original"></div>Original</div>
+                    <div class="legend-item"><div class="legend-dot vertuo"></div>Vertuo</div>
+                    <div class="legend-item"><div class="legend-dot b2b"></div>B2B</div>
+                </div>
+            </div>
+            <div class="matrix-wrapper">
+                <table class="matrix-table">
+                    <thead>
+                        <tr>
+                            <th rowspan="2" style="min-width:90px;"></th>`;
+        
+        // Line group headers
+        orderedLines.forEach(line => {
+            const cls = line === 'Original' ? 'line-original' : line === 'Vertuo' ? 'line-vertuo' : 'line-b2b';
+            const count = modelsByLine[line].length;
+            html += `<th colspan="${count}" class="${cls}" style="border-radius:8px 8px 0 0;">${line.toUpperCase()} LINE</th>`;
+        });
+        html += `<th rowspan="2" class="progress-header" style="padding:8px 12px; font-size:11px; font-weight:600; color:#374151;">달성률</th></tr><tr>`;
+        
+        // Model name headers
+        orderedLines.forEach(line => {
+            const cls = line === 'Original' ? 'model-header-original' : line === 'Vertuo' ? 'model-header-vertuo' : 'model-header-b2b';
+            modelsByLine[line].forEach(m => {
+                // Shorten long names for header
+                let displayName = m.name;
+                html += `<th class="${cls}" title="${m.name}">${displayName}</th>`;
+            });
+        });
+        html += `</tr></thead><tbody>`;
+        
+        // Technician rows
+        // Sort by progress descending
+        const techProgress = technicians.map(t => ({ name: t, ...calcTechProgress(t) }));
+        techProgress.sort((a, b) => b.pct - a.pct);
+        
+        techProgress.forEach(tp => {
+            const cls = getProgressClass(tp.pct);
+            html += `<tr><td>${tp.name}</td>`;
+            
+            orderedLines.forEach(line => {
+                modelsByLine[line].forEach(m => {
+                    const done = achievementMap[`${tp.name}|${m.name}`];
+                    if (done) {
+                        html += `<td><span class="cell-done">✓</span></td>`;
+                    } else {
+                        html += `<td><span class="cell-empty">─</span></td>`;
+                    }
+                });
+            });
+            
+            // Progress bar
+            html += `<td><div class="row-progress ${cls}">
+                <div class="row-progress-bar"><div class="row-progress-fill" style="width:${tp.pct}%"></div></div>
+                <span class="row-progress-pct">${tp.pct}%</span>
+            </div></td></tr>`;
+        });
+        
+        html += `</tbody></table></div></div>`;
+    }
+    
+    // ── Technician Cards ──
+    if (technicians.length > 0 && models.length > 0) {
+        const techProgress = technicians.map(t => ({ name: t, ...calcTechProgress(t) }));
+        techProgress.sort((a, b) => b.pct - a.pct);
+        
+        html += `<div class="tech-cards-section">
+            <div class="section-header">
+                <h2>👤 테크니션별 상세</h2>
+            </div>
+            <div class="tech-cards-grid">`;
+        
+        techProgress.forEach(tp => {
+            const color = getProgressColor(tp.pct);
+            const gradient = getBarGradient(tp.pct);
+            
+            html += `<div class="tech-card">
+                <div class="tech-card-header">
+                    <span class="tech-card-name">${tp.name}</span>
+                    <span class="tech-card-pct" style="color:${color}">${tp.pct}%</span>
+                </div>
+                <div class="tech-card-bar">
+                    <div class="tech-card-bar-fill" style="width:${tp.pct}%; background:${gradient}"></div>
+                </div>
+                <div class="tech-card-models">`;
+            
+            models.forEach(m => {
+                const done = achievementMap[`${tp.name}|${m.name}`];
+                const lineCls = m.line === 'Original' ? 'original' : m.line === 'Vertuo' ? 'vertuo' : 'b2b';
+                if (done) {
+                    html += `<span class="model-tag done-${lineCls}">${m.name} ✓</span>`;
+                } else {
+                    html += `<span class="model-tag not-done">${m.name}</span>`;
+                }
+            });
+            
+            html += `</div></div>`;
+        });
+        
+        html += `</div></div>`;
+    }
+    
+    content.innerHTML = html;
+    
+    // Animate progress bars with a slight delay
+    requestAnimationFrame(() => {
+        document.querySelectorAll('.row-progress-fill, .tech-card-bar-fill, .goal-bar-fill').forEach(el => {
+            const w = el.style.width;
+            el.style.width = '0%';
+            requestAnimationFrame(() => { el.style.width = w; });
+        });
+    });
+}
+
+// ── Main Load ──
+async function loadData() {
+    try {
+        const table = await fetchSheet();
+        parseData(table);
+        render();
+        document.getElementById('lastUpdate').textContent = '업데이트: ' + new Date().toLocaleTimeString('ko-KR');
+    } catch (err) {
+        console.error('Load error:', err);
+        document.getElementById('content').innerHTML = `
+            <div class="error-box">
+                <strong>⚠️ 데이터 로드 실패</strong><br>
+                ${err.message}<br><br>
+                시트 ID와 탭 이름을 확인해주세요.<br>
+                시트 공유 설정이 "링크가 있는 모든 사용자"로 되어 있어야 합니다.
+            </div>`;
+    }
+}
+
+// Initial load
+loadData();
+
+// Auto-refresh every 60 seconds
+setInterval(loadData, 60000);
+</script>
+</body>
+</html>
