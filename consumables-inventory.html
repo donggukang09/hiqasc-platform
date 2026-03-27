@@ -472,9 +472,9 @@
                 
                 console.log('응답 데이터:', json);
 
-                // 데이터 변환 (첫 번째 행은 헤더)
+                // 데이터 변환
                 allData = [];
-                for (let i = 1; i < json.table.rows.length; i++) {
+                for (let i = 0; i < json.table.rows.length; i++) {
                     const row = json.table.rows[i];
                     
                     // 빈 행 건너뛰기
@@ -512,6 +512,24 @@
             }
         }
 
+        // 상태 판정 (통일 함수)
+        function getItemStatus(item) {
+            if (item.quantity <= 0) {
+                return { statusClass: 'status-critical', statusText: '재고없음', quantityClass: 'quantity-critical', isNormal: false };
+            } else if (item.quantity < item.safetyStock) {
+                return { statusClass: 'status-low', statusText: '부족', quantityClass: 'quantity-low', isNormal: false };
+            } else {
+                // 수량이 안전재고 이상이어도, 시트에서 부족/재고없음으로 지정했으면 그대로 반영
+                const sheetStatus = (item.status || '').trim();
+                if (sheetStatus === '부족') {
+                    return { statusClass: 'status-low', statusText: '부족', quantityClass: 'quantity-low', isNormal: false };
+                } else if (sheetStatus === '재고없음') {
+                    return { statusClass: 'status-critical', statusText: '재고없음', quantityClass: 'quantity-critical', isNormal: false };
+                }
+                return { statusClass: 'status-normal', statusText: '정상', quantityClass: 'quantity-normal', isNormal: true };
+            }
+        }
+
         // 데이터 표시
         function displayData(data) {
             const tbody = document.getElementById('tableBody');
@@ -519,29 +537,15 @@
 
             data.forEach(item => {
                 const row = document.createElement('tr');
-                
-                // 상태 결정
-                let statusClass = 'status-normal';
-                let statusText = item.status || '정상';
-                let quantityClass = 'quantity-normal';
-                
-                if (item.quantity <= 0) {
-                    statusClass = 'status-critical';
-                    statusText = '재고없음';
-                    quantityClass = 'quantity-critical';
-                } else if (item.quantity < item.safetyStock) {
-                    statusClass = 'status-low';
-                    statusText = '부족';
-                    quantityClass = 'quantity-low';
-                }
+                const s = getItemStatus(item);
                 
                 row.innerHTML = `
                     <td><strong>${item.name}</strong></td>
                     <td>${item.spec || '-'}</td>
-                    <td class="quantity-cell ${quantityClass}">${item.quantity.toLocaleString()}</td>
+                    <td class="quantity-cell ${s.quantityClass}">${item.quantity.toLocaleString()}</td>
                     <td>${item.unit}</td>
                     <td>${item.safetyStock.toLocaleString()}</td>
-                    <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                    <td><span class="status-badge ${s.statusClass}">${s.statusText}</span></td>
                     <td style="color: #808080;">${item.note || '-'}</td>
                 `;
                 
@@ -556,7 +560,8 @@
             let low = 0;
 
             data.forEach(item => {
-                if (item.quantity >= item.safetyStock) {
+                const s = getItemStatus(item);
+                if (s.isNormal) {
                     normal++;
                 } else {
                     low++;
