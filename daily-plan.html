@@ -367,12 +367,12 @@
             <div class="time-axis" id="timeAxis"></div>
             <div class="bar-track" id="planBar"></div>
             <div class="legend-row">
-                <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(135deg,#3b82f6,#60a5fa)"></div>오전 (09~12) : 60대</div>
-                <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(135deg,#2563eb,#3b82f6)"></div>13~14 : 90대</div>
-                <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(135deg,#1d4ed8,#2563eb)"></div>14~15 : 120대</div>
-                <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(135deg,#1e40af,#1d4ed8)"></div>15~16 : 140대</div>
-                <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(135deg,#1e3a8a,#1e40af)"></div>16~17 : 170대</div>
-                <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(135deg,#172554,#1e3a8a)"></div>마감 : 200대</div>
+                <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(135deg,#3b82f6,#60a5fa)"></div>오전 (09~12) : 55대</div>
+                <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(135deg,#2563eb,#3b82f6)"></div>13~14 : 80대</div>
+                <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(135deg,#1d4ed8,#2563eb)"></div>14~15 : 110대</div>
+                <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(135deg,#1e40af,#1d4ed8)"></div>15~16 : 130대</div>
+                <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(135deg,#1e3a8a,#1e40af)"></div>16~17 : 160대</div>
+                <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(135deg,#172554,#1e3a8a)"></div>마감 : 190대</div>
             </div>
         </div>
     </div>
@@ -508,12 +508,12 @@
 // ═══════════════════════════════════════
 // 설정
 // ═══════════════════════════════════════
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbye8J1p8CI0yJoVID-ZHx4bXrDwa1ees8K2gNDMPqe8nmEBm86t5y3Tp1bi5P45llk90w/exec';
+const APPS_SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
 const START_HOUR = 9, END_HOUR = 18, TOTAL_HOURS = 9;
 const PLAN_CHECKPOINTS = [
-    { hour:9, cumulative:0 }, { hour:12, cumulative:60 }, { hour:13, cumulative:60 },
-    { hour:14, cumulative:90 }, { hour:15, cumulative:120 }, { hour:16, cumulative:140 },
-    { hour:17, cumulative:170 }, { hour:18, cumulative:200 }
+    { hour:9, cumulative:0 }, { hour:12, cumulative:55 }, { hour:13, cumulative:55 },
+    { hour:14, cumulative:80 }, { hour:15, cumulative:110 }, { hour:16, cumulative:130 },
+    { hour:17, cumulative:160 }, { hour:18, cumulative:190 }
 ];
 
 let selectedDate = new Date(), calYear, calMonth;
@@ -592,7 +592,7 @@ function selectDate(date){
 
 // ═══ Sheets 연동 ═══
 function loadCalendarData(year,month){
-    if(APPS_SCRIPT_URL==='https://script.google.com/macros/s/AKfycbye8J1p8CI0yJoVID-ZHx4bXrDwa1ees8K2gNDMPqe8nmEBm86t5y3Tp1bi5P45llk90w/exec')return;
+    if(APPS_SCRIPT_URL==='YOUR_APPS_SCRIPT_URL_HERE')return;
     const ck=year+'-'+String(month).padStart(2,'0'),cb='calCb_'+(++jsonpCounter);
     window[cb]=function(r){if(r.success){calendarCache[ck]=r.dates;renderCalDots(ck);}delete window[cb];const s=document.getElementById('s_'+cb);if(s)s.remove();};
     const s=document.createElement('script');s.id='s_'+cb;s.src=APPS_SCRIPT_URL+'?action=calendar&year='+year+'&month='+month+'&callback='+cb+'&t='+Date.now();document.body.appendChild(s);
@@ -605,7 +605,7 @@ function renderCalDots(ck){
 }
 
 function loadFromSheets(dateStr){
-    if(APPS_SCRIPT_URL==='https://script.google.com/macros/s/AKfycbye8J1p8CI0yJoVID-ZHx4bXrDwa1ees8K2gNDMPqe8nmEBm86t5y3Tp1bi5P45llk90w/exec'){updateStatus('new');return;}
+    if(APPS_SCRIPT_URL==='YOUR_APPS_SCRIPT_URL_HERE'){updateStatus('new');return;}
     showLoading('불러오는 중...');
     const cb='loadCb_'+(++jsonpCounter);
     window[cb]=function(r){
@@ -660,7 +660,7 @@ function getExecData(){
 }
 
 function saveToSheets(){
-    if(APPS_SCRIPT_URL==='https://script.google.com/macros/s/AKfycbye8J1p8CI0yJoVID-ZHx4bXrDwa1ees8K2gNDMPqe8nmEBm86t5y3Tp1bi5P45llk90w/exec'){showToast('Apps Script URL을 설정해주세요.','error');return;}
+    if(APPS_SCRIPT_URL==='YOUR_APPS_SCRIPT_URL_HERE'){showToast('Apps Script URL을 설정해주세요.','error');return;}
     const dateStr=fmtDate(selectedDate);
     const actList=[];Object.keys(activities).forEach(h=>{const a=activities[h];actList.push({hour:parseInt(h),title:a.title,detail:a.detail||'',participants:a.participants||''});});
     const payload={action:'saveAll',date:dateStr,qty:currentQty,activities:actList,execData:getExecData()};
@@ -692,17 +692,17 @@ function clearAllData(){
 function buildTimeAxis(id){const ax=document.getElementById(id);ax.innerHTML='';for(let h=START_HOUR;h<=END_HOUR;h++){const p=((h-START_HOUR)/TOTAL_HOURS)*100;const l=document.createElement('span');l.className='time-label';l.style.left=p+'%';l.textContent=String(h).padStart(2,'0')+':00';ax.appendChild(l);const t=document.createElement('div');t.className='time-tick';t.style.left=p+'%';ax.appendChild(t);}}
 function buildPlanBar(){
     const bar=document.getElementById('planBar');bar.innerHTML='';
-    [{s:9,e:12,to:60,c:'seg-morning',l:'오전'},{s:12,e:13,to:null,c:'seg-lunch',l:'점심'},
-     {s:13,e:14,to:90,c:'seg-pm13',l:''},{s:14,e:15,to:120,c:'seg-pm14',l:''},
-     {s:15,e:16,to:140,c:'seg-pm15',l:''},{s:16,e:17,to:170,c:'seg-pm16',l:''},
-     {s:17,e:18,to:200,c:'seg-pm17',l:'마감'}
+    [{s:9,e:12,to:55,c:'seg-morning',l:'오전'},{s:12,e:13,to:null,c:'seg-lunch',l:'점심'},
+     {s:13,e:14,to:80,c:'seg-pm13',l:''},{s:14,e:15,to:110,c:'seg-pm14',l:''},
+     {s:15,e:16,to:130,c:'seg-pm15',l:''},{s:16,e:17,to:160,c:'seg-pm16',l:''},
+     {s:17,e:18,to:190,c:'seg-pm17',l:'마감'}
     ].forEach(sg=>{const left=((sg.s-START_HOUR)/TOTAL_HOURS)*100,w=((sg.e-sg.s)/TOTAL_HOURS)*100;
     const d=document.createElement('div');d.className='bar-segment '+sg.c;d.style.left=left+'%';d.style.width=w+'%';
     d.innerHTML=sg.c==='seg-lunch'?'<span class="lunch-label">🍚 점심</span>':`<span class="seg-count">${sg.to}대</span>${sg.e-sg.s>=2?'<span class="seg-label">'+sg.l+' (~'+sg.e+'시)</span>':''}`;
     bar.appendChild(d);});
 }
 
-function getHourForQty(q){if(q<=0)return START_HOUR;if(q>=200)return END_HOUR;for(let i=1;i<PLAN_CHECKPOINTS.length;i++){const p=PLAN_CHECKPOINTS[i-1],c=PLAN_CHECKPOINTS[i];if(q<=c.cumulative){if(c.cumulative===p.cumulative)return c.hour;return p.hour+(q-p.cumulative)/(c.cumulative-p.cumulative)*(c.hour-p.hour);}}return END_HOUR;}
+function getHourForQty(q){if(q<=0)return START_HOUR;if(q>=190)return END_HOUR;for(let i=1;i<PLAN_CHECKPOINTS.length;i++){const p=PLAN_CHECKPOINTS[i-1],c=PLAN_CHECKPOINTS[i];if(q<=c.cumulative){if(c.cumulative===p.cumulative)return c.hour;return p.hour+(q-p.cumulative)/(c.cumulative-p.cumulative)*(c.hour-p.hour);}}return END_HOUR;}
 function formatHour(h){return `${String(Math.floor(h)).padStart(2,'0')}:${String(Math.round((h-Math.floor(h))*60)).padStart(2,'0')}`;}
 
 function applyPlan(){

@@ -257,11 +257,11 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzU3IVwvivpvt78vSJhI6Rz6l2jlb_HgGeEQFl9gaHdwJPYKUchrKnTlrewPdKXAOxwPA/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxfv4Vb3Rk9hjsT6tU98Q8Ij4wljhZQZAvyWJ7jT50H2NfD2GPMIONL6GQjqJ0WFWNwzg/exec';
 const START_HOUR = 9, END_HOUR = 18, TOTAL_HOURS = 9;
 const PLAN_CHECKPOINTS = [
-    {hour:9,cum:0},{hour:12,cum:60},{hour:13,cum:60},{hour:14,cum:90},
-    {hour:15,cum:120},{hour:16,cum:140},{hour:17,cum:170},{hour:18,cum:200}
+    {hour:9,cum:0},{hour:12,cum:55},{hour:13,cum:55},{hour:14,cum:80},
+    {hour:15,cum:110},{hour:16,cum:130},{hour:17,cum:160},{hour:18,cum:190}
 ];
 const DAY_NAMES = ['월','화','수','목','금'];
 const DAY_CLS = ['mon','tue','wed','thu','fri'];
@@ -332,7 +332,7 @@ function updateStatus(t) {
 }
 
 function getHourForQty(q) {
-    if (q <= 0) return START_HOUR; if (q >= 200) return END_HOUR;
+    if (q <= 0) return START_HOUR; if (q >= 190) return END_HOUR;
     for (let i = 1; i < PLAN_CHECKPOINTS.length; i++) {
         const p = PLAN_CHECKPOINTS[i-1], c = PLAN_CHECKPOINTS[i];
         if (q <= c.cum) { if (c.cum === p.cum) return c.hour; return p.hour + (q - p.cum) / (c.cum - p.cum) * (c.hour - p.hour); }
