@@ -90,7 +90,7 @@
         .time-axis .tl { position: absolute; font-size: 11px; font-weight: 700; color: #94a3b8; transform: translateX(-50%); }
         .time-tick { position: absolute; width: 1px; height: 10px; background: #cbd5e1; top: 18px; transform: translateX(-50%); }
 
-        .bar-track { position: relative; height: 56px; background: #f1f5f9; border-radius: 12px; overflow: hidden; margin-bottom: 6px; }
+        .bar-track { position: relative; height: 56px; background: #f1f5f9; border-radius: 12px; overflow: visible; margin-bottom: 6px; }
         .bar-seg {
             position: absolute; top: 4px; height: 48px; border-radius: 10px;
             display: flex; align-items: center; justify-content: center; flex-direction: column;
@@ -174,6 +174,50 @@
         .btn-save { background: linear-gradient(135deg, #2563eb, #3b82f6); color: #fff; }
         .btn-delete { background: #fee2e2; color: #dc2626; }
 
+        /* 타임라인 내 빈 슬롯 */
+        .tl-free-slot {
+            position: absolute; top: 4px; height: 48px; border-radius: 10px;
+            background: #f1f5f9; border: 2px dashed #cbd5e1; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; flex-direction: column;
+            transition: all 0.2s; overflow: hidden; z-index: 5;
+        }
+        .tl-free-slot:hover { background: #e2e8f0; border-color: #6366f1; }
+        .tl-free-slot .free-plus { font-size: 20px; color: #cbd5e1; }
+        .tl-free-slot.filled {
+            background: linear-gradient(135deg, #4f46e5, #6366f1);
+            border: none; cursor: pointer; color: #fff;
+        }
+        .tl-free-slot.filled:hover { background: linear-gradient(135deg, #4338ca, #4f46e5); }
+        .tl-free-slot.filled .bs-label { font-size: 11px; font-weight: 800; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+        .tl-free-slot.filled .bs-sub { font-size: 9px; font-weight: 600; opacity: 0.85; }
+
+        /* 상세 내역 */
+        .detail-title { font-size: 13px; font-weight: 700; color: #94a3b8; margin-bottom: 10px; }
+        .detail-card { background: #f8fafc; border: 1px solid #dbeafe; border-radius: 14px; overflow: hidden; margin-bottom: 12px; }
+        .detail-card-header {
+            display: flex; align-items: center; gap: 12px; padding: 14px 18px;
+            background: linear-gradient(135deg, #4f46e5, #6366f1); color: #fff;
+        }
+        .detail-card-header .dc-time { font-size: 12px; font-weight: 800; background: rgba(255,255,255,0.3); padding: 3px 10px; border-radius: 6px; }
+        .detail-card-header .dc-title { font-size: 15px; font-weight: 800; flex: 1; }
+        .detail-card-header .dc-del {
+            background: rgba(255,255,255,0.2); border: none; color: #fff; width: 26px; height: 26px;
+            border-radius: 6px; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+        }
+        .detail-card-body { padding: 14px 18px; display: flex; flex-direction: column; gap: 10px; }
+        .df-label { font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px; }
+        .df-textarea {
+            width: 100%; padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 10px;
+            font-family: 'Manrope', sans-serif; font-size: 13px; font-weight: 500; color: #1e293b;
+            resize: vertical; min-height: 50px; outline: none; line-height: 1.5;
+        }
+        .df-textarea:focus { border-color: #6366f1; }
+        .df-input {
+            width: 100%; padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 10px;
+            font-family: 'Manrope', sans-serif; font-size: 13px; font-weight: 600; color: #1e293b; outline: none;
+        }
+        .df-input:focus { border-color: #6366f1; }
+
         .loading-overlay { display: none; position: fixed; inset: 0; background: rgba(255,255,255,0.7); z-index: 2000; align-items: center; justify-content: center; flex-direction: column; gap: 12px; }
         .loading-overlay.active { display: flex; }
         .loading-spinner { width: 40px; height: 40px; border: 4px solid #e2e8f0; border-top-color: #3282b8; border-radius: 50%; animation: spin 0.8s linear infinite; }
@@ -193,7 +237,9 @@
             .print-header h2 { font-size: 20px; font-weight: 800; color: #0f4c75; }
             .print-header p { font-size: 13px; color: #64748b; font-weight: 600; }
             .section { box-shadow: none; border: 1px solid #e2e8f0; }
-            .task-field input, .memo-area textarea { border: none !important; background: transparent !important; }
+            .task-field input, .memo-area textarea, .df-textarea, .df-input { border: none !important; background: transparent !important; }
+            .detail-card { page-break-inside: avoid; }
+            .dc-del { display: none !important; }
         }
     </style>
 </head>
@@ -263,6 +309,7 @@
             <div class="legend-item"><div class="legend-dot" style="background:#3b82f6"></div>입고 (120대/h)</div>
             <div class="legend-item"><div class="legend-dot" style="background:#0d9488"></div>준비 (20대/h)</div>
             <div class="legend-item"><div class="legend-dot" style="background:#ea580c"></div>출고 (14~16 고정)</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#6366f1"></div>잔여 활동</div>
         </div>
 
         <div class="warning-box" id="warningBox"><span class="warning-text" id="warningText"></span></div>
@@ -275,11 +322,11 @@
         </div>
     </div>
 
-    <!-- ACTIVITY 바 -->
+    <!-- 활동 상세 내역 -->
     <div class="section">
-        <div class="section-title"><span class="badge" style="background:linear-gradient(135deg,#4338ca,#6366f1)">ACTIVITY</span> 잔여 시간 활동 계획 <span style="font-size:12px;font-weight:500;color:#94a3b8;margin-left:8px;">(클릭하여 입력)</span></div>
-        <div class="activity-track" id="actTrack"></div>
-        <div class="act-labels" id="actLabels"></div>
+        <div class="section-title"><span class="badge" style="background:linear-gradient(135deg,#4338ca,#6366f1)">DETAIL</span> 활동 상세 내역</div>
+        <div class="detail-title" id="detailTitle" style="display:none;">📝 등록된 활동</div>
+        <div id="detailCards"><div style="text-align:center;padding:20px;color:#94a3b8;font-size:14px;font-weight:600;">타임라인에서 잔여 시간을 클릭하여 활동을 추가하세요.</div></div>
     </div>
 
     <!-- 메모 -->
@@ -305,14 +352,14 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz6dYl9D7FeOcrJ89flNORNfH3MCeV-_CcYBlHAxVQrfedRr8u1KbKUu_AnyN1bKikJ/exec';
+const APPS_SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
 const S=9, E=18, T=9;
 const LUNCH_S=12, LUNCH_E=13, SHIP_S=14, SHIP_E=16;
 const R_INTAKE=120, R_PREP=20;
 
 let selectedDate=new Date(), isDirty=false, jsonpCnt=0;
 let endHour=null; // 업무 완료 시각
-let activities={}; // { hour: { title } }
+let activities={}; // { hour: { title, detail, participants } }
 let curModalHour=null;
 
 function init(){
@@ -397,6 +444,28 @@ function applyPlan(){
         const mk=document.createElement('div');mk.className='predict-marker';mk.style.left=pct+'%';mk.setAttribute('data-label','완료 '+fmtH(t));bar.appendChild(mk);
     }
 
+    // 잔여 시간 슬롯을 타임라인 바에 추가
+    const freeStart=Math.ceil(endHour||S);
+    for(let h=S;h<E;h++){
+        const isLunch=h>=LUNCH_S&&h<LUNCH_E;
+        const isShip=h>=SHIP_S&&h<SHIP_E;
+        const isBusy=endHour&&h<Math.ceil(endHour);
+        if(isLunch||isShip||isBusy) continue;
+
+        const left=((h-S)/T)*100, width=(1/T)*100;
+        const slot=document.createElement('div');
+        slot.className='tl-free-slot'+(activities[h]?' filled':'');
+        slot.style.left=left+'%';slot.style.width=width+'%';
+
+        if(activities[h]){
+            slot.innerHTML=`<span class="bs-label">${activities[h].title}</span>`;
+        } else {
+            slot.innerHTML='<span class="free-plus">+</span>';
+        }
+        slot.onclick=(function(hr){return function(){openActModal(hr);};})(h);
+        bar.appendChild(slot);
+    }
+
     if(t>E+0.01) warns.push('업무가 18:00을 '+fmtDur(t-E)+' 초과합니다.');
 
     // 경고
@@ -451,37 +520,58 @@ function getAvail(from, before){
     return avail;
 }
 
-// ═══ 활동 슬롯 ═══
+// ═══ 활동 슬롯 (타임라인 내 표시) ═══
 function buildActSlots(){
-    const track=document.getElementById('actTrack');
-    const labels=document.getElementById('actLabels');
-    track.innerHTML=''; labels.innerHTML='';
+    renderDetailCards();
+}
 
-    for(let h=S;h<E;h++){
-        const sl=document.createElement('div');sl.className='activity-slot';
-        const isLunch=h===12;
-        const isShip=h>=14&&h<16;
-        const isBusy=endHour && h<Math.ceil(endHour);
+// ═══ 상세 내역 카드 ═══
+function renderDetailCards(){
+    const container=document.getElementById('detailCards');
+    const title=document.getElementById('detailTitle');
+    container.innerHTML='';
+    const hrs=Object.keys(activities).map(Number).sort((a,b)=>a-b);
 
-        if(isLunch){
-            sl.classList.add('disabled');sl.innerHTML='<span class="slot-dis" style="color:#94a3b8;">🍚</span>';
-        } else if(isShip){
-            sl.classList.add('disabled');sl.innerHTML='<span class="slot-dis" style="color:#ea580c;">출고</span>';
-        } else if(isBusy){
-            sl.classList.add('disabled');sl.innerHTML='<span class="slot-dis" style="color:#0d9488;">업무중</span>';
-        } else if(activities[h]){
-            sl.classList.add('filled');
-            sl.innerHTML=`<span class="slot-text">${activities[h].title}</span>`;
-            sl.onclick=()=>openActModal(h);
-        } else {
-            sl.innerHTML='<span class="slot-plus">+</span>';
-            sl.onclick=()=>openActModal(h);
-        }
-        track.appendChild(sl);
-        const lbl=document.createElement('span');
-        lbl.textContent=`${String(h).padStart(2,'0')}~${String(h+1).padStart(2,'0')}`;
-        labels.appendChild(lbl);
+    if(hrs.length===0){
+        title.style.display='none';
+        container.innerHTML='<div style="text-align:center;padding:20px;color:#94a3b8;font-size:14px;font-weight:600;">타임라인에서 잔여 시간을 클릭하여 활동을 추가하세요.</div>';
+        return;
     }
+    title.style.display='block';
+
+    hrs.forEach(h=>{
+        const act=activities[h];
+        const card=document.createElement('div');card.className='detail-card';
+        card.innerHTML=`
+            <div class="detail-card-header">
+                <span class="dc-time">${String(h).padStart(2,'0')}:00 ~ ${String(h+1).padStart(2,'0')}:00</span>
+                <span class="dc-title">${act.title}</span>
+                <button class="dc-del" onclick="deleteActCard(${h})" title="삭제">✕</button>
+            </div>
+            <div class="detail-card-body">
+                <div>
+                    <div class="df-label">📋 상세 내역</div>
+                    <textarea class="df-textarea" placeholder="활동 상세 내역을 입력하세요..."
+                        oninput="updateActDetail(${h},'detail',this.value)">${act.detail||''}</textarea>
+                </div>
+                <div>
+                    <div class="df-label">👥 참여자</div>
+                    <input class="df-input" type="text" placeholder="참여자 (예: 홍길동, 김철수)"
+                        value="${act.participants||''}" oninput="updateActDetail(${h},'participants',this.value)">
+                </div>
+            </div>
+        `;
+        container.appendChild(card);
+    });
+}
+
+function updateActDetail(h, field, value){
+    if(activities[h]){activities[h][field]=value;markDirty();}
+}
+
+function deleteActCard(h){
+    if(!confirm('삭제하시겠습니까?'))return;
+    delete activities[h];markDirty();buildActSlots();applyPlan();
 }
 
 // 모달
@@ -496,10 +586,14 @@ function openActModal(h){
 function closeActModal(){document.getElementById('actModal').classList.remove('active');curModalHour=null;}
 function saveAct(){
     const v=document.getElementById('actModalInput').value.trim();
-    if(v){activities[curModalHour]={title:v};markDirty();}
-    closeActModal();buildActSlots();
+    if(v){
+        if(activities[curModalHour]) activities[curModalHour].title=v;
+        else activities[curModalHour]={title:v, detail:'', participants:''};
+        markDirty();
+    }
+    closeActModal();buildActSlots();applyPlan();
 }
-function deleteAct(){delete activities[curModalHour];markDirty();closeActModal();buildActSlots();}
+function deleteAct(){delete activities[curModalHour];markDirty();closeActModal();buildActSlots();applyPlan();}
 
 // ═══ 데이터 ═══
 function getFormData(){
@@ -537,7 +631,7 @@ function updateStatus(t){const b=document.getElementById('statusBadge');if(t==='
 
 // Sheets
 function loadFromSheets(){
-    if(!APPS_SCRIPT_URL||APPS_SCRIPT_URL==='https://script.google.com/macros/s/AKfycbz6dYl9D7FeOcrJ89flNORNfH3MCeV-_CcYBlHAxVQrfedRr8u1KbKUu_AnyN1bKikJ/exec'){updateStatus('new');return;}
+    if(!APPS_SCRIPT_URL||APPS_SCRIPT_URL==='YOUR_APPS_SCRIPT_URL_HERE'){updateStatus('new');return;}
     showLoading('불러오는 중...');
     const cb='rCb_'+(++jsonpCnt);
     const to=setTimeout(()=>{hideLoading();delete window[cb];},10000);
@@ -548,7 +642,7 @@ function loadFromSheets(){
     document.body.appendChild(s);
 }
 function saveToSheets(){
-    if(!APPS_SCRIPT_URL||APPS_SCRIPT_URL==='https://script.google.com/macros/s/AKfycbz6dYl9D7FeOcrJ89flNORNfH3MCeV-_CcYBlHAxVQrfedRr8u1KbKUu_AnyN1bKikJ/exec'){showToast('Apps Script URL을 설정하세요.','error');return;}
+    if(!APPS_SCRIPT_URL||APPS_SCRIPT_URL==='YOUR_APPS_SCRIPT_URL_HERE'){showToast('Apps Script URL을 설정하세요.','error');return;}
     showLoading('저장 중...');
     fetch(APPS_SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'save',date:fmtD(selectedDate),planData:getFormData()})})
     .then(()=>{hideLoading();isDirty=false;updateStatus('saved');showToast('저장되었습니다!','success');})
