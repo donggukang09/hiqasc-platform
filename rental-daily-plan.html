@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>임대머신 데일리 플랜 - HIQASC</title>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Manrope', sans-serif; background: #f0f4f8; color: #1a202c; min-height: 100vh; }
+
+        .header {
+            background: linear-gradient(135deg, #0f4c75 0%, #1b6ca8 50%, #3282b8 100%);
+            padding: 20px 32px; display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 4px 20px rgba(15,76,117,0.3);
+        }
+        .header h1 { color: #fff; font-size: 22px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+        .header-right { display: flex; align-items: center; gap: 10px; }
+        .hdr-btn {
+            background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3);
+            padding: 8px 18px; border-radius: 8px; font-family: 'Manrope', sans-serif;
+            font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; transition: all 0.2s;
+        }
+        .hdr-btn:hover { background: rgba(255,255,255,0.25); }
+        .hdr-btn.save { background: rgba(34,197,94,0.7); }
+        .hdr-btn.pdf { background: rgba(220,38,38,0.7); }
+
+        .container { max-width: 1200px; margin: 24px auto; padding: 0 24px; }
+
+        /* 날짜 */
+        .date-bar {
+            background: #fff; border-radius: 16px; padding: 16px 24px; margin-bottom: 20px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+        }
+        .date-left { display: flex; align-items: center; gap: 16px; }
+        .date-nav button {
+            background: #f1f5f9; border: 1px solid #e2e8f0; color: #475569;
+            width: 36px; height: 36px; border-radius: 10px; font-size: 16px; font-weight: 700;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+        }
+        .date-nav button:hover { background: #e2e8f0; }
+        .date-display { font-size: 18px; font-weight: 800; color: #0f4c75; min-width: 200px; text-align: center; }
+        .today-btn {
+            background: linear-gradient(135deg, #0f4c75, #3282b8); color: #fff; border: none;
+            padding: 8px 16px; border-radius: 8px; font-family: 'Manrope', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer;
+        }
+        .status-badge { padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+        .status-badge.saved { background: #dcfce7; color: #16a34a; }
+        .status-badge.unsaved { background: #fef3c7; color: #d97706; }
+        .status-badge.new { background: #f1f5f9; color: #64748b; }
+
+        /* 섹션 */
+        .section { background: #fff; border-radius: 16px; padding: 24px; margin-bottom: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+        .section-title { font-size: 15px; font-weight: 700; color: #4a5568; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+        .badge { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; color: #fff; }
+
+        /* 업무 입력 */
+        .task-row {
+            display: flex; align-items: center; gap: 12px; padding: 14px 18px;
+            border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 10px; flex-wrap: wrap;
+        }
+        .task-color { width: 12px; height: 36px; border-radius: 5px; flex-shrink: 0; }
+        .task-name { font-size: 14px; font-weight: 700; color: #1e293b; min-width: 130px; }
+        .task-field { display: flex; align-items: center; gap: 5px; }
+        .task-field label { font-size: 12px; font-weight: 600; color: #64748b; white-space: nowrap; }
+        .task-field input[type="number"] {
+            width: 70px; padding: 5px 8px; border: 2px solid #e2e8f0; border-radius: 8px;
+            font-family: 'Manrope', sans-serif; font-size: 14px; font-weight: 700; color: #1e3a5f; text-align: center; outline: none;
+        }
+        .task-field input[type="number"]:focus { border-color: #3282b8; }
+        .task-field input[type="text"] {
+            width: 170px; padding: 5px 8px; border: 2px solid #e2e8f0; border-radius: 8px;
+            font-family: 'Manrope', sans-serif; font-size: 13px; font-weight: 600; color: #1e3a5f; outline: none;
+        }
+        .task-field input[type="text"]:focus { border-color: #3282b8; }
+        .task-field .unit { font-size: 12px; font-weight: 600; color: #94a3b8; }
+        .task-calc { font-size: 12px; font-weight: 700; color: #0d9488; background: #f0fdfa; padding: 3px 10px; border-radius: 6px; white-space: nowrap; }
+        .task-row.fixed { background: #fff7ed; border-color: #fed7aa; }
+
+        .apply-btn {
+            background: linear-gradient(135deg, #0f4c75, #3282b8); color: #fff; border: none;
+            padding: 12px 32px; border-radius: 10px; font-family: 'Manrope', sans-serif;
+            font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 4px; transition: all 0.2s;
+        }
+        .apply-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(50,130,184,0.4); }
+
+        /* 타임라인 */
+        .time-axis { position: relative; height: 28px; margin-bottom: 4px; }
+        .time-axis .tl { position: absolute; font-size: 11px; font-weight: 700; color: #94a3b8; transform: translateX(-50%); }
+        .time-tick { position: absolute; width: 1px; height: 10px; background: #cbd5e1; top: 18px; transform: translateX(-50%); }
+
+        .bar-track { position: relative; height: 56px; background: #f1f5f9; border-radius: 12px; overflow: hidden; margin-bottom: 6px; }
+        .bar-seg {
+            position: absolute; top: 4px; height: 48px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center; flex-direction: column;
+            color: #fff; font-weight: 700; overflow: hidden; transition: all 0.3s;
+        }
+        .bar-seg .bs-label { font-size: 12px; font-weight: 800; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+        .bar-seg .bs-sub { font-size: 9px; font-weight: 600; opacity: 0.85; }
+
+        .bs-intake { background: linear-gradient(135deg, #3b82f6, #60a5fa); }
+        .bs-prep { background: linear-gradient(135deg, #0d9488, #14b8a6); }
+        .bs-shipping { background: linear-gradient(135deg, #ea580c, #f97316); }
+        .bs-lunch { background: repeating-linear-gradient(45deg, #e2e8f0, #e2e8f0 5px, #f1f5f9 5px, #f1f5f9 10px); }
+        .bs-lunch .bs-label { color: #94a3b8; text-shadow: none; }
+
+        .predict-marker {
+            position: absolute; top: -8px; bottom: -8px; width: 3px; background: #dc2626;
+            border-radius: 3px; z-index: 10;
+        }
+        .predict-marker::after {
+            content: attr(data-label); position: absolute; top: -20px; left: 50%; transform: translateX(-50%);
+            font-size: 10px; font-weight: 800; color: #dc2626; white-space: nowrap; background: #fff;
+            padding: 1px 5px; border-radius: 3px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 8px; }
+        .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; color: #64748b; }
+        .legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+
+        /* 요약 */
+        .summary-row { display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
+        .sum-card { flex: 1; min-width: 140px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; text-align: center; }
+        .sum-card .sl { font-size: 11px; font-weight: 600; color: #94a3b8; margin-bottom: 2px; }
+        .sum-card .sv { font-size: 20px; font-weight: 800; color: #0f4c75; }
+        .sum-card .sv.green { color: #16a34a; }
+        .sum-card .sv.red { color: #dc2626; }
+        .sum-card .sv.orange { color: #ea580c; }
+
+        /* 활동 슬롯 (수리 플랜 동일) */
+        .activity-track { height: 56px; background: #f1f5f9; border-radius: 12px; display: flex; }
+        .activity-slot {
+            flex: 1; height: 100%; border-right: 1px solid #e2e8f0; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; transition: background 0.2s; overflow: hidden;
+        }
+        .activity-slot:first-child { border-radius: 12px 0 0 12px; }
+        .activity-slot:last-child { border-radius: 0 12px 12px 0; border-right: none; }
+        .activity-slot:hover { background: #e2e8f0; }
+        .activity-slot.filled { background: linear-gradient(135deg, #2563eb, #3b82f6); }
+        .activity-slot.filled:hover { background: linear-gradient(135deg, #1d4ed8, #2563eb); }
+        .activity-slot.disabled { background: #dbeafe; cursor: not-allowed; opacity: 0.4; }
+        .activity-slot .slot-text { font-size: 11px; font-weight: 800; color: #fff; text-align: center; padding: 0 3px; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+        .activity-slot .slot-plus { font-size: 18px; color: #cbd5e1; }
+        .activity-slot.disabled .slot-plus { display: none; }
+        .activity-slot .slot-dis { font-size: 9px; font-weight: 700; }
+        .act-labels { display: flex; margin-top: 4px; }
+        .act-labels span { flex: 1; text-align: center; font-size: 10px; font-weight: 600; color: #94a3b8; }
+
+        /* 메모 */
+        .memo-area textarea {
+            width: 100%; padding: 10px 14px; border: 2px solid #e2e8f0; border-radius: 10px;
+            font-family: 'Manrope', sans-serif; font-size: 14px; font-weight: 500; color: #1e293b;
+            resize: vertical; min-height: 56px; outline: none; line-height: 1.5; margin-top: 6px;
+        }
+        .memo-area textarea:focus { border-color: #3282b8; }
+
+        .warning-box { background: #fef2f2; border: 1px solid #fecaca; border-radius: 10px; padding: 10px 14px; margin-top: 10px; display: none; }
+        .warning-box.show { display: block; }
+        .warning-text { font-size: 13px; font-weight: 600; color: #dc2626; }
+
+        /* 모달 */
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 1000; align-items: center; justify-content: center; }
+        .modal-overlay.active { display: flex; }
+        .modal-box { background: #fff; border-radius: 16px; padding: 28px; width: 340px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+        .modal-box h3 { font-size: 16px; font-weight: 700; color: #0f4c75; margin-bottom: 16px; }
+        .modal-box input[type="text"] {
+            width: 100%; padding: 10px 14px; border: 2px solid #e2e8f0; border-radius: 8px;
+            font-family: 'Manrope', sans-serif; font-size: 14px; font-weight: 600; outline: none; margin-bottom: 16px;
+        }
+        .modal-btns { display: flex; gap: 8px; justify-content: flex-end; }
+        .modal-btns button { padding: 8px 20px; border-radius: 8px; font-family: 'Manrope', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; border: none; }
+        .btn-cancel { background: #f1f5f9; color: #64748b; }
+        .btn-save { background: linear-gradient(135deg, #2563eb, #3b82f6); color: #fff; }
+        .btn-delete { background: #fee2e2; color: #dc2626; }
+
+        .loading-overlay { display: none; position: fixed; inset: 0; background: rgba(255,255,255,0.7); z-index: 2000; align-items: center; justify-content: center; flex-direction: column; gap: 12px; }
+        .loading-overlay.active { display: flex; }
+        .loading-spinner { width: 40px; height: 40px; border: 4px solid #e2e8f0; border-top-color: #3282b8; border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px); padding: 14px 28px; border-radius: 12px; font-family: 'Manrope', sans-serif; font-size: 14px; font-weight: 700; color: #fff; z-index: 3000; transition: transform 0.3s; box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
+        .toast.show { transform: translateX(-50%) translateY(0); }
+        .toast.success { background: #16a34a; }
+        .toast.error { background: #dc2626; }
+
+        .print-header { display: none; }
+        @media print {
+            @page { size: A4 landscape; margin: 12mm 15mm; }
+            body { background: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .header, .today-btn, .hdr-btn, .apply-btn, .loading-overlay, .toast, .modal-overlay { display: none !important; }
+            .container { max-width: 100%; margin: 0; padding: 0; }
+            .print-header { display: block !important; text-align: center; margin-bottom: 12px; }
+            .print-header h2 { font-size: 20px; font-weight: 800; color: #0f4c75; }
+            .print-header p { font-size: 13px; color: #64748b; font-weight: 600; }
+            .section { box-shadow: none; border: 1px solid #e2e8f0; }
+            .task-field input, .memo-area textarea { border: none !important; background: transparent !important; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>🏭 임대머신 데일리 플랜</h1>
+    <div class="header-right">
+        <button class="hdr-btn save" onclick="saveToSheets()">💾 저장</button>
+        <button class="hdr-btn pdf" onclick="window.print()">📄 PDF</button>
+        <a href="index.html" class="hdr-btn">🏠 메인으로</a>
+    </div>
+</div>
+
+<div class="container">
+    <div class="print-header"><h2>🏭 HIQASC 임대머신 데일리 플랜</h2><p id="printDate"></p></div>
+
+    <div class="date-bar">
+        <div class="date-left">
+            <div class="date-nav" style="display:flex;gap:8px;">
+                <button onclick="changeDate(-1)">◀</button>
+                <div class="date-display" id="dateDisplay"></div>
+                <button onclick="changeDate(1)">▶</button>
+            </div>
+            <button class="today-btn" onclick="goToday()">오늘</button>
+        </div>
+        <span class="status-badge new" id="statusBadge">새 플랜</span>
+    </div>
+
+    <!-- 업무 입력 -->
+    <div class="section">
+        <div class="section-title"><span class="badge" style="background:linear-gradient(135deg,#0f4c75,#3282b8)">입력</span> 업무 항목</div>
+        <!-- 입고 -->
+        <div class="task-row">
+            <div class="task-color" style="background:#3b82f6"></div>
+            <div class="task-name">① 임대머신 입고</div>
+            <div class="task-field"><label>수량</label><input type="number" id="intakeQty" placeholder="0" min="0" oninput="calcAll()"><span class="unit">대</span></div>
+            <div class="task-calc" id="intakeCalc">-</div>
+            <div class="task-field"><label>담당</label><input type="text" id="intakeNames" placeholder="이름1, 이름2" oninput="markDirty()"></div>
+        </div>
+        <!-- 준비 -->
+        <div class="task-row">
+            <div class="task-color" style="background:#0d9488"></div>
+            <div class="task-name">② 임대머신 준비</div>
+            <div class="task-field"><label>수량</label><input type="number" id="prepQty" placeholder="0" min="0" oninput="calcAll()"><span class="unit">대</span></div>
+            <div class="task-calc" id="prepCalc">-</div>
+            <div class="task-field"><label>담당</label><input type="text" id="prepNames" placeholder="이름1, 이름2" oninput="markDirty()"></div>
+        </div>
+        <!-- 출고 고정 -->
+        <div class="task-row fixed">
+            <div class="task-color" style="background:#ea580c"></div>
+            <div class="task-name">③ 출고 준비 & 출고</div>
+            <div class="task-calc" style="color:#ea580c;background:#fff7ed;">14:00 ~ 16:00 고정</div>
+            <div class="task-field"><label>담당</label><input type="text" id="shipNames" placeholder="담당자" oninput="markDirty()"></div>
+        </div>
+        <button class="apply-btn" onclick="applyPlan()">📊 플랜 적용</button>
+    </div>
+
+    <!-- PLAN 바 -->
+    <div class="section">
+        <div class="section-title"><span class="badge" style="background:linear-gradient(135deg,#0d9488,#14b8a6)">PLAN</span> 업무 타임라인</div>
+        <div class="time-axis" id="timeAxis"></div>
+        <div class="bar-track" id="planBar">
+            <div style="display:flex;align-items:center;justify-content:center;height:100%;color:#94a3b8;font-size:14px;font-weight:600;">수량 입력 후 [플랜 적용] 클릭</div>
+        </div>
+        <div class="legend">
+            <div class="legend-item"><div class="legend-dot" style="background:#3b82f6"></div>입고 (120대/h)</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#0d9488"></div>준비 (20대/h)</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#ea580c"></div>출고 (14~16 고정)</div>
+        </div>
+
+        <div class="warning-box" id="warningBox"><span class="warning-text" id="warningText"></span></div>
+
+        <div class="summary-row" id="summaryRow" style="display:none;">
+            <div class="sum-card"><div class="sl">입고</div><div class="sv" id="sumIntake">-</div></div>
+            <div class="sum-card"><div class="sl">준비</div><div class="sv" id="sumPrep">-</div></div>
+            <div class="sum-card"><div class="sl">완료 예상</div><div class="sv green" id="sumEnd">-</div></div>
+            <div class="sum-card"><div class="sl">잔여 시간</div><div class="sv orange" id="sumFree">-</div></div>
+        </div>
+    </div>
+
+    <!-- ACTIVITY 바 -->
+    <div class="section">
+        <div class="section-title"><span class="badge" style="background:linear-gradient(135deg,#4338ca,#6366f1)">ACTIVITY</span> 잔여 시간 활동 계획 <span style="font-size:12px;font-weight:500;color:#94a3b8;margin-left:8px;">(클릭하여 입력)</span></div>
+        <div class="activity-track" id="actTrack"></div>
+        <div class="act-labels" id="actLabels"></div>
+    </div>
+
+    <!-- 메모 -->
+    <div class="section">
+        <div class="section-title"><span class="badge" style="background:#64748b">메모</span> 특이사항</div>
+        <div class="memo-area"><textarea id="dayMemo" placeholder="특이사항이나 메모를 입력하세요..." oninput="markDirty()"></textarea></div>
+    </div>
+</div>
+
+<!-- 모달 -->
+<div class="modal-overlay" id="actModal">
+    <div class="modal-box">
+        <h3 id="actModalTitle">활동 입력</h3>
+        <input type="text" id="actModalInput" placeholder="활동 내용을 입력하세요" maxlength="30">
+        <div class="modal-btns">
+            <button class="btn-delete" id="actModalDel" onclick="deleteAct()" style="display:none;">삭제</button>
+            <button class="btn-cancel" onclick="closeActModal()">취소</button>
+            <button class="btn-save" onclick="saveAct()">저장</button>
+        </div>
+    </div>
+</div>
+<div class="loading-overlay" id="loadingOverlay"><div class="loading-spinner"></div><div class="loading-text" id="loadingText"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz6dYl9D7FeOcrJ89flNORNfH3MCeV-_CcYBlHAxVQrfedRr8u1KbKUu_AnyN1bKikJ/exec';
+const S=9, E=18, T=9;
+const LUNCH_S=12, LUNCH_E=13, SHIP_S=14, SHIP_E=16;
+const R_INTAKE=120, R_PREP=20;
+
+let selectedDate=new Date(), isDirty=false, jsonpCnt=0;
+let endHour=null; // 업무 완료 시각
+let activities={}; // { hour: { title } }
+let curModalHour=null;
+
+function init(){
+    selectedDate.setHours(0,0,0,0);
+    buildTimeAxis(); buildActSlots(); updateDateDisplay(); loadFromSheets();
+}
+
+// 날짜
+function fmtD(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function fmtDKR(d){const w=['일','월','화','수','목','금','토'];return `${d.getFullYear()}. ${d.getMonth()+1}. ${d.getDate()} (${w[d.getDay()]})`;}
+function fmtH(h){return String(Math.floor(h)).padStart(2,'0')+':'+String(Math.round((h-Math.floor(h))*60)).padStart(2,'0');}
+function fmtDur(h){const hr=Math.floor(h),mn=Math.round((h-hr)*60);if(hr===0)return mn+'분';if(mn===0)return hr+'시간';return hr+'시간 '+mn+'분';}
+
+function updateDateDisplay(){
+    document.getElementById('dateDisplay').textContent=fmtDKR(selectedDate);
+    document.getElementById('printDate').textContent=fmtDKR(selectedDate);
+}
+function changeDate(d){if(isDirty&&!confirm('저장하지 않은 변경사항이 있습니다.\n이동하시겠습니까?'))return;selectedDate.setDate(selectedDate.getDate()+d);clearAll();updateDateDisplay();loadFromSheets();}
+function goToday(){if(isDirty&&!confirm('변경사항이 있습니다.\n이동하시겠습니까?'))return;selectedDate=new Date();selectedDate.setHours(0,0,0,0);clearAll();updateDateDisplay();loadFromSheets();}
+
+function buildTimeAxis(){
+    const ax=document.getElementById('timeAxis');ax.innerHTML='';
+    for(let h=S;h<=E;h++){
+        const pct=((h-S)/T)*100;
+        const el=document.createElement('span');el.className='tl';el.style.left=pct+'%';el.textContent=String(h).padStart(2,'0')+':00';ax.appendChild(el);
+        const tk=document.createElement('div');tk.className='time-tick';tk.style.left=pct+'%';ax.appendChild(tk);
+    }
+}
+
+function calcAll(){
+    const iq=parseInt(document.getElementById('intakeQty').value)||0;
+    const pq=parseInt(document.getElementById('prepQty').value)||0;
+    document.getElementById('intakeCalc').textContent=iq>0?fmtDur(iq/R_INTAKE):'-';
+    document.getElementById('prepCalc').textContent=pq>0?fmtDur(pq/R_PREP):'-';
+    markDirty();
+}
+
+// ═══ 플랜 적용 ═══
+function applyPlan(){
+    const iq=parseInt(document.getElementById('intakeQty').value)||0;
+    const pq=parseInt(document.getElementById('prepQty').value)||0;
+    const iDur=iq/R_INTAKE, pDur=pq/R_PREP;
+
+    const bar=document.getElementById('planBar');bar.innerHTML='';
+    let warns=[];
+
+    // 고정 블록
+    addSeg(bar, LUNCH_S, LUNCH_E, 'bs-lunch', '🍚 점심', '');
+    addSeg(bar, SHIP_S, SHIP_E, 'bs-shipping', '출고 준비 & 출고', document.getElementById('shipNames').value);
+
+    let t=S;
+
+    // 1. 입고
+    if(iDur>0) t=placeSeg(bar, t, iDur, 'bs-intake', '입고 '+iq+'대', document.getElementById('intakeNames').value);
+
+    // 2. 준비 (출고 전까지)
+    let prepDone=0;
+    if(pDur>0){
+        const availBefore=getAvail(t, SHIP_S);
+        const now=Math.min(pDur, availBefore);
+        if(now>0){
+            t=placeSeg(bar, t, now, 'bs-prep', '준비 '+Math.round(now*R_PREP)+'대', document.getElementById('prepNames').value);
+            prepDone=now;
+        }
+    }
+
+    if(t>SHIP_S+0.01) warns.push('오전 업무가 출고 시작(14:00)을 초과합니다.');
+
+    // 출고 후
+    t=Math.max(t, SHIP_E);
+
+    // 준비 계속
+    const prepRem=pDur-prepDone;
+    if(prepRem>0.01){
+        t=placeSeg(bar, t, prepRem, 'bs-prep', '준비 계속 '+Math.round(prepRem*R_PREP)+'대', document.getElementById('prepNames').value);
+    }
+
+    // 완료 마커
+    endHour=t;
+    if(t<E){
+        const pct=((t-S)/T)*100;
+        const mk=document.createElement('div');mk.className='predict-marker';mk.style.left=pct+'%';mk.setAttribute('data-label','완료 '+fmtH(t));bar.appendChild(mk);
+    }
+
+    if(t>E+0.01) warns.push('업무가 18:00을 '+fmtDur(t-E)+' 초과합니다.');
+
+    // 경고
+    const wb=document.getElementById('warningBox');
+    if(warns.length>0){document.getElementById('warningText').textContent='⚠️ '+warns.join(' | ');wb.classList.add('show');}
+    else wb.classList.remove('show');
+
+    // 요약
+    document.getElementById('summaryRow').style.display='flex';
+    document.getElementById('sumIntake').textContent=iq+'대';
+    document.getElementById('sumPrep').textContent=pq+'대';
+    document.getElementById('sumEnd').textContent=fmtH(Math.min(t, E));
+    const free=Math.max(0, E-t);
+    document.getElementById('sumFree').textContent=free>0?fmtDur(free):'없음';
+    document.getElementById('sumFree').className='sv '+(free>0?'green':'red');
+
+    buildActSlots();
+    markDirty();
+}
+
+function addSeg(bar, start, end, cls, label, sub){
+    const left=((start-S)/T)*100, width=((end-start)/T)*100;
+    const d=document.createElement('div');d.className='bar-seg '+cls;
+    d.style.left=left+'%';d.style.width=width+'%';
+    d.innerHTML=`<span class="bs-label">${label}</span>${sub?'<span class="bs-sub">'+sub+'</span>':''}`;
+    bar.appendChild(d);
+}
+
+function placeSeg(bar, startTime, duration, cls, label, names){
+    let rem=duration, t=startTime;
+    while(rem>0.01 && t<E+2){
+        if(t>=LUNCH_S && t<LUNCH_E){t=LUNCH_E;continue;}
+        if(t>=SHIP_S && t<SHIP_E){t=SHIP_E;continue;}
+        let nb=E+2;
+        if(t<LUNCH_S) nb=Math.min(nb,LUNCH_S);
+        else if(t>=LUNCH_E && t<SHIP_S) nb=Math.min(nb,SHIP_S);
+        const used=Math.min(rem, nb-t);
+        addSeg(bar, t, t+used, cls, label, names);
+        t+=used; rem-=used;
+    }
+    return t;
+}
+
+function getAvail(from, before){
+    let avail=0, t=from;
+    while(t<before){
+        if(t>=LUNCH_S && t<LUNCH_E){t=LUNCH_E;continue;}
+        let next=before;
+        if(t<LUNCH_S) next=Math.min(next,LUNCH_S);
+        avail+=next-t; t=next;
+    }
+    return avail;
+}
+
+// ═══ 활동 슬롯 ═══
+function buildActSlots(){
+    const track=document.getElementById('actTrack');
+    const labels=document.getElementById('actLabels');
+    track.innerHTML=''; labels.innerHTML='';
+
+    for(let h=S;h<E;h++){
+        const sl=document.createElement('div');sl.className='activity-slot';
+        const isLunch=h===12;
+        const isShip=h>=14&&h<16;
+        const isBusy=endHour && h<Math.ceil(endHour);
+
+        if(isLunch){
+            sl.classList.add('disabled');sl.innerHTML='<span class="slot-dis" style="color:#94a3b8;">🍚</span>';
+        } else if(isShip){
+            sl.classList.add('disabled');sl.innerHTML='<span class="slot-dis" style="color:#ea580c;">출고</span>';
+        } else if(isBusy){
+            sl.classList.add('disabled');sl.innerHTML='<span class="slot-dis" style="color:#0d9488;">업무중</span>';
+        } else if(activities[h]){
+            sl.classList.add('filled');
+            sl.innerHTML=`<span class="slot-text">${activities[h].title}</span>`;
+            sl.onclick=()=>openActModal(h);
+        } else {
+            sl.innerHTML='<span class="slot-plus">+</span>';
+            sl.onclick=()=>openActModal(h);
+        }
+        track.appendChild(sl);
+        const lbl=document.createElement('span');
+        lbl.textContent=`${String(h).padStart(2,'0')}~${String(h+1).padStart(2,'0')}`;
+        labels.appendChild(lbl);
+    }
+}
+
+// 모달
+function openActModal(h){
+    curModalHour=h;
+    document.getElementById('actModalTitle').textContent=`${String(h).padStart(2,'0')}:00 ~ ${String(h+1).padStart(2,'0')}:00 활동`;
+    document.getElementById('actModalInput').value=activities[h]?activities[h].title:'';
+    document.getElementById('actModalDel').style.display=activities[h]?'inline-block':'none';
+    document.getElementById('actModal').classList.add('active');
+    setTimeout(()=>document.getElementById('actModalInput').focus(),100);
+}
+function closeActModal(){document.getElementById('actModal').classList.remove('active');curModalHour=null;}
+function saveAct(){
+    const v=document.getElementById('actModalInput').value.trim();
+    if(v){activities[curModalHour]={title:v};markDirty();}
+    closeActModal();buildActSlots();
+}
+function deleteAct(){delete activities[curModalHour];markDirty();closeActModal();buildActSlots();}
+
+// ═══ 데이터 ═══
+function getFormData(){
+    return {
+        intakeQty:parseInt(document.getElementById('intakeQty').value)||0,
+        intakeNames:document.getElementById('intakeNames').value,
+        prepQty:parseInt(document.getElementById('prepQty').value)||0,
+        prepNames:document.getElementById('prepNames').value,
+        shipNames:document.getElementById('shipNames').value,
+        activities, memo:document.getElementById('dayMemo').value
+    };
+}
+function setFormData(d){
+    if(!d)return;
+    document.getElementById('intakeQty').value=d.intakeQty||'';
+    document.getElementById('intakeNames').value=d.intakeNames||'';
+    document.getElementById('prepQty').value=d.prepQty||'';
+    document.getElementById('prepNames').value=d.prepNames||'';
+    document.getElementById('shipNames').value=d.shipNames||'';
+    activities=d.activities||{};
+    document.getElementById('dayMemo').value=d.memo||'';
+    calcAll(); applyPlan();
+}
+function clearAll(){
+    ['intakeQty','intakeNames','prepQty','prepNames','shipNames','dayMemo'].forEach(id=>document.getElementById(id).value='');
+    ['intakeCalc','prepCalc'].forEach(id=>document.getElementById(id).textContent='-');
+    endHour=null; activities={};
+    document.getElementById('planBar').innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#94a3b8;font-size:14px;font-weight:600;">수량 입력 후 [플랜 적용] 클릭</div>';
+    document.getElementById('summaryRow').style.display='none';
+    document.getElementById('warningBox').classList.remove('show');
+    buildActSlots(); isDirty=false; updateStatus('new');
+}
+function markDirty(){isDirty=true;updateStatus('unsaved');}
+function updateStatus(t){const b=document.getElementById('statusBadge');if(t==='saved'){b.textContent='저장됨';b.className='status-badge saved';}else if(t==='unsaved'){b.textContent='변경사항 있음';b.className='status-badge unsaved';}else{b.textContent='새 플랜';b.className='status-badge new';}}
+
+// Sheets
+function loadFromSheets(){
+    if(!APPS_SCRIPT_URL||APPS_SCRIPT_URL==='https://script.google.com/macros/s/AKfycbz6dYl9D7FeOcrJ89flNORNfH3MCeV-_CcYBlHAxVQrfedRr8u1KbKUu_AnyN1bKikJ/exec'){updateStatus('new');return;}
+    showLoading('불러오는 중...');
+    const cb='rCb_'+(++jsonpCnt);
+    const to=setTimeout(()=>{hideLoading();delete window[cb];},10000);
+    window[cb]=function(r){clearTimeout(to);hideLoading();if(r.success&&r.planData){setFormData(r.planData);isDirty=false;updateStatus('saved');}delete window[cb];const s=document.getElementById('s_'+cb);if(s)s.remove();};
+    const s=document.createElement('script');s.id='s_'+cb;
+    s.onerror=()=>{clearTimeout(to);hideLoading();delete window[cb];};
+    s.src=APPS_SCRIPT_URL+'?action=load&date='+fmtD(selectedDate)+'&callback='+cb+'&t='+Date.now();
+    document.body.appendChild(s);
+}
+function saveToSheets(){
+    if(!APPS_SCRIPT_URL||APPS_SCRIPT_URL==='https://script.google.com/macros/s/AKfycbz6dYl9D7FeOcrJ89flNORNfH3MCeV-_CcYBlHAxVQrfedRr8u1KbKUu_AnyN1bKikJ/exec'){showToast('Apps Script URL을 설정하세요.','error');return;}
+    showLoading('저장 중...');
+    fetch(APPS_SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'save',date:fmtD(selectedDate),planData:getFormData()})})
+    .then(()=>{hideLoading();isDirty=false;updateStatus('saved');showToast('저장되었습니다!','success');})
+    .catch(()=>{hideLoading();showToast('저장 실패','error');});
+}
+
+function showLoading(t){document.getElementById('loadingText').textContent=t;document.getElementById('loadingOverlay').classList.add('active');}
+function hideLoading(){document.getElementById('loadingOverlay').classList.remove('active');}
+function showToast(m,t){const el=document.getElementById('toast');el.textContent=m;el.className='toast '+t;setTimeout(()=>el.classList.add('show'),10);setTimeout(()=>el.classList.remove('show'),2500);}
+
+document.addEventListener('keydown',e=>{
+    if(e.key==='Enter'&&document.getElementById('actModal').classList.contains('active'))saveAct();
+    if(e.key==='Escape')closeActModal();
+});
+window.addEventListener('beforeunload',e=>{if(isDirty){e.preventDefault();e.returnValue='';}});
+
+init();
+</script>
+</body>
+</html>
