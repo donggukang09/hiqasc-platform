@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HIQASC 위클리 플랜</title>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Manrope', sans-serif; background: #f0f4f8; color: #1a202c; min-height: 100vh; }
+
+        .header {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 50%, #475569 100%);
+            padding: 20px 32px; display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 4px 20px rgba(30,41,59,0.3);
+        }
+        .header h1 { color: #fff; font-size: 22px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+        .header-right { display: flex; align-items: center; gap: 10px; }
+        .hdr-btn {
+            background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3);
+            padding: 8px 18px; border-radius: 8px; font-family: 'Manrope', sans-serif;
+            font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; transition: all 0.2s;
+        }
+        .hdr-btn:hover { background: rgba(255,255,255,0.25); }
+        .hdr-btn.save { background: rgba(34,197,94,0.7); }
+        .hdr-btn.pdf { background: rgba(220,38,38,0.7); }
+
+        .container { max-width: 1300px; margin: 24px auto; padding: 0 24px; }
+
+        /* 주차 */
+        .week-bar {
+            background: #fff; border-radius: 16px; padding: 16px 24px; margin-bottom: 20px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+        }
+        .week-left { display: flex; align-items: center; gap: 16px; }
+        .week-bar button {
+            background: #f1f5f9; border: 1px solid #e2e8f0; color: #475569;
+            width: 36px; height: 36px; border-radius: 10px; font-size: 16px; font-weight: 700;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+        }
+        .week-bar button:hover { background: #e2e8f0; }
+        .week-label { font-size: 18px; font-weight: 800; color: #1e293b; min-width: 200px; text-align: center; }
+        .week-range { font-size: 13px; font-weight: 600; color: #64748b; }
+        .this-week-btn {
+            background: linear-gradient(135deg, #334155, #475569); color: #fff; border: none;
+            padding: 8px 16px; border-radius: 8px; font-family: 'Manrope', sans-serif;
+            font-size: 13px; font-weight: 700; cursor: pointer;
+        }
+        .status-badge { padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+        .status-badge.saved { background: #dcfce7; color: #16a34a; }
+        .status-badge.unsaved { background: #fef3c7; color: #d97706; }
+        .status-badge.new { background: #f1f5f9; color: #64748b; }
+
+        /* 섹션 */
+        .section { background: #fff; border-radius: 16px; padding: 24px; margin-bottom: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+        .section-title { font-size: 15px; font-weight: 700; color: #4a5568; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+        .badge { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; color: #fff; }
+
+        /* 업무 입력 */
+        .task-table { width: 100%; border-collapse: collapse; }
+        .task-table th {
+            background: #f1f5f9; padding: 10px 12px; font-size: 12px; font-weight: 700;
+            color: #475569; text-align: left; border-bottom: 2px solid #e2e8f0;
+        }
+        .task-table td { padding: 8px 10px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+        .task-table input[type="text"] {
+            width: 100%; padding: 6px 10px; border: 1px solid #e2e8f0; border-radius: 6px;
+            font-family: 'Manrope', sans-serif; font-size: 13px; font-weight: 600; outline: none;
+        }
+        .task-table input[type="number"] {
+            width: 70px; padding: 6px 8px; border: 1px solid #e2e8f0; border-radius: 6px;
+            font-family: 'Manrope', sans-serif; font-size: 13px; font-weight: 700;
+            text-align: center; outline: none;
+        }
+        .task-table input:focus { border-color: #475569; }
+        .task-table select {
+            padding: 6px 8px; border: 1px solid #e2e8f0; border-radius: 6px;
+            font-family: 'Manrope', sans-serif; font-size: 12px; font-weight: 600;
+            outline: none; background: #fff; cursor: pointer;
+        }
+        .add-task-btn {
+            background: #f1f5f9; color: #475569; border: 1px dashed #94a3b8; padding: 8px 20px;
+            border-radius: 8px; font-family: 'Manrope', sans-serif; font-size: 13px;
+            font-weight: 700; cursor: pointer; margin-top: 10px;
+        }
+        .add-task-btn:hover { background: #e2e8f0; }
+        .del-btn { background: none; border: none; cursor: pointer; font-size: 16px; padding: 2px 6px; border-radius: 4px; }
+        .del-btn:hover { background: #fee2e2; }
+        .task-color-dot { width: 14px; height: 14px; border-radius: 4px; display: inline-block; }
+
+        /* 프로그레스 바 */
+        .prog-section { margin-top: 4px; }
+        .prog-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+        .prog-label { font-size: 13px; font-weight: 700; color: #1e293b; min-width: 120px; display: flex; align-items: center; gap: 6px; }
+        .prog-bar-wrap { flex: 1; height: 38px; background: #e2e8f0; border-radius: 10px; position: relative; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.06); }
+        .prog-bar-fill { height: 100%; border-radius: 10px; display: flex; align-items: center; padding-left: 12px; font-size: 13px; font-weight: 800; color: #fff; transition: width 0.4s; min-width: 0; text-shadow: 0 1px 2px rgba(0,0,0,0.2); gap: 8px; }
+        .prog-pct { font-size: 14px; font-weight: 800; color: #475569; min-width: 45px; text-align: right; }
+        .prog-detail { font-size: 11px; font-weight: 600; color: #94a3b8; min-width: 80px; text-align: right; }
+        .team-tag { font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: rgba(255,255,255,0.3); white-space: nowrap; }
+
+        /* 요일 배분 */
+        .day-alloc-table { width: 100%; border-collapse: collapse; }
+        .day-alloc-table th {
+            padding: 8px 10px; font-size: 12px; font-weight: 700; text-align: center;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        .day-alloc-table th.day-mon { background: #eff6ff; color: #2563eb; }
+        .day-alloc-table th.day-tue { background: #f0fdf4; color: #16a34a; }
+        .day-alloc-table th.day-wed { background: #fefce8; color: #ca8a04; }
+        .day-alloc-table th.day-thu { background: #fdf2f8; color: #db2777; }
+        .day-alloc-table th.day-fri { background: #faf5ff; color: #7c3aed; }
+        .day-alloc-table th.task-col { background: #f8fafc; color: #475569; text-align: left; }
+
+        .day-alloc-table td { padding: 6px 8px; text-align: center; border-bottom: 1px solid #f1f5f9; }
+        .day-alloc-table td.task-name-cell { text-align: left; font-size: 13px; font-weight: 700; color: #1e293b; }
+        .day-alloc-table input[type="number"] {
+            width: 60px; padding: 5px 6px; border: 1px solid #e2e8f0; border-radius: 6px;
+            font-family: 'Manrope', sans-serif; font-size: 13px; font-weight: 700;
+            text-align: center; outline: none;
+        }
+        .day-alloc-table input:focus { border-color: #475569; }
+        .day-sum { font-size: 12px; font-weight: 800; color: #475569; }
+
+        /* 요일 바 미니 */
+        .day-bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+        .day-label { font-size: 15px; font-weight: 800; min-width: 30px; text-align: center; }
+        .day-label.mon { color: #2563eb; }
+        .day-label.tue { color: #16a34a; }
+        .day-label.wed { color: #ca8a04; }
+        .day-label.thu { color: #db2777; }
+        .day-label.fri { color: #7c3aed; }
+        .day-mini-bar { flex: 1; height: 32px; background: #f1f5f9; border-radius: 8px; display: flex; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.04); }
+        .day-mini-seg { height: 100%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 800; color: #fff; overflow: hidden; white-space: nowrap; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+
+        /* 메모 */
+        .memo-textarea {
+            width: 100%; padding: 10px 14px; border: 2px solid #e2e8f0; border-radius: 10px;
+            font-family: 'Manrope', sans-serif; font-size: 14px; font-weight: 500; color: #1e293b;
+            resize: vertical; min-height: 56px; outline: none; line-height: 1.5; margin-top: 6px;
+        }
+        .memo-textarea:focus { border-color: #475569; }
+
+        /* 로딩/토스트 */
+        .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px); padding: 14px 28px; border-radius: 12px; font-family: 'Manrope', sans-serif; font-size: 14px; font-weight: 700; color: #fff; z-index: 3000; transition: transform 0.3s; box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
+        .toast.show { transform: translateX(-50%) translateY(0); }
+        .toast.success { background: #16a34a; }
+
+        .print-header { display: none; }
+        @media print {
+            @page { size: A4 landscape; margin: 10mm 12mm; }
+            body { background: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .header, .hdr-btn, .this-week-btn, .add-task-btn, .del-btn, .toast { display: none !important; }
+            .container { max-width: 100%; margin: 0; padding: 0; }
+            .print-header { display: block !important; text-align: center; margin-bottom: 12px; }
+            .print-header h2 { font-size: 20px; font-weight: 800; color: #1e293b; }
+            .print-header p { font-size: 13px; color: #64748b; font-weight: 600; }
+            .section { box-shadow: none; border: 1px solid #e2e8f0; page-break-inside: avoid; }
+            input, select, .memo-textarea { border: none !important; background: transparent !important; }
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 0 12px; }
+            .week-bar { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>📊 HIQASC 위클리 플랜</h1>
+    <div class="header-right">
+        <button class="hdr-btn pdf" onclick="window.print()">📄 PDF</button>
+        <a href="admin.html" class="hdr-btn">🏠 메인으로</a>
+    </div>
+</div>
+
+<div class="container">
+    <div class="print-header"><h2>📊 HIQASC 위클리 플랜</h2><p id="printRange"></p></div>
+
+    <!-- 주차 -->
+    <div class="week-bar">
+        <div class="week-left">
+            <button onclick="changeWeek(-1)">◀</button>
+            <div>
+                <div class="week-label" id="weekLabel"></div>
+                <div class="week-range" id="weekRange"></div>
+            </div>
+            <button onclick="changeWeek(1)">▶</button>
+            <button class="this-week-btn" onclick="goThisWeek()">이번 주</button>
+        </div>
+    </div>
+
+    <!-- 1. 업무 등록 -->
+    <div class="section">
+        <div class="section-title"><span class="badge" style="background:#334155">등록</span> 업무 항목 등록</div>
+        <table class="task-table">
+            <thead>
+                <tr>
+                    <th style="width:30px"></th>
+                    <th>업무명</th>
+                    <th style="width:90px">담당팀</th>
+                    <th style="width:80px">단위</th>
+                    <th style="width:80px">목표</th>
+                    <th style="width:80px">현재 완료</th>
+                    <th style="width:60px">달성률</th>
+                    <th style="width:36px"></th>
+                </tr>
+            </thead>
+            <tbody id="taskTableBody"></tbody>
+        </table>
+        <button class="add-task-btn" onclick="addTask()">+ 업무 추가</button>
+    </div>
+
+    <!-- 2. 현재 상황 -->
+    <div class="section">
+        <div class="section-title"><span class="badge" style="background:#2563eb">현황</span> 현재 상황</div>
+        <div class="prog-section" id="currentStatus"></div>
+    </div>
+
+    <!-- 3. 요일별 배분 -->
+    <div class="section">
+        <div class="section-title"><span class="badge" style="background:#16a34a">배분</span> 요일별 업무 배분</div>
+        <div style="overflow-x:auto;">
+            <table class="day-alloc-table">
+                <thead>
+                    <tr>
+                        <th class="task-col" style="min-width:130px">업무</th>
+                        <th class="day-mon">월</th>
+                        <th class="day-tue">화</th>
+                        <th class="day-wed">수</th>
+                        <th class="day-thu">목</th>
+                        <th class="day-fri">금</th>
+                        <th style="min-width:60px;background:#f8fafc;color:#475569;">주간 합</th>
+                    </tr>
+                </thead>
+                <tbody id="allocTableBody"></tbody>
+            </table>
+        </div>
+
+        <!-- 요일별 미니 바 -->
+        <div style="margin-top:20px;" id="dayBarsContainer"></div>
+    </div>
+
+    <!-- 4. 예상 완료 -->
+    <div class="section">
+        <div class="section-title"><span class="badge" style="background:#0d9488">예상</span> 예상 완료 (주간 계획 반영)</div>
+        <div class="prog-section" id="predictedStatus"></div>
+    </div>
+
+    <!-- 메모 -->
+    <div class="section">
+        <div class="section-title"><span class="badge" style="background:#64748b">메모</span> 특이사항</div>
+        <textarea class="memo-textarea" id="weekMemo" placeholder="주간 특이사항이나 메모를 입력하세요..."></textarea>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const TASK_COLORS = ['#eab308','#64748b','#16a34a','#2563eb','#db2777','#ea580c','#7c3aed','#0d9488','#dc2626','#6366f1'];
+const DAY_NAMES = ['월','화','수','목','금'];
+const DAY_CLS = ['mon','tue','wed','thu','fri'];
+const DAY_COLORS = ['#2563eb','#16a34a','#ca8a04','#db2777','#7c3aed'];
+
+let weekOffset = 0;
+let weekDates = [];
+let tasks = []; // [{name, team, unit, total, current, color}]
+let alloc = {}; // { taskIdx: { 0: val, 1: val, ... } }
+
+function init(){
+    calcWeekDates(); updateWeekNav();
+    addTask(); addTask(); addTask();
+}
+
+// ═══ 주차 ═══
+function getMonday(d){const date=new Date(d);const day=date.getDay();const diff=date.getDate()-day+(day===0?-6:1);return new Date(date.setDate(diff));}
+function calcWeekDates(){
+    const today=new Date();const monday=getMonday(today);
+    monday.setDate(monday.getDate()+weekOffset*7);
+    weekDates=[];for(let i=0;i<5;i++){const d=new Date(monday);d.setDate(monday.getDate()+i);weekDates.push(d);}
+}
+function getISOWeek(d){const date=new Date(d.getTime());date.setHours(0,0,0,0);date.setDate(date.getDate()+3-(date.getDay()+6)%7);const w1=new Date(date.getFullYear(),0,4);return 1+Math.round(((date.getTime()-w1.getTime())/86400000-3+(w1.getDay()+6)%7)/7);}
+function fmtDateFull(d){return `${d.getFullYear()}.${d.getMonth()+1}.${d.getDate()}`;}
+
+function updateWeekNav(){
+    const mon=weekDates[0],fri=weekDates[4];
+    document.getElementById('weekLabel').textContent=`${mon.getFullYear()}년 ${mon.getMonth()+1}월 ${getISOWeek(mon)}주차`;
+    const r=`${fmtDateFull(mon)} ~ ${fmtDateFull(fri)}`;
+    document.getElementById('weekRange').textContent=r;
+    document.getElementById('printRange').textContent=r;
+}
+function changeWeek(d){weekOffset+=d;calcWeekDates();updateWeekNav();}
+function goThisWeek(){weekOffset=0;calcWeekDates();updateWeekNav();}
+
+// ═══ 업무 관리 ═══
+function addTask(name,team,unit,total,current){
+    const idx=tasks.length;
+    tasks.push({
+        name: name||'',
+        team: team||'AS팀',
+        unit: unit||'qty',
+        total: total||0,
+        current: current||0,
+        color: TASK_COLORS[idx % TASK_COLORS.length]
+    });
+    alloc[idx]={0:0,1:0,2:0,3:0,4:0};
+    renderTaskTable();
+    renderAll();
+}
+
+function removeTask(idx){
+    tasks.splice(idx,1);
+    // rebuild alloc
+    const newAlloc={};
+    tasks.forEach((_,i)=>{
+        if(i<idx) newAlloc[i]=alloc[i]||{0:0,1:0,2:0,3:0,4:0};
+        else newAlloc[i]=alloc[i+1]||{0:0,1:0,2:0,3:0,4:0};
+    });
+    alloc=newAlloc;
+    renderTaskTable();
+    renderAll();
+}
+
+function updateTask(idx,field,value){
+    if(field==='name') tasks[idx].name=value;
+    else if(field==='team') tasks[idx].team=value;
+    else if(field==='unit') tasks[idx].unit=value;
+    else if(field==='total') tasks[idx].total=parseFloat(value)||0;
+    else if(field==='current') tasks[idx].current=parseFloat(value)||0;
+    renderAll();
+}
+
+function updateAlloc(taskIdx,dayIdx,value){
+    alloc[taskIdx][dayIdx]=parseFloat(value)||0;
+    renderAll();
+}
+
+function getUnitLabel(unit){
+    if(unit==='qty') return '개';
+    if(unit==='hours') return '시간';
+    return '%';
+}
+
+function getPct(current,total){
+    if(total<=0) return 0;
+    return Math.min(100, Math.round((current/total)*100));
+}
+
+// ═══ 렌더링 ═══
+function getTeamColor(team){
+    if(team==='AS팀') return '#2563eb';
+    if(team==='서포트팀') return '#16a34a';
+    if(team==='관리팀') return '#ea580c';
+    return '#64748b';
+}
+
+function getTeamBg(team){
+    if(team==='AS팀') return 'background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe';
+    if(team==='서포트팀') return 'background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0';
+    if(team==='관리팀') return 'background:#fff7ed;color:#ea580c;border:1px solid #fed7aa';
+    return 'background:#f1f5f9;color:#64748b;border:1px solid #e2e8f0';
+}
+
+function renderTaskTable(){
+    const tbody=document.getElementById('taskTableBody');
+    tbody.innerHTML='';
+    tasks.forEach((t,i)=>{
+        const pct=getPct(t.current,t.total);
+        const tr=document.createElement('tr');
+        tr.innerHTML=`
+            <td><span class="task-color-dot" style="background:${t.color}"></span></td>
+            <td><input type="text" value="${t.name}" placeholder="업무명 입력" onchange="updateTask(${i},'name',this.value)"></td>
+            <td><select onchange="updateTask(${i},'team',this.value)" style="${getTeamBg(t.team)};padding:6px 8px;border-radius:6px;font-family:'Manrope',sans-serif;font-size:11px;font-weight:700;cursor:pointer;">
+                <option value="AS팀" ${t.team==='AS팀'?'selected':''}>AS팀</option>
+                <option value="서포트팀" ${t.team==='서포트팀'?'selected':''}>서포트팀</option>
+                <option value="관리팀" ${t.team==='관리팀'?'selected':''}>관리팀</option>
+            </select></td>
+            <td><select onchange="updateTask(${i},'unit',this.value)">
+                <option value="qty" ${t.unit==='qty'?'selected':''}>수량</option>
+                <option value="hours" ${t.unit==='hours'?'selected':''}>시간</option>
+                <option value="pct" ${t.unit==='pct'?'selected':''}>%</option>
+            </select></td>
+            <td><input type="number" value="${t.total||''}" placeholder="0" min="0" onchange="updateTask(${i},'total',this.value)"></td>
+            <td><input type="number" value="${t.current||''}" placeholder="0" min="0" onchange="updateTask(${i},'current',this.value)"></td>
+            <td style="font-weight:800;color:${pct>=100?'#16a34a':'#475569'};text-align:center;">${pct}%</td>
+            <td><button class="del-btn" onclick="removeTask(${i})">🗑</button></td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+function renderAll(){
+    renderCurrentStatus();
+    renderAllocTable();
+    renderDayBars();
+    renderPredicted();
+}
+
+function renderCurrentStatus(){
+    const container=document.getElementById('currentStatus');
+    container.innerHTML='';
+    tasks.forEach((t,i)=>{
+        if(!t.name) return;
+        const pct=getPct(t.current,t.total);
+        const unitL=getUnitLabel(t.unit);
+        const detailStr=t.unit==='pct'?`${t.current}%`:`${t.current}/${t.total}${unitL}`;
+        const teamTag=pct>15?`<span class="team-tag">${t.team}</span>`:'';
+        container.innerHTML+=`
+            <div class="prog-row">
+                <div class="prog-label"><span class="task-color-dot" style="background:${t.color}"></span>${t.name}</div>
+                <div class="prog-bar-wrap">
+                    <div class="prog-bar-fill" style="width:${pct}%;background:${t.color};">${pct>8?pct+'%':''} ${teamTag}</div>
+                </div>
+                <div class="prog-pct">${pct}%</div>
+                <div class="prog-detail">${detailStr}</div>
+            </div>
+        `;
+    });
+    if(container.innerHTML==='') container.innerHTML='<div style="text-align:center;padding:16px;color:#94a3b8;font-size:14px;">업무를 등록하세요.</div>';
+}
+
+function renderAllocTable(){
+    const tbody=document.getElementById('allocTableBody');
+    tbody.innerHTML='';
+    tasks.forEach((t,i)=>{
+        if(!t.name) return;
+        const unitL=getUnitLabel(t.unit);
+        let weekSum=0;
+        for(let d=0;d<5;d++) weekSum+=(alloc[i]?alloc[i][d]:0)||0;
+
+        let cells=`<td class="task-name-cell"><span class="task-color-dot" style="background:${t.color}"></span> ${t.name} <span style="font-size:9px;font-weight:700;padding:1px 6px;border-radius:3px;${getTeamBg(t.team)};margin-left:4px;">${t.team}</span></td>`;
+        for(let d=0;d<5;d++){
+            const val=alloc[i]?alloc[i][d]:0;
+            cells+=`<td><input type="number" value="${val||''}" placeholder="0" min="0" onchange="updateAlloc(${i},${d},this.value)"></td>`;
+        }
+        cells+=`<td class="day-sum">${weekSum}${unitL}</td>`;
+
+        const tr=document.createElement('tr');
+        tr.innerHTML=cells;
+        tbody.appendChild(tr);
+    });
+}
+
+function renderDayBars(){
+    const container=document.getElementById('dayBarsContainer');
+    container.innerHTML='';
+
+    for(let d=0;d<5;d++){
+        const segs=[];
+        let totalAllocPct=0;
+        tasks.forEach((t,i)=>{
+            if(!t.name) return;
+            const val=(alloc[i]?alloc[i][d]:0)||0;
+            if(val<=0) return;
+            const pct=t.total>0?Math.round((val/t.total)*100):0;
+            segs.push({name:t.name, team:t.team, pct, color:t.color, val, unit:getUnitLabel(t.unit)});
+            totalAllocPct+=pct;
+        });
+
+        const row=document.createElement('div');
+        row.className='day-bar-row';
+
+        let barHTML='';
+        segs.forEach(s=>{
+            const w=Math.max(s.pct, 3); // 최소 보이게
+            barHTML+=`<div class="day-mini-seg" style="width:${w}%;background:${s.color};" title="${s.name} [${s.team}]: ${s.val}${s.unit} (${s.pct}%)">${s.pct>=10?s.pct+'%':''}</div>`;
+        });
+
+        row.innerHTML=`
+            <span class="day-label ${DAY_CLS[d]}">${DAY_NAMES[d]}</span>
+            <div class="day-mini-bar">${barHTML||'<div style="width:100%;display:flex;align-items:center;justify-content:center;font-size:11px;color:#cbd5e1;">-</div>'}</div>
+        `;
+        container.appendChild(row);
+    }
+}
+
+function renderPredicted(){
+    const container=document.getElementById('predictedStatus');
+    container.innerHTML='';
+    tasks.forEach((t,i)=>{
+        if(!t.name) return;
+        let weekSum=0;
+        for(let d=0;d<5;d++) weekSum+=(alloc[i]?alloc[i][d]:0)||0;
+
+        const predicted=t.current+weekSum;
+        const pct=getPct(predicted, t.total);
+        const unitL=getUnitLabel(t.unit);
+        const added=weekSum>0?` (+${weekSum}${unitL})`:'';
+        const detailStr=t.unit==='pct'?`${predicted}%${added}`:`${predicted}/${t.total}${unitL}${added}`;
+
+        const curPct=getPct(t.current, t.total);
+        const addPct=Math.min(100, pct)-curPct;
+        const teamTag=pct>15?`<span class="team-tag">${t.team}</span>`:'';
+
+        container.innerHTML+=`
+            <div class="prog-row">
+                <div class="prog-label"><span class="task-color-dot" style="background:${t.color}"></span>${t.name}</div>
+                <div class="prog-bar-wrap">
+                    <div style="display:flex;height:100%;border-radius:10px;overflow:hidden;">
+                        <div style="width:${curPct}%;background:${t.color};display:flex;align-items:center;padding-left:10px;font-size:12px;font-weight:800;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,0.2);gap:6px;">${curPct>8?curPct+'%':''} ${curPct>15?teamTag:''}</div>
+                        <div style="width:${addPct}%;background:${t.color};opacity:0.4;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;">${addPct>8?'+'+addPct+'%':''}</div>
+                    </div>
+                </div>
+                <div class="prog-pct" style="color:${pct>=100?'#16a34a':'#475569'}">${pct}%</div>
+                <div class="prog-detail">${detailStr}</div>
+            </div>
+        `;
+    });
+    if(container.innerHTML==='') container.innerHTML='<div style="text-align:center;padding:16px;color:#94a3b8;font-size:14px;">업무를 등록하세요.</div>';
+}
+
+function showToast(m,t){const el=document.getElementById('toast');el.textContent=m;el.className='toast '+(t||'success');setTimeout(()=>el.classList.add('show'),10);setTimeout(()=>el.classList.remove('show'),2500);}
+
+init();
+</script>
+</body>
+</html>
