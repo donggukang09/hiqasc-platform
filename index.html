@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 3.3.0 | Updated: 2026-04-07 | HIQ Workspace (전사 공통) Section Added -->
+<!-- Version: 3.3.1 | Updated: 2026-04-07 | Workspace Color Refined & 업무 플레이북 Renamed -->
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -217,7 +217,7 @@
         }
 
         .section-label-text {
-            color: #f1c40f;
+            color: #7ba8b8;
             font-size: 0.85em;
             font-weight: 700;
             letter-spacing: 2px;
@@ -228,13 +228,13 @@
         }
 
         .section-label-text::before {
-            content: '★';
-            color: #f1c40f;
+            content: '◆';
+            color: #7ba8b8;
         }
 
         .workspace-panel {
-            background: linear-gradient(135deg, #3a3528 0%, #353535 60%);
-            border: 1px solid #5a4d2a;
+            background: linear-gradient(135deg, #2e3a3f 0%, #353535 60%);
+            border: 1px solid #3d5560;
             border-radius: 20px;
             padding: 32px;
             position: relative;
@@ -248,7 +248,7 @@
             left: 0;
             right: 0;
             height: 3px;
-            background: linear-gradient(90deg, #f1c40f, #e67e22, #f1c40f);
+            background: linear-gradient(90deg, #5a8a9a, #7ba8b8, #5a8a9a);
         }
 
         .workspace-header {
@@ -269,13 +269,13 @@
         .workspace-title-icon {
             width: 44px;
             height: 44px;
-            background: linear-gradient(135deg, #f1c40f 0%, #e67e22 100%);
+            background: linear-gradient(135deg, #5a8a9a 0%, #3d6b7a 100%);
             border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 22px;
-            box-shadow: 0 4px 12px rgba(241, 196, 15, 0.25);
+            box-shadow: 0 4px 12px rgba(90, 138, 154, 0.25);
         }
 
         .workspace-title h3 {
@@ -291,9 +291,9 @@
         }
 
         .workspace-tag {
-            background: rgba(241, 196, 15, 0.12);
-            border: 1px solid rgba(241, 196, 15, 0.35);
-            color: #f1c40f;
+            background: rgba(123, 168, 184, 0.12);
+            border: 1px solid rgba(123, 168, 184, 0.35);
+            color: #7ba8b8;
             padding: 6px 14px;
             border-radius: 6px;
             font-size: 0.78em;
@@ -319,9 +319,9 @@
 
         .workspace-item:hover {
             transform: translateY(-4px);
-            border-color: #f1c40f;
-            background: #323028;
-            box-shadow: 0 8px 20px rgba(241, 196, 15, 0.15);
+            border-color: #5a8a9a;
+            background: #2c3438;
+            box-shadow: 0 8px 20px rgba(90, 138, 154, 0.18);
         }
 
         .workspace-item-icon {
@@ -338,7 +338,7 @@
         }
 
         .workspace-item:hover .workspace-item-icon {
-            background: linear-gradient(135deg, #f1c40f 0%, #e67e22 100%);
+            background: linear-gradient(135deg, #5a8a9a 0%, #3d6b7a 100%);
             transform: scale(1.05);
         }
 
@@ -626,9 +626,9 @@
                     </div>
 
                     <div class="workspace-item" onclick="goTeam('company-daily.html')">
-                        <div class="workspace-item-icon">📅</div>
-                        <div class="workspace-item-name">데일리 시스템</div>
-                        <div class="workspace-item-desc">회사 일일 업무<br>리포팅 시스템</div>
+                        <div class="workspace-item-icon">📖</div>
+                        <div class="workspace-item-name">업무 플레이북</div>
+                        <div class="workspace-item-desc">전사 업무 흐름<br>&amp; 온보딩 가이드</div>
                     </div>
 
                     <div class="workspace-item" onclick="goTeam('approval-system.html')">
