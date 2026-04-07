@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 3.2.0 | Updated: 2026-04-06 | Admin Portal Added -->
+<!-- Version: 3.3.0 | Updated: 2026-04-07 | HIQ Workspace (전사 공통) Section Added -->
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -139,12 +139,13 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
+            padding: 60px 20px 20px;
         }
 
         .hub-header {
             text-align: center;
-            margin-bottom: 50px;
+            margin-bottom: 40px;
             animation: fadeInDown 0.6s ease;
         }
 
@@ -191,15 +192,182 @@
             margin-top: 8px;
         }
 
+        /* ============================================ */
+        /* HIQ Workspace (전사 공통) - 메인 섹션 */
+        /* ============================================ */
+        .workspace-section {
+            width: 100%;
+            max-width: 1200px;
+            padding: 0 30px;
+            margin-bottom: 50px;
+            animation: fadeInUp 0.6s ease 0.15s both;
+        }
+
+        .section-label {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        .section-label-line {
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #4a4a4a, transparent);
+        }
+
+        .section-label-text {
+            color: #f1c40f;
+            font-size: 0.85em;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-label-text::before {
+            content: '★';
+            color: #f1c40f;
+        }
+
+        .workspace-panel {
+            background: linear-gradient(135deg, #3a3528 0%, #353535 60%);
+            border: 1px solid #5a4d2a;
+            border-radius: 20px;
+            padding: 32px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .workspace-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #f1c40f, #e67e22, #f1c40f);
+        }
+
+        .workspace-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .workspace-title-group {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .workspace-title-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, #f1c40f 0%, #e67e22 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            box-shadow: 0 4px 12px rgba(241, 196, 15, 0.25);
+        }
+
+        .workspace-title h3 {
+            color: #ffffff;
+            font-size: 1.3em;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .workspace-title p {
+            color: #a0a0a0;
+            font-size: 0.85em;
+        }
+
+        .workspace-tag {
+            background: rgba(241, 196, 15, 0.12);
+            border: 1px solid rgba(241, 196, 15, 0.35);
+            color: #f1c40f;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 0.78em;
+            font-weight: 600;
+        }
+
+        .workspace-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 14px;
+        }
+
+        .workspace-item {
+            background: #2c2c2c;
+            border: 1px solid #4a4a4a;
+            border-radius: 12px;
+            padding: 22px 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .workspace-item:hover {
+            transform: translateY(-4px);
+            border-color: #f1c40f;
+            background: #323028;
+            box-shadow: 0 8px 20px rgba(241, 196, 15, 0.15);
+        }
+
+        .workspace-item-icon {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 12px;
+            background: #3a3a3a;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            transition: all 0.3s ease;
+        }
+
+        .workspace-item:hover .workspace-item-icon {
+            background: linear-gradient(135deg, #f1c40f 0%, #e67e22 100%);
+            transform: scale(1.05);
+        }
+
+        .workspace-item-name {
+            color: #ffffff;
+            font-size: 0.92em;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .workspace-item-desc {
+            color: #808080;
+            font-size: 0.72em;
+            line-height: 1.4;
+        }
+
         /* 팀 카드 그리드 */
+        .team-section {
+            width: 100%;
+            max-width: 1200px;
+            padding: 0 30px;
+        }
+
         .team-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 30px;
-            max-width: 1000px;
+            gap: 24px;
             width: 100%;
-            padding: 0 30px;
-            animation: fadeInUp 0.6s ease 0.2s both;
+            animation: fadeInUp 0.6s ease 0.3s both;
         }
 
         @keyframes fadeInUp {
@@ -211,7 +379,7 @@
             background: #353535;
             border: 1px solid #4a4a4a;
             border-radius: 16px;
-            padding: 40px 30px;
+            padding: 36px 28px;
             text-align: center;
             cursor: pointer;
             transition: all 0.35s ease;
@@ -276,18 +444,18 @@
         }
 
         .team-icon {
-            width: 72px;
-            height: 72px;
-            border-radius: 18px;
+            width: 64px;
+            height: 64px;
+            border-radius: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 20px;
-            font-size: 32px;
+            margin: 0 auto 18px;
+            font-size: 28px;
         }
 
         .team-name {
-            font-size: 1.35em;
+            font-size: 1.25em;
             font-weight: 700;
             color: #ffffff;
             margin-bottom: 10px;
@@ -295,16 +463,16 @@
 
         .team-description {
             color: #a0a0a0;
-            font-size: 0.9em;
+            font-size: 0.85em;
             line-height: 1.6;
-            margin-bottom: 20px;
+            margin-bottom: 18px;
         }
 
         .team-badge {
             display: inline-block;
-            padding: 6px 16px;
+            padding: 5px 14px;
             border-radius: 6px;
-            font-size: 0.8em;
+            font-size: 0.78em;
             font-weight: 600;
         }
 
@@ -357,14 +525,33 @@
         }
 
         /* 반응형 */
+        @media (max-width: 1100px) {
+            .workspace-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
         @media (max-width: 900px) {
             .team-grid {
                 grid-template-columns: 1fr;
                 max-width: 400px;
+                margin: 0 auto;
                 gap: 20px;
             }
             .team-card {
                 padding: 30px 24px;
+            }
+            .workspace-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .workspace-panel {
+                padding: 24px 20px;
+            }
+        }
+
+        @media (max-width: 500px) {
+            .workspace-grid {
+                grid-template-columns: 1fr 1fr;
             }
         }
     </style>
@@ -403,38 +590,105 @@
             <p class="hub-date" id="currentDate"></p>
         </div>
 
-        <div class="team-grid">
-            <!-- AS Team -->
-            <div class="team-card as-team" onclick="goTeam('as-team.html')">
-                <div class="team-icon">🔧</div>
-                <h3 class="team-name">AS Team</h3>
-                <p class="team-description">
-                    Bench AS 수리팀 전용 업무 시스템.<br>
-                    수리 관리, 데이터 분석, 업무 도구를 사용합니다.
-                </p>
-                <span class="team-badge active">운영중</span>
+        <!-- ============================================ -->
+        <!-- HIQ Workspace - 전사 공통 업무 (메인) -->
+        <!-- ============================================ -->
+        <div class="workspace-section">
+            <div class="section-label">
+                <div class="section-label-line"></div>
+                <span class="section-label-text">HIQ Workspace · 전사 공통</span>
+                <div class="section-label-line"></div>
             </div>
 
-            <!-- Support Team -->
-            <div class="team-card support-team" onclick="goTeam('support-team.html')">
-                <div class="team-icon">📦</div>
-                <h3 class="team-name">Support Team</h3>
-                <p class="team-description">
-                    물류 및 부품 지원팀 업무 시스템.<br>
-                    입출고 관리, 재고 현황, 배송 추적을 처리합니다.
-                </p>
-                <span class="team-badge active">운영중</span>
+            <div class="workspace-panel">
+                <div class="workspace-header">
+                    <div class="workspace-title-group">
+                        <div class="workspace-title-icon">🏢</div>
+                        <div class="workspace-title">
+                            <h3>전사 공통 업무</h3>
+                            <p>모든 구성원이 사용하는 핵심 업무 시스템</p>
+                        </div>
+                    </div>
+                    <span class="workspace-tag">COMPANY-WIDE</span>
+                </div>
+
+                <div class="workspace-grid">
+                    <div class="workspace-item" onclick="goTeam('org-chart.html')">
+                        <div class="workspace-item-icon">👥</div>
+                        <div class="workspace-item-name">조직도 &amp; 담당</div>
+                        <div class="workspace-item-desc">조직 구성 및<br>업무 담당자</div>
+                    </div>
+
+                    <div class="workspace-item" onclick="goTeam('warehouse-dashboard.html')">
+                        <div class="workspace-item-icon">📊</div>
+                        <div class="workspace-item-name">창고 대시보드</div>
+                        <div class="workspace-item-desc">창고 사용 현황<br>실시간 모니터링</div>
+                    </div>
+
+                    <div class="workspace-item" onclick="goTeam('company-daily.html')">
+                        <div class="workspace-item-icon">📅</div>
+                        <div class="workspace-item-name">데일리 시스템</div>
+                        <div class="workspace-item-desc">회사 일일 업무<br>리포팅 시스템</div>
+                    </div>
+
+                    <div class="workspace-item" onclick="goTeam('approval-system.html')">
+                        <div class="workspace-item-icon">📝</div>
+                        <div class="workspace-item-name">기안 &amp; 결재</div>
+                        <div class="workspace-item-desc">기안서 제출 및<br>승인 워크플로우</div>
+                    </div>
+
+                    <div class="workspace-item" onclick="goTeam('leave-system.html')">
+                        <div class="workspace-item-icon">🌴</div>
+                        <div class="workspace-item-name">연차 신청</div>
+                        <div class="workspace-item-desc">연차 신청 및<br>승인 관리</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- 팀별 업무 시스템 -->
+        <!-- ============================================ -->
+        <div class="team-section">
+            <div class="section-label">
+                <div class="section-label-line"></div>
+                <span class="section-label-text" style="color: #4a90e2;">팀별 전용 시스템</span>
+                <div class="section-label-line"></div>
             </div>
 
-            <!-- Admin -->
-            <div class="team-card admin" onclick="goTeam('admin.html')">
-                <div class="team-icon">⚙️</div>
-                <h3 class="team-name">Admin</h3>
-                <p class="team-description">
-                    관리자 전용 시스템.<br>
-                    전체 팀 관리, 시스템 설정, 통합 리포트를 확인합니다.
-                </p>
-                <span class="team-badge active">운영중</span>
+            <div class="team-grid">
+                <!-- AS Team -->
+                <div class="team-card as-team" onclick="goTeam('as-team.html')">
+                    <div class="team-icon">🔧</div>
+                    <h3 class="team-name">AS Team</h3>
+                    <p class="team-description">
+                        Bench AS 수리팀 전용 업무 시스템.<br>
+                        수리 관리, 데이터 분석, 업무 도구를 사용합니다.
+                    </p>
+                    <span class="team-badge active">운영중</span>
+                </div>
+
+                <!-- Support Team -->
+                <div class="team-card support-team" onclick="goTeam('support-team.html')">
+                    <div class="team-icon">📦</div>
+                    <h3 class="team-name">Support Team</h3>
+                    <p class="team-description">
+                        물류 및 부품 지원팀 업무 시스템.<br>
+                        입출고 관리, 재고 현황, 배송 추적을 처리합니다.
+                    </p>
+                    <span class="team-badge active">운영중</span>
+                </div>
+
+                <!-- Admin -->
+                <div class="team-card admin" onclick="goTeam('admin.html')">
+                    <div class="team-icon">⚙️</div>
+                    <h3 class="team-name">Admin</h3>
+                    <p class="team-description">
+                        관리자 전용 시스템.<br>
+                        전체 팀 관리, 시스템 설정, 통합 리포트를 확인합니다.
+                    </p>
+                    <span class="team-badge active">운영중</span>
+                </div>
             </div>
         </div>
 
