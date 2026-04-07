@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 3.3.1 | Updated: 2026-04-07 | Workspace Color Refined & 업무 플레이북 Renamed -->
+<!-- Version: 3.3.2 | Updated: 2026-04-07 | 연차 신청 → 전사 워크스페이스로 이동 -->
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -637,7 +637,7 @@
                         <div class="workspace-item-desc">기안서 제출 및<br>승인 워크플로우</div>
                     </div>
 
-                    <div class="workspace-item" onclick="goTeam('leave-system.html')">
+                    <div class="workspace-item" onclick="goExternal('https://donggukang09.github.io/hiqasc-overtime/leave_request.html')">
                         <div class="workspace-item-icon">🌴</div>
                         <div class="workspace-item-name">연차 신청</div>
                         <div class="workspace-item-desc">연차 신청 및<br>승인 관리</div>
@@ -726,6 +726,11 @@
 
         // 팀 이동
         function goTeam(url) {
+            window.location.href = url;
+        }
+
+        // 외부 리포지토리 이동 (다른 GitHub Pages 사이트)
+        function goExternal(url) {
             window.location.href = url;
         }
 
