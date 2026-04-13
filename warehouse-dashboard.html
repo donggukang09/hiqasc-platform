@@ -1,0 +1,1365 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>창고 관리 대시보드 - HIQASC</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Manrope', sans-serif; }
+body { background: #2a2a2a; color: #e8e8e8; min-height: 100vh; padding: 20px; }
+
+.header {
+  background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+  padding: 25px 30px; border-radius: 12px; margin-bottom: 25px;
+  box-shadow: 0 4px 20px rgba(74,144,226,0.3);
+  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;
+}
+.header h1 { font-size: 26px; font-weight: 800; }
+.header p { font-size: 13px; opacity: 0.9; margin-top: 4px; }
+.header-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+.btn {
+  padding: 10px 18px; border: none; border-radius: 8px; cursor: pointer;
+  font-family: 'Manrope', sans-serif; font-size: 13px; font-weight: 600;
+  transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px;
+}
+.btn-primary { background: #4a90e2; color: white; }
+.btn-primary:hover { background: #357abd; transform: translateY(-1px); }
+.btn-success { background: #27ae60; color: white; }
+.btn-success:hover { background: #1e8449; }
+.btn-danger { background: #e74c3c; color: white; }
+.btn-danger:hover { background: #c0392b; }
+.btn-secondary { background: #555; color: white; }
+.btn-secondary:hover { background: #666; }
+.btn-white { background: white; color: #4a90e2; }
+.btn-white:hover { background: #f0f0f0; }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+
+.summary {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px; margin-bottom: 25px;
+}
+.summary-card {
+  background: #3a3a3a; padding: 22px; border-radius: 12px;
+  border-left: 5px solid #4a90e2;
+}
+.summary-card .label { font-size: 16px; color: #fff; font-weight: 700; letter-spacing: 0.3px; }
+.summary-card .value { font-size: 32px; font-weight: 800; color: #4a90e2; margin-top: 10px; }
+.summary-card .sub { font-size: 13px; color: #aaa; margin-top: 6px; }
+
+/* 전체 평균 도넛 대시보드 */
+.overview-card {
+  background: #3a3a3a; border-radius: 14px; padding: 25px;
+  margin-bottom: 25px; box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+}
+.overview-title {
+  font-size: 18px; font-weight: 800; color: #fff; margin-bottom: 20px;
+  display: flex; align-items: center; gap: 10px;
+  padding-bottom: 14px; border-bottom: 2px solid #4a90e2;
+}
+.overview-grid {
+  display: grid; grid-template-columns: 280px 1fr; gap: 30px; align-items: center;
+}
+.donut-wrapper {
+  position: relative; display: flex; align-items: center; justify-content: center;
+}
+.donut-svg { transform: rotate(-90deg); }
+.donut-track { fill: none; stroke: #2a2a2a; stroke-width: 28; }
+.donut-fill { fill: none; stroke-width: 28; stroke-linecap: round;
+  transition: stroke-dashoffset 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.donut-center {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  text-align: center;
+}
+.donut-percent { font-size: 56px; font-weight: 800; line-height: 1; }
+.donut-percent .unit { font-size: 24px; }
+.donut-label { font-size: 13px; color: #aaa; margin-top: 6px; font-weight: 600; }
+.donut-status {
+  display: inline-block; margin-top: 8px; padding: 5px 14px; border-radius: 20px;
+  font-size: 12px; font-weight: 700;
+}
+
+.overview-stats {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
+}
+.overview-stat {
+  background: #2a2a2a; padding: 18px; border-radius: 10px;
+  border-left: 4px solid #4a90e2;
+}
+.overview-stat .os-label {
+  font-size: 13px; color: #aaa; font-weight: 600; margin-bottom: 6px;
+}
+.overview-stat .os-value {
+  font-size: 24px; font-weight: 800; color: #fff;
+}
+.overview-stat .os-unit { font-size: 13px; color: #888; margin-left: 4px; }
+
+@media (max-width: 700px) {
+  .overview-grid { grid-template-columns: 1fr; }
+  .donut-wrapper { margin: 0 auto; }
+}
+
+.warehouses {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+  gap: 20px;
+}
+
+.warehouse-card {
+  background: #3a3a3a; border-radius: 14px; padding: 22px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  transition: transform 0.2s;
+}
+.warehouse-card:hover { transform: translateY(-2px); }
+
+.wh-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 18px; gap: 10px;
+}
+.wh-title { font-size: 20px; font-weight: 800; color: #fff; }
+.wh-location { font-size: 12px; color: #999; margin-top: 3px; }
+.wh-actions { display: flex; gap: 6px; }
+
+/* 창고 시각화 */
+.warehouse-visual {
+  position: relative; background: #222; border: 3px solid #555;
+  border-radius: 10px; height: 180px; margin-bottom: 16px;
+  overflow: hidden;
+}
+.warehouse-visual::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 8px;
+  background: repeating-linear-gradient(90deg, #555 0 15px, #444 15px 30px);
+}
+.fill-bar {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  transition: height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex; align-items: flex-end;
+}
+.fill-segment {
+  flex: 1; height: 100%; position: relative;
+  border-right: 1px solid rgba(255,255,255,0.1);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; color: rgba(255,255,255,0.85); font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5); overflow: hidden;
+  text-align: center; padding: 4px;
+}
+.fill-segment:last-child { border-right: none; }
+
+.percent-overlay {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  font-size: 48px; font-weight: 800; color: white;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+  pointer-events: none; z-index: 5;
+}
+.percent-overlay .unit { font-size: 20px; }
+
+.status-badge {
+  display: inline-block; padding: 4px 12px; border-radius: 20px;
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+}
+.status-empty { background: #27ae60; color: white; }
+.status-low { background: #2ecc71; color: white; }
+.status-medium { background: #f39c12; color: white; }
+.status-high { background: #e67e22; color: white; }
+.status-full { background: #e74c3c; color: white; }
+.status-over { background: #8b0000; color: white; animation: pulse 1.5s infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+/* 게이지 바 */
+.gauge {
+  margin: 14px 0; background: #222; height: 24px; border-radius: 12px;
+  overflow: hidden; position: relative;
+}
+.gauge-fill {
+  height: 100%; transition: width 0.6s ease;
+  display: flex; align-items: center; justify-content: flex-end; padding-right: 10px;
+  font-size: 12px; font-weight: 700; color: white;
+}
+
+.wh-stats {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+  margin-bottom: 14px; padding: 12px; background: #2a2a2a; border-radius: 8px;
+}
+.stat { text-align: center; }
+.stat .stat-label { font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
+.stat .stat-value { font-size: 18px; font-weight: 800; margin-top: 4px; }
+.stat-used { color: #4a90e2; }
+.stat-free { color: #27ae60; }
+.stat-total { color: #fff; }
+
+/* 품목 리스트 */
+.items-section { margin-top: 14px; }
+.items-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 8px;
+}
+.items-title { font-size: 13px; font-weight: 700; color: #ccc; }
+.items-list { display: flex; flex-direction: column; gap: 6px; }
+.item-row {
+  display: flex; justify-content: space-between; align-items: center;
+  background: #2a2a2a; padding: 10px 12px; border-radius: 6px;
+  border-left: 3px solid #4a90e2; gap: 10px;
+}
+.item-info { flex: 1; min-width: 0; }
+.item-name { font-size: 13px; font-weight: 600; color: #fff; }
+.item-qty { font-size: 11px; color: #999; margin-top: 2px; }
+.item-actions { display: flex; gap: 4px; }
+.icon-btn {
+  background: none; border: none; color: #888; cursor: pointer;
+  padding: 4px 8px; border-radius: 4px; font-size: 14px;
+}
+.icon-btn:hover { background: #444; color: #fff; }
+.icon-btn.danger:hover { color: #e74c3c; }
+
+.empty-items {
+  text-align: center; padding: 16px; color: #666; font-size: 12px;
+}
+
+/* 모달 */
+.modal-overlay {
+  display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.7); z-index: 100;
+  align-items: center; justify-content: center; padding: 20px;
+}
+.modal-overlay.active { display: flex; }
+.modal {
+  background: #3a3a3a; border-radius: 14px; padding: 28px;
+  max-width: 500px; width: 100%; max-height: 90vh; overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+}
+.modal h2 {
+  font-size: 20px; margin-bottom: 20px; color: #4a90e2;
+  padding-bottom: 12px; border-bottom: 2px solid #4a90e2;
+}
+.form-group { margin-bottom: 16px; }
+.form-group label {
+  display: block; font-size: 12px; color: #aaa; margin-bottom: 6px;
+  text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;
+}
+.form-group input, .form-group select {
+  width: 100%; padding: 11px 14px; background: #2a2a2a; border: 1px solid #555;
+  color: #fff; border-radius: 8px; font-size: 14px; font-family: 'Manrope', sans-serif;
+}
+.form-group input:focus, .form-group select:focus {
+  outline: none; border-color: #4a90e2;
+}
+.form-row { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; }
+.modal-actions {
+  display: flex; gap: 10px; justify-content: flex-end;
+  margin-top: 20px; padding-top: 16px; border-top: 1px solid #555;
+}
+
+.empty-state {
+  text-align: center; padding: 60px 20px; background: #3a3a3a;
+  border-radius: 14px; border: 2px dashed #555;
+}
+.empty-state .icon { font-size: 60px; margin-bottom: 16px; }
+.empty-state h3 { color: #fff; margin-bottom: 8px; }
+.empty-state p { color: #999; font-size: 13px; margin-bottom: 16px; }
+
+.legend {
+  display: flex; gap: 12px; flex-wrap: wrap; margin-top: 12px;
+  padding: 10px; background: #2a2a2a; border-radius: 8px;
+}
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #aaa; }
+.legend-color { width: 14px; height: 14px; border-radius: 3px; }
+
+/* ===== 입출고 일정 ===== */
+.schedule-card {
+  background: #3a3a3a; border-radius: 14px; padding: 25px;
+  margin-bottom: 25px; box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+}
+.schedule-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 20px; padding-bottom: 14px; border-bottom: 2px solid #4a90e2;
+  flex-wrap: wrap; gap: 12px;
+}
+.schedule-title { font-size: 18px; font-weight: 800; color: #fff;
+  display: flex; align-items: center; gap: 10px; }
+.view-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.view-tab {
+  padding: 8px 16px; background: #2a2a2a; border: 1px solid #555;
+  color: #aaa; border-radius: 8px; cursor: pointer; font-size: 13px;
+  font-weight: 600; font-family: 'Manrope', sans-serif; transition: all 0.2s;
+}
+.view-tab:hover { background: #444; color: #fff; }
+.view-tab.active { background: #4a90e2; color: #fff; border-color: #4a90e2; }
+
+/* 캘린더 */
+.calendar-nav {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 14px; padding: 10px; background: #2a2a2a; border-radius: 8px;
+}
+.calendar-nav h3 { font-size: 18px; color: #fff; font-weight: 700; }
+.calendar-grid {
+  display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;
+  background: #2a2a2a; padding: 10px; border-radius: 10px;
+}
+.cal-weekday {
+  text-align: center; padding: 8px 0; font-size: 12px;
+  color: #aaa; font-weight: 700; text-transform: uppercase;
+}
+.cal-weekday.sun { color: #e74c3c; }
+.cal-weekday.sat { color: #4a90e2; }
+.cal-day {
+  min-height: 90px; background: #353535; border-radius: 6px; padding: 6px;
+  position: relative; overflow: hidden; cursor: pointer;
+  transition: all 0.15s;
+}
+.cal-day:hover { background: #404040; }
+.cal-day.other-month { opacity: 0.3; }
+.cal-day.today { background: #1e3a5f; border: 2px solid #4a90e2; }
+.cal-day-num { font-size: 12px; font-weight: 700; color: #ccc; margin-bottom: 4px; }
+.cal-day.today .cal-day-num { color: #4a90e2; }
+.cal-day.sun .cal-day-num { color: #e74c3c; }
+.cal-day.sat .cal-day-num { color: #4a90e2; }
+.cal-event {
+  font-size: 10px; padding: 2px 5px; border-radius: 3px; margin-bottom: 2px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  cursor: pointer; font-weight: 600;
+}
+.cal-event.in { background: #27ae60; color: #fff; }
+.cal-event.out { background: #e67e22; color: #fff; }
+.cal-event.done { opacity: 0.45; text-decoration: line-through; }
+.cal-more { font-size: 10px; color: #888; margin-top: 2px; padding-left: 4px; }
+
+/* 창고별 탭 일정 리스트 */
+.wh-tabs {
+  display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px;
+  padding-bottom: 12px; border-bottom: 1px solid #555;
+}
+.schedule-list { display: flex; flex-direction: column; gap: 8px; }
+.sch-item {
+  display: flex; align-items: center; gap: 12px;
+  background: #2a2a2a; padding: 12px 14px; border-radius: 8px;
+  border-left: 4px solid #4a90e2;
+}
+.sch-item.in { border-left-color: #27ae60; }
+.sch-item.out { border-left-color: #e67e22; }
+.sch-item.done { opacity: 0.5; }
+.sch-item.overdue { border-left-color: #e74c3c; background: #3a2828; }
+.sch-date {
+  text-align: center; min-width: 60px; padding: 6px;
+  background: #1e1e1e; border-radius: 6px;
+}
+.sch-date .month { font-size: 10px; color: #888; }
+.sch-date .day { font-size: 20px; font-weight: 800; color: #fff; }
+.sch-info { flex: 1; min-width: 0; }
+.sch-info .sch-name { font-size: 14px; font-weight: 700; color: #fff; }
+.sch-info .sch-meta { font-size: 11px; color: #999; margin-top: 3px; }
+.sch-badge {
+  display: inline-block; padding: 3px 9px; border-radius: 12px;
+  font-size: 10px; font-weight: 700; margin-right: 6px;
+}
+.sch-badge.in { background: #27ae60; color: #fff; }
+.sch-badge.out { background: #e67e22; color: #fff; }
+.sch-badge.done { background: #555; color: #ccc; }
+.sch-badge.overdue { background: #e74c3c; color: #fff; }
+.sch-actions { display: flex; gap: 4px; }
+.empty-schedule {
+  text-align: center; padding: 30px; color: #666; font-size: 13px;
+  background: #2a2a2a; border-radius: 8px;
+}
+
+@media (max-width: 600px) {
+  .warehouses { grid-template-columns: 1fr; }
+  .header { flex-direction: column; align-items: flex-start; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>📦 창고 관리 대시보드</h1>
+    <p>HIQASC 통합 업무 시스템 · 실시간 창고 현황</p>
+  </div>
+  <div class="header-actions">
+    <button class="btn btn-white" onclick="openWarehouseModal()">+ 창고 추가</button>
+    <button class="btn btn-success" onclick="openScheduleModal()">📅 일정 추가</button>
+    <button class="btn btn-secondary" onclick="openSheet()">📊 시트 열기</button>
+    <button class="btn btn-secondary" onclick="manualRefresh()">🔄 새로고침</button>
+  </div>
+</div>
+
+<div id="overviewContainer"></div>
+
+<div id="scheduleContainer"></div>
+
+<div id="warehouseContainer"></div>
+
+<!-- 일정 추가/수정 모달 -->
+<div class="modal-overlay" id="scheduleModal">
+  <div class="modal">
+    <h2 id="scheduleModalTitle">📅 입출고 일정 추가</h2>
+    <div class="form-row">
+      <div class="form-group">
+        <label>유형</label>
+        <select id="schType">
+          <option value="in">📥 입고 (들어옴)</option>
+          <option value="out">📤 출고 (나감)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>예정일</label>
+        <input type="date" id="schDate">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>창고</label>
+      <select id="schWarehouse"></select>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>품목명</label>
+        <input type="text" id="schItemName" placeholder="예: 부품, 완제품">
+      </div>
+      <div class="form-group">
+        <label>수량</label>
+        <input type="number" id="schQty" placeholder="0" min="0" step="0.1">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>메모 (선택)</label>
+      <input type="text" id="schMemo" placeholder="예: 거래처명, 송장번호 등">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeScheduleModal()">취소</button>
+      <button class="btn btn-primary" onclick="saveSchedule()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 창고 추가/수정 모달 -->
+<div class="modal-overlay" id="warehouseModal">
+  <div class="modal">
+    <h2 id="warehouseModalTitle">창고 추가</h2>
+    <div class="form-group">
+      <label>창고 이름</label>
+      <input type="text" id="whName" placeholder="예: 501호 창고">
+    </div>
+    <div class="form-group">
+      <label>위치</label>
+      <input type="text" id="whLocation" placeholder="예: 본사 5층">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>최대 수용량</label>
+        <input type="number" id="whCapacity" placeholder="100" min="1">
+      </div>
+      <div class="form-group">
+        <label>단위</label>
+        <input type="text" id="whUnit" placeholder="PLT">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeWarehouseModal()">취소</button>
+      <button class="btn btn-primary" onclick="saveWarehouse()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 품목 추가/수정 모달 -->
+<div class="modal-overlay" id="itemModal">
+  <div class="modal">
+    <h2 id="itemModalTitle">품목 추가</h2>
+    <div class="form-group">
+      <label>품목명</label>
+      <input type="text" id="itemName" placeholder="예: 부품, 초기불량, 완제품">
+    </div>
+    <div class="form-group">
+      <label>수량</label>
+      <input type="number" id="itemQty" placeholder="0" min="0" step="0.1">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeItemModal()">취소</button>
+      <button class="btn btn-primary" onclick="saveItem()">저장</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== 데이터 관리 =====
+// ⚠️ Apps Script 배포 후 웹 앱 URL을 여기에 붙여넣으세요
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwtNhSkSB-TrPU3HdVAvHIqgqga0LQ7A7U07G6FTDuRuFpBUKnJ3ngMJg3Ej_6eIRDy/exec';
+const SHEET_ID = '1IET_cGI_RIRPXBp3-3C6VFNngFDz5VTr-34bvBoeDAc';
+
+let warehouses = [];
+let schedules = [];
+let editingWarehouseId = null;
+let editingItemContext = null; // {warehouseId, itemId}
+let editingScheduleId = null;
+let scheduleView = 'calendar'; // 'calendar' | 'warehouse'
+let activeWhTab = 'all';
+let calCursor = new Date(); // 캘린더 현재 달
+let isSaving = false;
+
+// 시트 열기
+function openSheet() {
+  window.open('https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/edit', '_blank');
+}
+
+// JSONP 로 GET (10초 타임아웃)
+function jsonpGet() {
+  return new Promise((resolve, reject) => {
+    if (APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE') {
+      reject(new Error('Apps Script URL이 설정되지 않았습니다. HTML 파일 상단의 APPS_SCRIPT_URL을 수정하세요.'));
+      return;
+    }
+    const cbName = 'cb_' + Date.now() + '_' + Math.floor(Math.random()*10000);
+    const script = document.createElement('script');
+    const timeout = setTimeout(() => {
+      cleanup();
+      reject(new Error('서버 응답 시간 초과 (10초)'));
+    }, 10000);
+    function cleanup() {
+      clearTimeout(timeout);
+      delete window[cbName];
+      if (script.parentNode) script.parentNode.removeChild(script);
+    }
+    window[cbName] = (response) => {
+      cleanup();
+      if (response && response.ok) resolve(response.data);
+      else reject(new Error(response && response.error ? response.error : '알 수 없는 오류'));
+    };
+    script.src = APPS_SCRIPT_URL + '?callback=' + cbName + '&t=' + Date.now();
+    script.onerror = () => { cleanup(); reject(new Error('네트워크 오류')); };
+    document.body.appendChild(script);
+  });
+}
+
+// POST (no-cors)
+async function postData(payload) {
+  if (APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE') {
+    throw new Error('Apps Script URL이 설정되지 않았습니다.');
+  }
+  await fetch(APPS_SCRIPT_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(payload)
+  });
+}
+
+// 시트 → 앱 데이터 변환
+function rowsToWarehouses(whRows, itemRows) {
+  return whRows.map(r => ({
+    id: Number(r.id),
+    name: String(r['창고명'] || ''),
+    location: String(r['위치'] || ''),
+    capacity: Number(r['최대수용량']) || 0,
+    unit: String(r['단위'] || ''),
+    items: itemRows
+      .filter(it => Number(it['창고id']) === Number(r.id))
+      .map(it => ({
+        id: Number(it.id),
+        name: String(it['품목명'] || ''),
+        qty: Number(it['수량']) || 0
+      }))
+  }));
+}
+
+function rowsToSchedules(rows) {
+  return rows.map(r => ({
+    id: Number(r.id),
+    type: String(r['유형'] || 'in'),
+    date: typeof r['예정일'] === 'object' && r['예정일'] instanceof Date
+      ? r['예정일'].toISOString().slice(0,10)
+      : String(r['예정일'] || ''),
+    warehouseId: Number(r['창고id']),
+    itemName: String(r['품목명'] || ''),
+    qty: Number(r['수량']) || 0,
+    memo: String(r['메모'] || ''),
+    done: r['완료여부'] === true || r['완료여부'] === 'TRUE' || r['완료여부'] === '완료',
+    completedAt: r['완료일시'] ? String(r['완료일시']) : ''
+  }));
+}
+
+// 앱 데이터 → 시트 행 변환
+function warehousesToRows() {
+  const whRows = warehouses.map(w => ({
+    id: w.id, '창고명': w.name, '위치': w.location || '',
+    '최대수용량': w.capacity, '단위': w.unit
+  }));
+  const itemRows = [];
+  warehouses.forEach(w => {
+    w.items.forEach(it => {
+      itemRows.push({
+        id: it.id, '창고id': w.id, '품목명': it.name, '수량': it.qty
+      });
+    });
+  });
+  return { whRows, itemRows };
+}
+
+function schedulesToRows() {
+  return schedules.map(s => ({
+    id: s.id, '유형': s.type, '예정일': s.date, '창고id': s.warehouseId,
+    '품목명': s.itemName, '수량': s.qty, '메모': s.memo || '',
+    '완료여부': s.done ? '완료' : '', '완료일시': s.completedAt || ''
+  }));
+}
+
+async function loadData() {
+  showStatus('📡 시트에서 데이터 불러오는 중...');
+  try {
+    const data = await jsonpGet();
+    warehouses = rowsToWarehouses(data.warehouses || [], data.items || []);
+    schedules = rowsToSchedules(data.schedules || []);
+    showStatus('✅ 불러오기 완료', 2000);
+  } catch (err) {
+    showStatus('❌ 불러오기 실패: ' + err.message, 5000);
+    console.error(err);
+  }
+}
+
+async function saveData() {
+  if (isSaving) return;
+  isSaving = true;
+  showStatus('💾 시트에 저장 중...');
+  try {
+    const { whRows, itemRows } = warehousesToRows();
+    await postData({
+      warehouses: whRows,
+      items: itemRows,
+      schedules: schedulesToRows()
+    });
+    showStatus('✅ 저장 완료', 2000);
+  } catch (err) {
+    showStatus('❌ 저장 실패: ' + err.message, 5000);
+    console.error(err);
+  } finally {
+    isSaving = false;
+  }
+}
+
+async function manualRefresh() {
+  await loadData();
+  render();
+}
+
+// 상태 표시
+function showStatus(msg, hideAfter) {
+  let bar = document.getElementById('statusBar');
+  if (!bar) {
+    bar = document.createElement('div');
+    bar.id = 'statusBar';
+    bar.style.cssText = 'position:fixed;bottom:20px;right:20px;background:#1e1e1e;color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:600;z-index:1000;box-shadow:0 4px 16px rgba(0,0,0,0.5);border-left:4px solid #4a90e2;';
+    document.body.appendChild(bar);
+  }
+  bar.textContent = msg;
+  bar.style.display = 'block';
+  if (hideAfter) {
+    setTimeout(() => { bar.style.display = 'none'; }, hideAfter);
+  }
+}
+
+// ===== 색상 & 상태 =====
+function getStatus(percent) {
+  if (percent === 0) return { class: 'status-empty', label: '비어있음', color: '#27ae60', bgColor: 'rgba(39,174,96,0.4)' };
+  if (percent < 30) return { class: 'status-low', label: '여유', color: '#2ecc71', bgColor: 'rgba(46,204,113,0.5)' };
+  if (percent < 60) return { class: 'status-medium', label: '보통', color: '#f39c12', bgColor: 'rgba(243,156,18,0.6)' };
+  if (percent < 85) return { class: 'status-high', label: '많음', color: '#e67e22', bgColor: 'rgba(230,126,34,0.7)' };
+  if (percent < 100) return { class: 'status-full', label: '거의 가득', color: '#e74c3c', bgColor: 'rgba(231,76,60,0.8)' };
+  if (percent === 100) return { class: 'status-full', label: '가득참', color: '#e74c3c', bgColor: 'rgba(231,76,60,0.85)' };
+  return { class: 'status-over', label: '초과!', color: '#8b0000', bgColor: 'rgba(139,0,0,0.9)' };
+}
+
+// 품목별 색상 (구분용)
+const ITEM_COLORS = ['#4a90e2', '#9b59b6', '#1abc9c', '#f39c12', '#e74c3c', '#16a085', '#d35400', '#8e44ad', '#27ae60', '#c0392b'];
+
+// ===== 렌더링 =====
+function render() {
+  renderOverview();
+  renderSchedule();
+  renderWarehouses();
+}
+
+function renderOverview() {
+  const container = document.getElementById('overviewContainer');
+  if (warehouses.length === 0) { container.innerHTML = ''; return; }
+
+  let totalCapacity = 0, totalUsed = 0;
+  warehouses.forEach(w => {
+    totalCapacity += Number(w.capacity) || 0;
+    w.items.forEach(i => totalUsed += Number(i.qty) || 0);
+  });
+  const totalFree = totalCapacity - totalUsed;
+  const percent = totalCapacity > 0 ? (totalUsed/totalCapacity)*100 : 0;
+  const percentInt = Math.round(percent);
+  const status = getStatus(percent);
+
+  // 도넛 차트 계산 (반지름 90, 둘레 = 2π*90 ≈ 565.48)
+  const radius = 90;
+  const circumference = 2 * Math.PI * radius;
+  const fillRatio = Math.min(percent, 100) / 100;
+  const offset = circumference * (1 - fillRatio);
+
+  // 평균 사용률 (창고별 사용률의 산술평균)
+  let avgPercent = 0;
+  if (warehouses.length > 0) {
+    let sum = 0;
+    warehouses.forEach(w => {
+      const used = w.items.reduce((s,i) => s + (Number(i.qty)||0), 0);
+      const cap = Number(w.capacity) || 0;
+      sum += cap > 0 ? (used/cap)*100 : 0;
+    });
+    avgPercent = Math.round(sum / warehouses.length);
+  }
+
+  container.innerHTML = `
+    <div class="overview-card">
+      <div class="overview-title">📈 전체 평균 대시보드</div>
+      <div class="overview-grid">
+        <div class="donut-wrapper">
+          <svg class="donut-svg" width="240" height="240" viewBox="0 0 240 240">
+            <circle class="donut-track" cx="120" cy="120" r="${radius}"/>
+            <circle class="donut-fill" cx="120" cy="120" r="${radius}"
+              stroke="${status.color}"
+              stroke-dasharray="${circumference}"
+              stroke-dashoffset="${offset}"/>
+          </svg>
+          <div class="donut-center">
+            <div class="donut-percent" style="color:${status.color}">${percentInt}<span class="unit">%</span></div>
+            <div class="donut-label">전체 사용률</div>
+            <div class="donut-status ${status.class}">${status.label}</div>
+          </div>
+        </div>
+        <div class="overview-stats">
+          <div class="overview-stat" style="border-left-color:#9b59b6">
+            <div class="os-label">🏭 창고 개수</div>
+            <div class="os-value">${warehouses.length}<span class="os-unit">개</span></div>
+          </div>
+          <div class="overview-stat" style="border-left-color:#fff">
+            <div class="os-label">📦 총 적재 가능량</div>
+            <div class="os-value">${totalCapacity.toLocaleString()}</div>
+          </div>
+          <div class="overview-stat" style="border-left-color:${getStatus(avgPercent).color}">
+            <div class="os-label">📊 창고별 평균 사용률</div>
+            <div class="os-value" style="color:${getStatus(avgPercent).color}">${avgPercent}<span class="os-unit">%</span></div>
+          </div>
+          <div class="overview-stat" style="border-left-color:#4a90e2">
+            <div class="os-label">📥 현재 사용량</div>
+            <div class="os-value stat-used">${totalUsed.toLocaleString()}</div>
+          </div>
+          <div class="overview-stat" style="border-left-color:#27ae60">
+            <div class="os-label">✅ 사용 가능량</div>
+            <div class="os-value stat-free">${totalFree.toLocaleString()}</div>
+          </div>
+          <div class="overview-stat" style="border-left-color:#e67e22">
+            <div class="os-label">📋 총 품목 수</div>
+            <div class="os-value">${warehouses.reduce((s,w)=>s+w.items.length,0)}<span class="os-unit">종</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+
+function renderSummary() {
+  const total = warehouses.length;
+  let totalCapacity = 0, totalUsed = 0;
+  warehouses.forEach(w => {
+    totalCapacity += Number(w.capacity) || 0;
+    w.items.forEach(i => totalUsed += Number(i.qty) || 0);
+  });
+  const totalFree = totalCapacity - totalUsed;
+  const totalPercent = totalCapacity > 0 ? Math.round((totalUsed/totalCapacity)*100) : 0;
+
+  document.getElementById('summary').innerHTML = `
+    <div class="summary-card">
+      <div class="label">🏭 창고 개수</div>
+      <div class="value">${total}<span style="font-size:16px;color:#999"> 개</span></div>
+      <div class="sub">관리중인 창고</div>
+    </div>
+    <div class="summary-card" style="border-left-color:#fff">
+      <div class="label">📦 총 적재 가능량</div>
+      <div class="value stat-total">${totalCapacity.toLocaleString()}</div>
+      <div class="sub">전체 창고 최대 용량</div>
+    </div>
+    <div class="summary-card" style="border-left-color:#4a90e2">
+      <div class="label">📥 현재 사용량</div>
+      <div class="value stat-used">${totalUsed.toLocaleString()}</div>
+      <div class="sub">현재 적재된 수량</div>
+    </div>
+    <div class="summary-card" style="border-left-color:#27ae60">
+      <div class="label">✅ 사용 가능량</div>
+      <div class="value stat-free">${totalFree.toLocaleString()}</div>
+      <div class="sub">추가 적재 가능</div>
+    </div>
+    <div class="summary-card" style="border-left-color:${getStatus(totalPercent).color}">
+      <div class="label">📊 사용률</div>
+      <div class="value" style="color:${getStatus(totalPercent).color}">${totalPercent}<span style="font-size:20px">%</span></div>
+      <div class="sub">${getStatus(totalPercent).label}</div>
+    </div>
+  `;
+}
+
+function renderWarehouses() {
+  const container = document.getElementById('warehouseContainer');
+  if (warehouses.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="icon">📦</div>
+        <h3>등록된 창고가 없습니다</h3>
+        <p>창고를 추가하여 관리를 시작하세요</p>
+        <button class="btn btn-primary" onclick="openWarehouseModal()">+ 창고 추가</button>
+      </div>`;
+    return;
+  }
+
+  let html = '<div class="warehouses">';
+  warehouses.forEach(w => {
+    const totalUsed = w.items.reduce((s,i) => s + (Number(i.qty)||0), 0);
+    const capacity = Number(w.capacity) || 0;
+    const free = capacity - totalUsed;
+    const percent = capacity > 0 ? (totalUsed/capacity)*100 : 0;
+    const percentInt = Math.round(percent);
+    const status = getStatus(percent);
+    const fillHeight = Math.min(percent, 100);
+
+    // 품목별 세그먼트 (창고 그림 안)
+    let segments = '';
+    if (totalUsed > 0) {
+      w.items.forEach((item, idx) => {
+        const itemPercent = (Number(item.qty)/totalUsed) * 100;
+        const color = ITEM_COLORS[idx % ITEM_COLORS.length];
+        segments += `<div class="fill-segment" style="background:${color};flex:${item.qty}" title="${item.name}: ${item.qty} ${w.unit}">
+          ${itemPercent > 15 ? item.name : ''}
+        </div>`;
+      });
+    }
+
+    // 품목 리스트
+    let itemsHtml = '';
+    if (w.items.length === 0) {
+      itemsHtml = '<div class="empty-items">등록된 품목이 없습니다</div>';
+    } else {
+      w.items.forEach((item, idx) => {
+        const color = ITEM_COLORS[idx % ITEM_COLORS.length];
+        const itemPct = capacity > 0 ? ((item.qty/capacity)*100).toFixed(1) : 0;
+        itemsHtml += `
+          <div class="item-row" style="border-left-color:${color}">
+            <div class="item-info">
+              <div class="item-name">${escapeHtml(item.name)}</div>
+              <div class="item-qty">${item.qty} ${escapeHtml(w.unit)} · 전체의 ${itemPct}%</div>
+            </div>
+            <div class="item-actions">
+              <button class="icon-btn" onclick="openItemModal(${w.id}, ${item.id})" title="수정">✏️</button>
+              <button class="icon-btn danger" onclick="deleteItem(${w.id}, ${item.id})" title="삭제">🗑️</button>
+            </div>
+          </div>`;
+      });
+    }
+
+    html += `
+      <div class="warehouse-card">
+        <div class="wh-header">
+          <div>
+            <div class="wh-title">${escapeHtml(w.name)} <span class="status-badge ${status.class}">${status.label}</span></div>
+            <div class="wh-location">📍 ${escapeHtml(w.location || '위치 미지정')}</div>
+          </div>
+          <div class="wh-actions">
+            <button class="btn btn-sm btn-secondary" onclick="openWarehouseModal(${w.id})">수정</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteWarehouse(${w.id})">삭제</button>
+          </div>
+        </div>
+
+        <div class="warehouse-visual">
+          <div class="fill-bar" style="height:${fillHeight}%;background:${status.bgColor}">
+            ${segments}
+          </div>
+          <div class="percent-overlay">${percentInt}<span class="unit">%</span></div>
+        </div>
+
+        <div class="gauge">
+          <div class="gauge-fill" style="width:${Math.min(percent,100)}%;background:linear-gradient(90deg,${status.color}aa,${status.color})">
+            ${percent > 10 ? percentInt + '%' : ''}
+          </div>
+        </div>
+
+        <div class="wh-stats">
+          <div class="stat">
+            <div class="stat-label">사용중</div>
+            <div class="stat-value stat-used">${totalUsed} <span style="font-size:11px">${escapeHtml(w.unit)}</span></div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">남은공간</div>
+            <div class="stat-value ${free<0?'stat-used':'stat-free'}" style="${free<0?'color:#e74c3c':''}">${free} <span style="font-size:11px">${escapeHtml(w.unit)}</span></div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">총 용량</div>
+            <div class="stat-value stat-total">${capacity} <span style="font-size:11px">${escapeHtml(w.unit)}</span></div>
+          </div>
+        </div>
+
+        <div class="items-section">
+          <div class="items-header">
+            <div class="items-title">📋 적재 품목 (${w.items.length})</div>
+            <button class="btn btn-sm btn-success" onclick="openItemModal(${w.id})">+ 품목 추가</button>
+          </div>
+          <div class="items-list">${itemsHtml}</div>
+        </div>
+      </div>`;
+  });
+  html += '</div>';
+
+  // 범례
+  html += `
+    <div class="legend" style="margin-top:20px">
+      <strong style="color:#ccc;font-size:12px">📊 사용률 안내:</strong>
+      <div class="legend-item"><div class="legend-color" style="background:#27ae60"></div>비어있음 (0%)</div>
+      <div class="legend-item"><div class="legend-color" style="background:#2ecc71"></div>여유 (~30%)</div>
+      <div class="legend-item"><div class="legend-color" style="background:#f39c12"></div>보통 (~60%)</div>
+      <div class="legend-item"><div class="legend-color" style="background:#e67e22"></div>많음 (~85%)</div>
+      <div class="legend-item"><div class="legend-color" style="background:#e74c3c"></div>가득참 (~100%)</div>
+      <div class="legend-item"><div class="legend-color" style="background:#8b0000"></div>초과! (100%+)</div>
+    </div>`;
+
+  container.innerHTML = html;
+}
+
+function escapeHtml(str) {
+  if (str == null) return '';
+  return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+// ===== 창고 CRUD =====
+function openWarehouseModal(id) {
+  editingWarehouseId = id || null;
+  document.getElementById('warehouseModalTitle').textContent = id ? '창고 수정' : '창고 추가';
+  if (id) {
+    const w = warehouses.find(x => x.id === id);
+    document.getElementById('whName').value = w.name;
+    document.getElementById('whLocation').value = w.location || '';
+    document.getElementById('whCapacity').value = w.capacity;
+    document.getElementById('whUnit').value = w.unit;
+  } else {
+    document.getElementById('whName').value = '';
+    document.getElementById('whLocation').value = '';
+    document.getElementById('whCapacity').value = '';
+    document.getElementById('whUnit').value = 'PLT';
+  }
+  document.getElementById('warehouseModal').classList.add('active');
+}
+
+function closeWarehouseModal() {
+  document.getElementById('warehouseModal').classList.remove('active');
+  editingWarehouseId = null;
+}
+
+function saveWarehouse() {
+  const name = document.getElementById('whName').value.trim();
+  const location = document.getElementById('whLocation').value.trim();
+  const capacity = parseFloat(document.getElementById('whCapacity').value);
+  const unit = document.getElementById('whUnit').value.trim();
+
+  if (!name) { alert('창고 이름을 입력하세요'); return; }
+  if (!capacity || capacity <= 0) { alert('최대 수용량을 입력하세요'); return; }
+  if (!unit) { alert('단위를 입력하세요'); return; }
+
+  if (editingWarehouseId) {
+    const w = warehouses.find(x => x.id === editingWarehouseId);
+    w.name = name; w.location = location; w.capacity = capacity; w.unit = unit;
+  } else {
+    warehouses.push({
+      id: Date.now(), name, location, capacity, unit, items: []
+    });
+  }
+  saveData();
+  closeWarehouseModal();
+  render();
+}
+
+function deleteWarehouse(id) {
+  if (!confirm('이 창고를 삭제하시겠습니까? 모든 품목 정보가 삭제됩니다.')) return;
+  warehouses = warehouses.filter(w => w.id !== id);
+  saveData();
+  render();
+}
+
+// ===== 품목 CRUD =====
+function openItemModal(warehouseId, itemId) {
+  editingItemContext = { warehouseId, itemId };
+  document.getElementById('itemModalTitle').textContent = itemId ? '품목 수정' : '품목 추가';
+  if (itemId) {
+    const w = warehouses.find(x => x.id === warehouseId);
+    const item = w.items.find(i => i.id === itemId);
+    document.getElementById('itemName').value = item.name;
+    document.getElementById('itemQty').value = item.qty;
+  } else {
+    document.getElementById('itemName').value = '';
+    document.getElementById('itemQty').value = '';
+  }
+  document.getElementById('itemModal').classList.add('active');
+}
+
+function closeItemModal() {
+  document.getElementById('itemModal').classList.remove('active');
+  editingItemContext = null;
+}
+
+function saveItem() {
+  const name = document.getElementById('itemName').value.trim();
+  const qty = parseFloat(document.getElementById('itemQty').value);
+
+  if (!name) { alert('품목명을 입력하세요'); return; }
+  if (isNaN(qty) || qty < 0) { alert('수량을 올바르게 입력하세요'); return; }
+
+  const w = warehouses.find(x => x.id === editingItemContext.warehouseId);
+  if (editingItemContext.itemId) {
+    const item = w.items.find(i => i.id === editingItemContext.itemId);
+    item.name = name; item.qty = qty;
+  } else {
+    w.items.push({ id: Date.now(), name, qty });
+  }
+  saveData();
+  closeItemModal();
+  render();
+}
+
+function deleteItem(warehouseId, itemId) {
+  if (!confirm('이 품목을 삭제하시겠습니까?')) return;
+  const w = warehouses.find(x => x.id === warehouseId);
+  w.items = w.items.filter(i => i.id !== itemId);
+  saveData();
+  render();
+}
+
+// ===== 입출고 일정 =====
+function renderSchedule() {
+  const container = document.getElementById('scheduleContainer');
+  if (warehouses.length === 0) { container.innerHTML = ''; return; }
+
+  const upcomingCount = schedules.filter(s => !s.done).length;
+  const todayStr = ymd(new Date());
+  const overdueCount = schedules.filter(s => !s.done && s.date < todayStr).length;
+
+  let html = `
+    <div class="schedule-card">
+      <div class="schedule-header">
+        <div class="schedule-title">
+          📅 입출고 일정
+          <span style="font-size:13px;color:#aaa;font-weight:600">
+            (예정 ${upcomingCount}건${overdueCount > 0 ? ` · <span style="color:#e74c3c">지연 ${overdueCount}건</span>` : ''})
+          </span>
+        </div>
+        <div class="view-tabs">
+          <button class="view-tab ${scheduleView==='calendar'?'active':''}" onclick="setScheduleView('calendar')">📆 캘린더</button>
+          <button class="view-tab ${scheduleView==='warehouse'?'active':''}" onclick="setScheduleView('warehouse')">🏭 창고별</button>
+        </div>
+      </div>
+      ${scheduleView === 'calendar' ? renderCalendar() : renderWarehouseTabs()}
+    </div>
+  `;
+  container.innerHTML = html;
+}
+
+function setScheduleView(v) {
+  scheduleView = v;
+  renderSchedule();
+}
+
+function ymd(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+
+function renderCalendar() {
+  const year = calCursor.getFullYear();
+  const month = calCursor.getMonth();
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month+1, 0);
+  const startWeekday = firstDay.getDay();
+  const totalDays = lastDay.getDate();
+  const todayStr = ymd(new Date());
+
+  // 일정을 날짜별로 그룹화
+  const byDate = {};
+  schedules.forEach(s => {
+    if (!byDate[s.date]) byDate[s.date] = [];
+    byDate[s.date].push(s);
+  });
+
+  let html = `
+    <div class="calendar-nav">
+      <button class="btn btn-sm btn-secondary" onclick="moveCalendar(-1)">‹ 이전</button>
+      <h3>${year}년 ${month+1}월</h3>
+      <button class="btn btn-sm btn-secondary" onclick="moveCalendar(1)">다음 ›</button>
+    </div>
+    <div class="calendar-grid">
+      <div class="cal-weekday sun">일</div>
+      <div class="cal-weekday">월</div>
+      <div class="cal-weekday">화</div>
+      <div class="cal-weekday">수</div>
+      <div class="cal-weekday">목</div>
+      <div class="cal-weekday">금</div>
+      <div class="cal-weekday sat">토</div>
+  `;
+
+  // 이전 달 빈칸
+  const prevLast = new Date(year, month, 0).getDate();
+  for (let i = startWeekday - 1; i >= 0; i--) {
+    const d = prevLast - i;
+    html += `<div class="cal-day other-month"><div class="cal-day-num">${d}</div></div>`;
+  }
+
+  // 이번 달
+  for (let d = 1; d <= totalDays; d++) {
+    const dateStr = ymd(new Date(year, month, d));
+    const weekday = new Date(year, month, d).getDay();
+    const isToday = dateStr === todayStr;
+    const events = byDate[dateStr] || [];
+    let dayClass = 'cal-day';
+    if (isToday) dayClass += ' today';
+    if (weekday === 0) dayClass += ' sun';
+    if (weekday === 6) dayClass += ' sat';
+
+    let evHtml = '';
+    events.slice(0, 3).forEach(s => {
+      const wh = warehouses.find(w => w.id === s.warehouseId);
+      const whName = wh ? wh.name : '?';
+      evHtml += `<div class="cal-event ${s.type} ${s.done?'done':''}"
+        onclick="event.stopPropagation();openScheduleModal(${s.id})"
+        title="${escapeHtml(whName)} - ${escapeHtml(s.itemName)} ${s.qty}${escapeHtml(wh?wh.unit:'')}">
+        ${s.type==='in'?'📥':'📤'} ${escapeHtml(s.itemName)} ${s.qty}
+      </div>`;
+    });
+    if (events.length > 3) {
+      evHtml += `<div class="cal-more">+${events.length-3}건</div>`;
+    }
+
+    html += `<div class="${dayClass}" onclick="quickAddSchedule('${dateStr}')">
+      <div class="cal-day-num">${d}</div>
+      ${evHtml}
+    </div>`;
+  }
+
+  // 다음 달 빈칸
+  const totalCells = startWeekday + totalDays;
+  const remaining = (7 - (totalCells % 7)) % 7;
+  for (let i = 1; i <= remaining; i++) {
+    html += `<div class="cal-day other-month"><div class="cal-day-num">${i}</div></div>`;
+  }
+
+  html += `</div>
+    <div style="margin-top:12px;display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:#aaa">
+      <span><span style="display:inline-block;width:12px;height:12px;background:#27ae60;border-radius:2px;vertical-align:middle"></span> 입고</span>
+      <span><span style="display:inline-block;width:12px;height:12px;background:#e67e22;border-radius:2px;vertical-align:middle"></span> 출고</span>
+      <span style="color:#888">날짜 클릭: 빠른 등록 · 일정 클릭: 수정/완료</span>
+    </div>
+  `;
+  return html;
+}
+
+function moveCalendar(delta) {
+  calCursor = new Date(calCursor.getFullYear(), calCursor.getMonth()+delta, 1);
+  renderSchedule();
+}
+
+function quickAddSchedule(dateStr) {
+  openScheduleModal(null, dateStr);
+}
+
+function renderWarehouseTabs() {
+  let tabs = `<div class="wh-tabs">
+    <button class="view-tab ${activeWhTab==='all'?'active':''}" onclick="setWhTab('all')">전체</button>`;
+  warehouses.forEach(w => {
+    const cnt = schedules.filter(s => s.warehouseId === w.id && !s.done).length;
+    tabs += `<button class="view-tab ${activeWhTab==w.id?'active':''}" onclick="setWhTab(${w.id})">
+      ${escapeHtml(w.name)}${cnt>0?` <span style="background:#4a90e2;color:#fff;padding:1px 6px;border-radius:8px;font-size:10px">${cnt}</span>`:''}
+    </button>`;
+  });
+  tabs += `</div>`;
+
+  let list = schedules.slice();
+  if (activeWhTab !== 'all') {
+    list = list.filter(s => s.warehouseId === activeWhTab);
+  }
+  // 정렬: 미완료 먼저, 날짜 오름차순
+  list.sort((a,b) => {
+    if (a.done !== b.done) return a.done ? 1 : -1;
+    return a.date.localeCompare(b.date);
+  });
+
+  let listHtml = '';
+  if (list.length === 0) {
+    listHtml = '<div class="empty-schedule">📭 등록된 일정이 없습니다</div>';
+  } else {
+    const todayStr = ymd(new Date());
+    list.forEach(s => {
+      const wh = warehouses.find(w => w.id === s.warehouseId);
+      const dt = new Date(s.date);
+      const overdue = !s.done && s.date < todayStr;
+      let cls = 'sch-item ' + s.type;
+      if (s.done) cls += ' done';
+      if (overdue) cls += ' overdue';
+
+      listHtml += `
+        <div class="${cls}">
+          <div class="sch-date">
+            <div class="month">${dt.getMonth()+1}월</div>
+            <div class="day">${dt.getDate()}</div>
+          </div>
+          <div class="sch-info">
+            <div class="sch-name">
+              <span class="sch-badge ${s.done?'done':(overdue?'overdue':s.type)}">
+                ${s.done?'✓ 완료':(overdue?'⚠ 지연':(s.type==='in'?'📥 입고':'📤 출고'))}
+              </span>
+              ${escapeHtml(s.itemName)} · ${s.qty} ${escapeHtml(wh?wh.unit:'')}
+            </div>
+            <div class="sch-meta">
+              🏭 ${escapeHtml(wh?wh.name:'(삭제된 창고)')}
+              ${s.memo?` · 📝 ${escapeHtml(s.memo)}`:''}
+            </div>
+          </div>
+          <div class="sch-actions">
+            ${!s.done ? `<button class="btn btn-sm btn-success" onclick="completeSchedule(${s.id})">완료</button>` : ''}
+            <button class="btn btn-sm btn-secondary" onclick="openScheduleModal(${s.id})">수정</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteSchedule(${s.id})">삭제</button>
+          </div>
+        </div>
+      `;
+    });
+  }
+
+  return tabs + `<div class="schedule-list">${listHtml}</div>`;
+}
+
+function setWhTab(id) {
+  activeWhTab = id;
+  renderSchedule();
+}
+
+function openScheduleModal(id, presetDate) {
+  editingScheduleId = id || null;
+  document.getElementById('scheduleModalTitle').textContent = id ? '📅 일정 수정' : '📅 입출고 일정 추가';
+
+  // 창고 옵션 채우기
+  const sel = document.getElementById('schWarehouse');
+  sel.innerHTML = warehouses.map(w =>
+    `<option value="${w.id}">${escapeHtml(w.name)} (${escapeHtml(w.unit)})</option>`
+  ).join('');
+
+  if (id) {
+    const s = schedules.find(x => x.id === id);
+    document.getElementById('schType').value = s.type;
+    document.getElementById('schDate').value = s.date;
+    document.getElementById('schWarehouse').value = s.warehouseId;
+    document.getElementById('schItemName').value = s.itemName;
+    document.getElementById('schQty').value = s.qty;
+    document.getElementById('schMemo').value = s.memo || '';
+  } else {
+    document.getElementById('schType').value = 'in';
+    document.getElementById('schDate').value = presetDate || ymd(new Date());
+    document.getElementById('schItemName').value = '';
+    document.getElementById('schQty').value = '';
+    document.getElementById('schMemo').value = '';
+  }
+  document.getElementById('scheduleModal').classList.add('active');
+}
+
+function closeScheduleModal() {
+  document.getElementById('scheduleModal').classList.remove('active');
+  editingScheduleId = null;
+}
+
+function saveSchedule() {
+  const type = document.getElementById('schType').value;
+  const date = document.getElementById('schDate').value;
+  const warehouseId = parseInt(document.getElementById('schWarehouse').value);
+  const itemName = document.getElementById('schItemName').value.trim();
+  const qty = parseFloat(document.getElementById('schQty').value);
+  const memo = document.getElementById('schMemo').value.trim();
+
+  if (!date) { alert('예정일을 선택하세요'); return; }
+  if (!warehouseId) { alert('창고를 선택하세요'); return; }
+  if (!itemName) { alert('품목명을 입력하세요'); return; }
+  if (isNaN(qty) || qty <= 0) { alert('수량을 올바르게 입력하세요'); return; }
+
+  if (editingScheduleId) {
+    const s = schedules.find(x => x.id === editingScheduleId);
+    s.type = type; s.date = date; s.warehouseId = warehouseId;
+    s.itemName = itemName; s.qty = qty; s.memo = memo;
+  } else {
+    schedules.push({
+      id: Date.now(), type, date, warehouseId, itemName, qty, memo, done: false
+    });
+  }
+  saveData();
+  closeScheduleModal();
+  render();
+}
+
+function deleteSchedule(id) {
+  if (!confirm('이 일정을 삭제하시겠습니까?')) return;
+  schedules = schedules.filter(s => s.id !== id);
+  saveData();
+  render();
+}
+
+function completeSchedule(id) {
+  const s = schedules.find(x => x.id === id);
+  if (!s) return;
+  const wh = warehouses.find(w => w.id === s.warehouseId);
+  if (!wh) { alert('연결된 창고가 없습니다'); return; }
+
+  const action = s.type === 'in' ? '입고' : '출고';
+  if (!confirm(`${action} 완료 처리하시겠습니까?\n\n창고: ${wh.name}\n품목: ${s.itemName}\n수량: ${s.qty} ${wh.unit}\n\n→ 재고에 자동 반영됩니다.`)) return;
+
+  // 같은 이름의 품목 찾기
+  let item = wh.items.find(i => i.name === s.itemName);
+
+  if (s.type === 'in') {
+    // 입고: 추가
+    if (item) {
+      item.qty = Number(item.qty) + Number(s.qty);
+    } else {
+      wh.items.push({ id: Date.now(), name: s.itemName, qty: s.qty });
+    }
+  } else {
+    // 출고: 차감
+    if (!item) {
+      if (!confirm(`'${s.itemName}' 품목이 창고에 없습니다. 그래도 완료 처리하시겠습니까?`)) return;
+    } else {
+      const newQty = Number(item.qty) - Number(s.qty);
+      if (newQty < 0) {
+        if (!confirm(`재고가 부족합니다 (현재 ${item.qty}, 출고 ${s.qty}). 그래도 진행하시겠습니까?`)) return;
+      }
+      item.qty = newQty;
+      if (item.qty <= 0) {
+        wh.items = wh.items.filter(i => i.id !== item.id);
+      }
+    }
+  }
+
+  s.done = true;
+  s.completedAt = (function(){
+    const d = new Date();
+    const p = n => String(n).padStart(2,'0');
+    return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+  })();
+  saveData();
+  render();
+}
+
+
+// 모달 배경 클릭 닫기
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', (e) => {
+    if (e.target === m) m.classList.remove('active');
+  });
+});
+
+// 시작
+(async function() {
+  await loadData();
+  render();
+})();
+</script>
+</body>
+</html>
