@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HIQASC - 조직 & 업무 대시보드</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#2a2a2a;
+  --card:#353535;
+  --card2:#3a3a3a;
+  --card-hover:#404040;
+  --border:#4a4a4a;
+  --border-light:#3f3f3f;
+  --text:#e0e0e0;
+  --text-dim:#a0a0a0;
+  --text-muted:#808080;
+  --as:#4a90e2;
+  --support:#f39c12;
+  --b2b:#20c997;
+  --admin:#9b59b6;
+  --as-soft:rgba(74,144,226,.15);
+  --support-soft:rgba(243,156,18,.15);
+  --b2b-soft:rgba(32,201,151,.15);
+  --admin-soft:rgba(155,89,182,.15);
+  --as-deep:#6aa5e8;
+  --support-deep:#f5b041;
+  --b2b-deep:#3ed4a8;
+  --admin-deep:#af7ac5;
+  --success:#28a745;
+  --danger:#e74c3c;
+  --warning:#f39c12;
+  --radius:14px;--radius-sm:10px;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.2),0 1px 3px rgba(0,0,0,.3);
+  --shadow:0 2px 6px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.35);
+  --shadow-lg:0 10px 40px rgba(0,0,0,.5);
+}
+html,body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px;line-height:1.5;}
+
+/* ─────────── HEADER ─────────── */
+.header{
+  background:#1e1e1e;border-bottom:1px solid #3a3a3a;
+  padding:18px 40px;display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:100;box-shadow:var(--shadow-sm);
+}
+.hl{display:flex;align-items:center;gap:14px;}
+.hlogo{width:44px;height:44px;background:linear-gradient(135deg,var(--as),var(--admin));border-radius:11px;display:flex;align-items:center;justify-content:center;font-family:'Outfit';font-weight:800;font-size:17px;color:#fff;box-shadow:0 4px 12px rgba(37,99,235,.25);}
+.header h1{font-family:'Outfit';font-size:22px;font-weight:700;letter-spacing:-.3px;}
+.header h1 span{color:var(--text-muted);font-weight:400;font-size:14px;margin-left:10px;}
+.hac{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+.btn{padding:9px 18px;border-radius:9px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:13px;font-family:'Noto Sans KR';font-weight:500;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;}
+.btn:hover{background:var(--card-hover);border-color:var(--as);color:var(--as);}
+.btn-primary{background:var(--as);border-color:var(--as);color:#fff;}.btn-primary:hover{background:#357abd;color:#fff;}
+.btn-sm{padding:6px 12px;font-size:12px;}
+.edit-ind{display:none;align-items:center;gap:5px;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;background:rgba(243,156,18,.15);color:var(--warning);border:1px solid rgba(243,156,18,.3);animation:pulse 2s infinite;}
+
+/* Save Status */
+.save-status{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:18px;font-size:12px;font-weight:500;transition:all .2s;}
+.save-status:empty{display:none;}
+.save-status.pending{background:rgba(243,156,18,.15);color:var(--warning);border:1px solid rgba(243,156,18,.3);}
+.save-status.saving{background:rgba(74,144,226,.15);color:var(--as);border:1px solid rgba(74,144,226,.3);}
+.save-status.saved{background:rgba(40,167,69,.15);color:var(--success);border:1px solid rgba(40,167,69,.3);}
+.save-status.error{background:rgba(231,76,60,.15);color:var(--danger);border:1px solid rgba(231,76,60,.3);}
+
+/* Loading Overlay */
+#loadingOverlay{position:fixed;inset:0;background:rgba(42,42,42,.85);backdrop-filter:blur(4px);z-index:10000;display:flex;align-items:center;justify-content:center;}
+.loading-content{background:#1e1e1e;border:1px solid var(--border);border-radius:14px;padding:30px 40px;display:flex;align-items:center;gap:14px;color:var(--text);font-size:15px;font-weight:500;box-shadow:var(--shadow-lg);}
+.loading-content i{color:var(--as);font-size:22px;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+
+/* ─────────── TABS ─────────── */
+.tab-nav{display:flex;gap:0;padding:0 40px;border-bottom:1px solid #3a3a3a;background:#1e1e1e;}
+.tab-btn{padding:14px 26px;border:none;background:none;color:var(--text-dim);font-size:14px;font-family:'Noto Sans KR';font-weight:500;cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;margin-bottom:-1px;}
+.tab-btn:hover{color:var(--text);}
+.tab-btn.active{color:var(--as);border-bottom-color:var(--as);font-weight:700;}
+
+.main{padding:28px 40px;max-width:1800px;margin:0 auto;}
+.tab-content{display:none;}.tab-content.active{display:block;animation:fadeIn .25s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+/* ═══════════════════════════════════════
+   OVERVIEW - bigger, fuller
+   ═══════════════════════════════════════ */
+.stats-row{
+  display:grid;grid-template-columns:repeat(7,1fr);gap:18px;margin-bottom:32px;
+}
+@media(max-width:1500px){.stats-row{grid-template-columns:repeat(4,1fr);}}
+@media(max-width:768px){.stats-row{grid-template-columns:repeat(2,1fr);}}
+
+.stat-card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:28px 28px;position:relative;overflow:hidden;box-shadow:var(--shadow-sm);
+  transition:all .25s;
+}
+.stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow);}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:5px;}
+.stat-card.as::before{background:var(--as);}
+.stat-card.support::before{background:var(--support);}
+.stat-card.b2b::before{background:var(--b2b);}
+.stat-card.admin::before{background:var(--admin);}
+.stat-card.total::before{background:linear-gradient(90deg,var(--as),var(--support),var(--b2b),var(--admin));}
+.stat-label{font-size:14px;color:var(--text-dim);margin-bottom:10px;text-transform:uppercase;letter-spacing:1.2px;font-weight:700;}
+.stat-value{font-family:'Outfit';font-size:46px;font-weight:700;line-height:1;}
+.stat-sub{font-size:18px;color:var(--text-muted);margin-left:6px;font-weight:400;}
+
+.ov-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:20px;}
+@media(max-width:1100px){.ov-grid{grid-template-columns:1fr;}}
+
+.section-title{
+  font-family:'Outfit';font-size:22px;font-weight:700;
+  display:flex;align-items:center;gap:11px;margin-bottom:18px;color:var(--text);
+}
+.info-box{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:30px 32px;box-shadow:var(--shadow-sm);
+}
+
+.mini-org-head{
+  text-align:center;margin-bottom:24px;
+}
+.mini-head-card{
+  display:inline-block;background:var(--admin-soft);
+  border:2px solid var(--admin);border-radius:14px;padding:18px 36px;
+}
+.mini-head-card .name{font-weight:700;font-size:22px;color:var(--admin-deep);}
+.mini-head-card .role{font-size:14px;color:var(--text-dim);margin-top:4px;}
+
+.mini-teams{display:grid;gap:14px;}
+.mini-team{
+  border-radius:14px;padding:20px 22px;border:2px solid;
+}
+.mini-team .tn{font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:10px;}
+.mini-team .ln{font-size:20px;font-weight:700;}
+.mini-team .lr{font-size:13px;color:var(--text-dim);margin-left:6px;font-weight:400;}
+.mini-team .mc{font-size:14px;color:var(--text-dim);margin-top:8px;}
+
+.cov-row{margin-bottom:22px;}
+.cov-row:last-child{margin-bottom:0;}
+.cov-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.cov-name{font-size:16px;font-weight:700;}
+.cov-stat{font-size:14px;color:var(--text-dim);}
+.cov-stat b{font-size:16px;}
+.cov-track{height:12px;background:#2a2a2a;border-radius:6px;overflow:hidden;}
+.cov-fill{height:100%;border-radius:6px;transition:width .6s;}
+
+.uncovered{margin-top:22px;padding-top:22px;border-top:1px solid var(--border);}
+.uncovered .uh{font-size:14px;color:var(--danger);font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.uncovered .ul{font-size:13px;color:var(--text-dim);padding:4px 0;}
+
+/* ═══════════════════════════════════════
+   ORG CHART - no scroll, visible tooltips
+   ═══════════════════════════════════════ */
+.org-wrap{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:40px 30px 60px;box-shadow:var(--shadow-sm);
+  position:relative;overflow:visible;
+}
+.org-stage{position:relative;display:flex;flex-direction:column;align-items:center;overflow:visible;}
+#orgSvg{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1;}
+.org-content{position:relative;z-index:2;width:100%;display:flex;flex-direction:column;align-items:center;overflow:visible;}
+
+.org-head-row{display:flex;justify-content:center;}
+
+.org-teams-row{
+  display:flex;justify-content:center;align-items:flex-start;
+  gap:30px;margin-top:70px;width:100%;overflow:visible;
+}
+
+.org-branch{
+  display:flex;flex-direction:column;align-items:center;flex-shrink:0;
+}
+.org-branch.wide{width:580px;}
+.org-branch.medium{width:360px;}
+.org-branch.narrow{width:220px;}
+
+.onode{
+  background:var(--card2);border:2px solid var(--border);border-radius:16px;
+  padding:18px 36px;text-align:center;position:relative;
+  transition:all .25s;cursor:default;z-index:5;box-shadow:var(--shadow-sm);
+}
+.onode:hover{transform:translateY(-2px);box-shadow:var(--shadow);z-index:1500;}
+.onode.head{
+  background:var(--admin-soft);
+  border-color:var(--admin);padding:24px 50px;
+  box-shadow:0 4px 20px rgba(155,89,182,.2);
+}
+.onode.lead-as{border-color:var(--as);background:var(--as-soft);}
+.onode.lead-support{border-color:var(--support);background:var(--support-soft);}
+.onode.lead-b2b{border-color:var(--b2b);background:var(--b2b-soft);}
+.oname{font-weight:700;font-size:20px;color:var(--text);}
+.orole{font-size:13px;color:var(--text-dim);margin-top:4px;}
+.onode.head .oname{font-size:22px;}
+
+.team-tag{
+  font-family:'Outfit';font-size:13px;font-weight:700;
+  text-transform:uppercase;letter-spacing:2px;padding:6px 20px;
+  border-radius:18px;margin-bottom:14px;
+}
+.team-tag.as{background:var(--as-soft);color:var(--as-deep);}
+.team-tag.support{background:var(--support-soft);color:var(--support-deep);}
+.team-tag.b2b{background:var(--b2b-soft);color:var(--b2b-deep);}
+
+.members-grid{display:grid;gap:10px;margin-top:24px;}
+.members-grid.cols4{grid-template-columns:repeat(4,1fr);max-width:560px;}
+.members-grid.cols3{grid-template-columns:repeat(3,1fr);max-width:420px;}
+.members-grid.cols2{grid-template-columns:repeat(2,1fr);max-width:280px;}
+
+.omember{
+  background:var(--card2);border:1.5px solid var(--border);border-radius:11px;
+  padding:12px 10px;text-align:center;font-size:14px;font-weight:600;color:var(--text);
+  transition:all .2s;cursor:default;position:relative;box-shadow:var(--shadow-sm);
+  z-index:5;
+}
+.omember:hover{border-color:var(--as);background:var(--as-soft);transform:translateY(-1px);z-index:1500;}
+.omember small{display:block;font-size:11px;color:var(--text-muted);margin-top:3px;font-weight:400;}
+
+/* ─── HOVER CARD ─── */
+.phover{
+  position:absolute;left:50%;transform:translateX(-50%);
+  background:#1e1e1e;border:1px solid var(--border);border-radius:12px;
+  padding:18px 20px;width:320px;
+  box-shadow:var(--shadow-lg);z-index:9999;
+  pointer-events:none;opacity:0;transition:opacity .15s;text-align:left;
+}
+.phover.up{bottom:calc(100% + 14px);}
+.phover.up::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:8px solid transparent;border-top-color:#1e1e1e;}
+.phover.down{top:calc(100% + 14px);}
+.phover.down::after{content:'';position:absolute;bottom:100%;left:50%;transform:translateX(-50%);border:8px solid transparent;border-bottom-color:#1e1e1e;}
+.onode:hover .phover,.omember:hover .phover{opacity:1;}
+
+.ph-name{font-weight:700;font-size:14px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border);color:var(--text);}
+.ph-name span{font-weight:400;font-size:12px;color:var(--text-dim);margin-left:6px;}
+.ph-section{margin-bottom:10px;}.ph-section:last-child{margin-bottom:0;}
+.ph-label{font-size:10px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px;}
+.ph-item{font-size:12px;padding:3px 0;color:var(--text);display:flex;align-items:center;gap:6px;line-height:1.4;}
+.ph-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.ph-empty{font-size:11px;color:var(--text-muted);font-style:italic;}
+
+/* ═══════════════════════════════════════
+   TASKS - soft, beautiful cards
+   ═══════════════════════════════════════ */
+.legend{display:flex;gap:18px;margin-bottom:20px;flex-wrap:wrap;align-items:center;padding:14px 20px;background:var(--card);border:1px solid var(--border);border-radius:10px;}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-dim);font-weight:500;}
+.legend-dot{width:9px;height:9px;border-radius:50%;}
+
+.team-section{margin-bottom:36px;}
+.team-section-head{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:16px;padding:0 4px;
+}
+.team-section-title{
+  font-family:'Outfit';font-size:24px;font-weight:700;
+  display:flex;align-items:center;gap:12px;color:var(--text);
+}
+.team-section-title .dot{width:14px;height:14px;border-radius:50%;}
+.dot.as{background:var(--as);}
+.dot.support{background:var(--support);}
+.dot.b2b{background:var(--b2b);}
+.dot.admin{background:var(--admin);}
+.team-count{
+  font-size:13px;color:var(--text-dim);font-weight:500;
+  background:var(--card);border:1px solid var(--border);
+  padding:4px 13px;border-radius:20px;margin-left:6px;
+}
+
+/* Soft card-list approach */
+.task-list{
+  background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);
+  overflow:hidden;box-shadow:var(--shadow-sm);
+}
+.task-list.as{border-color:rgba(74,144,226,.4);}
+.task-list.support{border-color:rgba(243,156,18,.4);}
+.task-list.b2b{border-color:rgba(32,201,151,.4);}
+.task-list.admin{border-color:rgba(155,89,182,.4);}
+
+.task-head{
+  display:grid;
+  grid-template-columns:50px 2.4fr 2fr 2fr 90px 1.6fr;
+  gap:14px;padding:16px 24px;
+  border-bottom:1.5px solid;
+  font-size:12px;font-weight:700;
+  text-transform:uppercase;letter-spacing:1.2px;align-items:center;
+}
+.task-head.editmode{grid-template-columns:50px 2.4fr 2fr 2fr 90px 1.6fr 40px;}
+.task-list.as .task-head{background:var(--as-soft);border-bottom-color:rgba(74,144,226,.35);color:var(--as-deep);}
+.task-list.support .task-head{background:var(--support-soft);border-bottom-color:rgba(243,156,18,.35);color:var(--support-deep);}
+.task-list.b2b .task-head{background:var(--b2b-soft);border-bottom-color:rgba(32,201,151,.35);color:var(--b2b-deep);}
+.task-list.admin .task-head{background:var(--admin-soft);border-bottom-color:rgba(155,89,182,.35);color:var(--admin-deep);}
+
+.task-row{
+  display:grid;
+  grid-template-columns:50px 2.4fr 2fr 2fr 90px 1.6fr;
+  gap:14px;padding:16px 24px;
+  border-bottom:1px solid var(--border-light);
+  font-size:14px;align-items:center;
+  transition:background .15s;
+}
+.task-row.editmode{grid-template-columns:50px 2.4fr 2fr 2fr 90px 1.6fr 40px;}
+.task-row:last-child{border-bottom:none;}
+.task-list.as .task-row:hover{background:rgba(74,144,226,.06);}
+.task-list.support .task-row:hover{background:rgba(243,156,18,.06);}
+.task-list.b2b .task-row:hover{background:rgba(32,201,151,.06);}
+.task-list.admin .task-row:hover{background:rgba(155,89,182,.06);}
+
+.task-num{
+  width:36px;height:36px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:700;
+}
+.task-name{font-weight:600;font-size:15px;color:var(--text);line-height:1.4;}
+.task-note{font-size:13px;color:var(--text-dim);font-style:italic;}
+
+.task-list.as .task-num{background:var(--as);color:#fff;}
+.task-list.support .task-num{background:var(--support);color:#fff;}
+.task-list.b2b .task-num{background:var(--b2b);color:#fff;}
+.task-list.admin .task-num{background:var(--admin);color:#fff;}
+
+.badges{display:flex;flex-wrap:wrap;gap:5px;}
+.badge{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:5px 12px;border-radius:18px;font-size:12px;font-weight:600;
+  white-space:nowrap;transition:all .15s;
+}
+.badge i{font-size:9px;}
+.badge.assignee-as{background:var(--as-soft);color:var(--as-deep);border:1px solid rgba(74,144,226,.3);}
+.badge.assignee-support{background:var(--support-soft);color:var(--support-deep);border:1px solid rgba(243,156,18,.3);}
+.badge.assignee-b2b{background:var(--b2b-soft);color:var(--b2b-deep);border:1px solid rgba(32,201,151,.3);}
+.badge.assignee-admin{background:var(--admin-soft);color:var(--admin-deep);border:1px solid rgba(155,89,182,.3);}
+.badge.backup{background:rgba(40,167,69,.15);color:#4ade80;border:1px solid rgba(40,167,69,.3);}
+.badge .rx{cursor:pointer;margin-left:2px;opacity:.5;font-size:11px;}.badge .rx:hover{opacity:1;color:var(--danger);}
+
+.empty-dash{color:var(--text-muted);font-size:13px;}
+
+.pri{
+  display:inline-block;padding:5px 12px;border-radius:8px;
+  font-size:11px;font-weight:700;text-align:center;
+}
+.pri.high{background:rgba(231,76,60,.15);color:#f87171;border:1px solid rgba(231,76,60,.3);}
+.pri.mid{background:rgba(243,156,18,.15);color:#fbbf24;border:1px solid rgba(243,156,18,.3);}
+.pri.low{background:rgba(40,167,69,.15);color:#4ade80;border:1px solid rgba(40,167,69,.3);}
+
+/* Multi-select */
+.ms-wrap{position:relative;width:100%;}
+.ms-trigger{display:flex;align-items:center;gap:4px;padding:6px 10px;background:var(--card2);border:1.5px solid var(--border);border-radius:9px;cursor:pointer;font-size:12px;min-height:36px;flex-wrap:wrap;color:var(--text);}
+.ms-trigger:hover{border-color:var(--as);}
+.ms-trigger .ph{color:var(--text-muted);font-size:12px;}
+.ms-dd{position:absolute;top:calc(100% + 5px);left:0;min-width:200px;background:#1e1e1e;border:1px solid var(--border);border-radius:11px;z-index:60;max-height:240px;overflow-y:auto;display:none;box-shadow:var(--shadow-lg);}
+.ms-dd.open{display:block;}
+.ms-dd input{width:100%;padding:10px 12px;background:transparent;border:none;border-bottom:1px solid var(--border);color:var(--text);font-size:13px;font-family:'Noto Sans KR';outline:none;}
+.ms-dd input::placeholder{color:var(--text-muted);}
+.ms-opt{padding:8px 12px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:8px;color:var(--text);}
+.ms-opt:hover{background:var(--as-soft);}.ms-opt.sel{background:var(--as-soft);font-weight:600;}
+.ms-opt .ck{width:16px;height:16px;border-radius:5px;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;}
+.ms-opt.sel .ck{background:var(--as);border-color:var(--as);color:#fff;}
+
+.inline-input{background:var(--card2);border:1.5px solid var(--border);color:var(--text);padding:8px 12px;border-radius:9px;font-size:13px;font-family:'Noto Sans KR';width:100%;outline:none;}
+.inline-input:focus{border-color:var(--as);box-shadow:0 0 0 3px rgba(74,144,226,.2);}
+.inline-input::placeholder{color:var(--text-muted);}
+.inline-select{background:var(--card2);border:1.5px solid var(--border);color:var(--text);padding:7px 10px;border-radius:9px;font-size:12px;font-family:'Noto Sans KR';outline:none;cursor:pointer;width:100%;}
+
+.del-btn{width:32px;height:32px;border-radius:8px;border:none;background:var(--card2);color:var(--text-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;opacity:0;transition:all .2s;}
+.task-row:hover .del-btn{opacity:1;}
+.del-btn:hover{background:rgba(231,76,60,.15);color:var(--danger);}
+
+.add-row{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:14px;border:none;border-top:1px dashed var(--border);background:var(--card2);color:var(--text-muted);font-size:13px;font-family:'Noto Sans KR';font-weight:500;cursor:pointer;transition:all .2s;}
+.add-row:hover{color:var(--as);background:var(--as-soft);}
+
+.toast{position:fixed;bottom:24px;right:24px;padding:14px 22px;background:#1e1e1e;border:1px solid var(--success);border-radius:10px;color:var(--success);font-size:13px;font-weight:600;box-shadow:var(--shadow-lg);display:flex;align-items:center;gap:8px;transform:translateY(80px);opacity:0;transition:all .3s;z-index:2000;}
+.toast.show{transform:translateY(0);opacity:1;}
+
+@media(max-width:1100px){
+  .header{padding:14px 20px;}
+  .tab-nav{padding:0 20px;}
+  .main{padding:20px;}
+  .org-teams-row{flex-direction:column;align-items:center;gap:30px;}
+  .org-branch.wide,.org-branch.medium,.org-branch.narrow{width:auto;min-width:280px;}
+  .task-head,.task-row{grid-template-columns:40px 1.5fr 1.4fr 1.4fr 80px;font-size:12px;gap:10px;padding:12px 14px;}
+  .task-head .col-note,.task-row .col-note{display:none;}
+  .task-head.editmode,.task-row.editmode{grid-template-columns:40px 1.5fr 1.4fr 1.4fr 80px 36px;}
+}
+@media(max-width:700px){
+  .task-head,.task-row{grid-template-columns:36px 1fr;font-size:12px;}
+  .task-head .col-assign,.task-head .col-backup,.task-head .col-pri,.task-head .col-note,
+  .task-row .col-assign,.task-row .col-backup,.task-row .col-pri,.task-row .col-note{display:none;}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="hl"><div class="hlogo">H</div><h1>조직 & 업무 대시보드<span>Organization & Task Dashboard</span></h1></div>
+  <div class="hac">
+    <span id="saveStatus" class="save-status"></span>
+    <span id="editInd" class="edit-ind"><i class="fas fa-pen"></i> 편집 모드</span>
+    <button class="btn" onclick="toggleEdit()" id="editBtn"><i class="fas fa-pen-to-square"></i> 편집</button>
+    <button class="btn" onclick="manualSave()" title="즉시 저장"><i class="fas fa-cloud-arrow-up"></i> 저장</button>
+    <button class="btn" onclick="manualReload()" title="구글 시트에서 다시 불러오기"><i class="fas fa-arrows-rotate"></i> 새로고침</button>
+  </div>
+</div>
+
+<div class="tab-nav">
+  <button class="tab-btn active" data-tab="overview"><i class="fas fa-chart-pie"></i>&nbsp; 전체 현황</button>
+  <button class="tab-btn" data-tab="orgchart"><i class="fas fa-sitemap"></i>&nbsp; 조직도</button>
+  <button class="tab-btn" data-tab="tasks"><i class="fas fa-list-check"></i>&nbsp; 업무 & 대체인력</button>
+</div>
+
+<div class="main">
+  <div class="tab-content active" id="tab-overview"></div>
+  <div class="tab-content" id="tab-orgchart"></div>
+  <div class="tab-content" id="tab-tasks"></div>
+</div>
+
+<div class="toast" id="toast"><i class="fas fa-check-circle"></i><span id="toastMsg"></span></div>
+
+<script>
+/* ════════════════════════════════════════════════════════════
+   GOOGLE SHEETS 연동 설정
+   ════════════════════════════════════════════════════════════
+   1. apps-script-code.gs 파일을 script.google.com 에 배포
+   2. 배포 후 받은 웹앱 URL을 아래 APPS_SCRIPT_URL 에 붙여넣기
+   3. 이 HTML을 GitHub Pages 에 업로드
+   ════════════════════════════════════════════════════════════ */
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx0QBvS2_xIL4mPqZkFd1sLPlujJXcDMNv4fu0oT_e7iw1xGz4RNc3iYrPMGLrrfNRGlQ/exec';
+const SHEET_ID = '1chkSEnFSheStqwSrL0mtR8lgFz1_7bnpYPgVbNQgAfE';
+
+let DATA = null;
+let isLoading = false;
+let autoSaveTimer = null;
+
+let editMode=false;
+const esc=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function getAllPeople(){const p=new Set();p.add(DATA.centerHead.name);DATA.teams.forEach(t=>{p.add(t.lead.name);t.members.forEach(m=>p.add(m.name));});return[...p].sort();}
+function showToast(m){const t=document.getElementById('toast');document.getElementById('toastMsg').textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
+
+function isAsTechnician(name){
+  // AS팀 소속이고 role이 Technician인 사람만 '전 테크니션'에 포함
+  const asTeam=DATA.teams.find(t=>t.id==='as');
+  if(!asTeam)return false;
+  return asTeam.members.some(m=>m.name===name&&m.role==='Technician');
+}
+
+function getPersonTasks(name){
+  const assigned=[],backup=[];
+  const isTech=isAsTechnician(name);
+  DATA.teams.forEach(team=>{team.tasks.forEach(tk=>{
+    const ass=tk.assignees||[],bks=tk.backups||[];
+    // 직접 지정된 경우
+    if(ass.includes(name))assigned.push({team:team.name,task:tk.task,color:team.color});
+    else if(isTech&&ass.includes('전 테크니션'))assigned.push({team:team.name,task:tk.task,color:team.color});
+    if(bks.includes(name))backup.push({team:team.name,task:tk.task,color:team.color});
+    else if(isTech&&bks.includes('전 테크니션'))backup.push({team:team.name,task:tk.task,color:team.color});
+  });});
+  return{assigned,backup};
+}
+function hoverHTML(name,role,dir){
+  const{assigned,backup}=getPersonTasks(name);
+  let h=`<div class="phover ${dir||'up'}"><div class="ph-name">${esc(name)}<span>${esc(role||'')}</span></div>`;
+  h+=`<div class="ph-section"><div class="ph-label"><i class="fas fa-user"></i> 담당 업무 (${assigned.length})</div>`;
+  if(assigned.length)assigned.forEach(a=>h+=`<div class="ph-item"><span class="ph-dot" style="background:${a.color}"></span>${esc(a.task)}</div>`);
+  else h+=`<div class="ph-empty">없음</div>`;
+  h+=`</div><div class="ph-section"><div class="ph-label"><i class="fas fa-arrows-rotate"></i> 대체 투입 (${backup.length})</div>`;
+  if(backup.length)backup.forEach(b=>h+=`<div class="ph-item"><span class="ph-dot" style="background:${b.color}"></span>${esc(b.task)}</div>`);
+  else h+=`<div class="ph-empty">없음</div>`;
+  h+=`</div></div>`;
+  return h;
+}
+
+document.querySelectorAll('.tab-btn').forEach(b=>{b.addEventListener('click',()=>{document.querySelectorAll('.tab-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));document.getElementById('tab-'+b.dataset.tab).classList.add('active');if(b.dataset.tab==='orgchart')setTimeout(drawOrgLines,80);});});
+function toggleEdit(){editMode=!editMode;document.getElementById('editBtn').innerHTML=editMode?'<i class="fas fa-check"></i> 완료':'<i class="fas fa-pen-to-square"></i> 편집';document.getElementById('editBtn').classList.toggle('btn-primary',editMode);document.getElementById('editInd').style.display=editMode?'inline-flex':'none';renderAll();if(!editMode){manualSave();showToast('변경사항이 저장되었습니다');}}
+
+/* MULTI-SELECT */
+let msC=0;
+function createMS(el,selected,options,onChange,ph){
+  const id='ms'+(++msC);const st={sel:[...selected],opts:options,cb:onChange,ph:ph||'선택...',fl:''};
+  function render(){
+    const flt=st.opts.filter(o=>!st.fl||o.includes(st.fl));
+    el.innerHTML=`<div class="ms-trigger" id="${id}_t">${st.sel.length?st.sel.map(s=>`<span class="badge backup" style="font-size:11px;padding:3px 9px;">${esc(s)}<span class="rx" data-n="${esc(s)}">&times;</span></span>`).join(''):`<span class="ph">${st.ph}</span>`}</div><div class="ms-dd" id="${id}_d"><input placeholder="검색..." id="${id}_s" autocomplete="off"><div id="${id}_o">${rO(flt)}</div></div>`;
+    document.getElementById(id+'_t').onclick=e=>{if(e.target.closest('.rx'))return;const d=document.getElementById(id+'_d'),w=d.classList.contains('open');closeDD();if(!w)d.classList.add('open');};
+    const si=document.getElementById(id+'_s');si.oninput=e=>{st.fl=e.target.value;document.getElementById(id+'_o').innerHTML=rO();bO();};si.onclick=e=>e.stopPropagation();
+    el.querySelectorAll('.rx').forEach(x=>x.onclick=e=>{e.stopPropagation();st.sel=st.sel.filter(s=>s!==x.dataset.n);st.cb(st.sel);render();});bO();
+  }
+  function rO(f){return(f||st.opts.filter(o=>!st.fl||o.includes(st.fl))).map(o=>{const s=st.sel.includes(o);return`<div class="ms-opt${s?' sel':''}" data-v="${esc(o)}"><span class="ck">${s?'<i class="fas fa-check"></i>':''}</span>${esc(o)}</div>`;}).join('');}
+  function bO(){el.querySelectorAll('.ms-opt').forEach(opt=>{opt.onclick=e=>{e.stopPropagation();const v=opt.dataset.v;if(st.sel.includes(v))st.sel=st.sel.filter(s=>s!==v);else st.sel.push(v);st.cb(st.sel);render();setTimeout(()=>{const d=document.getElementById(id+'_d');if(d)d.classList.add('open');},10);};});}
+  render();
+}
+function closeDD(){document.querySelectorAll('.ms-dd.open').forEach(d=>d.classList.remove('open'));}
+document.addEventListener('click',e=>{if(!e.target.closest('.ms-wrap'))closeDD();});
+
+/* ═══════ OVERVIEW ═══════ */
+function renderOverview(){
+  const total=1+DATA.teams.reduce((s,t)=>s+1+t.members.length,0);
+  const totalTasks=DATA.teams.reduce((s,t)=>s+t.tasks.length,0);
+  const covered=DATA.teams.reduce((s,t)=>s+t.tasks.filter(tk=>tk.backups&&tk.backups.length>0).length,0);
+  const covPct=totalTasks?Math.round(covered/totalTasks*100):0;
+
+  let h=`<div class="stats-row">
+    <div class="stat-card total"><div class="stat-label">전체 인원</div><div class="stat-value">${total}<span class="stat-sub">명</span></div></div>`;
+  DATA.teams.forEach(t=>{h+=`<div class="stat-card ${t.id}"><div class="stat-label">${t.name}</div><div class="stat-value">${1+t.members.length}<span class="stat-sub">명</span></div></div>`;});
+  h+=`<div class="stat-card total"><div class="stat-label">등록 업무</div><div class="stat-value">${totalTasks}<span class="stat-sub">건</span></div></div>
+    <div class="stat-card total"><div class="stat-label">대체 커버율</div><div class="stat-value" style="color:${covPct>=80?'var(--success)':covPct>=50?'var(--warning)':'var(--danger)'}">${covPct}<span class="stat-sub">%</span></div></div></div>`;
+
+  h+=`<div class="ov-grid">`;
+
+  // Org structure box
+  h+=`<div><div class="section-title"><i class="fas fa-sitemap" style="color:var(--admin)"></i> 조직 구성</div>
+    <div class="info-box">
+      <div class="mini-org-head">
+        <div class="mini-head-card">
+          <div class="name">${DATA.centerHead.name}</div>
+          <div class="role">${DATA.centerHead.role}</div>
+        </div>
+      </div>
+      <div class="mini-teams" style="grid-template-columns:repeat(${DATA.teams.filter(t=>t.id!=='admin').length},1fr);">`;
+  DATA.teams.filter(t=>t.id!=='admin').forEach(t=>{
+    const bg=t.id==='as'?'var(--as-soft)':t.id==='support'?'var(--support-soft)':'var(--b2b-soft)';
+    h+=`<div class="mini-team" style="border-color:${t.color}33;background:${bg};">
+      <div class="tn" style="color:${t.color};">${t.name}</div>
+      <div class="ln">${t.lead.name}<span class="lr">${t.lead.role}</span></div>
+      <div class="mc">${t.members.length>0?'팀원 '+t.members.length+'명':'1인 운영'}</div>
+    </div>`;
+  });
+  h+=`</div></div></div>`;
+
+  // Coverage box
+  h+=`<div><div class="section-title"><i class="fas fa-shield-halved" style="color:var(--success)"></i> 대체인력 커버리지</div><div class="info-box">`;
+  DATA.teams.forEach(t=>{
+    const tt=t.tasks.length,cv=t.tasks.filter(tk=>tk.backups&&tk.backups.length>0).length;
+    const p=tt?Math.round(cv/tt*100):0;
+    const c=p>=80?'var(--success)':p>=50?'var(--warning)':'var(--danger)';
+    h+=`<div class="cov-row">
+      <div class="cov-head">
+        <span class="cov-name" style="color:${t.color};">${t.name}</span>
+        <span class="cov-stat">${cv}/${tt} 업무 · <b style="color:${c}">${p}%</b></span>
+      </div>
+      <div class="cov-track"><div class="cov-fill" style="width:${p}%;background:${c};"></div></div>
+    </div>`;
+  });
+  const unc=[];DATA.teams.forEach(t=>t.tasks.forEach(tk=>{if(!tk.backups||!tk.backups.length)unc.push({team:t.name,task:tk.task});}));
+  if(unc.length){
+    h+=`<div class="uncovered"><div class="uh"><i class="fas fa-triangle-exclamation"></i> 대체인력 미지정 (${unc.length}건)</div>`;
+    unc.forEach(u=>h+=`<div class="ul">• ${u.team} — ${u.task}</div>`);
+    h+=`</div>`;
+  }
+  h+=`</div></div></div>`;
+
+  document.getElementById('tab-overview').innerHTML=h;
+}
+
+/* ═══════ ORG CHART ═══════ */
+function renderOrgChart(){
+  const vt=DATA.teams.filter(t=>t.id!=='admin');
+  let h=`<div class="org-wrap"><div class="org-stage"><svg id="orgSvg" xmlns="http://www.w3.org/2000/svg"></svg><div class="org-content">`;
+
+  // Head
+  h+=`<div class="org-head-row"><div class="onode head" id="orgHead">
+    ${hoverHTML(DATA.centerHead.name,DATA.centerHead.role,'down')}
+    <div class="oname">${DATA.centerHead.name}</div><div class="orole">${DATA.centerHead.role}</div>
+  </div></div>`;
+
+  // Teams
+  h+=`<div class="org-teams-row" id="orgTeamsRow">`;
+  vt.forEach((t,i)=>{
+    const mc=t.members.length;
+    const sizeClass=mc>8?'wide':mc>3?'medium':'narrow';
+    const gridClass=mc>8?'cols4':mc>3?'cols3':'cols2';
+
+    h+=`<div class="org-branch ${sizeClass}">`;
+    h+=`<div class="team-tag ${t.id}">${t.name}</div>`;
+    h+=`<div class="onode lead-${t.id}" id="orgLead_${i}">
+      ${hoverHTML(t.lead.name,t.lead.role,'down')}
+      <div class="oname">${t.lead.name}</div><div class="orole">${t.lead.role}</div>
+    </div>`;
+    if(mc>0){
+      h+=`<div class="members-grid ${gridClass}" id="orgMembers_${i}">`;
+      t.members.forEach(m=>{
+        h+=`<div class="omember">
+          ${hoverHTML(m.name,m.role,'down')}
+          ${m.name}<small>${m.role}</small>
+        </div>`;
+      });
+      h+=`</div>`;
+    }
+    h+=`</div>`;
+  });
+  h+=`</div>`;
+
+  h+=`</div></div></div>`;
+  document.getElementById('tab-orgchart').innerHTML=h;
+  setTimeout(drawOrgLines,80);
+}
+
+function drawOrgLines(){
+  const stage=document.querySelector('.org-stage');
+  const svg=document.getElementById('orgSvg');
+  const head=document.getElementById('orgHead');
+  if(!stage||!svg||!head)return;
+
+  const sR=stage.getBoundingClientRect();
+  svg.setAttribute('width',sR.width);
+  svg.setAttribute('height',sR.height);
+  svg.innerHTML='';
+
+  function pos(el){
+    const r=el.getBoundingClientRect();
+    return{
+      cx:r.left-sR.left+r.width/2,
+      top:r.top-sR.top,
+      bottom:r.top-sR.top+r.height
+    };
+  }
+  function ln(x1,y1,x2,y2){
+    const l=document.createElementNS('http://www.w3.org/2000/svg','line');
+    l.setAttribute('x1',x1);l.setAttribute('y1',y1);
+    l.setAttribute('x2',x2);l.setAttribute('y2',y2);
+    l.setAttribute('stroke','#5a5a5a');l.setAttribute('stroke-width','2');
+    l.setAttribute('stroke-linecap','round');
+    svg.appendChild(l);
+  }
+
+  const hP=pos(head);
+  const vt=DATA.teams.filter(t=>t.id!=='admin');
+  const leads=[];
+  vt.forEach((_,i)=>{const el=document.getElementById('orgLead_'+i);if(el)leads.push({el,p:pos(el),idx:i});});
+  if(!leads.length)return;
+
+  const midY=(hP.bottom+leads[0].p.top)/2;
+  ln(hP.cx,hP.bottom,hP.cx,midY);
+  if(leads.length>1) ln(leads[0].p.cx,midY,leads[leads.length-1].p.cx,midY);
+  leads.forEach(ld=>{ln(ld.p.cx,midY,ld.p.cx,ld.p.top);});
+  leads.forEach(ld=>{
+    const me=document.getElementById('orgMembers_'+ld.idx);
+    if(me){const mP=pos(me);ln(ld.p.cx,ld.p.bottom,ld.p.cx,mP.top);}
+  });
+}
+window.addEventListener('resize',()=>setTimeout(drawOrgLines,100));
+
+/* ═══════ TASKS ═══════ */
+function renderTasks(){
+  msC=0;
+  const allP=['전원','전 테크니션',...getAllPeople()];
+  let h=`<div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--as)"></div> 담당자</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--success)"></div> 대체인력 (복수 가능)</div>
+    <div class="legend-item"><span class="pri high">높음</span></div>
+    <div class="legend-item"><span class="pri mid">중간</span></div>
+    <div class="legend-item"><span class="pri low">낮음</span></div>
+  </div>`;
+
+  DATA.teams.forEach((team,ti)=>{
+    h+=`<div class="team-section">
+      <div class="team-section-head">
+        <div class="team-section-title">
+          <div class="dot ${team.id}"></div> ${team.name}
+          <span class="team-count">${team.tasks.length}건</span>
+        </div>
+        ${editMode?`<button class="btn btn-sm btn-primary" onclick="addTask(${ti})"><i class="fas fa-plus"></i> 업무 추가</button>`:''}
+      </div>
+      <div class="task-list ${team.id}">
+        <div class="task-head${editMode?' editmode':''}">
+          <div>#</div>
+          <div class="col-task">업무</div>
+          <div class="col-assign">담당자</div>
+          <div class="col-backup">대체인력</div>
+          <div class="col-pri">중요도</div>
+          <div class="col-note">비고</div>
+          ${editMode?'<div></div>':''}
+        </div>`;
+
+    team.tasks.forEach((task,ki)=>{
+      if(editMode){
+        h+=`<div class="task-row editmode">
+          <div class="task-num">${ki+1}</div>
+          <div class="col-task"><input class="inline-input" value="${esc(task.task)}" onchange="DATA.teams[${ti}].tasks[${ki}].task=this.value;scheduleSave();"></div>
+          <div class="col-assign"><div class="ms-wrap" id="msa_${ti}_${ki}"></div></div>
+          <div class="col-backup"><div class="ms-wrap" id="msb_${ti}_${ki}"></div></div>
+          <div class="col-pri"><select class="inline-select" onchange="DATA.teams[${ti}].tasks[${ki}].priority=this.value;scheduleSave();">
+            <option value="high"${task.priority==='high'?' selected':''}>높음</option>
+            <option value="mid"${task.priority==='mid'?' selected':''}>중간</option>
+            <option value="low"${task.priority==='low'?' selected':''}>낮음</option>
+          </select></div>
+          <div class="col-note"><input class="inline-input" value="${esc(task.note)}" onchange="DATA.teams[${ti}].tasks[${ki}].note=this.value;scheduleSave();" placeholder="메모..."></div>
+          <div><button class="del-btn" onclick="delTask(${ti},${ki})"><i class="fas fa-trash-alt"></i></button></div>
+        </div>`;
+      } else {
+        const bc='assignee-'+team.id;
+        h+=`<div class="task-row">
+          <div class="task-num">${ki+1}</div>
+          <div class="task-name col-task">${esc(task.task)}</div>
+          <div class="col-assign"><div class="badges">${(task.assignees||[]).map(a=>`<span class="badge ${bc}"><i class="fas fa-user"></i> ${esc(a)}</span>`).join('')}</div></div>
+          <div class="col-backup"><div class="badges">${(task.backups||[]).length?task.backups.map(b=>`<span class="badge backup"><i class="fas fa-arrows-rotate"></i> ${esc(b)}</span>`).join(''):'<span class="empty-dash">—</span>'}</div></div>
+          <div class="col-pri"><span class="pri ${task.priority}">${task.priority==='high'?'높음':task.priority==='mid'?'중간':'낮음'}</span></div>
+          <div class="task-note col-note">${esc(task.note)||'—'}</div>
+        </div>`;
+      }
+    });
+
+    if(editMode) h+=`<button class="add-row" onclick="addTask(${ti})"><i class="fas fa-plus"></i> 새 업무 추가</button>`;
+    h+=`</div></div>`;
+  });
+
+  document.getElementById('tab-tasks').innerHTML=h;
+  if(editMode){
+    const ap=['전원','전 테크니션',...getAllPeople()];
+    DATA.teams.forEach((t,ti)=>{t.tasks.forEach((tk,ki)=>{
+      const ae=document.getElementById('msa_'+ti+'_'+ki),be=document.getElementById('msb_'+ti+'_'+ki);
+      if(ae)createMS(ae,tk.assignees||[],ap,s=>{DATA.teams[ti].tasks[ki].assignees=s;scheduleSave();},'담당자');
+      if(be)createMS(be,tk.backups||[],ap,s=>{DATA.teams[ti].tasks[ki].backups=s;scheduleSave();},'대체인력');
+    });});
+  }
+}
+
+function addTask(ti){DATA.teams[ti].tasks.push({task:'새 업무',assignees:[],backups:[],priority:'mid',note:''});renderTasks();scheduleSave();}
+function delTask(ti,ki){if(confirm('삭제하시겠습니까?')){DATA.teams[ti].tasks.splice(ki,1);renderTasks();showToast('삭제 완료');scheduleSave();}}
+
+function renderAll(){renderOverview();renderOrgChart();renderTasks();}
+
+/* ═══════════════════════════════════════════════════════
+   GOOGLE SHEETS 연동 (JSONP GET + no-cors POST 패턴)
+   ═══════════════════════════════════════════════════════ */
+
+// JSONP GET 로 데이터 불러오기
+function loadFromSheet(){
+  return new Promise((resolve,reject)=>{
+    if(APPS_SCRIPT_URL==='YOUR_APPS_SCRIPT_URL_HERE'){
+      reject(new Error('APPS_SCRIPT_URL 이 설정되지 않았습니다'));
+      return;
+    }
+    const cbName='orgCb_'+Date.now();
+    const script=document.createElement('script');
+    const timeout=setTimeout(()=>{
+      delete window[cbName];
+      if(script.parentNode)script.parentNode.removeChild(script);
+      reject(new Error('요청 시간 초과 (10초)'));
+    },10000);
+
+    window[cbName]=function(response){
+      clearTimeout(timeout);
+      delete window[cbName];
+      if(script.parentNode)script.parentNode.removeChild(script);
+      if(response.success){
+        resolve(response.data);
+      } else {
+        reject(new Error(response.error||'알 수 없는 오류'));
+      }
+    };
+
+    const url=APPS_SCRIPT_URL+'?callback='+cbName+'&t='+Date.now();
+    script.src=url;
+    script.onerror=()=>{
+      clearTimeout(timeout);
+      delete window[cbName];
+      if(script.parentNode)script.parentNode.removeChild(script);
+      reject(new Error('스크립트 로드 실패'));
+    };
+    document.body.appendChild(script);
+  });
+}
+
+// no-cors POST 로 데이터 저장
+function saveToSheet(data){
+  return new Promise((resolve,reject)=>{
+    if(APPS_SCRIPT_URL==='YOUR_APPS_SCRIPT_URL_HERE'){
+      reject(new Error('APPS_SCRIPT_URL 이 설정되지 않았습니다'));
+      return;
+    }
+    fetch(APPS_SCRIPT_URL,{
+      method:'POST',
+      mode:'no-cors',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify(data)
+    }).then(()=>{
+      // no-cors 는 응답 확인 불가 - 성공 가정
+      resolve();
+    }).catch(err=>{
+      reject(err);
+    });
+  });
+}
+
+// 저장 스케줄러 (2초 debounce, 연속 수정 방지)
+function scheduleSave(){
+  updateSaveStatus('pending');
+  if(autoSaveTimer) clearTimeout(autoSaveTimer);
+  autoSaveTimer=setTimeout(()=>{
+    doSave();
+  },2000);
+}
+
+function doSave(){
+  updateSaveStatus('saving');
+  saveToSheet(DATA).then(()=>{
+    updateSaveStatus('saved');
+    setTimeout(()=>updateSaveStatus('idle'),2000);
+  }).catch(err=>{
+    updateSaveStatus('error');
+    console.error('저장 실패:',err);
+    showToast('저장 실패: '+err.message);
+  });
+}
+
+function updateSaveStatus(status){
+  const el=document.getElementById('saveStatus');
+  if(!el)return;
+  const map={
+    'idle':{text:'',cls:''},
+    'pending':{text:'<i class="fas fa-clock"></i> 저장 대기',cls:'pending'},
+    'saving':{text:'<i class="fas fa-spinner fa-spin"></i> 저장 중...',cls:'saving'},
+    'saved':{text:'<i class="fas fa-check-circle"></i> 저장됨',cls:'saved'},
+    'error':{text:'<i class="fas fa-exclamation-circle"></i> 저장 실패',cls:'error'}
+  };
+  const s=map[status]||map.idle;
+  el.innerHTML=s.text;
+  el.className='save-status '+s.cls;
+}
+
+// 수동 새로고침
+function manualReload(){
+  if(!confirm('구글 시트에서 최신 데이터를 다시 불러오시겠습니까? 저장되지 않은 변경사항은 사라집니다.'))return;
+  init();
+}
+
+// 수동 저장 (즉시)
+function manualSave(){
+  if(autoSaveTimer){clearTimeout(autoSaveTimer);autoSaveTimer=null;}
+  doSave();
+}
+
+/* ═══════════════════════════════════════════════════════
+   초기화
+   ═══════════════════════════════════════════════════════ */
+async function init(){
+  isLoading=true;
+  showLoadingOverlay(true);
+
+  try {
+    DATA = await loadFromSheet();
+    renderAll();
+    showToast('구글 시트에서 데이터를 불러왔습니다');
+  } catch(err) {
+    console.error('로드 실패:',err);
+    // 로드 실패 시 로컬 기본 데이터로 fallback
+    DATA = getLocalDefault();
+    renderAll();
+    if(APPS_SCRIPT_URL==='YOUR_APPS_SCRIPT_URL_HERE'){
+      showToast('⚠️ APPS_SCRIPT_URL을 설정해주세요 (소스 코드 상단)');
+    } else {
+      showToast('⚠️ 구글 시트 로드 실패 - 오프라인 모드');
+    }
+  } finally {
+    isLoading=false;
+    showLoadingOverlay(false);
+  }
+}
+
+function showLoadingOverlay(show){
+  let ov=document.getElementById('loadingOverlay');
+  if(show){
+    if(!ov){
+      ov=document.createElement('div');
+      ov.id='loadingOverlay';
+      ov.innerHTML='<div class="loading-content"><i class="fas fa-spinner fa-spin"></i><span>구글 시트에서 데이터 불러오는 중...</span></div>';
+      document.body.appendChild(ov);
+    }
+  } else if(ov) {
+    ov.remove();
+  }
+}
+
+function getLocalDefault(){
+  return {
+    centerHead:{name:'김찬우',role:'센터장'},
+    teams:[
+      {id:'as',name:'AS팀',color:'#4a90e2',lead:{name:'강동구',role:'팀장'},members:[{name:'이대민',role:'Technician'},{name:'장균수',role:'Technician'},{name:'이덕수',role:'Technician'},{name:'이상민',role:'Technician'},{name:'곽연학',role:'Technician'},{name:'조성주',role:'Technician'},{name:'김지수',role:'Technician'},{name:'박준현',role:'Technician'},{name:'안정용',role:'Technician'},{name:'신준호',role:'Technician'},{name:'이동민',role:'Technician'},{name:'노우영',role:'Technician'},{name:'최승열',role:'Technician'}],tasks:[]},
+      {id:'support',name:'지원팀',color:'#f39c12',lead:{name:'이선제',role:'팀장'},members:[{name:'임성산',role:'Parts'},{name:'홍성균',role:'Loan'},{name:'노경호',role:'Loan'},{name:'박학림',role:'Assistant'},{name:'노세진',role:'Shipping & Packing'}],tasks:[]},
+      {id:'b2b',name:'B2B팀',color:'#20c997',lead:{name:'김태정',role:'Technician'},members:[],tasks:[]},
+      {id:'admin',name:'관리팀',color:'#9b59b6',lead:{name:'김찬우',role:'센터장'},members:[],tasks:[]}
+    ]
+  };
+}
+
+init();
+</script>
+</body>
+</html>
