@@ -3,9 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
 <title>HIQASC - 조직 & 업무 대시보드</title>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 <style>
@@ -724,34 +721,80 @@ function renderAll(){renderOverview();renderOrgChart();renderTasks();}
    GOOGLE SHEETS 연동 (JSONP GET + no-cors POST 패턴)
    ═══════════════════════════════════════════════════════ */
 
-// JSONP GET 로 데이터 불러오기
+// iframe + postMessage 로 데이터 불러오기
+// (JSONP 는 /u/1/ 리다이렉트 문제로 실패하므로 iframe 방식 사용)
 function loadFromSheet(){
   return new Promise((resolve,reject)=>{
     if(APPS_SCRIPT_URL==='YOUR_APPS_SCRIPT_URL_HERE'){
       reject(new Error('APPS_SCRIPT_URL 이 설정되지 않았습니다'));
       return;
     }
+
+    const reqId='req_'+Date.now()+'_'+Math.random().toString(36).substr(2,9);
+    const iframe=document.createElement('iframe');
+    iframe.style.display='none';
+    // sandbox 없이 - postMessage 가 iframe → parent 방향으로 동작하려면 scripts 허용 필요
+
+    let resolved=false;
+    const cleanup=()=>{
+      window.removeEventListener('message',msgHandler);
+      if(iframe.parentNode)iframe.parentNode.removeChild(iframe);
+    };
+
+    const msgHandler=function(e){
+      // Apps Script 도메인에서 온 메시지만 받음
+      if(typeof e.data!=='object'||!e.data||e.data.reqId!==reqId)return;
+      resolved=true;
+      cleanup();
+      if(e.data.success){
+        resolve(e.data.data);
+      } else {
+        reject(new Error(e.data.error||'알 수 없는 오류'));
+      }
+    };
+    window.addEventListener('message',msgHandler);
+
+    const timeout=setTimeout(()=>{
+      if(!resolved){
+        cleanup();
+        reject(new Error('요청 시간 초과 (15초)'));
+      }
+    },15000);
+
+    // iframe 으로 Apps Script 호출
+    // ?action=load 로 iframe 용 응답을 받음
+    iframe.src=APPS_SCRIPT_URL+'?action=load&reqId='+reqId+'&t='+Date.now();
+    iframe.onerror=()=>{
+      if(!resolved){
+        clearTimeout(timeout);
+        cleanup();
+        reject(new Error('iframe 로드 실패'));
+      }
+    };
+    document.body.appendChild(iframe);
+  });
+}
+
+// Fallback: iframe 방식이 실패하면 JSONP 재시도
+function loadFromSheetJSONP(){
+  return new Promise((resolve,reject)=>{
     const cbName='orgCb_'+Date.now();
     const script=document.createElement('script');
     const timeout=setTimeout(()=>{
       delete window[cbName];
       if(script.parentNode)script.parentNode.removeChild(script);
-      reject(new Error('요청 시간 초과 (10초)'));
+      reject(new Error('JSONP 시간 초과'));
     },10000);
 
     window[cbName]=function(response){
       clearTimeout(timeout);
       delete window[cbName];
       if(script.parentNode)script.parentNode.removeChild(script);
-      if(response.success){
-        resolve(response.data);
-      } else {
-        reject(new Error(response.error||'알 수 없는 오류'));
-      }
+      if(response.success)resolve(response.data);
+      else reject(new Error(response.error||'오류'));
     };
 
-    const url=APPS_SCRIPT_URL+'?callback='+cbName+'&t='+Date.now();
-    script.src=url;
+    script.src=APPS_SCRIPT_URL+'?callback='+cbName+'&t='+Date.now();
     script.onerror=()=>{
       clearTimeout(timeout);
       delete window[cbName];
@@ -839,12 +882,18 @@ async function init(){
   showLoadingOverlay(true);
 
   try {
-    DATA = await loadFromSheet();
+    // 1차: iframe + postMessage 방식 (계정 리다이렉트 간섭 회피)
+    try {
+      DATA = await loadFromSheet();
+    } catch(e1) {
+      console.warn('iframe 방식 실패, JSONP fallback 시도:',e1.message);
+      // 2차: JSONP fallback
+      DATA = await loadFromSheetJSONP();
+    }
     renderAll();
     showToast('구글 시트에서 데이터를 불러왔습니다');
   } catch(err) {
     console.error('로드 실패:',err);
-    // 로드 실패 시 로컬 기본 데이터로 fallback
     DATA = getLocalDefault();
     renderAll();
     if(APPS_SCRIPT_URL==='YOUR_APPS_SCRIPT_URL_HERE'){
