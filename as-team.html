@@ -224,12 +224,12 @@
             background: linear-gradient(135deg, #1a2a4a 0%, #2a3a5a 100%);
             border: 1px solid #4a90e2;
             border-radius: 14px;
-            padding: 24px;
+            padding: 16px 18px;
             cursor: pointer;
             transition: all 0.3s;
             display: flex;
             align-items: center;
-            gap: 18px;
+            gap: 14px;
             position: relative;
             overflow: hidden;
             flex: 1;
@@ -253,42 +253,50 @@
         }
 
         .highlight-icon {
-            width: 52px;
-            height: 52px;
+            width: 44px;
+            height: 44px;
             background: linear-gradient(135deg, #4a90e2 0%, #6366f1 100%);
-            border-radius: 14px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
+            font-size: 20px;
             flex-shrink: 0;
         }
 
         .highlight-info {
             flex: 1;
+            min-width: 0;
         }
 
         .highlight-info h3 {
-            font-size: 1.15em;
+            font-size: 1.05em;
             color: #ffffff;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
             font-weight: 700;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            letter-spacing: -0.3px;
         }
 
         .highlight-info p {
             color: #94a3b8;
-            font-size: 0.82em;
-            line-height: 1.5;
+            font-size: 0.78em;
+            line-height: 1.4;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .highlight-badge {
             display: inline-block;
-            padding: 6px 14px;
+            padding: 5px 11px;
             background: rgba(99, 102, 241, 0.2);
             border: 1px solid rgba(99, 102, 241, 0.4);
             color: #a5b4fc;
-            border-radius: 8px;
-            font-size: 0.8em;
+            border-radius: 7px;
+            font-size: 0.75em;
             font-weight: 600;
             flex-shrink: 0;
         }
@@ -528,7 +536,7 @@
                     <div class="highlight-icon">📊</div>
                     <div class="highlight-info">
                         <h3>HIQASC 팀 현황 대시보드</h3>
-                        <p>팀원 근무 현황, 연차/추가근로, 당일 수리 현황을 한눈에 확인합니다.</p>
+                        <p>근무 현황, 연차, 당일 수리 현황</p>
                     </div>
                     <span class="highlight-badge">운영중</span>
                 </div>
@@ -536,7 +544,7 @@
                     <div class="highlight-icon">⏱️</div>
                     <div class="highlight-info">
                         <h3>수리 타이머</h3>
-                        <p>수리 시간을 측정하고 기록합니다. 모델별 평균 수리시간 통계를 제공합니다.</p>
+                        <p>수리 시간 측정 및 모델별 통계</p>
                     </div>
                     <span class="highlight-badge">운영중</span>
                 </div>
@@ -544,7 +552,7 @@
                     <div class="highlight-icon">📋</div>
                     <div class="highlight-info">
                         <h3>업무 게시판</h3>
-                        <p>업무 절차, 매뉴얼 등 필요한 정보를 등록하고 검색합니다.</p>
+                        <p>업무 절차 및 매뉴얼 공유</p>
                     </div>
                     <span class="highlight-badge">운영중</span>
                 </div>
@@ -552,7 +560,7 @@
                     <div class="highlight-icon">🔄</div>
                     <div class="highlight-info">
                         <h3>팀장 대체업무 트리</h3>
-                        <p>팀장 부재 시 각 업무를 누가 대체하는지 한눈에 확인하고 지정합니다.</p>
+                        <p>팀장 부재 시 업무별 대체자 지정</p>
                     </div>
                     <span class="highlight-badge">운영중</span>
                 </div>
