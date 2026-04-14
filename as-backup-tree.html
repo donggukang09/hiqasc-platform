@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>AS팀 대체업무 트리</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#2a2a2a;--card:#353535;--card2:#3a3a3a;--card-hover:#404040;
+  --border:#4a4a4a;--border-light:#3f3f3f;
+  --text:#e0e0e0;--text-dim:#a0a0a0;--text-muted:#808080;
+  --as:#4a90e2;--as-soft:rgba(74,144,226,.15);--as-deep:#6aa5e8;
+  --success:#28a745;--danger:#e74c3c;--warning:#f39c12;
+  --radius:14px;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.2),0 1px 3px rgba(0,0,0,.3);
+  --shadow:0 2px 6px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.35);
+  --shadow-lg:0 10px 40px rgba(0,0,0,.5);
+}
+html,body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px;line-height:1.5;overflow-x:hidden;}
+
+/* HEADER */
+.header{background:#1e1e1e;border-bottom:1px solid #3a3a3a;padding:18px 40px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:var(--shadow-sm);}
+.hl{display:flex;align-items:center;gap:14px;}
+.hlogo{width:44px;height:44px;background:linear-gradient(135deg,var(--as),#357abd);border-radius:11px;display:flex;align-items:center;justify-content:center;font-family:'Outfit';font-weight:800;font-size:17px;color:#fff;}
+.header h1{font-family:'Outfit';font-size:22px;font-weight:700;}
+.header h1 span{color:var(--text-muted);font-weight:400;font-size:14px;margin-left:10px;}
+.hac{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.btn{padding:9px 18px;border-radius:9px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:13px;font-family:'Noto Sans KR';font-weight:500;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;}
+.btn:hover{background:var(--card-hover);border-color:var(--as);color:var(--as);}
+.btn-primary{background:var(--as);border-color:var(--as);color:#fff;}.btn-primary:hover{background:#357abd;color:#fff;}
+.btn-sm{padding:6px 12px;font-size:12px;}
+.save-status{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:18px;font-size:12px;font-weight:500;}
+.save-status:empty{display:none;}
+.save-status.pending{background:rgba(243,156,18,.15);color:var(--warning);border:1px solid rgba(243,156,18,.3);}
+.save-status.saving{background:rgba(74,144,226,.15);color:var(--as);border:1px solid rgba(74,144,226,.3);}
+.save-status.saved{background:rgba(40,167,69,.15);color:var(--success);border:1px solid rgba(40,167,69,.3);}
+.save-status.error{background:rgba(231,76,60,.15);color:var(--danger);border:1px solid rgba(231,76,60,.3);}
+
+/* MAIN */
+.main{padding:40px 20px;max-width:1600px;margin:0 auto;position:relative;}
+.title-block{text-align:center;margin-bottom:30px;}
+.title-block h2{font-family:'Outfit';font-size:26px;font-weight:700;margin-bottom:6px;}
+.title-block p{color:var(--text-dim);font-size:14px;}
+
+/* RADIAL TREE */
+.radial-wrap{
+  position:relative;width:100%;
+  min-height:900px;display:flex;align-items:center;justify-content:center;
+  padding:40px 0;
+}
+.radial-stage{
+  position:relative;
+  width:100%;max-width:1400px;height:900px;
+}
+#radialSvg{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1;}
+
+.center-node{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  z-index:10;
+  background:linear-gradient(135deg,var(--as-soft),rgba(74,144,226,.25));
+  border:3px solid var(--as);
+  border-radius:50%;
+  width:180px;height:180px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;
+  box-shadow:0 0 40px rgba(74,144,226,.3),var(--shadow-lg);
+  cursor:default;
+}
+.center-node .name{font-size:22px;font-weight:800;color:#fff;margin-bottom:4px;}
+.center-node .role{font-size:13px;color:var(--text-dim);font-weight:500;}
+.center-node .icon{font-size:28px;color:var(--as);margin-bottom:6px;}
+
+.task-node{
+  position:absolute;z-index:5;
+  background:var(--card);border:2px solid var(--border);
+  border-radius:14px;padding:14px 16px;
+  min-width:200px;max-width:240px;
+  transition:all .25s;cursor:pointer;
+  box-shadow:var(--shadow-sm);
+  transform:translate(-50%,-50%);
+}
+.task-node:hover{
+  border-color:var(--as);background:var(--card2);
+  box-shadow:0 0 0 3px rgba(74,144,226,.15),var(--shadow);
+  z-index:20;
+}
+.task-node.has-backup{border-color:var(--success);background:linear-gradient(135deg,var(--card),rgba(40,167,69,.08));}
+.task-node.has-backup:hover{border-color:var(--success);box-shadow:0 0 0 3px rgba(40,167,69,.2),var(--shadow);}
+.task-node.no-backup{border-color:rgba(231,76,60,.5);}
+.task-node.no-backup:hover{border-color:var(--danger);box-shadow:0 0 0 3px rgba(231,76,60,.15),var(--shadow);}
+
+.task-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.task-num{
+  width:26px;height:26px;border-radius:50%;
+  background:var(--as);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700;flex-shrink:0;
+}
+.task-node.has-backup .task-num{background:var(--success);}
+.task-node.no-backup .task-num{background:var(--danger);}
+.task-title{font-size:13px;font-weight:600;color:var(--text);line-height:1.3;flex:1;}
+
+.backup-list{display:flex;flex-wrap:wrap;gap:4px;}
+.backup-chip{
+  display:inline-flex;align-items:center;gap:3px;
+  background:rgba(40,167,69,.15);border:1px solid rgba(40,167,69,.3);
+  color:#4ade80;font-size:11px;font-weight:600;
+  padding:2px 8px;border-radius:12px;
+}
+.no-backup-msg{
+  font-size:11px;color:var(--text-muted);font-style:italic;
+}
+
+.task-note-badge{
+  display:inline-block;font-size:10px;color:var(--text-muted);
+  margin-top:6px;padding-top:6px;border-top:1px dashed var(--border);
+  width:100%;
+}
+
+/* MODAL */
+.modal-backdrop{
+  position:fixed;inset:0;background:rgba(0,0,0,.7);
+  display:none;align-items:center;justify-content:center;
+  z-index:1000;backdrop-filter:blur(4px);
+}
+.modal-backdrop.show{display:flex;}
+.modal{
+  background:#1e1e1e;border:1px solid var(--border);
+  border-radius:16px;padding:28px;
+  width:90%;max-width:520px;
+  max-height:85vh;overflow-y:auto;
+  box-shadow:var(--shadow-lg);
+}
+.modal-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border);
+}
+.modal-title{font-family:'Outfit';font-size:18px;font-weight:700;display:flex;align-items:center;gap:10px;}
+.modal-title .num{
+  width:28px;height:28px;border-radius:50%;background:var(--as);color:#fff;
+  display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;
+}
+.modal-close{
+  width:32px;height:32px;border-radius:8px;border:none;
+  background:var(--card);color:var(--text-dim);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+}
+.modal-close:hover{background:var(--danger);color:#fff;}
+
+.modal-section{margin-bottom:18px;}
+.modal-label{font-size:12px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;display:block;}
+
+.selected-backups{display:flex;flex-wrap:wrap;gap:6px;min-height:40px;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;}
+.selected-backups:empty::before{content:'선택된 대체자 없음';color:var(--text-muted);font-size:12px;font-style:italic;}
+.selected-chip{
+  display:inline-flex;align-items:center;gap:5px;
+  background:rgba(40,167,69,.2);border:1px solid rgba(40,167,69,.4);
+  color:#4ade80;font-size:12px;font-weight:600;
+  padding:4px 10px;border-radius:14px;
+}
+.selected-chip .rm{cursor:pointer;opacity:.6;font-size:11px;}
+.selected-chip .rm:hover{opacity:1;color:var(--danger);}
+
+.add-person{display:flex;gap:8px;margin-top:10px;}
+.add-person select{
+  flex:1;background:var(--card2);border:1.5px solid var(--border);
+  color:var(--text);padding:10px 12px;border-radius:9px;
+  font-size:13px;font-family:'Noto Sans KR';outline:none;cursor:pointer;
+}
+.add-person select:focus{border-color:var(--as);}
+.add-person button{
+  background:var(--as);border:1px solid var(--as);color:#fff;
+  padding:0 16px;border-radius:9px;font-size:13px;font-weight:600;
+  cursor:pointer;font-family:'Noto Sans KR';
+}
+.add-person button:hover{background:#357abd;}
+
+.modal-note{
+  width:100%;background:var(--card2);border:1.5px solid var(--border);
+  color:var(--text);padding:10px 12px;border-radius:9px;
+  font-size:13px;font-family:'Noto Sans KR';outline:none;resize:vertical;min-height:60px;
+}
+.modal-note:focus{border-color:var(--as);}
+
+.modal-actions{
+  display:flex;gap:10px;justify-content:flex-end;
+  margin-top:24px;padding-top:20px;border-top:1px solid var(--border);
+}
+
+/* LOADING */
+#loadingOverlay{position:fixed;inset:0;background:rgba(42,42,42,.85);backdrop-filter:blur(4px);z-index:10000;display:flex;align-items:center;justify-content:center;}
+.loading-content{background:#1e1e1e;border:1px solid var(--border);border-radius:14px;padding:30px 40px;display:flex;align-items:center;gap:14px;color:var(--text);font-size:15px;font-weight:500;box-shadow:var(--shadow-lg);}
+.loading-content i{color:var(--as);font-size:22px;}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;padding:14px 22px;background:#1e1e1e;border:1px solid var(--success);border-radius:10px;color:var(--success);font-size:13px;font-weight:600;box-shadow:var(--shadow-lg);display:flex;align-items:center;gap:8px;transform:translateY(80px);opacity:0;transition:all .3s;z-index:2000;}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast.error{border-color:var(--danger);color:var(--danger);}
+
+/* LIST VIEW (mobile fallback) */
+.list-view{display:none;}
+.list-item{
+  background:var(--card);border:2px solid var(--border);
+  border-radius:12px;padding:16px;margin-bottom:12px;cursor:pointer;transition:all .2s;
+}
+.list-item:hover{border-color:var(--as);}
+.list-item.has-backup{border-color:var(--success);background:linear-gradient(135deg,var(--card),rgba(40,167,69,.06));}
+.list-item.no-backup{border-color:rgba(231,76,60,.5);}
+.list-item-head{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.list-item-num{width:28px;height:28px;border-radius:50%;background:var(--as);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;}
+.list-item.has-backup .list-item-num{background:var(--success);}
+.list-item.no-backup .list-item-num{background:var(--danger);}
+.list-item-title{font-size:15px;font-weight:600;flex:1;}
+
+@media(max-width:1100px){
+  .main{padding:20px;}
+  .radial-wrap{display:none;}
+  .list-view{display:block;}
+  .header{padding:14px 20px;}
+}
+@media(max-width:600px){
+  .header h1 span{display:none;}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="hl">
+    <div class="hlogo">AS</div>
+    <h1>AS팀 대체업무 트리<span>팀장 부재 시 대체자 지정</span></h1>
+  </div>
+  <div class="hac">
+    <span id="saveStatus" class="save-status"></span>
+    <button class="btn" onclick="reloadData()"><i class="fas fa-arrows-rotate"></i> 새로고침</button>
+    <button class="btn" onclick="openSheet()"><i class="fas fa-table"></i> 시트 열기</button>
+  </div>
+</div>
+
+<div class="main">
+  <div class="title-block">
+    <h2>강동구 (AS팀 팀장)</h2>
+    <p>각 업무를 클릭하면 대체자를 지정할 수 있습니다</p>
+  </div>
+
+  <!-- 방사형 트리 (데스크톱) -->
+  <div class="radial-wrap">
+    <div class="radial-stage" id="radialStage">
+      <svg id="radialSvg" xmlns="http://www.w3.org/2000/svg"></svg>
+      <div class="center-node">
+        <div class="icon"><i class="fas fa-user-tie"></i></div>
+        <div class="name">강동구</div>
+        <div class="role">AS팀 팀장</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 리스트 뷰 (모바일) -->
+  <div class="list-view" id="listView"></div>
+</div>
+
+<!-- 편집 모달 -->
+<div class="modal-backdrop" id="modalBackdrop" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">
+        <div class="num" id="modalNum"></div>
+        <span id="modalTaskTitle"></span>
+      </div>
+      <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+    </div>
+
+    <div class="modal-section">
+      <span class="modal-label"><i class="fas fa-arrows-rotate"></i> 대체자 (여러 명 가능)</span>
+      <div class="selected-backups" id="selectedBackups"></div>
+      <div class="add-person">
+        <select id="personDropdown">
+          <option value="">-- 인원 선택 --</option>
+        </select>
+        <button onclick="addBackup()"><i class="fas fa-plus"></i> 추가</button>
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <span class="modal-label"><i class="fas fa-note-sticky"></i> 메모</span>
+      <textarea class="modal-note" id="modalNote" placeholder="특이사항, 인수인계 사항 등..."></textarea>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">취소</button>
+      <button class="btn btn-primary" onclick="saveModal()"><i class="fas fa-check"></i> 저장</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><i class="fas fa-check-circle"></i><span id="toastMsg"></span></div>
+
+<script>
+/* ══════════════════════════════════════════════════════
+   설정
+   ══════════════════════════════════════════════════════ */
+const SHEET_ID = '1chkSEnFSheStqwSrL0mtR8lgFz1_7bnpYPgVbNQgAfE';
+const CSV_TASKS = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQOfpxnKJMysPN2t_gNKM0OeqHPHNejziDY_FhE8xgsODfz0F1yfYA0dv6Qs_4nR3e4vp3ULLEekPEy/pub?gid=1339001498&single=true&output=csv';
+const CSV_PEOPLE = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQOfpxnKJMysPN2t_gNKM0OeqHPHNejziDY_FhE8xgsODfz0F1yfYA0dv6Qs_4nR3e4vp3ULLEekPEy/pub?gid=1323764561&single=true&output=csv';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwc3mremj26wV7DYvTJ6cimJQm4dK9e12Fq7wod1pAxyIMYbdyoeCzUiHOQw3QGHLc/exec';
+
+/* 상태 */
+let TASKS = [];   // [{no, task, backups:[], note}]
+let PEOPLE = [];  // [{name, role}]
+let editingTaskIdx = -1;
+let modalBackups = [];
+
+const esc = s => (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+function showToast(msg, isError){
+  const t = document.getElementById('toast');
+  t.classList.toggle('error', !!isError);
+  document.getElementById('toastMsg').textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function updateSaveStatus(status){
+  const el = document.getElementById('saveStatus');
+  const map = {
+    'idle':{text:'',cls:''},
+    'saving':{text:'<i class="fas fa-spinner fa-spin"></i> 저장 중...',cls:'saving'},
+    'saved':{text:'<i class="fas fa-check-circle"></i> 저장됨 (시트 반영 ~5분)',cls:'saved'},
+    'error':{text:'<i class="fas fa-exclamation-circle"></i> 저장 실패',cls:'error'}
+  };
+  const s = map[status] || map.idle;
+  el.innerHTML = s.text;
+  el.className = 'save-status ' + s.cls;
+}
+
+/* ══════════════════════════════════════════════════════
+   CSV 파싱 (RFC 4180)
+   ══════════════════════════════════════════════════════ */
+function parseCSV(csvText){
+  const rows=[];let row=[],field='',inQuotes=false,i=0;
+  while(i<csvText.length){
+    const c=csvText[i];
+    if(inQuotes){
+      if(c==='"'){
+        if(csvText[i+1]==='"'){field+='"';i+=2;continue;}
+        inQuotes=false;i++;continue;
+      }
+      field+=c;i++;continue;
+    }
+    if(c==='"'){inQuotes=true;i++;continue;}
+    if(c===','){row.push(field);field='';i++;continue;}
+    if(c==='\r'){i++;continue;}
+    if(c==='\n'){row.push(field);rows.push(row);row=[];field='';i++;continue;}
+    field+=c;i++;
+  }
+  if(field!==''||row.length>0){row.push(field);rows.push(row);}
+  return rows;
+}
+
+function csvToObjects(csvText){
+  const rows=parseCSV(csvText);
+  if(rows.length<1)return[];
+  const headers=rows[0];
+  const result=[];
+  for(let i=1;i<rows.length;i++){
+    const r=rows[i];
+    if(r.length===1&&r[0]==='')continue;
+    if(r.every(c=>c===''))continue;
+    const obj={};
+    headers.forEach((h,idx)=>{obj[h.trim()]=r[idx]!==undefined?r[idx]:'';});
+    result.push(obj);
+  }
+  return result;
+}
+
+async function fetchCSV(url){
+  const res = await fetch(url + '&_t=' + Date.now(), {cache:'no-store'});
+  if(!res.ok) throw new Error('HTTP ' + res.status);
+  return csvToObjects(await res.text());
+}
+
+/* ══════════════════════════════════════════════════════
+   데이터 로드 / 저장
+   ══════════════════════════════════════════════════════ */
+async function loadData(){
+  showLoading(true);
+  try {
+    const [taskRows, peopleRows] = await Promise.all([
+      fetchCSV(CSV_TASKS),
+      fetchCSV(CSV_PEOPLE)
+    ]);
+
+    TASKS = taskRows.map(r => {
+      const backups = [];
+      for(let i=1; i<=5; i++){
+        const v = r['대체자'+i];
+        if(v && v.trim()) backups.push(v.trim());
+      }
+      return {
+        no: parseInt(r['순번']) || 0,
+        task: (r['업무'] || '').trim(),
+        backups: backups,
+        note: (r['메모'] || '').trim()
+      };
+    }).filter(t => t.task);
+
+    PEOPLE = peopleRows.map(r => ({
+      name: (r['이름'] || '').trim(),
+      role: (r['역할'] || '').trim()
+    })).filter(p => p.name);
+
+    render();
+  } catch(err) {
+    console.error('로드 실패:', err);
+    showToast('데이터 로드 실패: ' + err.message, true);
+  } finally {
+    showLoading(false);
+  }
+}
+
+async function saveTasks(){
+  if(APPS_SCRIPT_URL === 'PASTE_NEW_APPS_SCRIPT_URL_HERE'){
+    showToast('Apps Script URL 설정 필요', true);
+    return;
+  }
+  updateSaveStatus('saving');
+  try {
+    await fetch(APPS_SCRIPT_URL, {
+      method:'POST',
+      mode:'no-cors',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify({
+        action:'saveBackupTasks',
+        tasks:TASKS
+      })
+    });
+    updateSaveStatus('saved');
+    setTimeout(() => updateSaveStatus('idle'), 4000);
+  } catch(err) {
+    updateSaveStatus('error');
+    showToast('저장 실패: ' + err.message, true);
+  }
+}
+
+async function reloadData(){
+  if(!confirm('시트에서 최신 데이터를 다시 불러옵니다. 저장되지 않은 변경사항은 사라집니다. 계속?')) return;
+  await loadData();
+  showToast('불러오기 완료');
+}
+
+function openSheet(){
+  window.open('https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/edit', '_blank');
+}
+
+/* ══════════════════════════════════════════════════════
+   렌더링 - 방사형 트리
+   ══════════════════════════════════════════════════════ */
+function render(){
+  renderRadial();
+  renderList();
+}
+
+function renderRadial(){
+  const stage = document.getElementById('radialStage');
+  const svg = document.getElementById('radialSvg');
+
+  // 기존 task-node 제거
+  stage.querySelectorAll('.task-node').forEach(n => n.remove());
+
+  const rect = stage.getBoundingClientRect();
+  const cx = rect.width / 2;
+  const cy = rect.height / 2;
+  const radius = Math.min(rect.width, rect.height) * 0.38;
+
+  const N = TASKS.length;
+  if(N === 0){
+    svg.innerHTML = '';
+    return;
+  }
+
+  // 각도: 12시 방향부터 시계방향으로 균등 분배
+  const startAngle = -Math.PI / 2; // 12시 방향
+  const angleStep = (2 * Math.PI) / N;
+
+  // SVG 선 그리기
+  svg.setAttribute('width', rect.width);
+  svg.setAttribute('height', rect.height);
+  svg.innerHTML = '';
+
+  TASKS.forEach((task, idx) => {
+    const angle = startAngle + idx * angleStep;
+    const x = cx + radius * Math.cos(angle);
+    const y = cy + radius * Math.sin(angle);
+
+    // 중심에서 노드까지 선
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    // 중심 노드 반지름(90) 만큼 떨어진 지점부터 선 시작
+    const innerR = 92;
+    const sx = cx + innerR * Math.cos(angle);
+    const sy = cy + innerR * Math.sin(angle);
+    line.setAttribute('x1', sx);
+    line.setAttribute('y1', sy);
+    line.setAttribute('x2', x);
+    line.setAttribute('y2', y);
+    const hasBackup = task.backups.length > 0;
+    line.setAttribute('stroke', hasBackup ? '#28a745' : '#e74c3c');
+    line.setAttribute('stroke-width', hasBackup ? '2.5' : '2');
+    line.setAttribute('stroke-linecap', 'round');
+    line.setAttribute('opacity', '0.6');
+    svg.appendChild(line);
+
+    // 노드 생성
+    const node = document.createElement('div');
+    node.className = 'task-node ' + (hasBackup ? 'has-backup' : 'no-backup');
+    node.style.left = x + 'px';
+    node.style.top = y + 'px';
+    node.onclick = () => openModal(idx);
+
+    const backupsHTML = hasBackup
+      ? task.backups.map(b => `<span class="backup-chip"><i class="fas fa-user"></i> ${esc(b)}</span>`).join('')
+      : `<div class="no-backup-msg"><i class="fas fa-triangle-exclamation"></i> 대체자 미지정</div>`;
+
+    node.innerHTML = `
+      <div class="task-header">
+        <div class="task-num">${task.no}</div>
+        <div class="task-title">${esc(task.task)}</div>
+      </div>
+      <div class="backup-list">${backupsHTML}</div>
+      ${task.note ? `<div class="task-note-badge"><i class="fas fa-note-sticky"></i> ${esc(task.note)}</div>` : ''}
+    `;
+    stage.appendChild(node);
+  });
+}
+
+function renderList(){
+  const el = document.getElementById('listView');
+  el.innerHTML = TASKS.map((t, idx) => {
+    const hasBackup = t.backups.length > 0;
+    return `
+      <div class="list-item ${hasBackup ? 'has-backup' : 'no-backup'}" onclick="openModal(${idx})">
+        <div class="list-item-head">
+          <div class="list-item-num">${t.no}</div>
+          <div class="list-item-title">${esc(t.task)}</div>
+        </div>
+        <div class="backup-list">
+          ${hasBackup
+            ? t.backups.map(b => `<span class="backup-chip"><i class="fas fa-user"></i> ${esc(b)}</span>`).join('')
+            : '<div class="no-backup-msg"><i class="fas fa-triangle-exclamation"></i> 대체자 미지정</div>'}
+        </div>
+        ${t.note ? `<div class="task-note-badge"><i class="fas fa-note-sticky"></i> ${esc(t.note)}</div>` : ''}
+      </div>
+    `;
+  }).join('');
+}
+
+/* ══════════════════════════════════════════════════════
+   모달 - 대체자 편집
+   ══════════════════════════════════════════════════════ */
+function openModal(idx){
+  editingTaskIdx = idx;
+  const task = TASKS[idx];
+  modalBackups = [...task.backups];
+
+  document.getElementById('modalNum').textContent = task.no;
+  document.getElementById('modalTaskTitle').textContent = task.task;
+  document.getElementById('modalNote').value = task.note || '';
+
+  renderModalBackups();
+  renderPersonDropdown();
+
+  document.getElementById('modalBackdrop').classList.add('show');
+}
+
+function closeModal(){
+  document.getElementById('modalBackdrop').classList.remove('show');
+  editingTaskIdx = -1;
+}
+
+function renderModalBackups(){
+  const el = document.getElementById('selectedBackups');
+  el.innerHTML = modalBackups.map((name,i) => `
+    <span class="selected-chip">
+      <i class="fas fa-user" style="font-size:10px;"></i>
+      ${esc(name)}
+      <span class="rm" onclick="removeBackup(${i})"><i class="fas fa-times"></i></span>
+    </span>
+  `).join('');
+}
+
+function renderPersonDropdown(){
+  const el = document.getElementById('personDropdown');
+  // 이미 선택된 사람은 제외
+  const options = PEOPLE
+    .filter(p => !modalBackups.includes(p.name))
+    .map(p => `<option value="${esc(p.name)}">${esc(p.name)} (${esc(p.role)})</option>`)
+    .join('');
+  el.innerHTML = '<option value="">-- 인원 선택 --</option>' + options;
+}
+
+function addBackup(){
+  const sel = document.getElementById('personDropdown');
+  const name = sel.value;
+  if(!name){
+    showToast('인원을 선택해주세요', true);
+    return;
+  }
+  if(modalBackups.includes(name)) return;
+  modalBackups.push(name);
+  renderModalBackups();
+  renderPersonDropdown();
+  sel.value = '';
+}
+
+function removeBackup(idx){
+  modalBackups.splice(idx, 1);
+  renderModalBackups();
+  renderPersonDropdown();
+}
+
+function saveModal(){
+  if(editingTaskIdx < 0) return;
+  TASKS[editingTaskIdx].backups = [...modalBackups];
+  TASKS[editingTaskIdx].note = document.getElementById('modalNote').value.trim();
+
+  render();
+  closeModal();
+
+  // 저장
+  saveTasks();
+}
+
+/* ══════════════════════════════════════════════════════
+   로딩 오버레이
+   ══════════════════════════════════════════════════════ */
+function showLoading(show){
+  let ov = document.getElementById('loadingOverlay');
+  if(show){
+    if(!ov){
+      ov = document.createElement('div');
+      ov.id = 'loadingOverlay';
+      ov.innerHTML = '<div class="loading-content"><i class="fas fa-spinner fa-spin"></i><span>데이터 불러오는 중...</span></div>';
+      document.body.appendChild(ov);
+    }
+  } else if(ov) {
+    ov.remove();
+  }
+}
+
+/* ══════════════════════════════════════════════════════
+   초기화 + 리사이즈 대응
+   ══════════════════════════════════════════════════════ */
+let resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(renderRadial, 150);
+});
+
+loadData();
+</script>
+</body>
+</html>
