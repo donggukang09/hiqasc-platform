@@ -423,7 +423,7 @@ html,body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(-
    2. 배포 후 받은 웹앱 URL을 아래 APPS_SCRIPT_URL 에 붙여넣기
    3. 이 HTML을 GitHub Pages 에 업로드
    ════════════════════════════════════════════════════════════ */
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx0QBvS2_xIL4mPqZkFd1sLPlujJXcDMNv4fu0oT_e7iw1xGz4RNc3iYrPMGLrrfNRGlQ/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzYo4rQzsQUtskavri2eF3A23co7IoeC9veEWVTCNGJb7qqOt2lGswq-P2pmmA1yR8P/exec';
 const SHEET_ID = '1chkSEnFSheStqwSrL0mtR8lgFz1_7bnpYPgVbNQgAfE';
 
 let DATA = null;
@@ -718,14 +718,14 @@ function delTask(ti,ki){if(confirm('삭제하시겠습니까?')){DATA.teams[ti].
 function renderAll(){renderOverview();renderOrgChart();renderTasks();}
 
 /* ═══════════════════════════════════════════════════════
-   GOOGLE SHEETS 연동 (JSONP GET + no-cors POST 패턴)
+   GOOGLE SHEETS 연동 (iframe + postMessage 패턴)
    ═══════════════════════════════════════════════════════ */
 
 // iframe + postMessage 로 데이터 불러오기
-// (JSONP 는 /u/1/ 리다이렉트 문제로 실패하므로 iframe 방식 사용)
+// (JSONP는 다중 계정 리다이렉트 문제로 사용 불가)
 function loadFromSheet(){
   return new Promise((resolve,reject)=>{
-    if(APPS_SCRIPT_URL==='YOUR_APPS_SCRIPT_URL_HERE'){
+    if(APPS_SCRIPT_URL==='PASTE_NEW_URL_HERE'||APPS_SCRIPT_URL==='YOUR_APPS_SCRIPT_URL_HERE'){
       reject(new Error('APPS_SCRIPT_URL 이 설정되지 않았습니다'));
       return;
     }
@@ -733,7 +733,6 @@ function loadFromSheet(){
     const reqId='req_'+Date.now()+'_'+Math.random().toString(36).substr(2,9);
     const iframe=document.createElement('iframe');
     iframe.style.display='none';
-    // sandbox 없이 - postMessage 가 iframe → parent 방향으로 동작하려면 scripts 허용 필요
 
     let resolved=false;
     const cleanup=()=>{
@@ -742,9 +741,9 @@ function loadFromSheet(){
     };
 
     const msgHandler=function(e){
-      // Apps Script 도메인에서 온 메시지만 받음
       if(typeof e.data!=='object'||!e.data||e.data.reqId!==reqId)return;
       resolved=true;
+      clearTimeout(timeout);
       cleanup();
       if(e.data.success){
         resolve(e.data.data);
@@ -761,54 +760,15 @@ function loadFromSheet(){
       }
     },15000);
 
-    // iframe 으로 Apps Script 호출
-    // ?action=load 로 iframe 용 응답을 받음
-    iframe.src=APPS_SCRIPT_URL+'?action=load&reqId='+reqId+'&t='+Date.now();
-    iframe.onerror=()=>{
-      if(!resolved){
-        clearTimeout(timeout);
-        cleanup();
-        reject(new Error('iframe 로드 실패'));
-      }
-    };
+    iframe.src=APPS_SCRIPT_URL+'?reqId='+reqId+'&t='+Date.now();
     document.body.appendChild(iframe);
-  });
-}
-
-// Fallback: iframe 방식이 실패하면 JSONP 재시도
-function loadFromSheetJSONP(){
-  return new Promise((resolve,reject)=>{
-    const cbName='orgCb_'+Date.now();
-    const script=document.createElement('script');
-    const timeout=setTimeout(()=>{
-      delete window[cbName];
-      if(script.parentNode)script.parentNode.removeChild(script);
-      reject(new Error('JSONP 시간 초과'));
-    },10000);
-
-    window[cbName]=function(response){
-      clearTimeout(timeout);
-      delete window[cbName];
-      if(script.parentNode)script.parentNode.removeChild(script);
-      if(response.success)resolve(response.data);
-      else reject(new Error(response.error||'오류'));
-    };
-
-    script.src=APPS_SCRIPT_URL+'?callback='+cbName+'&t='+Date.now();
-    script.onerror=()=>{
-      clearTimeout(timeout);
-      delete window[cbName];
-      if(script.parentNode)script.parentNode.removeChild(script);
-      reject(new Error('스크립트 로드 실패'));
-    };
-    document.body.appendChild(script);
   });
 }
 
 // no-cors POST 로 데이터 저장
 function saveToSheet(data){
   return new Promise((resolve,reject)=>{
-    if(APPS_SCRIPT_URL==='YOUR_APPS_SCRIPT_URL_HERE'){
+    if(APPS_SCRIPT_URL==='PASTE_NEW_URL_HERE'||APPS_SCRIPT_URL==='YOUR_APPS_SCRIPT_URL_HERE'){
       reject(new Error('APPS_SCRIPT_URL 이 설정되지 않았습니다'));
       return;
     }
@@ -818,7 +778,6 @@ function saveToSheet(data){
       headers:{'Content-Type':'text/plain;charset=utf-8'},
       body:JSON.stringify(data)
     }).then(()=>{
-      // no-cors 는 응답 확인 불가 - 성공 가정
       resolve();
     }).catch(err=>{
       reject(err);
@@ -882,18 +841,12 @@ async function init(){
   showLoadingOverlay(true);
 
   try {
-    // 1차: iframe + postMessage 방식 (계정 리다이렉트 간섭 회피)
-    try {
-      DATA = await loadFromSheet();
-    } catch(e1) {
-      console.warn('iframe 방식 실패, JSONP fallback 시도:',e1.message);
-      // 2차: JSONP fallback
-      DATA = await loadFromSheetJSONP();
-    }
+    DATA = await loadFromSheet();
     renderAll();
     showToast('구글 시트에서 데이터를 불러왔습니다');
   } catch(err) {
     console.error('로드 실패:',err);
+    // 로드 실패 시 로컬 기본 데이터로 fallback
     DATA = getLocalDefault();
     renderAll();
     if(APPS_SCRIPT_URL==='YOUR_APPS_SCRIPT_URL_HERE'){
