@@ -214,100 +214,89 @@
         }
 
         .highlight-grid {
-            display: flex;
-            gap: 20px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
             margin-bottom: 40px;
         }
 
-        /* 팀 현황 대시보드 하이라이트 카드 */
-        .highlight-card {
-            background: linear-gradient(135deg, #1a2a4a 0%, #2a3a5a 100%);
-            border: 1px solid #4a90e2;
+        /* D스타일: 그라데이션 테두리 + 글라스 효과 */
+        .highlight-wrap {
+            position: relative;
             border-radius: 14px;
-            padding: 16px 18px;
+            padding: 1.5px;
+            background: linear-gradient(135deg, rgba(74, 144, 226, 0.5), rgba(167, 139, 250, 0.3));
             cursor: pointer;
             transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            position: relative;
-            overflow: hidden;
-            flex: 1;
-            min-width: 0;
         }
-
-        .highlight-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, #4a90e2, #6366f1, #a78bfa);
-        }
-
-        .highlight-card:hover {
+        .highlight-wrap:hover {
+            background: linear-gradient(135deg, rgba(74, 144, 226, 1), rgba(167, 139, 250, 0.9));
             transform: translateY(-3px);
-            box-shadow: 0 8px 30px rgba(74, 144, 226, 0.25);
-            border-color: #6366f1;
+            box-shadow: 0 12px 35px rgba(74, 144, 226, 0.3);
+        }
+
+        .highlight-card {
+            background: rgba(26, 32, 50, 0.85);
+            backdrop-filter: blur(10px);
+            border-radius: 12.5px;
+            padding: 20px 18px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .highlight-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
         }
 
         .highlight-icon {
             width: 44px;
             height: 44px;
-            background: linear-gradient(135deg, #4a90e2 0%, #6366f1 100%);
-            border-radius: 12px;
+            background: linear-gradient(135deg, #4a90e2, #a78bfa);
+            border-radius: 11px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
+            font-size: 22px;
             flex-shrink: 0;
         }
 
-        .highlight-info {
-            flex: 1;
-            min-width: 0;
+        .highlight-arrow {
+            color: #a78bfa;
+            font-size: 18px;
+            opacity: 0.4;
+            transition: all 0.3s;
+        }
+        .highlight-wrap:hover .highlight-arrow {
+            opacity: 1;
+            transform: translateX(4px);
         }
 
         .highlight-info h3 {
-            font-size: 1.05em;
+            font-size: 16px;
             color: #ffffff;
-            margin-bottom: 4px;
             font-weight: 700;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            margin-bottom: 5px;
             letter-spacing: -0.3px;
         }
 
         .highlight-info p {
-            color: #94a3b8;
-            font-size: 0.78em;
-            line-height: 1.4;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .highlight-badge {
-            display: inline-block;
-            padding: 5px 11px;
-            background: rgba(99, 102, 241, 0.2);
-            border: 1px solid rgba(99, 102, 241, 0.4);
-            color: #a5b4fc;
-            border-radius: 7px;
-            font-size: 0.75em;
-            font-weight: 600;
-            flex-shrink: 0;
+            color: #b4bcd0;
+            font-size: 12px;
+            line-height: 1.5;
         }
 
         @media (max-width: 768px) {
-            .highlight-card {
-                flex-direction: column;
-                text-align: center;
-            }
             .highlight-grid {
-                flex-direction: column;
+                grid-template-columns: 1fr;
+            }
+        }
+        @media (min-width: 769px) and (max-width: 1100px) {
+            .highlight-grid {
+                grid-template-columns: repeat(2, 1fr);
             }
         }
 
@@ -532,37 +521,53 @@
 
             <!-- 상단 하이라이트 바로가기 -->
             <div class="highlight-grid">
-                <div class="highlight-card" onclick="openApp('teamDashboard')">
-                    <div class="highlight-icon">📊</div>
-                    <div class="highlight-info">
-                        <h3>HIQASC 팀 현황 대시보드</h3>
-                        <p>근무 현황, 연차, 당일 수리 현황</p>
+                <div class="highlight-wrap" onclick="openApp('teamDashboard')">
+                    <div class="highlight-card">
+                        <div class="highlight-top">
+                            <div class="highlight-icon">📊</div>
+                            <span class="highlight-arrow">→</span>
+                        </div>
+                        <div class="highlight-info">
+                            <h3>HIQASC 팀 현황</h3>
+                            <p>근무 현황, 연차, 당일 수리 현황</p>
+                        </div>
                     </div>
-                    <span class="highlight-badge">운영중</span>
                 </div>
-                <div class="highlight-card" onclick="openApp('repairTimer')">
-                    <div class="highlight-icon">⏱️</div>
-                    <div class="highlight-info">
-                        <h3>수리 타이머</h3>
-                        <p>수리 시간 측정 및 모델별 통계</p>
+                <div class="highlight-wrap" onclick="openApp('repairTimer')">
+                    <div class="highlight-card">
+                        <div class="highlight-top">
+                            <div class="highlight-icon">⏱️</div>
+                            <span class="highlight-arrow">→</span>
+                        </div>
+                        <div class="highlight-info">
+                            <h3>수리 타이머</h3>
+                            <p>수리 시간 측정 및 모델별 통계</p>
+                        </div>
                     </div>
-                    <span class="highlight-badge">운영중</span>
                 </div>
-                <div class="highlight-card" onclick="openApp('board')">
-                    <div class="highlight-icon">📋</div>
-                    <div class="highlight-info">
-                        <h3>업무 게시판</h3>
-                        <p>업무 절차 및 매뉴얼 공유</p>
+                <div class="highlight-wrap" onclick="openApp('board')">
+                    <div class="highlight-card">
+                        <div class="highlight-top">
+                            <div class="highlight-icon">📋</div>
+                            <span class="highlight-arrow">→</span>
+                        </div>
+                        <div class="highlight-info">
+                            <h3>업무 게시판</h3>
+                            <p>업무 절차 및 매뉴얼 공유</p>
+                        </div>
                     </div>
-                    <span class="highlight-badge">운영중</span>
                 </div>
-                <div class="highlight-card" onclick="openApp('asBackupTree')">
-                    <div class="highlight-icon">🔄</div>
-                    <div class="highlight-info">
-                        <h3>팀장 대체업무 트리</h3>
-                        <p>팀장 부재 시 업무별 대체자 지정</p>
+                <div class="highlight-wrap" onclick="openApp('asBackupTree')">
+                    <div class="highlight-card">
+                        <div class="highlight-top">
+                            <div class="highlight-icon">🔄</div>
+                            <span class="highlight-arrow">→</span>
+                        </div>
+                        <div class="highlight-info">
+                            <h3>팀장 대체업무 트리</h3>
+                            <p>팀장 부재 시 업무별 대체자 지정</p>
+                        </div>
                     </div>
-                    <span class="highlight-badge">운영중</span>
                 </div>
             </div>
 
