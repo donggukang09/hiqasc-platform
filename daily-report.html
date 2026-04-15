@@ -20,7 +20,7 @@
         }
 
         .container {
-            max-width: 900px;
+            max-width: 800px;
             margin: 0 auto;
         }
 
@@ -80,15 +80,15 @@
         }
 
         .form-section {
-            margin-bottom: 30px;
+            margin-bottom: 25px;
         }
 
         .section-title {
-            font-size: 1.2em;
+            font-size: 1.1em;
             font-weight: 600;
             color: #4a90e2;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
             border-bottom: 2px solid #4a4a4a;
         }
 
@@ -131,87 +131,17 @@
             cursor: pointer;
         }
 
-        .service-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-        }
-
-        .service-item {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .service-item label {
-            font-size: 0.85em;
-            color: #b0b0b0;
-            margin-bottom: 5px;
-        }
-
-        .service-item input[type="number"] {
-            padding: 10px;
-            border: 1px solid #4a4a4a;
-            border-radius: 8px;
-            background: #2a2a2a;
-            color: #e0e0e0;
-            font-size: 0.95em;
-            text-align: center;
-            transition: all 0.3s;
-        }
-
-        .service-item input[type="number"]:focus {
-            outline: none;
-            border-color: #4a90e2;
-            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
-        }
-
-        .checkbox-group {
-            background: #2a2a2a;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            border: 1px solid #4a4a4a;
-        }
-
-        .checkbox-group h4 {
-            font-size: 0.95em;
-            font-weight: 600;
-            color: #4a90e2;
-            margin-bottom: 15px;
-        }
-
-        .checkbox-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
-            padding: 10px;
-            background: #353535;
-            border-radius: 6px;
-            transition: background 0.3s;
-        }
-
-        .checkbox-item:hover {
-            background: #3d3d3d;
-        }
-
-        .checkbox-item input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            margin-right: 10px;
-            cursor: pointer;
-            accent-color: #4a90e2;
-        }
-
-        .checkbox-item label {
-            font-size: 0.9em;
-            color: #e0e0e0;
-            cursor: pointer;
-            margin: 0;
-        }
-
         textarea.form-control {
-            min-height: 100px;
+            min-height: 120px;
             resize: vertical;
+            line-height: 1.6;
+        }
+
+        .form-hint {
+            font-size: 0.8em;
+            color: #808080;
+            margin-top: 5px;
+            font-style: italic;
         }
 
         .submit-btn {
@@ -301,8 +231,8 @@
                 padding: 20px;
             }
 
-            .service-grid {
-                grid-template-columns: 1fr;
+            .header h1 {
+                font-size: 1.5em;
             }
         }
     </style>
@@ -339,140 +269,26 @@
                     </div>
                 </div>
 
-                <!-- 일일 서비스 내역 -->
+                <!-- 피드백 -->
                 <div class="form-section">
-                    <h3 class="section-title">일일 서비스 내역</h3>
-                    
-                    <div class="service-grid">
-                        <div class="service-item">
-                            <label>클린업 서비스<span class="required">*</span></label>
-                            <input type="number" id="cleanup" min="0" value="0" required>
-                        </div>
-                        <div class="service-item">
-                            <label>일반 기능불량<span class="required">*</span></label>
-                            <input type="number" id="malfunction" min="0" value="0" required>
-                        </div>
-                        <div class="service-item">
-                            <label>모터부식<span class="required">*</span></label>
-                            <input type="number" id="motor" min="0" value="0" required>
-                        </div>
-                        <div class="service-item">
-                            <label>동파<span class="required">*</span></label>
-                            <input type="number" id="frozen" min="0" value="0" required>
-                        </div>
-                        <div class="service-item">
-                            <label>NTF<span class="required">*</span></label>
-                            <input type="number" id="ntf" min="0" value="0" required>
-                        </div>
-                        <div class="service-item">
-                            <label>DOA<span class="required">*</span></label>
-                            <input type="number" id="doa" min="0" value="0" required>
-                        </div>
-                        <div class="service-item">
-                            <label>Hygienic<span class="required">*</span></label>
-                            <input type="number" id="hygienic" min="0" value="0" required>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SVC 마감 체크리스트 -->
-                <div class="form-section">
-                    <h3 class="section-title">SVC 마감 체크리스트</h3>
-
-                    <div class="checkbox-group">
-                        <h4>기본 정보</h4>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="check_return_date">
-                            <label for="check_return_date">Return date 입력 확인</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="check_engineer_name">
-                            <label for="check_engineer_name">엔지니어 이름 입력 확인</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="check_machine_id">
-                            <label for="check_machine_id">Machine ID 확인</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="check_serial">
-                            <label for="check_serial">Serial 번호 확인</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="check_repair_code">
-                            <label for="check_repair_code">리페이코드 확인</label>
-                        </div>
-                    </div>
-
-                    <div class="checkbox-group">
-                        <h4>수리 내역</h4>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="check_repair_typo">
-                            <label for="check_repair_typo">수리 내역서 오탈자 확인</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="check_parts_record">
-                            <label for="check_parts_record">부품 사용 내역 정상 기입 확인</label>
-                        </div>
-                    </div>
-
-                    <div class="checkbox-group">
-                        <h4>부품 사용</h4>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="check_parts_register">
-                            <label for="check_parts_register">부품 등록 여부 확인</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="check_parts_match">
-                            <label for="check_parts_match">부품 사용 내역 일치 여부 확인</label>
-                        </div>
-                    </div>
-
-                    <div class="checkbox-group">
-                        <h4>입고, 출고</h4>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="check_incoming">
-                            <label for="check_incoming">입고 일, 입고 송장 확인</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="check_outgoing">
-                            <label for="check_outgoing">출고 일 확인</label>
-                        </div>
-                    </div>
-
-                    <div class="checkbox-group">
-                        <h4>서비스 상태</h4>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="check_service_status">
-                            <label for="check_service_status">서비스 상태 확인</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="check_call_request">
-                            <label for="check_call_request">통화요청 여부 확인</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="check_call_date">
-                            <label for="check_call_date">통화요청 최초 전달일 확인</label>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Feedback -->
-                <div class="form-section">
-                    <h3 class="section-title">Feedback</h3>
+                    <h3 class="section-title">업무 피드백</h3>
 
                     <div class="form-group">
-                        <label class="form-label">주요 이슈</label>
-                        <textarea class="form-control" id="main_issues" placeholder="오늘 발생한 주요 이슈나 문제점을 작성해주세요"></textarea>
+                        <label class="form-label">오늘의 업무 요약<span class="required">*</span></label>
+                        <textarea class="form-control" id="work_summary" placeholder="처리 건수, 주요 작업, 특이사항을 간단히 작성해주세요" required></textarea>
+                        <div class="form-hint">예: 수리 8건, NTF 2건 / 동파 증가 추세 / 부품 부족 이슈</div>
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">제안 및 필요 물품</label>
-                        <textarea class="form-control" id="suggestions" placeholder="업무 개선 제안이나 필요한 물품을 작성해주세요"></textarea>
+                        <label class="form-label">내일 계획 / 필요사항</label>
+                        <textarea class="form-control" id="tomorrow_plan" placeholder="예정된 작업, 필요한 물품이나 지원사항을 작성해주세요"></textarea>
+                        <div class="form-hint">예: B2B 물량 5건 예정 / 워터펌프 10개 필요</div>
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">건강 상태, 피로도 및 컨디션</label>
-                        <textarea class="form-control" id="health" placeholder="현재 건강 상태와 피로도를 자유롭게 작성해주세요"></textarea>
+                        <label class="form-label">기타 메모</label>
+                        <textarea class="form-control" id="other_notes" placeholder="컨디션, 배운 점, 팀과 공유하고 싶은 내용을 자유롭게 작성해주세요"></textarea>
+                        <div class="form-hint">예: 컨디션 양호 / 새로운 증상 발견 - 위키에 정리 예정</div>
                     </div>
                 </div>
 
@@ -495,7 +311,7 @@
 
     <script>
         // Google Apps Script Web App URL (설정 필요)
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxwCHxEvT6OV0Qj0jM_AYJeOiRPJ18jCIziIqxAeRGoOA18ahrtewn4_pw7eVsTeXwbjQ/exec';
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby3yVstgMHz9GAxUuYa56DIqm8Lyzy3DweP8OFyXUQvIfdyqiFIhon5o8iRrHIHfi4n/exec';
 
         // 오늘 날짜를 기본값으로 설정
         document.getElementById('date').valueAsDate = new Date();
@@ -543,36 +359,9 @@
                 timestamp: new Date().toISOString(),
                 name: document.getElementById('name').value,
                 date: document.getElementById('date').value,
-                
-                // 서비스 내역
-                cleanup: document.getElementById('cleanup').value,
-                malfunction: document.getElementById('malfunction').value,
-                motor: document.getElementById('motor').value,
-                frozen: document.getElementById('frozen').value,
-                ntf: document.getElementById('ntf').value,
-                doa: document.getElementById('doa').value,
-                hygienic: document.getElementById('hygienic').value,
-                
-                // 체크리스트
-                check_return_date: document.getElementById('check_return_date').checked,
-                check_engineer_name: document.getElementById('check_engineer_name').checked,
-                check_machine_id: document.getElementById('check_machine_id').checked,
-                check_serial: document.getElementById('check_serial').checked,
-                check_repair_code: document.getElementById('check_repair_code').checked,
-                check_repair_typo: document.getElementById('check_repair_typo').checked,
-                check_parts_record: document.getElementById('check_parts_record').checked,
-                check_parts_register: document.getElementById('check_parts_register').checked,
-                check_parts_match: document.getElementById('check_parts_match').checked,
-                check_incoming: document.getElementById('check_incoming').checked,
-                check_outgoing: document.getElementById('check_outgoing').checked,
-                check_service_status: document.getElementById('check_service_status').checked,
-                check_call_request: document.getElementById('check_call_request').checked,
-                check_call_date: document.getElementById('check_call_date').checked,
-                
-                // Feedback
-                main_issues: document.getElementById('main_issues').value,
-                suggestions: document.getElementById('suggestions').value,
-                health: document.getElementById('health').value
+                work_summary: document.getElementById('work_summary').value,
+                tomorrow_plan: document.getElementById('tomorrow_plan').value,
+                other_notes: document.getElementById('other_notes').value
             };
 
             try {
