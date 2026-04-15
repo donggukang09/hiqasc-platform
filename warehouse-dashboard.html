@@ -482,7 +482,7 @@ body { background: #2a2a2a; color: #e8e8e8; min-height: 100vh; padding: 20px; }
 
 <script>
 // ===== 데이터 관리 =====
-// ⚠️ Apps Script 배포 후 웹 앱 URL을 여기에 붙여넣으세요
+// ⚠️ Apps Script 배포 후 웹 앱 을 여기에 붙여넣으세요
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbycnRwpk0SzHMriiKrMVogqCjjCxZK1DCoPKzxBtwJzqgniFLpYff17Lrxgk9rdF-Oa2A/exec';
 const SHEET_ID = '1IET_cGI_RIRPXBp3-3C6VFNngFDz5VTr-34bvBoeDAc';
 
@@ -504,8 +504,8 @@ function openSheet() {
 // JSONP 로 GET (10초 타임아웃)
 function jsonpGet() {
   return new Promise((resolve, reject) => {
-    if (APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE') {
-      reject(new Error('Apps Script URL이 설정되지 않았습니다. HTML 파일 상단의 APPS_SCRIPT_URL을 수정하세요.'));
+    if (APPS_SCRIPT_ === 'YOUR_APPS_SCRIPT__HERE') {
+      reject(new Error('Apps Script 이 설정되지 않았습니다. HTML 파일 상단의 APPS_SCRIPT_을 수정하세요.'));
       return;
     }
     const cbName = 'cb_' + Date.now() + '_' + Math.floor(Math.random()*10000);
@@ -524,7 +524,7 @@ function jsonpGet() {
       if (response && response.ok) resolve(response.data);
       else reject(new Error(response && response.error ? response.error : '알 수 없는 오류'));
     };
-    script.src = APPS_SCRIPT_URL + '?callback=' + cbName + '&t=' + Date.now();
+    script.src = APPS_SCRIPT_ + '?callback=' + cbName + '&t=' + Date.now();
     script.onerror = () => { cleanup(); reject(new Error('네트워크 오류')); };
     document.body.appendChild(script);
   });
@@ -532,10 +532,10 @@ function jsonpGet() {
 
 // POST (no-cors)
 async function postData(payload) {
-  if (APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE') {
-    throw new Error('Apps Script URL이 설정되지 않았습니다.');
+  if (APPS_SCRIPT_ === 'YOUR_APPS_SCRIPT__HERE') {
+    throw new Error('Apps Script 이 설정되지 않았습니다.');
   }
-  await fetch(APPS_SCRIPT_URL, {
+  await fetch(APPS_SCRIPT_, {
     method: 'POST',
     mode: 'no-cors',
     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
