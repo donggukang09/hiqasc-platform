@@ -215,7 +215,7 @@
 
         .highlight-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 16px;
             margin-bottom: 40px;
         }
@@ -521,18 +521,6 @@
 
             <!-- 상단 하이라이트 바로가기 -->
             <div class="highlight-grid">
-                <div class="highlight-wrap" onclick="openApp('teamDashboard')">
-                    <div class="highlight-card">
-                        <div class="highlight-top">
-                            <div class="highlight-icon">📊</div>
-                            <span class="highlight-arrow">→</span>
-                        </div>
-                        <div class="highlight-info">
-                            <h3>HIQASC 팀 현황</h3>
-                            <p>근무 현황, 연차, 당일 수리 현황</p>
-                        </div>
-                    </div>
-                </div>
                 <div class="highlight-wrap" onclick="openApp('repairTimer')">
                     <div class="highlight-card">
                         <div class="highlight-top">
@@ -833,7 +821,20 @@
                         <span class="card-badge">운영중</span>
                     </div>
 
-                    <!-- 소모품 재고 리스트는 전사 공통 워크스페이스로 이동됨 -->
+                    <!-- 소모품 재고 리스트 (새로 추가) -->
+                    <div class="card" onclick="openApp('consumablesInventory')">
+                        <div class="card-icon">
+                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M20 2H4c-1 0-2 .9-2 2v3.01c0 .72.43 1.34 1 1.69V20c0 1.1 1.1 2 2 2h14c.9 0 2-.9 2-2V8.7c.57-.35 1-.97 1-1.69V4c0-1.1-1-2-2-2zm-5 12H9v-2h6v2zm5-7H4V4h16v3z"/>
+                            </svg>
+                        </div>
+                        <h3 class="card-title">소모품 재고 리스트</h3>
+                        <p class="card-description">
+                            실시간 소모품 재고 현황을 조회합니다.
+                            품목별 수량 및 상태를 확인하세요.
+                        </p>
+                        <span class="card-badge">운영중</span>
+                    </div>
                 </div>
             </div>
 
