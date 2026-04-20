@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>수리센터 대시보드 | HIQASC</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f0f2f5;min-height:100vh;color:#333}
+.sidebar{width:240px;background:#111827;position:fixed;left:0;top:0;height:100vh;overflow-y:auto;z-index:100}
+.logo{padding:24px 20px;border-bottom:1px solid #374151}
+.logo h2{color:#fff;font-size:16px;font-weight:700;letter-spacing:1.5px}
+.logo p{color:#6b7280;font-size:11px;margin-top:4px;letter-spacing:0.5px}
+.nav-group{padding:16px 0;border-bottom:1px solid #1f2937}
+.nav-label{padding:0 20px;font-size:10px;color:#4b5563;text-transform:uppercase;letter-spacing:1.5px;font-weight:700;margin-bottom:8px}
+.nav-item{padding:10px 20px;color:#9ca3af;cursor:pointer;font-size:13px;font-weight:500;border-left:3px solid transparent;transition:all .2s}
+.nav-item:hover,.nav-item.active{color:#fff;background:rgba(255,255,255,.04);border-left-color:#3b82f6}
+.nav-icon{margin-right:8px}
+.sidebar-footer{padding:16px 20px;position:absolute;bottom:0;width:100%;border-top:1px solid #1f2937}
+.sidebar-footer p{color:#4b5563;font-size:10px;letter-spacing:0.5px}
+.main{margin-left:240px;padding:32px;min-height:100vh}
+.page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px}
+.page-header h1{font-size:24px;color:#111827;font-weight:700}
+.header-controls{display:flex;gap:12px;align-items:center}
+.month-select{padding:8px 14px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;font-weight:500;background:#fff;cursor:pointer;min-width:100px}
+.btn{padding:8px 16px;border:none;border-radius:6px;font-weight:600;font-size:12px;cursor:pointer;transition:all .2s;text-transform:uppercase;letter-spacing:0.5px}
+.btn-blue{background:#3b82f6;color:#fff}
+.btn-blue:hover{background:#2563eb}
+.section{display:none}
+.section.active{display:block;animation:fadeIn .25s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.card{background:#fff;border-radius:10px;padding:24px;box-shadow:0 1px 3px rgba(0,0,0,.06);border:1px solid #e5e7eb}
+.card h3{font-size:14px;color:#374151;margin-bottom:16px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:24px}
+.stat{background:#fff;border-radius:10px;padding:20px;border:1px solid #e5e7eb;border-left:4px solid #3b82f6;transition:transform .2s}
+.stat:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.08)}
+.stat-label{font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:0.8px;font-weight:600;margin-bottom:6px}
+.stat-val{font-size:28px;font-weight:800;color:#111827}
+.stat-sub{font-size:11px;color:#6b7280;margin-top:4px}
+.stat.red{border-left-color:#ef4444}
+.stat.amber{border-left-color:#f59e0b}
+.stat.green{border-left-color:#10b981}
+.stat.purple{border-left-color:#8b5cf6}
+.charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:20px;margin-bottom:24px}
+.chart-wrap{position:relative;height:300px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead{background:#f9fafb;border-bottom:2px solid #e5e7eb}
+th{padding:10px 12px;text-align:left;font-weight:600;color:#374151;font-size:11px;text-transform:uppercase;letter-spacing:0.5px}
+td{padding:10px 12px;border-bottom:1px solid #f3f4f6;color:#4b5563}
+tbody tr:hover{background:#f9fafb}
+.badge{display:inline-block;padding:3px 10px;border-radius:4px;font-size:11px;font-weight:600}
+.badge.done{background:#f0fdf4;color:#16a34a}
+.badge.progress{background:#eff6ff;color:#2563eb}
+.badge.plan{background:#faf5ff;color:#7c3aed}
+.loading-overlay{position:fixed;top:0;left:240px;right:0;bottom:0;background:rgba(255,255,255,.9);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:50}
+.spinner{width:40px;height:40px;border:4px solid #e5e7eb;border-top-color:#3b82f6;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{margin-top:16px;color:#6b7280;font-size:14px;font-weight:500}
+.error-msg{background:#fef2f2;border:1px solid #fecaca;color:#dc2626;padding:12px 16px;border-radius:8px;margin-bottom:16px;font-size:13px}
+@media(max-width:768px){.sidebar{display:none}.main{margin-left:0;padding:16px}.charts{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="logo"><h2>HIQASC</h2><p>수리센터 대시보드</p></div>
+  <div class="nav-group">
+    <div class="nav-label">분석</div>
+    <div class="nav-item active" onclick="nav('overview',this)"><span class="nav-icon">📊</span>센터 개요</div>
+    <div class="nav-item" onclick="nav('defect',this)"><span class="nav-icon">🔧</span>부품불량</div>
+    <div class="nav-item" onclick="nav('fault',this)"><span class="nav-icon">⚠️</span>테크니션 폴트</div>
+    <div class="nav-item" onclick="nav('complaint',this)"><span class="nav-icon">📞</span>CM 컴플레인</div>
+    <div class="nav-item" onclick="nav('damage',this)"><span class="nav-icon">📦</span>손상/기타</div>
+    <div class="nav-item" onclick="nav('trends',this)"><span class="nav-icon">📈</span>3개월 추이</div>
+  </div>
+  <div class="sidebar-footer"><p>DEVELOPED BY DONGGU KANG</p></div>
+</div>
+
+<div class="loading-overlay" id="loader"><div class="spinner"></div><div class="loading-text">Google Sheets 데이터 로드 중...</div></div>
+
+<div class="main">
+  <div class="page-header">
+    <h1 id="pageTitle">📊 센터 개요</h1>
+    <div class="header-controls">
+      <select class="month-select" id="monthSel" onchange="render()"></select>
+      <button class="btn btn-blue" onclick="loadAllData()">🔄 새로고침</button>
+    </div>
+  </div>
+  <div id="errorBox"></div>
+
+  <div id="overview" class="section active">
+    <div class="stats" id="ovStats"></div>
+    <div class="charts">
+      <div class="card"><h3>재입고 유형별 구성</h3><div class="chart-wrap"><canvas id="ovPie"></canvas></div></div>
+      <div class="card"><h3>최근 3개월 전체 추이</h3><div class="chart-wrap"><canvas id="ovTrend"></canvas></div></div>
+    </div>
+  </div>
+
+  <div id="defect" class="section">
+    <div class="stats" id="dpStats"></div>
+    <div class="charts">
+      <div class="card"><h3>부품별 불량 건수</h3><div class="chart-wrap" style="height:380px"><canvas id="dpBar"></canvas></div></div>
+      <div class="card"><h3>모델라인별 분포</h3><div class="chart-wrap"><canvas id="dpLine"></canvas></div></div>
+    </div>
+    <div class="charts" style="margin-top:20px"><div class="card"><h3>부품불량 3개월 추이</h3><div class="chart-wrap"><canvas id="dpTrend"></canvas></div></div></div>
+    <div class="card" style="margin-top:20px"><h3>부품별 상세</h3><table><thead><tr><th>부품명</th><th>모델라인</th><th>모델</th><th>수량</th><th>원인</th><th>비고</th></tr></thead><tbody id="dpTable"></tbody></table></div>
+  </div>
+
+  <div id="fault" class="section">
+    <div class="stats" id="tfStats"></div>
+    <div class="charts">
+      <div class="card"><h3>오류 유형별 건수</h3><div class="chart-wrap"><canvas id="tfType"></canvas></div></div>
+      <div class="card"><h3>기술자별 폴트</h3><div class="chart-wrap"><canvas id="tfTech"></canvas></div></div>
+    </div>
+    <div class="charts" style="margin-top:20px"><div class="card"><h3>테크니션 폴트 3개월 추이</h3><div class="chart-wrap"><canvas id="tfTrend"></canvas></div></div></div>
+    <div class="card" style="margin-top:20px"><h3>폴트 상세 및 개선안</h3><table><thead><tr><th>기술자</th><th>오류내용</th><th>횟수</th><th>원인</th><th>개선안</th><th>상태</th></tr></thead><tbody id="tfTable"></tbody></table></div>
+  </div>
+
+  <div id="complaint" class="section">
+    <div class="stats" id="cmStats"></div>
+    <div class="charts">
+      <div class="card"><h3>컴플레인 유형별 건수</h3><div class="chart-wrap"><canvas id="cmBar"></canvas></div></div>
+      <div class="card"><h3>CM 컴플레인 3개월 추이</h3><div class="chart-wrap"><canvas id="cmTrend"></canvas></div></div>
+    </div>
+    <div class="card" style="margin-top:20px"><h3>컴플레인 상세</h3><table><thead><tr><th>컴플레인 내용</th><th>건수</th><th>비고</th></tr></thead><tbody id="cmTable"></tbody></table></div>
+  </div>
+
+  <div id="damage" class="section">
+    <div class="stats" id="dmStats"></div>
+    <div class="charts"><div class="card"><h3>손상 3개월 추이</h3><div class="chart-wrap"><canvas id="dmTrend"></canvas></div></div></div>
+    <div class="card" style="margin-top:20px"><h3>손상 상세</h3><table><thead><tr><th>손상원인</th><th>건수</th><th>비고</th></tr></thead><tbody id="dmTable"></tbody></table></div>
+  </div>
+
+  <div id="trends" class="section">
+    <div class="card" style="margin-bottom:20px"><h3>전체 재입고 3개월 추이 (유형별)</h3><div class="chart-wrap" style="height:380px"><canvas id="trAll"></canvas></div></div>
+    <div class="charts">
+      <div class="card"><h3>부품별 불량 추이 (TOP 5)</h3><div class="chart-wrap"><canvas id="trParts"></canvas></div></div>
+      <div class="card"><h3>오류 유형별 추이</h3><div class="chart-wrap"><canvas id="trFault"></canvas></div></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const SHEET_ID='1g6dYQMD8za-E2LWjaeYIGZ93xoJ_Mn_klyhKCN9J3qk';
+const TABS=['DefectParts','TechnicianFault','CMComplaint','Damage','Summary'];
+const C={blue:'#3b82f6',red:'#ef4444',amber:'#f59e0b',green:'#10b981',purple:'#8b5cf6',pink:'#ec4899',indigo:'#6366f1',teal:'#14b8a6',orange:'#f97316',gray:'#6b7280',blueA:'rgba(59,130,246,.12)',redA:'rgba(239,68,68,.12)',amberA:'rgba(245,158,11,.12)',greenA:'rgba(16,185,129,.12)',purpleA:'rgba(139,92,246,.12)'};
+const PAL=[C.blue,C.purple,C.teal,C.pink,C.amber,C.orange,C.indigo,C.red,C.green,C.gray];
+let DB={DefectParts:[],TechnicianFault:[],CMComplaint:[],Damage:[],Summary:[]};
+let charts={};let allMonths=[];
+
+function loadTab(tab){
+  return new Promise((res,rej)=>{
+    const cb='cb_'+tab+'_'+Date.now();
+    const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=responseHandler:${cb}&sheet=${encodeURIComponent(tab)}`;
+    window[cb]=function(resp){
+      try{
+        const t=resp.table;const h=t.cols.map(c=>c.label||c.id);
+        const rows=t.rows.map(r=>{const o={};r.c.forEach((cell,i)=>{o[h[i]]=cell?(cell.v!==null&&cell.v!==undefined?cell.v:''):''});return o});
+        res(rows);
+      }catch(e){rej(e)}
+      delete window[cb];s.remove();
+    };
+    const s=document.createElement('script');s.src=url;
+    s.onerror=()=>{rej(new Error(tab+' 로드 실패'));s.remove()};
+    document.head.appendChild(s);
+  });
+}
+
+async function loadAllData(){
+  document.getElementById('loader').style.display='flex';
+  document.getElementById('errorBox').innerHTML='';
+  try{
+    const r=await Promise.all(TABS.map(t=>loadTab(t)));
+    TABS.forEach((t,i)=>{DB[t]=r[i]});
+    const mSet=new Set();
+    ['DefectParts','TechnicianFault','CMComplaint','Damage'].forEach(t=>{DB[t].forEach(r=>{if(r['월'])mSet.add(r['월'])})});
+    allMonths=Array.from(mSet).sort((a,b)=>parseInt(a)-parseInt(b));
+    const sel=document.getElementById('monthSel');sel.innerHTML='';
+    allMonths.forEach(m=>{const o=document.createElement('option');o.value=m;o.textContent=m;sel.appendChild(o)});
+    if(allMonths.length>0)sel.value=allMonths[allMonths.length-1];
+    render();
+  }catch(e){
+    document.getElementById('errorBox').innerHTML=`<div class="error-msg">❌ 데이터 로드 실패: ${e.message}<br><br>해결 방법:<br>1. Google Sheets → 공유 → "링크가 있는 모든 사용자"를 "뷰어"로 설정<br>2. 시트 탭 이름이 DefectParts, TechnicianFault, CMComplaint, Damage, Summary인지 확인</div>`;
+  }
+  document.getElementById('loader').style.display='none';
+}
+
+function kill(id){if(charts[id]){charts[id].destroy();delete charts[id]}}
+function mc(id,type,labels,ds,opts={}){
+  kill(id);const ctx=document.getElementById(id);if(!ctx)return;
+  const o={responsive:true,maintainAspectRatio:false,plugins:{legend:{position:opts.lp||'bottom',labels:{font:{size:11},padding:12}}}};
+  if(type!=='doughnut'&&type!=='pie')o.scales={y:{beginAtZero:true,ticks:{font:{size:11}}},x:{ticks:{font:{size:11}}}};
+  if(opts.ix)o.scales={x:{beginAtZero:true},y:{}};
+  if(opts.nl)o.plugins.legend.display=false;
+  charts[id]=new Chart(ctx,{type,data:{labels,datasets:ds},options:{...o,indexAxis:opts.ix}});
+}
+
+function render(){
+  const m=document.getElementById('monthSel').value;
+  rOv(m);rDp(m);rTf(m);rCm(m);rDm(m);rTr();
+}
+
+function rOv(m){
+  const dp=DB.DefectParts.filter(r=>r['월']===m).reduce((s,r)=>s+Number(r['수량']||0),0);
+  const tf=DB.TechnicianFault.filter(r=>r['월']===m).reduce((s,r)=>s+Number(r['발생횟수']||0),0);
+  const cm=DB.CMComplaint.filter(r=>r['월']===m).reduce((s,r)=>s+Number(r['건수']||0),0);
+  const dm=DB.Damage.filter(r=>r['월']===m).reduce((s,r)=>s+Number(r['건수']||0),0);
+  const t=dp+tf+cm+dm;
+  document.getElementById('ovStats').innerHTML=`
+    <div class="stat"><div class="stat-label">총 재입고</div><div class="stat-val">${t}</div><div class="stat-sub">${m} 기준</div></div>
+    <div class="stat" style="border-left-color:${C.blue}"><div class="stat-label">부품불량</div><div class="stat-val">${dp}</div><div class="stat-sub">${t?Math.round(dp/t*100):0}%</div></div>
+    <div class="stat red"><div class="stat-label">테크니션 폴트</div><div class="stat-val">${tf}</div><div class="stat-sub">${t?Math.round(tf/t*100):0}%</div></div>
+    <div class="stat amber"><div class="stat-label">CM 컴플레인</div><div class="stat-val">${cm}</div><div class="stat-sub">${t?Math.round(cm/t*100):0}%</div></div>
+    <div class="stat green"><div class="stat-label">손상/기타</div><div class="stat-val">${dm}</div><div class="stat-sub">${t?Math.round(dm/t*100):0}%</div></div>`;
+  mc('ovPie','doughnut',['부품불량','테크니션 폴트','CM 컴플레인','손상'],[{data:[dp,tf,cm,dm],backgroundColor:[C.blue,C.red,C.amber,C.green],borderWidth:2,borderColor:'#fff'}]);
+  const td=allMonths.map(mo=>{
+    const a=DB.DefectParts.filter(r=>r['월']===mo).reduce((s,r)=>s+Number(r['수량']||0),0);
+    const b=DB.TechnicianFault.filter(r=>r['월']===mo).reduce((s,r)=>s+Number(r['발생횟수']||0),0);
+    const c=DB.CMComplaint.filter(r=>r['월']===mo).reduce((s,r)=>s+Number(r['건수']||0),0);
+    const d=DB.Damage.filter(r=>r['월']===mo).reduce((s,r)=>s+Number(r['건수']||0),0);
+    return a+b+c+d;
+  });
+  mc('ovTrend','line',allMonths,[{label:'총 재입고',data:td,borderColor:C.blue,backgroundColor:C.blueA,tension:.4,fill:true,borderWidth:2,pointRadius:4}],{nl:true});
+}
+
+function rDp(m){
+  const rows=DB.DefectParts.filter(r=>r['월']===m);
+  const pm={};const lm={};
+  rows.forEach(r=>{const p=r['부품명']||'기타';const q=Number(r['수량']||0);const l=r['모델라인']||'기타';pm[p]=(pm[p]||0)+q;lm[l]=(lm[l]||0)+q});
+  const tot=Object.values(pm).reduce((a,b)=>a+b,0);
+  document.getElementById('dpStats').innerHTML=`
+    <div class="stat" style="border-left-color:${C.blue}"><div class="stat-label">부품불량 합계</div><div class="stat-val">${tot}</div></div>
+    <div class="stat purple"><div class="stat-label">문제 부품 종류</div><div class="stat-val">${Object.keys(pm).length}</div></div>
+    <div class="stat" style="border-left-color:${C.teal}"><div class="stat-label">모델라인 수</div><div class="stat-val">${Object.keys(lm).length}</div></div>`;
+  const sp=Object.entries(pm).sort((a,b)=>b[1]-a[1]);
+  mc('dpBar','bar',sp.map(s=>s[0]),[{label:'불량 수량',data:sp.map(s=>s[1]),backgroundColor:C.blue,borderRadius:4}],{ix:'y',nl:true});
+  mc('dpLine','doughnut',Object.keys(lm),[{data:Object.values(lm),backgroundColor:[C.blue,C.purple,C.teal,C.pink],borderWidth:2,borderColor:'#fff'}]);
+  const pn=[...new Set(DB.DefectParts.map(r=>r['부품명']))].filter(Boolean);
+  const tp=pn.map(p=>({n:p,t:DB.DefectParts.filter(r=>r['부품명']===p).reduce((s,r)=>s+Number(r['수량']||0),0)})).sort((a,b)=>b.t-a.t).slice(0,5);
+  mc('dpTrend','line',allMonths,tp.map((p,i)=>({label:p.n,data:allMonths.map(mo=>DB.DefectParts.filter(r=>r['월']===mo&&r['부품명']===p.n).reduce((s,r)=>s+Number(r['수량']||0),0)),borderColor:PAL[i],backgroundColor:'transparent',tension:.4,borderWidth:2,pointRadius:4})));
+  document.getElementById('dpTable').innerHTML=rows.sort((a,b)=>Number(b['수량']||0)-Number(a['수량']||0)).map(r=>`<tr><td>${r['부품명']||''}</td><td>${r['모델라인']||''}</td><td>${r['모델']||''}</td><td><strong>${r['수량']||0}</strong></td><td>${r['원인분석']||''}</td><td>${r['비고']||''}</td></tr>`).join('');
+}
+
+function rTf(m){
+  const rows=DB.TechnicianFault.filter(r=>r['월']===m);
+  const tot=rows.reduce((s,r)=>s+Number(r['발생횟수']||0),0);
+  const em={};const tm={};
+  rows.forEach(r=>{const e=r['오류내용']||'기타';const n=Number(r['발생횟수']||0);em[e]=(em[e]||0)+n;const t=r['기술자']||'기타';tm[t]=(tm[t]||0)+n});
+  const ae={};DB.TechnicianFault.forEach(r=>{const e=r['오류내용']||'기타';ae[e]=(ae[e]||0)+Number(r['발생횟수']||0)});
+  const re=Object.entries(ae).filter(e=>e[1]>=3).length;
+  document.getElementById('tfStats').innerHTML=`
+    <div class="stat red"><div class="stat-label">이번 월 폴트</div><div class="stat-val">${tot}</div></div>
+    <div class="stat purple"><div class="stat-label">오류 종류</div><div class="stat-val">${Object.keys(em).length}</div></div>
+    <div class="stat" style="border-left-color:${C.orange}"><div class="stat-label">관련 기술자</div><div class="stat-val">${Object.keys(tm).length}</div></div>
+    <div class="stat amber"><div class="stat-label">반복 오류 (3개월)</div><div class="stat-val">${re}</div><div class="stat-sub">3회 이상 발생</div></div>`;
+  const se=Object.entries(em).sort((a,b)=>b[1]-a[1]);
+  mc('tfType','bar',se.map(e=>e[0]),[{label:'발생 횟수',data:se.map(e=>e[1]),backgroundColor:C.red,borderRadius:4}],{nl:true});
+  const st=Object.entries(tm).sort((a,b)=>b[1]-a[1]);
+  mc('tfTech','bar',st.map(t=>t[0]),[{label:'폴트 건수',data:st.map(t=>t[1]),backgroundColor:C.purple,borderRadius:4}],{ix:'y',nl:true});
+  const ft=allMonths.map(mo=>DB.TechnicianFault.filter(r=>r['월']===mo).reduce((s,r)=>s+Number(r['발생횟수']||0),0));
+  mc('tfTrend','line',allMonths,[{label:'테크니션 폴트',data:ft,borderColor:C.red,backgroundColor:C.redA,tension:.4,fill:true,borderWidth:2,pointRadius:4}],{nl:true});
+  document.getElementById('tfTable').innerHTML=rows.sort((a,b)=>Number(b['발생횟수']||0)-Number(a['발생횟수']||0)).map(r=>{
+    const s=r['상태']||'';const cls=s.includes('완료')?'done':s.includes('진행')?'progress':'plan';
+    return`<tr><td>${r['기술자']||''}</td><td>${r['오류내용']||''}</td><td><strong>${r['발생횟수']||0}</strong></td><td>${r['원인']||''}</td><td>${r['개선안']||''}</td><td><span class="badge ${cls}">${s}</span></td></tr>`;
+  }).join('');
+}
+
+function rCm(m){
+  const rows=DB.CMComplaint.filter(r=>r['월']===m);
+  const tot=rows.reduce((s,r)=>s+Number(r['건수']||0),0);
+  const tm={};rows.forEach(r=>{const t=r['컴플레인내용']||'기타';tm[t]=(tm[t]||0)+Number(r['건수']||0)});
+  document.getElementById('cmStats').innerHTML=`
+    <div class="stat amber"><div class="stat-label">CM 컴플레인 합계</div><div class="stat-val">${tot}</div></div>
+    <div class="stat purple"><div class="stat-label">유형 수</div><div class="stat-val">${Object.keys(tm).length}</div></div>`;
+  const so=Object.entries(tm).sort((a,b)=>b[1]-a[1]);
+  mc('cmBar','bar',so.map(s=>s[0]),[{label:'건수',data:so.map(s=>s[1]),backgroundColor:PAL.slice(0,so.length),borderRadius:4}],{nl:true});
+  const types=[...new Set(DB.CMComplaint.map(r=>r['컴플레인내용']))].filter(Boolean);
+  mc('cmTrend','line',allMonths,types.map((t,i)=>({label:t,data:allMonths.map(mo=>DB.CMComplaint.filter(r=>r['월']===mo&&r['컴플레인내용']===t).reduce((s,r)=>s+Number(r['건수']||0),0)),borderColor:PAL[i],backgroundColor:'transparent',tension:.4,borderWidth:2,pointRadius:4})));
+  document.getElementById('cmTable').innerHTML=rows.sort((a,b)=>Number(b['건수']||0)-Number(a['건수']||0)).map(r=>`<tr><td>${r['컴플레인내용']||''}</td><td><strong>${r['건수']||0}</strong></td><td>${r['비고']||''}</td></tr>`).join('');
+}
+
+function rDm(m){
+  const rows=DB.Damage.filter(r=>r['월']===m);
+  const tot=rows.reduce((s,r)=>s+Number(r['건수']||0),0);
+  document.getElementById('dmStats').innerHTML=`<div class="stat green"><div class="stat-label">손상/기타</div><div class="stat-val">${tot}</div><div class="stat-sub">${m} 기준</div></div>`;
+  const dt=allMonths.map(mo=>DB.Damage.filter(r=>r['월']===mo).reduce((s,r)=>s+Number(r['건수']||0),0));
+  mc('dmTrend','bar',allMonths,[{label:'손상 건수',data:dt,backgroundColor:C.green,borderRadius:4}],{nl:true});
+  document.getElementById('dmTable').innerHTML=rows.map(r=>`<tr><td>${r['손상원인']||''}</td><td><strong>${r['건수']||0}</strong></td><td>${r['비고']||''}</td></tr>`).join('');
+}
+
+function rTr(){
+  const dpT=allMonths.map(m=>DB.DefectParts.filter(r=>r['월']===m).reduce((s,r)=>s+Number(r['수량']||0),0));
+  const tfT=allMonths.map(m=>DB.TechnicianFault.filter(r=>r['월']===m).reduce((s,r)=>s+Number(r['발생횟수']||0),0));
+  const cmT=allMonths.map(m=>DB.CMComplaint.filter(r=>r['월']===m).reduce((s,r)=>s+Number(r['건수']||0),0));
+  const dmT=allMonths.map(m=>DB.Damage.filter(r=>r['월']===m).reduce((s,r)=>s+Number(r['건수']||0),0));
+  mc('trAll','line',allMonths,[
+    {label:'부품불량',data:dpT,borderColor:C.blue,backgroundColor:C.blueA,tension:.4,fill:true,borderWidth:2,pointRadius:5},
+    {label:'테크니션 폴트',data:tfT,borderColor:C.red,backgroundColor:C.redA,tension:.4,fill:true,borderWidth:2,pointRadius:5},
+    {label:'CM 컴플레인',data:cmT,borderColor:C.amber,backgroundColor:C.amberA,tension:.4,fill:true,borderWidth:2,pointRadius:5},
+    {label:'손상',data:dmT,borderColor:C.green,backgroundColor:C.greenA,tension:.4,fill:true,borderWidth:2,pointRadius:5}
+  ]);
+  const pn=[...new Set(DB.DefectParts.map(r=>r['부품명']))].filter(Boolean);
+  const tp=pn.map(p=>({n:p,t:DB.DefectParts.filter(r=>r['부품명']===p).reduce((s,r)=>s+Number(r['수량']||0),0)})).sort((a,b)=>b.t-a.t).slice(0,5);
+  mc('trParts','line',allMonths,tp.map((p,i)=>({label:p.n,data:allMonths.map(mo=>DB.DefectParts.filter(r=>r['월']===mo&&r['부품명']===p.n).reduce((s,r)=>s+Number(r['수량']||0),0)),borderColor:PAL[i],backgroundColor:'transparent',tension:.4,borderWidth:2,pointRadius:4})));
+  const et=[...new Set(DB.TechnicianFault.map(r=>r['오류내용']))].filter(Boolean);
+  mc('trFault','line',allMonths,et.map((e,i)=>({label:e,data:allMonths.map(mo=>DB.TechnicianFault.filter(r=>r['월']===mo&&r['오류내용']===e).reduce((s,r)=>s+Number(r['발생횟수']||0),0)),borderColor:PAL[i],backgroundColor:'transparent',tension:.4,borderWidth:2,pointRadius:4})));
+}
+
+const titles={overview:'📊 센터 개요',defect:'🔧 부품불량 분석',fault:'⚠️ 테크니션 폴트',complaint:'📞 CM 컴플레인',damage:'📦 손상/기타',trends:'📈 3개월 추이'};
+function nav(id,el){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('pageTitle').textContent=titles[id]||'';
+}
+
+loadAllData();
+</script>
+</body>
+</html>
