@@ -1,0 +1,1377 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HIQASC 입고 추세 분석</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg-deep: #0a0e1a;
+            --bg-card: #111827;
+            --bg-card-hover: #1a2332;
+            --border: #1e293b;
+            --border-light: #334155;
+            --blue-primary: #3b82f6;
+            --blue-light: #60a5fa;
+            --blue-glow: rgba(59, 130, 246, 0.15);
+            --green: #10b981;
+            --green-light: #34d399;
+            --amber: #f59e0b;
+            --purple: #8b5cf6;
+            --red: #ef4444;
+            --red-light: #f87171;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+        }
+
+        body {
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-deep);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        /* === TOP NAVIGATION === */
+        .top-bar {
+            background: linear-gradient(180deg, #0f1629 0%, var(--bg-deep) 100%);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(20px);
+        }
+        .top-bar-inner {
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 0 32px;
+        }
+        .header-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 0;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--red), var(--amber));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 800;
+            color: white;
+        }
+        .logo-icon svg { width: 20px; height: 20px; fill: white; }
+        .logo-text {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: -0.5px;
+        }
+        .logo-text span { color: var(--red); }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .back-link {
+            color: #4a90e2;
+            text-decoration: none;
+            padding: 8px 16px;
+            border: 1px solid #4a90e2;
+            border-radius: 6px;
+            transition: all 0.2s;
+            font-size: 0.9em;
+            white-space: nowrap;
+        }
+        .back-link:hover {
+            background: #4a90e2;
+            color: #ffffff;
+        }
+
+        .year-select {
+            padding: 8px 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: 'Outfit', sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        .year-select:focus {
+            outline: none;
+            border-color: var(--blue-primary);
+            box-shadow: 0 0 0 3px var(--blue-glow);
+        }
+
+        .load-btn {
+            padding: 8px 20px;
+            background: linear-gradient(135deg, var(--red), #dc2626);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-family: 'Outfit', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .load-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(239,68,68,0.4); }
+
+        /* === TABS === */
+        .tab-row {
+            display: flex;
+            gap: 0;
+            border-top: 1px solid var(--border);
+        }
+        .tab-btn {
+            padding: 14px 28px;
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: var(--text-muted);
+            font-family: 'Outfit', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .tab-btn:hover { color: var(--text-secondary); background: rgba(255,255,255,0.02); }
+        .tab-btn.active { color: var(--red); border-bottom-color: var(--red); }
+
+        /* === CONTENT === */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        .content-wrap {
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 28px 32px;
+        }
+
+        .page-title {
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-bottom: 6px;
+        }
+        .page-subtitle {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 28px;
+        }
+
+        /* === STAT CARDS === */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+        .stat-card {
+            padding: 22px;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.25s;
+        }
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%;
+            height: 3px;
+        }
+        .stat-card:hover { transform: translateY(-3px); border-color: var(--border-light); }
+        .stat-card.blue { background: linear-gradient(160deg, rgba(59,130,246,0.12) 0%, var(--bg-card) 60%); }
+        .stat-card.blue::before { background: linear-gradient(90deg, var(--blue-primary), var(--blue-light)); }
+        .stat-card.green { background: linear-gradient(160deg, rgba(16,185,129,0.12) 0%, var(--bg-card) 60%); }
+        .stat-card.green::before { background: linear-gradient(90deg, var(--green), var(--green-light)); }
+        .stat-card.amber { background: linear-gradient(160deg, rgba(245,158,11,0.12) 0%, var(--bg-card) 60%); }
+        .stat-card.amber::before { background: linear-gradient(90deg, var(--amber), #fbbf24); }
+        .stat-card.red { background: linear-gradient(160deg, rgba(239,68,68,0.12) 0%, var(--bg-card) 60%); }
+        .stat-card.red::before { background: linear-gradient(90deg, var(--red), var(--red-light)); }
+        .stat-card.purple { background: linear-gradient(160deg, rgba(139,92,246,0.12) 0%, var(--bg-card) 60%); }
+        .stat-card.purple::before { background: linear-gradient(90deg, var(--purple), #a78bfa); }
+
+        .stat-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .stat-number {
+            font-size: 38px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            line-height: 1;
+        }
+        .stat-card.blue .stat-number { color: var(--blue-light); }
+        .stat-card.green .stat-number { color: var(--green-light); }
+        .stat-card.amber .stat-number { color: var(--amber); }
+        .stat-card.red .stat-number { color: var(--red-light); }
+        .stat-card.purple .stat-number { color: var(--purple); }
+
+        .stat-sub {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 8px;
+            font-weight: 500;
+        }
+
+        /* === CHART CARDS === */
+        .charts-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 28px;
+        }
+        .chart-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 24px;
+            transition: border-color 0.2s;
+        }
+        .chart-card:hover { border-color: var(--border-light); }
+        .chart-card.full { grid-column: 1 / -1; }
+        .chart-header {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .chart-header .icon {
+            width: 28px; height: 28px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+        .chart-header .icon.blue { background: var(--blue-glow); }
+        .chart-header .icon.green { background: rgba(16,185,129,0.15); }
+        .chart-header .icon.red { background: rgba(239,68,68,0.15); }
+        .chart-header .icon.purple { background: rgba(139,92,246,0.15); }
+        .chart-header .icon.amber { background: rgba(245,158,11,0.15); }
+
+        /* === WEEKLY TABLE === */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--bg-card);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+        .data-table th {
+            background: rgba(59,130,246,0.08);
+            padding: 14px 16px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+        .data-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+            color: var(--text-primary);
+            text-align: center;
+        }
+        .data-table tr:last-child td { border-bottom: none; }
+        .data-table tr:hover td { background: rgba(255,255,255,0.02); }
+        .data-table .num {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+        }
+
+        .change-up { color: var(--green-light); }
+        .change-down { color: var(--red-light); }
+        .change-flat { color: var(--text-muted); }
+
+        .highlight-max { background: rgba(59,130,246,0.08) !important; }
+        .highlight-min { background: rgba(239,68,68,0.08) !important; }
+
+        /* Alert badge */
+        .alert-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .alert-badge.up { background: rgba(16,185,129,0.15); color: var(--green-light); }
+        .alert-badge.down { background: rgba(239,68,68,0.15); color: var(--red-light); }
+        .alert-badge.flat { background: rgba(100,116,139,0.15); color: var(--text-muted); }
+
+        /* === SUMMARY INSIGHT BOX === */
+        .insight-box {
+            background: linear-gradient(135deg, rgba(239,68,68,0.08) 0%, rgba(245,158,11,0.05) 100%);
+            border: 1px solid rgba(239,68,68,0.2);
+            border-radius: 14px;
+            padding: 24px 28px;
+            margin-bottom: 28px;
+        }
+        .insight-box h3 {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--red-light);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .insight-box p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+        .insight-box .highlight {
+            color: var(--text-primary);
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .insight-box .red { color: var(--red-light); }
+        .insight-box .green { color: var(--green-light); }
+
+        /* === FOOTER === */
+        .footer {
+            text-align: center;
+            padding: 28px;
+            border-top: 1px solid var(--border);
+            color: var(--text-muted);
+            font-size: 13px;
+            font-weight: 500;
+        }
+        .footer strong { color: var(--text-secondary); }
+
+        /* === LOADING === */
+        .loading-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(10,14,26,0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            backdrop-filter: blur(4px);
+        }
+        .spinner {
+            width: 48px; height: 48px;
+            border: 4px solid var(--border);
+            border-top: 4px solid var(--red);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 16px;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        .loading-text {
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        /* === SCROLL TABLE WRAPPER === */
+        .table-scroll {
+            overflow-x: auto;
+            border-radius: 12px;
+        }
+
+        @media (max-width: 1024px) {
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+            .charts-row { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 768px) {
+            .stats-row { grid-template-columns: 1fr; }
+            .header-row { flex-direction: column; gap: 12px; }
+            .content-wrap { padding: 20px 16px; }
+        }
+
+        @media print {
+            body { background: white; color: #111; }
+            .top-bar { position: relative; }
+            .stat-card, .chart-card { border-color: #ddd; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- TOP NAVIGATION -->
+<nav class="top-bar">
+    <div class="top-bar-inner">
+        <div class="header-row">
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/>
+                    </svg>
+                </div>
+                <div class="logo-text">HIQASC <span>입고 추세 분석</span></div>
+            </div>
+            <div class="header-controls">
+                <a href="https://donggukang09.github.io/hiqasc-platform/" class="back-link">🏠 메인으로</a>
+                <select id="yearSelect" class="year-select" onchange="onYearChange()">
+                    <option value="2025">2025년</option>
+                    <option value="2026" selected>2026년</option>
+                </select>
+                <button class="load-btn" onclick="loadData()">🔄 데이터 불러오기</button>
+            </div>
+        </div>
+        <div class="tab-row">
+            <button class="tab-btn active" onclick="switchTab('weeklyTab', this)">📈 주간 추세</button>
+            <button class="tab-btn" onclick="switchTab('monthlyTab', this)">📅 월별 현황</button>
+            <button class="tab-btn" onclick="switchTab('modelTab', this)">📦 모델별 분석</button>
+        </div>
+    </div>
+</nav>
+
+<!-- TAB 1: 주간 추세 -->
+<div id="weeklyTab" class="tab-content active">
+    <div class="content-wrap">
+        <h1 class="page-title" id="weeklyTitle">📉 주간 입고 추세 분석</h1>
+        <p class="page-subtitle" id="weeklySubtitle">데이터를 불러와 주세요</p>
+
+        <!-- 인사이트 박스 -->
+        <div class="insight-box" id="insightBox" style="display:none;">
+            <h3>⚠️ 입고량 변동 요약</h3>
+            <p id="insightText"></p>
+        </div>
+
+        <!-- 요약 카드 -->
+        <div class="stats-row" id="weeklyStats" style="display:none;">
+            <div class="stat-card blue">
+                <div class="stat-label">📦 연간 총 입고</div>
+                <div class="stat-number" id="yearTotal">-</div>
+                <div class="stat-sub" id="yearTotalSub">-</div>
+            </div>
+            <div class="stat-card green">
+                <div class="stat-label">📊 주간 평균 입고</div>
+                <div class="stat-number" id="weeklyAvg">-</div>
+                <div class="stat-sub" id="weeklyAvgSub">-</div>
+            </div>
+            <div class="stat-card red">
+                <div class="stat-label">📉 최근 주 입고</div>
+                <div class="stat-number" id="latestWeek">-</div>
+                <div class="stat-sub" id="latestWeekSub">-</div>
+            </div>
+            <div class="stat-card amber">
+                <div class="stat-label">🔺 최고 주 입고</div>
+                <div class="stat-number" id="peakWeek">-</div>
+                <div class="stat-sub" id="peakWeekSub">-</div>
+            </div>
+        </div>
+
+        <!-- 주간 추세 차트 -->
+        <div class="charts-row">
+            <div class="chart-card full">
+                <div class="chart-header">
+                    <div class="icon red">📈</div>
+                    <span id="weeklyChartTitle">주간 입고 추이</span>
+                </div>
+                <canvas id="weeklyChart" height="90"></canvas>
+            </div>
+        </div>
+
+        <!-- 주간 변동률 차트 -->
+        <div class="charts-row">
+            <div class="chart-card full">
+                <div class="chart-header">
+                    <div class="icon amber">📊</div>
+                    전주 대비 증감률 (%)
+                </div>
+                <canvas id="changeChart" height="70"></canvas>
+            </div>
+        </div>
+
+        <!-- 주간 테이블 -->
+        <div class="chart-card full" style="margin-bottom: 28px;">
+            <div class="chart-header">
+                <div class="icon blue">📋</div>
+                주차별 상세 데이터
+            </div>
+            <div class="table-scroll">
+                <table class="data-table" id="weeklyTable">
+                    <thead>
+                        <tr>
+                            <th>주차</th>
+                            <th>기간</th>
+                            <th>입고량</th>
+                            <th>전주 대비</th>
+                            <th>증감률</th>
+                            <th>피크 대비</th>
+                            <th>누적 입고</th>
+                        </tr>
+                    </thead>
+                    <tbody id="weeklyTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- TAB 2: 월별 현황 -->
+<div id="monthlyTab" class="tab-content">
+    <div class="content-wrap">
+        <h1 class="page-title">📅 월별 입고 현황</h1>
+        <p class="page-subtitle" id="monthlySubtitle">-</p>
+
+        <div class="stats-row" id="monthlyStats" style="display:none;">
+            <div class="stat-card blue">
+                <div class="stat-label">📊 월 평균 입고</div>
+                <div class="stat-number" id="monthlyAvg">-</div>
+            </div>
+            <div class="stat-card green">
+                <div class="stat-label">🔺 최고 월</div>
+                <div class="stat-number" id="bestMonth">-</div>
+                <div class="stat-sub" id="bestMonthSub">-</div>
+            </div>
+            <div class="stat-card red">
+                <div class="stat-label">🔻 최저 월</div>
+                <div class="stat-number" id="worstMonth">-</div>
+                <div class="stat-sub" id="worstMonthSub">-</div>
+            </div>
+            <div class="stat-card amber">
+                <div class="stat-label">📉 최고 대비 현재</div>
+                <div class="stat-number" id="monthDrop">-</div>
+                <div class="stat-sub" id="monthDropSub">-</div>
+            </div>
+        </div>
+
+        <div class="charts-row">
+            <div class="chart-card full">
+                <div class="chart-header">
+                    <div class="icon blue">📊</div>
+                    <span id="monthlyChartTitle">월별 입고량</span>
+                </div>
+                <canvas id="monthlyChart" height="90"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-card full" style="margin-bottom: 28px;">
+            <div class="chart-header">
+                <div class="icon purple">📋</div>
+                월별 상세 데이터
+            </div>
+            <div class="table-scroll">
+                <table class="data-table" id="monthlyTable">
+                    <thead>
+                        <tr>
+                            <th>월</th>
+                            <th>입고량</th>
+                            <th>전월 대비</th>
+                            <th>증감률</th>
+                            <th>연간 비중</th>
+                            <th>일 평균</th>
+                        </tr>
+                    </thead>
+                    <tbody id="monthlyTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- TAB 3: 모델별 분석 -->
+<div id="modelTab" class="tab-content">
+    <div class="content-wrap">
+        <h1 class="page-title">📦 모델별 입고 분석</h1>
+        <p class="page-subtitle" id="modelSubtitle">-</p>
+
+        <div class="stats-row" id="modelStats" style="display:none;">
+            <div class="stat-card blue">
+                <div class="stat-label">📦 입고 모델 종류</div>
+                <div class="stat-number" id="modelCount">-</div>
+            </div>
+            <div class="stat-card green">
+                <div class="stat-label">🥇 최다 입고 모델</div>
+                <div class="stat-number" id="topModelName" style="font-size:24px;">-</div>
+                <div class="stat-sub" id="topModelCount">-</div>
+            </div>
+            <div class="stat-card amber">
+                <div class="stat-label">📊 상위 3개 모델 비중</div>
+                <div class="stat-number" id="top3Share">-</div>
+            </div>
+            <div class="stat-card purple">
+                <div class="stat-label">📈 모델별 평균 입고</div>
+                <div class="stat-number" id="modelAvg">-</div>
+            </div>
+        </div>
+
+        <div class="charts-row">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div class="icon green">📊</div>
+                    모델별 입고량 Top 15
+                </div>
+                <canvas id="modelBarChart" height="200"></canvas>
+            </div>
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div class="icon purple">🍩</div>
+                    모델 비중 (도넛)
+                </div>
+                <canvas id="modelDoughnutChart" height="200"></canvas>
+            </div>
+        </div>
+
+        <!-- 모델별 주간 추이 테이블 -->
+        <div class="chart-card full" style="margin-bottom: 28px;">
+            <div class="chart-header">
+                <div class="icon amber">📋</div>
+                상위 모델 주차별 입고 추이
+            </div>
+            <div class="table-scroll">
+                <table class="data-table" id="modelWeeklyTable">
+                    <thead id="modelWeeklyHead"></thead>
+                    <tbody id="modelWeeklyBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+    <p><strong>DEVELOPED BY DONGGU KANG</strong></p>
+    <p style="margin-top: 6px;">HIQASC 입고 추세 분석 대시보드</p>
+</div>
+
+<!-- LOADING OVERLAY -->
+<div id="loadingMsg" class="loading-overlay" style="display:none;">
+    <div class="spinner"></div>
+    <div class="loading-text">Google Sheets에서 입고 데이터 불러오는 중...</div>
+</div>
+
+<script>
+    // ===== CONFIGURATION =====
+    const SHEET_ID = '111K9l8gt-14roqvynNFEJrT2aLsTYjU8gQBsKNiyFmI';
+    const TAB_INCOMING = '주간입고';
+
+    // ===== STATE =====
+    let allIncomingData = [];
+    let selectedYear = 2026;
+    let weeklyData = [];   // [{week:'W1', start:'01/06', end:'01/10', count:120, dates:['2026-01-06',...]}]
+    let monthlyData = [];  // [{month:1, count:300, days:20}]
+    let modelData = {};    // {'Vertuo Plus': 50, ...}
+    let modelWeeklyData = {}; // {'Vertuo Plus': {W1: 10, W2: 5, ...}}
+
+    // Charts
+    let weeklyChart = null;
+    let changeChart = null;
+    let monthlyChart = null;
+    let modelBarChart = null;
+    let modelDoughnutChart = null;
+
+    Chart.defaults.color = '#94a3b8';
+    Chart.defaults.borderColor = '#1e293b';
+    Chart.defaults.font.family = "'Outfit', sans-serif";
+
+    // ===== HELPERS =====
+    function getISOWeek(dateStr) {
+        const d = new Date(dateStr + 'T00:00:00');
+        d.setHours(0, 0, 0, 0);
+        d.setDate(d.getDate() + 3 - (d.getDay() + 6) % 7);
+        const week1 = new Date(d.getFullYear(), 0, 4);
+        return 1 + Math.round(((d - week1) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
+    }
+
+    function getWeekMonday(year, weekNum) {
+        const jan4 = new Date(year, 0, 4);
+        const dayOfWeek = jan4.getDay() || 7;
+        const monday = new Date(jan4);
+        monday.setDate(jan4.getDate() - dayOfWeek + 1 + (weekNum - 1) * 7);
+        return monday;
+    }
+
+    function fmtDate(d) {
+        return String(d.getMonth() + 1).padStart(2, '0') + '/' + String(d.getDate()).padStart(2, '0');
+    }
+
+    function formatDate(d) {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${dd}`;
+    }
+
+    function onYearChange() {
+        selectedYear = parseInt(document.getElementById('yearSelect').value);
+    }
+
+    function switchTab(tabName, btn) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById(tabName).classList.add('active');
+        if (btn) btn.classList.add('active');
+    }
+
+    // ===== JSONP LOADER =====
+    let _cbCounter = 0;
+    function loadFromSheet(tabName, query, onSuccess, onError) {
+        _cbCounter++;
+        const cbName = 'gvizCb' + _cbCounter + '_' + Date.now();
+        const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json;responseHandler:${cbName}&sheet=${encodeURIComponent(tabName)}&tq=${encodeURIComponent(query)}&headers=1`;
+
+        const timer = setTimeout(() => { cleanup(); onError('시간 초과 (15초)'); }, 15000);
+
+        window[cbName] = function(json) {
+            clearTimeout(timer);
+            try {
+                if (json.status === 'error') throw new Error(json.errors?.map(e => e.message).join(', '));
+                onSuccess(json);
+            } catch (e) { onError(e.message); }
+            cleanup();
+        };
+
+        const s = document.createElement('script');
+        s.src = url;
+        s.onerror = () => { clearTimeout(timer); cleanup(); onError('스크립트 로드 실패'); };
+        document.body.appendChild(s);
+
+        function cleanup() { delete window[cbName]; if (s.parentNode) s.parentNode.removeChild(s); }
+    }
+
+    function parseGvizDate(val, cell) {
+        if (!val && !cell) return '';
+        if (typeof val === 'string' && val.startsWith('Date(')) {
+            const parts = val.match(/Date\((\d+),\s*(\d+),\s*(\d+)\)/);
+            if (parts) {
+                const y = parts[1];
+                const m = String(parseInt(parts[2]) + 1).padStart(2, '0');
+                const d = String(parts[3]).padStart(2, '0');
+                return `${y}-${m}-${d}`;
+            }
+        }
+        if (cell && cell.f) {
+            const f = cell.f.trim();
+            if (/^\d{4}-\d{2}-\d{2}$/.test(f)) return f;
+            if (/^\d{4}\/\d{2}\/\d{2}$/.test(f)) return f.replace(/\//g, '-');
+            const mdy = f.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+            if (mdy) return `${mdy[3]}-${mdy[1].padStart(2,'0')}-${mdy[2].padStart(2,'0')}`;
+        }
+        if (typeof val === 'string') {
+            const trimmed = val.trim();
+            if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
+            if (/^\d{4}\/\d{2}\/\d{2}$/.test(trimmed)) return trimmed.replace(/\//g, '-');
+        }
+        return '';
+    }
+
+    // ===== DATA LOADING =====
+    function loadData() {
+        const loadingEl = document.getElementById('loadingMsg');
+        loadingEl.style.display = 'flex';
+
+        // Machine(X), 수리입고일(AW)
+        loadFromSheet(TAB_INCOMING, 'SELECT X, AW', (json) => {
+            allIncomingData = [];
+            json.table.rows.forEach(row => {
+                const c = row.c;
+                if (!c || c.length < 2) return;
+                const machine = c[0]?.v || '';
+                const incomingDate = parseGvizDate(c[1]?.v || c[1]?.f || '', c[1]);
+                if (incomingDate) {
+                    allIncomingData.push({ machine, incomingDate });
+                }
+            });
+            console.log(`📦 전체 입고 데이터: ${allIncomingData.length}건`);
+            loadingEl.style.display = 'none';
+            processData();
+        }, (err) => {
+            loadingEl.style.display = 'none';
+            alert(`[${TAB_INCOMING}] 탭 로드 실패:\n${err}`);
+        });
+    }
+
+    // ===== DATA PROCESSING =====
+    function processData() {
+        const yearStr = String(selectedYear);
+        const yearData = allIncomingData.filter(r => r.incomingDate.startsWith(yearStr));
+
+        if (yearData.length === 0) {
+            alert(`${selectedYear}년 입고 데이터가 없습니다.`);
+            return;
+        }
+
+        // --- 주간 데이터 계산 ---
+        const weekMap = {}; // { weekNum: { count, dates[], models{} } }
+        const monthMap = {}; // { month: { count, daysSet, models{} } }
+        modelData = {};
+        modelWeeklyData = {};
+
+        yearData.forEach(row => {
+            const wk = getISOWeek(row.incomingDate);
+            const month = parseInt(row.incomingDate.split('-')[1]);
+
+            // Weekly
+            if (!weekMap[wk]) weekMap[wk] = { count: 0, dates: new Set(), models: {} };
+            weekMap[wk].count++;
+            weekMap[wk].dates.add(row.incomingDate);
+            if (row.machine) {
+                weekMap[wk].models[row.machine] = (weekMap[wk].models[row.machine] || 0) + 1;
+            }
+
+            // Monthly
+            if (!monthMap[month]) monthMap[month] = { count: 0, daysSet: new Set(), models: {} };
+            monthMap[month].count++;
+            monthMap[month].daysSet.add(row.incomingDate);
+            if (row.machine) {
+                monthMap[month].models[row.machine] = (monthMap[month].models[row.machine] || 0) + 1;
+            }
+
+            // Model total
+            if (row.machine) {
+                modelData[row.machine] = (modelData[row.machine] || 0) + 1;
+            }
+
+            // Model weekly
+            if (row.machine) {
+                if (!modelWeeklyData[row.machine]) modelWeeklyData[row.machine] = {};
+                modelWeeklyData[row.machine][wk] = (modelWeeklyData[row.machine][wk] || 0) + 1;
+            }
+        });
+
+        // 주차 정렬
+        const weekNums = Object.keys(weekMap).map(Number).sort((a, b) => a - b);
+        weeklyData = weekNums.map(wk => {
+            const monday = getWeekMonday(selectedYear, wk);
+            const friday = new Date(monday);
+            friday.setDate(monday.getDate() + 4);
+            return {
+                week: `W${wk}`,
+                weekNum: wk,
+                start: fmtDate(monday),
+                end: fmtDate(friday),
+                count: weekMap[wk].count,
+                models: weekMap[wk].models
+            };
+        });
+
+        // 월별 정렬
+        const monthNums = Object.keys(monthMap).map(Number).sort((a, b) => a - b);
+        monthlyData = monthNums.map(m => ({
+            month: m,
+            count: monthMap[m].count,
+            days: monthMap[m].daysSet.size,
+            models: monthMap[m].models
+        }));
+
+        renderWeekly();
+        renderMonthly();
+        renderModels();
+    }
+
+    // ===== RENDER: WEEKLY =====
+    function renderWeekly() {
+        if (!weeklyData.length) return;
+
+        const yearStr = selectedYear;
+        document.getElementById('weeklyTitle').textContent = `📉 ${yearStr}년 주간 입고 추세 분석`;
+        document.getElementById('weeklySubtitle').textContent = `W${weeklyData[0].weekNum} ~ W${weeklyData[weeklyData.length-1].weekNum} (총 ${weeklyData.length}주)`;
+
+        const totalYear = weeklyData.reduce((s, w) => s + w.count, 0);
+        const avgWeek = (totalYear / weeklyData.length).toFixed(1);
+        const latest = weeklyData[weeklyData.length - 1];
+        const peak = weeklyData.reduce((max, w) => w.count > max.count ? w : max, weeklyData[0]);
+
+        document.getElementById('yearTotal').textContent = totalYear.toLocaleString();
+        document.getElementById('yearTotalSub').textContent = `${yearStr}년 ${weeklyData.length}주간`;
+        document.getElementById('weeklyAvg').textContent = avgWeek;
+        document.getElementById('weeklyAvgSub').textContent = `주당 평균 입고량`;
+        document.getElementById('latestWeek').textContent = latest.count.toLocaleString();
+
+        // 최근 주 전주 대비
+        if (weeklyData.length >= 2) {
+            const prev = weeklyData[weeklyData.length - 2];
+            const diff = latest.count - prev.count;
+            const pct = prev.count > 0 ? ((diff / prev.count) * 100).toFixed(1) : '0';
+            const arrow = diff >= 0 ? '▲' : '▼';
+            const color = diff >= 0 ? 'color:var(--green-light)' : 'color:var(--red-light)';
+            document.getElementById('latestWeekSub').innerHTML = `${latest.week} · <span style="${color}">${arrow} ${Math.abs(pct)}%</span> vs 전주`;
+        } else {
+            document.getElementById('latestWeekSub').textContent = latest.week;
+        }
+
+        document.getElementById('peakWeek').textContent = peak.count.toLocaleString();
+        document.getElementById('peakWeekSub').textContent = `${peak.week} (${peak.start}~${peak.end})`;
+
+        document.getElementById('weeklyStats').style.display = 'grid';
+
+        // === 인사이트 박스 ===
+        const insightBox = document.getElementById('insightBox');
+        if (weeklyData.length >= 4) {
+            const peakVal = peak.count;
+            const latestVal = latest.count;
+            const dropPct = peakVal > 0 ? (((peakVal - latestVal) / peakVal) * 100).toFixed(1) : 0;
+
+            // 최근 4주 평균 vs 전체 평균
+            const recent4 = weeklyData.slice(-4);
+            const recent4Avg = (recent4.reduce((s, w) => s + w.count, 0) / recent4.length).toFixed(1);
+            const overallAvg = parseFloat(avgWeek);
+            const trendPct = overallAvg > 0 ? (((recent4Avg - overallAvg) / overallAvg) * 100).toFixed(1) : 0;
+
+            let insightHtml = '';
+            insightHtml += `<strong>${yearStr}년</strong> 피크 입고량은 <span class="highlight">${peak.week} (${peak.start}~${peak.end})</span>에 `;
+            insightHtml += `<span class="highlight">${peakVal.toLocaleString()}대</span>였으나, `;
+            insightHtml += `최근 주 (<span class="highlight">${latest.week}</span>)에는 <span class="highlight">${latestVal.toLocaleString()}대</span>로 `;
+            insightHtml += `<span class="highlight red">▼ ${dropPct}% 감소</span>했습니다.<br><br>`;
+            insightHtml += `최근 4주 평균은 <span class="highlight">${recent4Avg}대</span>로, `;
+            insightHtml += `연간 주간 평균 (<span class="highlight">${avgWeek}대</span>) 대비 `;
+            if (parseFloat(trendPct) < 0) {
+                insightHtml += `<span class="highlight red">▼ ${Math.abs(trendPct)}% 낮은</span> 수준입니다.`;
+            } else {
+                insightHtml += `<span class="highlight green">▲ ${trendPct}% 높은</span> 수준입니다.`;
+            }
+
+            document.getElementById('insightText').innerHTML = insightHtml;
+            insightBox.style.display = 'block';
+        } else {
+            insightBox.style.display = 'none';
+        }
+
+        // === 주간 추세 차트 ===
+        const labels = weeklyData.map(w => w.week);
+        const values = weeklyData.map(w => w.count);
+        const avgLine = new Array(weeklyData.length).fill(parseFloat(avgWeek));
+
+        if (weeklyChart) weeklyChart.destroy();
+        weeklyChart = new Chart(document.getElementById('weeklyChart'), {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [
+                    {
+                        type: 'bar',
+                        label: '주간 입고량',
+                        data: values,
+                        backgroundColor: values.map(v => {
+                            if (v === peak.count) return 'rgba(59, 130, 246, 0.9)';
+                            if (v === latest.count && weeklyData.indexOf(latest) === weeklyData.length - 1) return 'rgba(239, 68, 68, 0.8)';
+                            return 'rgba(59, 130, 246, 0.5)';
+                        }),
+                        borderColor: values.map(v => {
+                            if (v === peak.count) return '#3b82f6';
+                            if (v === latest.count) return '#ef4444';
+                            return '#3b82f6';
+                        }),
+                        borderWidth: 1,
+                        borderRadius: 4,
+                        barPercentage: 0.6,
+                        order: 2
+                    },
+                    {
+                        type: 'line',
+                        label: '주간 평균',
+                        data: avgLine,
+                        borderColor: '#f59e0b',
+                        borderDash: [6, 4],
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        fill: false,
+                        order: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: { position: 'top', labels: { padding: 20, usePointStyle: true } },
+                    datalabels: {
+                        anchor: 'end',
+                        align: 'top',
+                        font: { weight: '700', size: weeklyData.length > 30 ? 9 : 12, family: "'JetBrains Mono'" },
+                        color: '#e2e8f0',
+                        formatter: (v, ctx) => ctx.datasetIndex === 0 ? (v > 0 ? v : '') : '',
+                        display: weeklyData.length > 40 ? false : true
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: {
+                            font: { weight: '600', size: weeklyData.length > 30 ? 9 : 12 },
+                            maxRotation: weeklyData.length > 20 ? 45 : 0,
+                            autoSkip: weeklyData.length > 30
+                        }
+                    },
+                    y: { beginAtZero: true, grid: { color: 'rgba(30,41,59,0.5)' } }
+                }
+            },
+            plugins: [ChartDataLabels]
+        });
+
+        // === 증감률 차트 ===
+        const changes = weeklyData.map((w, i) => {
+            if (i === 0) return 0;
+            const prev = weeklyData[i - 1].count;
+            return prev > 0 ? (((w.count - prev) / prev) * 100) : 0;
+        });
+
+        if (changeChart) changeChart.destroy();
+        changeChart = new Chart(document.getElementById('changeChart'), {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [{
+                    label: '전주 대비 증감률 (%)',
+                    data: changes,
+                    backgroundColor: changes.map(v => v >= 0 ? 'rgba(16, 185, 129, 0.7)' : 'rgba(239, 68, 68, 0.7)'),
+                    borderColor: changes.map(v => v >= 0 ? '#10b981' : '#ef4444'),
+                    borderWidth: 1,
+                    borderRadius: 4,
+                    barPercentage: 0.5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: { display: false },
+                    datalabels: {
+                        anchor: ctx => ctx.dataset.data[ctx.dataIndex] >= 0 ? 'end' : 'start',
+                        align: ctx => ctx.dataset.data[ctx.dataIndex] >= 0 ? 'top' : 'bottom',
+                        font: { weight: '700', size: weeklyData.length > 30 ? 8 : 11, family: "'JetBrains Mono'" },
+                        color: ctx => ctx.dataset.data[ctx.dataIndex] >= 0 ? '#34d399' : '#f87171',
+                        formatter: (v, ctx) => {
+                            if (ctx.dataIndex === 0) return '';
+                            return v !== 0 ? v.toFixed(1) + '%' : '';
+                        },
+                        display: weeklyData.length > 40 ? false : true
+                    }
+                },
+                scales: {
+                    x: { grid: { display: false }, ticks: { font: { weight: '600', size: weeklyData.length > 30 ? 9 : 12 }, maxRotation: weeklyData.length > 20 ? 45 : 0, autoSkip: weeklyData.length > 30 } },
+                    y: { grid: { color: 'rgba(30,41,59,0.5)' } }
+                }
+            },
+            plugins: [ChartDataLabels]
+        });
+
+        // === 주간 테이블 ===
+        const tbody = document.getElementById('weeklyTableBody');
+        tbody.innerHTML = '';
+        let cumulative = 0;
+        const maxCount = peak.count;
+        const minCount = Math.min(...weeklyData.map(w => w.count));
+
+        weeklyData.forEach((w, i) => {
+            cumulative += w.count;
+            const prev = i > 0 ? weeklyData[i - 1].count : null;
+            const diff = prev !== null ? w.count - prev : 0;
+            const pct = prev !== null && prev > 0 ? ((diff / prev) * 100).toFixed(1) : '-';
+            const peakPct = maxCount > 0 ? ((w.count / maxCount) * 100).toFixed(1) : '0';
+
+            let changeHtml = '';
+            if (i === 0) {
+                changeHtml = '<span class="change-flat">-</span>';
+            } else {
+                const cls = diff > 0 ? 'up' : diff < 0 ? 'down' : 'flat';
+                const arrow = diff > 0 ? '▲' : diff < 0 ? '▼' : '→';
+                changeHtml = `<span class="alert-badge ${cls}">${arrow} ${Math.abs(diff)}</span>`;
+            }
+
+            let pctHtml = '';
+            if (i === 0) {
+                pctHtml = '<span class="change-flat">-</span>';
+            } else {
+                const cls = diff > 0 ? 'change-up' : diff < 0 ? 'change-down' : 'change-flat';
+                const arrow = diff > 0 ? '▲' : diff < 0 ? '▼' : '→';
+                pctHtml = `<span class="${cls}">${arrow} ${Math.abs(pct)}%</span>`;
+            }
+
+            const rowClass = w.count === maxCount ? 'highlight-max' : w.count === minCount ? 'highlight-min' : '';
+
+            const tr = document.createElement('tr');
+            tr.className = rowClass;
+            tr.innerHTML = `
+                <td class="num" style="font-weight:700;">${w.week}</td>
+                <td style="font-size:13px; color:var(--text-secondary);">${w.start} ~ ${w.end}</td>
+                <td class="num" style="font-size:16px; font-weight:800;">${w.count.toLocaleString()}</td>
+                <td>${changeHtml}</td>
+                <td class="num">${pctHtml}</td>
+                <td class="num" style="color:var(--text-muted);">${peakPct}%</td>
+                <td class="num">${cumulative.toLocaleString()}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // ===== RENDER: MONTHLY =====
+    function renderMonthly() {
+        if (!monthlyData.length) return;
+
+        const MONTH_NAMES = ['', '1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
+        const totalYear = monthlyData.reduce((s, m) => s + m.count, 0);
+
+        document.getElementById('monthlySubtitle').textContent = `${selectedYear}년 월별 입고 현황 (총 ${totalYear.toLocaleString()}대)`;
+
+        const avg = (totalYear / monthlyData.length).toFixed(0);
+        const best = monthlyData.reduce((mx, m) => m.count > mx.count ? m : mx, monthlyData[0]);
+        const worst = monthlyData.reduce((mn, m) => m.count < mn.count ? m : mn, monthlyData[0]);
+        const latestMonth = monthlyData[monthlyData.length - 1];
+        const dropPct = best.count > 0 ? (((best.count - latestMonth.count) / best.count) * 100).toFixed(1) : 0;
+
+        document.getElementById('monthlyAvg').textContent = parseInt(avg).toLocaleString();
+        document.getElementById('bestMonth').textContent = best.count.toLocaleString();
+        document.getElementById('bestMonthSub').textContent = MONTH_NAMES[best.month];
+        document.getElementById('worstMonth').textContent = worst.count.toLocaleString();
+        document.getElementById('worstMonthSub').textContent = MONTH_NAMES[worst.month];
+        document.getElementById('monthDrop').textContent = `▼${dropPct}%`;
+        document.getElementById('monthDropSub').textContent = `${MONTH_NAMES[best.month]} → ${MONTH_NAMES[latestMonth.month]}`;
+
+        document.getElementById('monthlyStats').style.display = 'grid';
+
+        // Chart
+        const labels = monthlyData.map(m => MONTH_NAMES[m.month]);
+        const values = monthlyData.map(m => m.count);
+
+        if (monthlyChart) monthlyChart.destroy();
+        monthlyChart = new Chart(document.getElementById('monthlyChart'), {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [{
+                    label: '월 입고량',
+                    data: values,
+                    backgroundColor: values.map((v, i) => {
+                        if (monthlyData[i].month === best.month) return 'rgba(16, 185, 129, 0.8)';
+                        if (monthlyData[i].month === worst.month) return 'rgba(239, 68, 68, 0.8)';
+                        return 'rgba(59, 130, 246, 0.6)';
+                    }),
+                    borderRadius: 6,
+                    barPercentage: 0.6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: { display: false },
+                    datalabels: {
+                        anchor: 'end',
+                        align: 'top',
+                        font: { weight: '800', size: 14, family: "'JetBrains Mono'" },
+                        color: '#e2e8f0',
+                        formatter: v => v > 0 ? v.toLocaleString() : ''
+                    }
+                },
+                scales: {
+                    x: { grid: { display: false }, ticks: { font: { weight: '700', size: 14 } } },
+                    y: { beginAtZero: true, grid: { color: 'rgba(30,41,59,0.5)' } }
+                }
+            },
+            plugins: [ChartDataLabels]
+        });
+
+        // Table
+        const tbody = document.getElementById('monthlyTableBody');
+        tbody.innerHTML = '';
+        monthlyData.forEach((m, i) => {
+            const prev = i > 0 ? monthlyData[i - 1].count : null;
+            const diff = prev !== null ? m.count - prev : 0;
+            const pct = prev !== null && prev > 0 ? ((diff / prev) * 100).toFixed(1) : '-';
+            const share = totalYear > 0 ? ((m.count / totalYear) * 100).toFixed(1) : '0';
+            const dailyAvg = m.days > 0 ? (m.count / m.days).toFixed(1) : '0';
+
+            let changeHtml = '';
+            if (i === 0) {
+                changeHtml = '<span class="change-flat">-</span>';
+            } else {
+                const cls = diff > 0 ? 'up' : diff < 0 ? 'down' : 'flat';
+                const arrow = diff > 0 ? '▲' : diff < 0 ? '▼' : '→';
+                changeHtml = `<span class="alert-badge ${cls}">${arrow} ${Math.abs(diff)}</span>`;
+            }
+
+            let pctHtml = '';
+            if (i === 0) {
+                pctHtml = '<span class="change-flat">-</span>';
+            } else {
+                const cls = diff > 0 ? 'change-up' : diff < 0 ? 'change-down' : 'change-flat';
+                const arrow = diff > 0 ? '▲' : diff < 0 ? '▼' : '→';
+                pctHtml = `<span class="${cls}">${arrow} ${Math.abs(pct)}%</span>`;
+            }
+
+            const rowClass = m.count === best.count ? 'highlight-max' : m.count === worst.count ? 'highlight-min' : '';
+            const tr = document.createElement('tr');
+            tr.className = rowClass;
+            tr.innerHTML = `
+                <td style="font-weight:700;">${MONTH_NAMES[m.month]}</td>
+                <td class="num" style="font-size:16px; font-weight:800;">${m.count.toLocaleString()}</td>
+                <td>${changeHtml}</td>
+                <td class="num">${pctHtml}</td>
+                <td class="num">${share}%</td>
+                <td class="num">${dailyAvg}대/일</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // ===== RENDER: MODELS =====
+    function renderModels() {
+        const totalYear = Object.values(modelData).reduce((s, v) => s + v, 0);
+        const sorted = Object.entries(modelData).sort((a, b) => b[1] - a[1]);
+
+        if (sorted.length === 0) return;
+
+        document.getElementById('modelSubtitle').textContent = `${selectedYear}년 모델별 입고 현황 (총 ${totalYear.toLocaleString()}대, ${sorted.length}종)`;
+        document.getElementById('modelCount').textContent = sorted.length;
+        document.getElementById('topModelName').textContent = sorted[0][0];
+        document.getElementById('topModelCount').textContent = `${sorted[0][1].toLocaleString()}대`;
+
+        const top3Sum = sorted.slice(0, 3).reduce((s, e) => s + e[1], 0);
+        const top3Pct = totalYear > 0 ? ((top3Sum / totalYear) * 100).toFixed(1) : '0';
+        document.getElementById('top3Share').textContent = `${top3Pct}%`;
+        document.getElementById('modelAvg').textContent = (totalYear / sorted.length).toFixed(0);
+
+        document.getElementById('modelStats').style.display = 'grid';
+
+        // Bar chart (Top 15)
+        const top15 = sorted.slice(0, 15);
+        if (modelBarChart) modelBarChart.destroy();
+        modelBarChart = new Chart(document.getElementById('modelBarChart'), {
+            type: 'bar',
+            data: {
+                labels: top15.map(e => e[0]),
+                datasets: [{
+                    label: '입고량',
+                    data: top15.map(e => e[1]),
+                    backgroundColor: top15.map((_, i) => {
+                        const opacity = 0.9 - (i * 0.04);
+                        return `rgba(59, 130, 246, ${opacity})`;
+                    }),
+                    borderRadius: 4,
+                    barPercentage: 0.7
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: { display: false },
+                    datalabels: {
+                        anchor: 'end',
+                        align: 'end',
+                        font: { weight: '700', size: 11, family: "'JetBrains Mono'" },
+                        color: '#e2e8f0',
+                        formatter: v => v.toLocaleString()
+                    }
+                },
+                scales: {
+                    x: { beginAtZero: true, grid: { color: 'rgba(30,41,59,0.5)' } },
+                    y: { grid: { display: false }, ticks: { font: { size: 11, weight: '500' } } }
+                }
+            },
+            plugins: [ChartDataLabels]
+        });
+
+        // Doughnut
+        const topN = sorted.slice(0, 8);
+        const othersSum = sorted.slice(8).reduce((s, e) => s + e[1], 0);
+        const doughLabels = topN.map(e => e[0]);
+        const doughValues = topN.map(e => e[1]);
+        if (othersSum > 0) {
+            doughLabels.push('기타');
+            doughValues.push(othersSum);
+        }
+
+        if (modelDoughnutChart) modelDoughnutChart.destroy();
+        modelDoughnutChart = new Chart(document.getElementById('modelDoughnutChart'), {
+            type: 'doughnut',
+            data: {
+                labels: doughLabels,
+                datasets: [{
+                    data: doughValues,
+                    backgroundColor: [
+                        '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444',
+                        '#06b6d4', '#ec4899', '#84cc16', '#64748b'
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: { padding: 10, usePointStyle: true, pointStyle: 'circle', font: { size: 11, weight: '500' } }
+                    },
+                    datalabels: {
+                        color: '#fff',
+                        font: { weight: '700', size: 11, family: "'JetBrains Mono'" },
+                        formatter: (v, ctx) => {
+                            const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                            const pct = ((v / total) * 100).toFixed(0);
+                            return pct >= 4 ? `${pct}%` : '';
+                        }
+                    }
+                }
+            },
+            plugins: [ChartDataLabels]
+        });
+
+        // Model weekly table (top 10 models x weeks)
+        const top10Models = sorted.slice(0, 10).map(e => e[0]);
+        const allWeeks = weeklyData.map(w => w.weekNum);
+
+        const thead = document.getElementById('modelWeeklyHead');
+        thead.innerHTML = '';
+        let headerHtml = '<tr><th>모델</th><th>합계</th>';
+        allWeeks.forEach(wk => { headerHtml += `<th>W${wk}</th>`; });
+        headerHtml += '</tr>';
+        thead.innerHTML = headerHtml;
+
+        const tbody = document.getElementById('modelWeeklyBody');
+        tbody.innerHTML = '';
+        top10Models.forEach(model => {
+            const mwd = modelWeeklyData[model] || {};
+            const total = sorted.find(e => e[0] === model)?.[1] || 0;
+            let rowHtml = `<td style="font-weight:600; text-align:left; white-space:nowrap; padding-left:16px;">${model}</td>`;
+            rowHtml += `<td class="num" style="font-weight:800; color:var(--blue-light);">${total}</td>`;
+            allWeeks.forEach(wk => {
+                const val = mwd[wk] || 0;
+                const cellColor = val === 0 ? 'color:var(--text-muted)' : val >= 10 ? 'color:var(--blue-light); font-weight:800' : '';
+                rowHtml += `<td class="num" style="${cellColor}">${val || '-'}</td>`;
+            });
+            const tr = document.createElement('tr');
+            tr.innerHTML = rowHtml;
+            tbody.appendChild(tr);
+        });
+    }
+</script>
+</body>
+</html>
