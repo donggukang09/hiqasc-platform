@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>알림 시스템 테스트</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
+    background: #1e1e1e;
+    color: #e0e0e0;
+    min-height: 100vh;
+    padding: 40px;
+}
+.header {
+    background: #2a2a2a;
+    border: 1px solid #3a3a3a;
+    border-radius: 12px;
+    padding: 30px;
+    margin-bottom: 30px;
+    text-align: center;
+}
+.header h1 { font-size: 1.8em; color: #fff; margin-bottom: 8px; }
+.header p { color: #808080; }
+.info-box {
+    background: #2a2a2a;
+    border: 1px solid #3a3a3a;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+}
+.info-box h2 { color: #4a90e2; font-size: 1.2em; margin-bottom: 12px; }
+.info-box p { color: #aaa; line-height: 1.8; font-size: 0.95em; }
+.info-box code {
+    background: rgba(74,144,226,0.15);
+    color: #4a90e2;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+.status-bar {
+    background: #2a2a2a;
+    border: 1px solid #3a3a3a;
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.status-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: #27ae60;
+    animation: blink 2s infinite;
+}
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+.status-text { color: #aaa; font-size: 0.9em; }
+.status-text span { color: #4a90e2; font-weight: 600; }
+.log-box {
+    background: #2a2a2a;
+    border: 1px solid #3a3a3a;
+    border-radius: 12px;
+    padding: 24px;
+}
+.log-box h2 { color: #fff; font-size: 1.1em; margin-bottom: 12px; }
+#logArea {
+    background: #1e1e1e;
+    border-radius: 8px;
+    padding: 16px;
+    max-height: 300px;
+    overflow-y: auto;
+    font-family: monospace;
+    font-size: 13px;
+    color: #888;
+    line-height: 1.8;
+}
+.log-entry { margin-bottom: 4px; }
+.log-entry .time { color: #4a90e2; }
+.log-entry .msg { color: #ccc; }
+.test-btn {
+    background: linear-gradient(135deg, #4a90e2, #357abd);
+    color: #fff;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 16px;
+    transition: all 0.2s;
+}
+.test-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(74,144,226,0.4); }
+
+/* ====================================================
+   📌 여기서부터 아래가 모든 페이지에 복사할 알림 CSS
+   ==================================================== */
+.hiq-notification-overlay {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 99999;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    pointer-events: none;
+}
+.hiq-toast {
+    pointer-events: all;
+    min-width: 320px;
+    max-width: 400px;
+    background: #2a2a2a;
+    border-radius: 12px;
+    border: 1px solid #3a3a3a;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+    overflow: hidden;
+    animation: hiq-toast-in 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.hiq-toast.removing {
+    animation: hiq-toast-out 0.3s ease forwards;
+}
+@keyframes hiq-toast-in {
+    from { opacity: 0; transform: translateX(40px) scale(0.95); }
+    to { opacity: 1; transform: translateX(0) scale(1); }
+}
+@keyframes hiq-toast-out {
+    to { opacity: 0; transform: translateX(40px) scale(0.95); }
+}
+.hiq-toast-accent { height: 3px; width: 100%; }
+.hiq-toast-accent.info { background: linear-gradient(90deg, #4a90e2, #357abd); }
+.hiq-toast-accent.success { background: linear-gradient(90deg, #27ae60, #1e8449); }
+.hiq-toast-accent.warning { background: linear-gradient(90deg, #f39c12, #e67e22); }
+.hiq-toast-content {
+    padding: 14px 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+.hiq-toast-icon {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+.hiq-toast-icon.info { background: rgba(74,144,226,0.15); }
+.hiq-toast-icon.success { background: rgba(39,174,96,0.15); }
+.hiq-toast-icon.warning { background: rgba(243,156,18,0.15); }
+.hiq-toast-body { flex: 1; }
+.hiq-toast-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 4px;
+}
+.hiq-toast-msg {
+    font-size: 12px;
+    color: #bbb;
+    line-height: 1.5;
+    white-space: pre-line;
+}
+.hiq-toast-time {
+    font-size: 11px;
+    color: #666;
+    margin-top: 4px;
+}
+.hiq-toast-close {
+    background: none; border: none; color: #666;
+    font-size: 18px; cursor: pointer; padding: 0; line-height: 1;
+}
+.hiq-toast-close:hover { color: #fff; }
+.hiq-toast-progress { height: 2px; background: rgba(255,255,255,0.05); }
+.hiq-toast-progress-bar {
+    height: 100%;
+    background: rgba(255,255,255,0.2);
+    animation: hiq-progress-shrink 6s linear forwards;
+}
+@keyframes hiq-progress-shrink {
+    from { width: 100%; } to { width: 0%; }
+}
+@media (max-width: 768px) {
+    .hiq-notification-overlay { right: 10px; left: 10px; }
+    .hiq-toast { min-width: auto; max-width: 100%; }
+}
+/* ==================================================== */
+</style>
+</head>
+<body>
+
+<!-- 📌 이 div를 모든 페이지의 <body> 바로 아래에 추가 -->
+<div class="hiq-notification-overlay" id="hiqNotificationOverlay"></div>
+
+<div class="header">
+    <h1>🔔 HIQASC 알림 시스템 테스트</h1>
+    <p>Google Sheets "알림" 탭 연동 테스트 페이지</p>
+</div>
+
+<div class="info-box">
+    <h2>📋 Google Sheets 알림 탭 구조</h2>
+    <p>
+        시트 ID: <code>111K9l8gt-14roqvynNFEJrT2aLsTYjU8gQBsKNiyFmI</code><br>
+        탭 이름: <code>알림</code><br><br>
+        A열: <code>id</code> — 알림 번호 (1, 2, 3...)<br>
+        B열: <code>title</code> — 알림 제목<br>
+        C열: <code>message</code> — 알림 내용<br>
+        D열: <code>type</code> — 알림 유형 (info / success / warning)<br>
+        E열: <code>active</code> — TRUE면 표시, FALSE면 숨김
+    </p>
+</div>
+
+<div class="info-box">
+    <h2>🔧 사용 방법</h2>
+    <p>
+        1. Google Sheets에서 <code>알림</code> 탭에 새 행 추가<br>
+        2. id, title, message, type, active(TRUE) 입력<br>
+        3. 최대 <strong>1분 이내</strong>에 접속 중인 모든 페이지에 팝업 표시<br>
+        4. 알림을 끄려면 <code>active</code>를 <strong>FALSE</strong>로 변경<br><br>
+        💡 한 번 본 알림은 다시 뜨지 않습니다 (localStorage에 기록)
+    </p>
+</div>
+
+<div class="status-bar">
+    <div class="status-dot" id="statusDot"></div>
+    <div class="status-text">
+        알림 폴링 <span>활성화</span> · 1분마다 확인 · 
+        마지막 확인: <span id="lastCheck">-</span>
+    </div>
+</div>
+
+<div class="log-box">
+    <h2>📝 폴링 로그</h2>
+    <div id="logArea">
+        <div class="log-entry"><span class="time">[시작]</span> <span class="msg">알림 시스템 초기화 중...</span></div>
+    </div>
+    <button class="test-btn" onclick="hiqCheckNotifications()">🔄 지금 바로 확인</button>
+    <button class="test-btn" onclick="clearSeenAlerts()" style="background:linear-gradient(135deg,#e67e22,#d35400); margin-left:8px;">🗑 열람 기록 초기화</button>
+</div>
+
+<!-- ====================================================
+     📌 여기서부터 아래가 모든 페이지에 복사할 알림 JS
+     ==================================================== -->
+<script>
+(function() {
+    // ── 설정 ──
+    var NOTIFICATION_SHEET_ID = '111K9l8gt-14roqvynNFEJrT2aLsTYjU8gQBsKNiyFmI';
+    var NOTIFICATION_TAB_NAME = '알림';
+    var POLL_INTERVAL = 60 * 1000; // 1분
+    var SEEN_KEY = 'hiq_seen_alerts'; // localStorage 키
+
+    // ── 이미 본 알림 관리 ──
+    function getSeenAlerts() {
+        try {
+            return JSON.parse(localStorage.getItem(SEEN_KEY) || '[]');
+        } catch(e) { return []; }
+    }
+    function markAsSeen(id) {
+        var seen = getSeenAlerts();
+        if (seen.indexOf(id) === -1) {
+            seen.push(id);
+            localStorage.setItem(SEEN_KEY, JSON.stringify(seen));
+        }
+    }
+
+    // ── 딩동 소리 ──
+    var _audioCtx = null;
+    function _getCtx() {
+        if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        return _audioCtx;
+    }
+    function hiqPlayDingDong() {
+        try {
+            var ctx = _getCtx();
+            var vol = 0.3;
+            var o1 = ctx.createOscillator(), g1 = ctx.createGain();
+            o1.type = 'sine'; o1.frequency.setValueAtTime(880, ctx.currentTime);
+            g1.gain.setValueAtTime(vol, ctx.currentTime);
+            g1.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+            o1.connect(g1); g1.connect(ctx.destination);
+            o1.start(ctx.currentTime); o1.stop(ctx.currentTime + 0.3);
+
+            var o2 = ctx.createOscillator(), g2 = ctx.createGain();
+            o2.type = 'sine'; o2.frequency.setValueAtTime(659.25, ctx.currentTime + 0.15);
+            g2.gain.setValueAtTime(0.001, ctx.currentTime);
+            g2.gain.setValueAtTime(vol * 0.9, ctx.currentTime + 0.15);
+            g2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+            o2.connect(g2); g2.connect(ctx.destination);
+            o2.start(ctx.currentTime + 0.15); o2.stop(ctx.currentTime + 0.5);
+        } catch(e) {}
+    }
+
+    // ── 토스트 표시 ──
+    function hiqShowToast(title, message, type) {
+        type = type || 'info';
+        var overlay = document.getElementById('hiqNotificationOverlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'hiqNotificationOverlay';
+            overlay.className = 'hiq-notification-overlay';
+            document.body.appendChild(overlay);
+        }
+        var icons = { info: 'ℹ️', success: '✅', warning: '⚠️' };
+        var now = new Date();
+        var timeStr = now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+        var toast = document.createElement('div');
+        toast.className = 'hiq-toast';
+        toast.innerHTML =
+            '<div class="hiq-toast-accent ' + type + '"></div>' +
+            '<div class="hiq-toast-content">' +
+                '<div class="hiq-toast-icon ' + type + '">' + (icons[type] || 'ℹ️') + '</div>' +
+                '<div class="hiq-toast-body">' +
+                    '<div class="hiq-toast-title">' + title + '</div>' +
+                    '<div class="hiq-toast-msg">' + message + '</div>' +
+                    '<div class="hiq-toast-time">' + timeStr + '</div>' +
+                '</div>' +
+                '<button class="hiq-toast-close" onclick="this.closest(\'.hiq-toast\').classList.add(\'removing\');setTimeout(function(){this.remove()}.bind(this.closest(\'.hiq-toast\')),300)">&times;</button>' +
+            '</div>' +
+            '<div class="hiq-toast-progress"><div class="hiq-toast-progress-bar"></div></div>';
+        overlay.appendChild(toast);
+
+        hiqPlayDingDong();
+
+        setTimeout(function() {
+            if (toast.parentNode) {
+                toast.classList.add('removing');
+                setTimeout(function() { toast.remove(); }, 300);
+            }
+        }, 6000);
+
+        // 최대 5개
+        var all = overlay.querySelectorAll('.hiq-toast');
+        if (all.length > 5) {
+            all[0].classList.add('removing');
+            setTimeout(function() { all[0].remove(); }, 300);
+        }
+    }
+
+    // ── Google Sheets 폴링 ──
+    window.hiqCheckNotifications = function() {
+        var url = 'https://docs.google.com/spreadsheets/d/' + NOTIFICATION_SHEET_ID +
+                  '/gviz/tq?tqx=out:json&sheet=' + encodeURIComponent(NOTIFICATION_TAB_NAME);
+
+        fetch(url)
+            .then(function(res) { return res.text(); })
+            .then(function(text) {
+                var json = JSON.parse(text.substring(47).slice(0, -2));
+                var rows = json.table.rows;
+                var cols = json.table.cols.map(function(c) { return c.label; });
+                var seen = getSeenAlerts();
+                var newCount = 0;
+
+                // 헤더가 데이터 행에 들어간 경우 감지
+                var dataStartRow = 0;
+                if (rows.length > 0 && rows[0].c && rows[0].c[0]) {
+                    var firstVal = rows[0].c[0].v;
+                    if (firstVal === 'id' || firstVal === 'ID') {
+                        dataStartRow = 1;
+                    }
+                }
+
+                for (var i = dataStartRow; i < rows.length; i++) {
+                    var row = rows[i];
+                    if (!row.c) continue;
+
+                    var id = row.c[0] ? String(row.c[0].v) : '';
+                    var title = row.c[1] ? String(row.c[1].v) : '';
+                    var message = row.c[2] ? String(row.c[2].v) : '';
+                    var type = row.c[3] ? String(row.c[3].v).toLowerCase() : 'info';
+                    var active = row.c[4] ? row.c[4].v : false;
+
+                    // active가 TRUE이고 아직 안 본 알림만 표시
+                    if (active === true || active === 'TRUE' || active === 'true') {
+                        if (seen.indexOf(id) === -1) {
+                            hiqShowToast(title, message, type);
+                            markAsSeen(id);
+                            newCount++;
+                        }
+                    }
+                }
+
+                // 로그 (테스트 페이지용)
+                hiqLog('확인 완료 — 전체 ' + (rows.length - dataStartRow) + '건, 신규 ' + newCount + '건');
+
+                // 마지막 확인 시간 (테스트 페이지용)
+                var el = document.getElementById('lastCheck');
+                if (el) {
+                    el.textContent = new Date().toLocaleTimeString('ko-KR');
+                }
+            })
+            .catch(function(err) {
+                hiqLog('오류: ' + err.message);
+                console.error('알림 폴링 오류:', err);
+            });
+    };
+
+    // 로그 (테스트 페이지 전용, 다른 페이지에선 무시됨)
+    function hiqLog(msg) {
+        var area = document.getElementById('logArea');
+        if (!area) return;
+        var now = new Date().toLocaleTimeString('ko-KR');
+        var entry = document.createElement('div');
+        entry.className = 'log-entry';
+        entry.innerHTML = '<span class="time">[' + now + ']</span> <span class="msg">' + msg + '</span>';
+        area.appendChild(entry);
+        area.scrollTop = area.scrollHeight;
+    }
+
+    // 열람 기록 초기화 (테스트용)
+    window.clearSeenAlerts = function() {
+        localStorage.removeItem(SEEN_KEY);
+        hiqLog('열람 기록이 초기화되었습니다. 다음 확인 시 모든 알림이 다시 표시됩니다.');
+    };
+
+    // ── 시작 ──
+    // 3초 후 첫 확인 (페이지 로드 완료 대기)
+    setTimeout(function() {
+        hiqCheckNotifications();
+    }, 3000);
+
+    // 1분마다 반복 확인
+    setInterval(function() {
+        hiqCheckNotifications();
+    }, POLL_INTERVAL);
+
+    hiqLog('알림 시스템 시작 — 시트 ID: ' + NOTIFICATION_SHEET_ID + ' / 탭: ' + NOTIFICATION_TAB_NAME);
+})();
+</script>
+
+</body>
+</html>
