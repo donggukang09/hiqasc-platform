@@ -277,6 +277,97 @@
             display: none;
         }
 
+        /* ── 알림 토스트 ── */
+        .notification-overlay {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            pointer-events: none;
+        }
+        .notification-toast {
+            pointer-events: all;
+            min-width: 320px;
+            max-width: 400px;
+            background: #2a2a2a;
+            border-radius: 12px;
+            border: 1px solid #3a3a3a;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+            overflow: hidden;
+            animation: toast-in 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .notification-toast.removing {
+            animation: toast-out 0.3s ease forwards;
+        }
+        @keyframes toast-in {
+            from { opacity: 0; transform: translateX(40px) scale(0.95); }
+            to { opacity: 1; transform: translateX(0) scale(1); }
+        }
+        @keyframes toast-out {
+            to { opacity: 0; transform: translateX(40px) scale(0.95); }
+        }
+        .toast-accent {
+            height: 3px; width: 100%;
+        }
+        .toast-accent.info { background: linear-gradient(90deg, #4a90e2, #357abd); }
+        .toast-accent.success { background: linear-gradient(90deg, #27ae60, #1e8449); }
+        .toast-accent.warning { background: linear-gradient(90deg, #f39c12, #e67e22); }
+        .toast-content {
+            padding: 14px 16px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        .toast-icon {
+            width: 36px; height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+        .toast-icon.info { background: rgba(74,144,226,0.15); }
+        .toast-icon.success { background: rgba(39,174,96,0.15); }
+        .toast-icon.warning { background: rgba(243,156,18,0.15); }
+        .toast-body { flex: 1; }
+        .toast-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+        .toast-msg {
+            font-size: 12px;
+            color: #bbb;
+            line-height: 1.5;
+            white-space: pre-line;
+        }
+        .toast-time {
+            font-size: 11px;
+            color: #666;
+            margin-top: 4px;
+        }
+        .toast-close {
+            background: none; border: none; color: #666;
+            font-size: 18px; cursor: pointer; padding: 0; line-height: 1;
+        }
+        .toast-close:hover { color: #fff; }
+        .toast-progress {
+            height: 2px; background: rgba(255,255,255,0.05);
+        }
+        .toast-progress-bar {
+            height: 100%;
+            background: rgba(255,255,255,0.2);
+            animation: progress-shrink 5s linear forwards;
+        }
+        @keyframes progress-shrink {
+            from { width: 100%; } to { width: 0%; }
+        }
+
         /* 테크니션 섹션 */
         .technician-section {
             margin-top: 30px;
@@ -420,7 +511,8 @@
     <script src="config.js"></script>
 </head>
 <body>
-    <!-- 헤더 -->
+    <!-- 알림 토스트 컨테이너 -->
+    <div class="notification-overlay" id="notificationOverlay"></div>
     <div class="header">
         <div class="header-container">
             <div class="header-left">
@@ -535,6 +627,165 @@
     </div>
 
     <script>
+        // ============================================
+        // 🔔 알림 시스템
+        // ============================================
+        let audioCtx = null;
+        let prevCompleteTotal = null;
+        let prevRemainingTotal = null;
+        let prevCompleteStats = null;
+        let prevRemainingStats = null;
+        let isFirstLoad = true;
+
+        function getAudioCtx() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            return audioCtx;
+        }
+
+        function playDingDong() {
+            try {
+                const ctx = getAudioCtx();
+                const vol = 0.35;
+                // 딩
+                const osc1 = ctx.createOscillator();
+                const gain1 = ctx.createGain();
+                osc1.type = 'sine';
+                osc1.frequency.setValueAtTime(880, ctx.currentTime);
+                gain1.gain.setValueAtTime(vol, ctx.currentTime);
+                gain1.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+                osc1.connect(gain1); gain1.connect(ctx.destination);
+                osc1.start(ctx.currentTime); osc1.stop(ctx.currentTime + 0.3);
+                // 동
+                const osc2 = ctx.createOscillator();
+                const gain2 = ctx.createGain();
+                osc2.type = 'sine';
+                osc2.frequency.setValueAtTime(659.25, ctx.currentTime + 0.15);
+                gain2.gain.setValueAtTime(0.001, ctx.currentTime);
+                gain2.gain.setValueAtTime(vol * 0.9, ctx.currentTime + 0.15);
+                gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+                osc2.connect(gain2); gain2.connect(ctx.destination);
+                osc2.start(ctx.currentTime + 0.15); osc2.stop(ctx.currentTime + 0.5);
+            } catch(e) { console.log('소리 재생 실패:', e); }
+        }
+
+        function showNotification(title, message, type) {
+            type = type || 'info';
+            var overlay = document.getElementById('notificationOverlay');
+            var icons = { info: 'ℹ️', success: '✅', warning: '⚠️' };
+            var now = new Date();
+            var timeStr = now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+            var toast = document.createElement('div');
+            toast.className = 'notification-toast';
+            toast.innerHTML =
+                '<div class="toast-accent ' + type + '"></div>' +
+                '<div class="toast-content">' +
+                    '<div class="toast-icon ' + type + '">' + (icons[type] || 'ℹ️') + '</div>' +
+                    '<div class="toast-body">' +
+                        '<div class="toast-title">' + title + '</div>' +
+                        '<div class="toast-msg">' + message + '</div>' +
+                        '<div class="toast-time">' + timeStr + '</div>' +
+                    '</div>' +
+                    '<button class="toast-close" onclick="removeToast(this.closest(\'.notification-toast\'))">&times;</button>' +
+                '</div>' +
+                '<div class="toast-progress"><div class="toast-progress-bar"></div></div>';
+            overlay.appendChild(toast);
+
+            playDingDong();
+
+            setTimeout(function() { removeToast(toast); }, 5000);
+
+            var toasts = overlay.querySelectorAll('.notification-toast');
+            if (toasts.length > 5) removeToast(toasts[0]);
+        }
+
+        function removeToast(toast) {
+            if (!toast || toast.classList.contains('removing')) return;
+            toast.classList.add('removing');
+            setTimeout(function() { toast.remove(); }, 300);
+        }
+
+        function detectChanges(completeStats, completeTotal, remainingStats, remainingTotal) {
+            if (isFirstLoad) {
+                isFirstLoad = false;
+                prevCompleteTotal = completeTotal;
+                prevRemainingTotal = remainingTotal;
+                prevCompleteStats = JSON.parse(JSON.stringify(completeStats));
+                prevRemainingStats = JSON.parse(JSON.stringify(remainingStats));
+                return;
+            }
+
+            var changes = [];
+
+            // 완료 총 수량 변화
+            if (prevCompleteTotal !== null && completeTotal !== prevCompleteTotal) {
+                var diff = completeTotal - prevCompleteTotal;
+                var sign = diff > 0 ? '+' : '';
+                changes.push('완료 수량: ' + prevCompleteTotal + ' → ' + completeTotal + ' (' + sign + diff + ')');
+            }
+
+            // 잔여 총 수량 변화
+            if (prevRemainingTotal !== null && remainingTotal !== prevRemainingTotal) {
+                var diff2 = remainingTotal - prevRemainingTotal;
+                var sign2 = diff2 > 0 ? '+' : '';
+                changes.push('잔여 수량: ' + prevRemainingTotal + ' → ' + remainingTotal + ' (' + sign2 + diff2 + ')');
+            }
+
+            // 모델별 상세 변화 감지 (완료)
+            if (prevCompleteStats) {
+                ['ORIGINAL', 'VERTUO'].forEach(function(line) {
+                    var prevModels = prevCompleteStats[line] || {};
+                    var newModels = completeStats[line] || {};
+                    var allModels = new Set([...Object.keys(prevModels), ...Object.keys(newModels)]);
+                    allModels.forEach(function(model) {
+                        var oldVal = prevModels[model] || 0;
+                        var newVal = newModels[model] || 0;
+                        if (oldVal !== newVal) {
+                            var d = newVal - oldVal;
+                            var s = d > 0 ? '+' : '';
+                            changes.push('[완료] ' + model + ': ' + oldVal + ' → ' + newVal + ' (' + s + d + ')');
+                        }
+                    });
+                });
+            }
+
+            // 모델별 상세 변화 감지 (잔여)
+            if (prevRemainingStats) {
+                ['ORIGINAL', 'VERTUO'].forEach(function(line) {
+                    var prevModels = prevRemainingStats[line] || {};
+                    var newModels = remainingStats[line] || {};
+                    var allModels = new Set([...Object.keys(prevModels), ...Object.keys(newModels)]);
+                    allModels.forEach(function(model) {
+                        var oldVal = prevModels[model] || 0;
+                        var newVal = newModels[model] || 0;
+                        if (oldVal !== newVal) {
+                            var d = newVal - oldVal;
+                            var s = d > 0 ? '+' : '';
+                            changes.push('[잔여] ' + model + ': ' + oldVal + ' → ' + newVal + ' (' + s + d + ')');
+                        }
+                    });
+                });
+            }
+
+            // 변화가 있으면 알림
+            if (changes.length > 0) {
+                // 상세 변화가 많으면 요약만
+                var msg;
+                if (changes.length <= 5) {
+                    msg = changes.join('\n');
+                } else {
+                    msg = changes.slice(0, 4).join('\n') + '\n외 ' + (changes.length - 4) + '건 변경';
+                }
+                showNotification('📊 데이터 업데이트', msg, 'success');
+            }
+
+            // 현재 데이터를 이전 데이터로 저장
+            prevCompleteTotal = completeTotal;
+            prevRemainingTotal = remainingTotal;
+            prevCompleteStats = JSON.parse(JSON.stringify(completeStats));
+            prevRemainingStats = JSON.parse(JSON.stringify(remainingStats));
+        }
+
         // ============================================
         // Google Sheets 설정
         // ============================================
@@ -702,6 +953,9 @@
             const completeResult = processData(completeData);
             const remainingResult = processData(remainingData);
             const technicianStats = processTechnicianData(completeData);
+            
+            // 🔔 데이터 변경 감지
+            detectChanges(completeResult.stats, completeResult.totalCount, remainingResult.stats, remainingResult.totalCount);
             
             displayPanel('complete', completeResult.stats, completeResult.totalCount);
             displayPanel('remaining', remainingResult.stats, remainingResult.totalCount);
