@@ -10,23 +10,23 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
-            --bg-deep: #0a0e1a;
-            --bg-card: #111827;
-            --bg-card-hover: #1a2332;
-            --border: #1e293b;
-            --border-light: #334155;
-            --blue-primary: #3b82f6;
-            --blue-light: #60a5fa;
-            --blue-glow: rgba(59, 130, 246, 0.15);
-            --green: #10b981;
-            --green-light: #34d399;
-            --amber: #f59e0b;
+            --bg-deep: #2a2a2a;
+            --bg-card: #353535;
+            --bg-card-hover: #3e3e3e;
+            --border: #4a4a4a;
+            --border-light: #5a5a5a;
+            --blue-primary: #4a90e2;
+            --blue-light: #5ba0f0;
+            --blue-glow: rgba(74, 144, 226, 0.15);
+            --green: #27ae60;
+            --green-light: #2ecc71;
+            --amber: #f5a623;
             --purple: #8b5cf6;
-            --red: #ef4444;
-            --red-light: #f87171;
-            --text-primary: #f1f5f9;
-            --text-secondary: #94a3b8;
-            --text-muted: #64748b;
+            --red: #e74c3c;
+            --red-light: #e95e4e;
+            --text-primary: #e0e0e0;
+            --text-secondary: #a0a0a0;
+            --text-muted: #808080;
         }
 
         body {
@@ -38,7 +38,7 @@
 
         /* === TOP NAVIGATION === */
         .top-bar {
-            background: linear-gradient(180deg, #0f1629 0%, var(--bg-deep) 100%);
+            background: linear-gradient(180deg, #1e1e1e 0%, var(--bg-deep) 100%);
             border-bottom: 1px solid var(--border);
             position: sticky;
             top: 0;
@@ -154,7 +154,7 @@
             transition: all 0.2s;
             white-space: nowrap;
         }
-        .tab-btn:hover { color: var(--text-secondary); background: rgba(255,255,255,0.02); }
+        .tab-btn:hover { color: var(--text-secondary); background: rgba(255,255,255,0.03); }
         .tab-btn.active { color: var(--red); border-bottom-color: var(--red); }
 
         /* === CONTENT === */
@@ -203,13 +203,13 @@
             height: 3px;
         }
         .stat-card:hover { transform: translateY(-3px); border-color: var(--border-light); }
-        .stat-card.blue { background: linear-gradient(160deg, rgba(59,130,246,0.12) 0%, var(--bg-card) 60%); }
+        .stat-card.blue { background: linear-gradient(160deg, rgba(74,144,226,0.1) 0%, var(--bg-card) 60%); }
         .stat-card.blue::before { background: linear-gradient(90deg, var(--blue-primary), var(--blue-light)); }
-        .stat-card.green { background: linear-gradient(160deg, rgba(16,185,129,0.12) 0%, var(--bg-card) 60%); }
+        .stat-card.green { background: linear-gradient(160deg, rgba(39,174,96,0.12) 0%, var(--bg-card) 60%); }
         .stat-card.green::before { background: linear-gradient(90deg, var(--green), var(--green-light)); }
-        .stat-card.amber { background: linear-gradient(160deg, rgba(245,158,11,0.12) 0%, var(--bg-card) 60%); }
+        .stat-card.amber { background: linear-gradient(160deg, rgba(245,166,35,0.12) 0%, var(--bg-card) 60%); }
         .stat-card.amber::before { background: linear-gradient(90deg, var(--amber), #fbbf24); }
-        .stat-card.red { background: linear-gradient(160deg, rgba(239,68,68,0.12) 0%, var(--bg-card) 60%); }
+        .stat-card.red { background: linear-gradient(160deg, rgba(231,76,60,0.1) 0%, var(--bg-card) 60%); }
         .stat-card.red::before { background: linear-gradient(90deg, var(--red), var(--red-light)); }
         .stat-card.purple { background: linear-gradient(160deg, rgba(139,92,246,0.12) 0%, var(--bg-card) 60%); }
         .stat-card.purple::before { background: linear-gradient(90deg, var(--purple), #a78bfa); }
@@ -275,8 +275,8 @@
             font-size: 14px;
         }
         .chart-header .icon.blue { background: var(--blue-glow); }
-        .chart-header .icon.green { background: rgba(16,185,129,0.15); }
-        .chart-header .icon.red { background: rgba(239,68,68,0.15); }
+        .chart-header .icon.green { background: rgba(39,174,96,0.15); }
+        .chart-header .icon.red { background: rgba(231,76,60,0.15); }
         .chart-header .icon.purple { background: rgba(139,92,246,0.15); }
         .chart-header .icon.amber { background: rgba(245,158,11,0.15); }
 
@@ -290,7 +290,7 @@
             border: 1px solid var(--border);
         }
         .data-table th {
-            background: rgba(59,130,246,0.08);
+            background: rgba(74,144,226,0.1);
             padding: 14px 16px;
             text-align: center;
             font-weight: 600;
@@ -307,7 +307,7 @@
             text-align: center;
         }
         .data-table tr:last-child td { border-bottom: none; }
-        .data-table tr:hover td { background: rgba(255,255,255,0.02); }
+        .data-table tr:hover td { background: rgba(255,255,255,0.03); }
         .data-table .num {
             font-family: 'JetBrains Mono', monospace;
             font-weight: 600;
@@ -317,8 +317,8 @@
         .change-down { color: var(--red-light); }
         .change-flat { color: var(--text-muted); }
 
-        .highlight-max { background: rgba(59,130,246,0.08) !important; }
-        .highlight-min { background: rgba(239,68,68,0.08) !important; }
+        .highlight-max { background: rgba(74,144,226,0.1) !important; }
+        .highlight-min { background: rgba(231,76,60,0.1) !important; }
 
         /* Alert badge */
         .alert-badge {
@@ -331,14 +331,14 @@
             font-weight: 700;
             font-family: 'JetBrains Mono', monospace;
         }
-        .alert-badge.up { background: rgba(16,185,129,0.15); color: var(--green-light); }
-        .alert-badge.down { background: rgba(239,68,68,0.15); color: var(--red-light); }
-        .alert-badge.flat { background: rgba(100,116,139,0.15); color: var(--text-muted); }
+        .alert-badge.up { background: rgba(39,174,96,0.15); color: var(--green-light); }
+        .alert-badge.down { background: rgba(231,76,60,0.15); color: var(--red-light); }
+        .alert-badge.flat { background: rgba(128,128,128,0.15); color: var(--text-muted); }
 
         /* === SUMMARY INSIGHT BOX === */
         .insight-box {
-            background: linear-gradient(135deg, rgba(239,68,68,0.08) 0%, rgba(245,158,11,0.05) 100%);
-            border: 1px solid rgba(239,68,68,0.2);
+            background: linear-gradient(135deg, rgba(231,76,60,0.1) 0%, rgba(245,166,35,0.05) 100%);
+            border: 1px solid rgba(231,76,60,0.25);
             border-radius: 14px;
             padding: 24px 28px;
             margin-bottom: 28px;
@@ -380,7 +380,7 @@
         .loading-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(10,14,26,0.9);
+            background: rgba(42,42,42,0.9);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -694,8 +694,8 @@
     let modelBarChart = null;
     let modelDoughnutChart = null;
 
-    Chart.defaults.color = '#94a3b8';
-    Chart.defaults.borderColor = '#1e293b';
+    Chart.defaults.color = '#a0a0a0';
+    Chart.defaults.borderColor = '#4a4a4a';
     Chart.defaults.font.family = "'Outfit', sans-serif";
 
     // ===== HELPERS =====
@@ -1013,7 +1013,7 @@
                         anchor: 'end',
                         align: 'top',
                         font: { weight: '700', size: weeklyData.length > 30 ? 9 : 12, family: "'JetBrains Mono'" },
-                        color: '#e2e8f0',
+                        color: '#e0e0e0',
                         formatter: (v, ctx) => ctx.datasetIndex === 0 ? (v > 0 ? v : '') : '',
                         display: weeklyData.length > 40 ? false : true
                     }
@@ -1027,7 +1027,7 @@
                             autoSkip: weeklyData.length > 30
                         }
                     },
-                    y: { beginAtZero: true, grid: { color: 'rgba(30,41,59,0.5)' } }
+                    y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.08)' } }
                 }
             },
             plugins: [ChartDataLabels]
@@ -1064,7 +1064,7 @@
                         anchor: ctx => ctx.dataset.data[ctx.dataIndex] >= 0 ? 'end' : 'start',
                         align: ctx => ctx.dataset.data[ctx.dataIndex] >= 0 ? 'top' : 'bottom',
                         font: { weight: '700', size: weeklyData.length > 30 ? 8 : 11, family: "'JetBrains Mono'" },
-                        color: ctx => ctx.dataset.data[ctx.dataIndex] >= 0 ? '#34d399' : '#f87171',
+                        color: ctx => ctx.dataset.data[ctx.dataIndex] >= 0 ? '#2ecc71' : '#e95e4e',
                         formatter: (v, ctx) => {
                             if (ctx.dataIndex === 0) return '';
                             return v !== 0 ? v.toFixed(1) + '%' : '';
@@ -1074,7 +1074,7 @@
                 },
                 scales: {
                     x: { grid: { display: false }, ticks: { font: { weight: '600', size: weeklyData.length > 30 ? 9 : 12 }, maxRotation: weeklyData.length > 20 ? 45 : 0, autoSkip: weeklyData.length > 30 } },
-                    y: { grid: { color: 'rgba(30,41,59,0.5)' } }
+                    y: { grid: { color: 'rgba(255,255,255,0.08)' } }
                 }
             },
             plugins: [ChartDataLabels]
@@ -1184,13 +1184,13 @@
                         anchor: 'end',
                         align: 'top',
                         font: { weight: '800', size: 14, family: "'JetBrains Mono'" },
-                        color: '#e2e8f0',
+                        color: '#e0e0e0',
                         formatter: v => v > 0 ? v.toLocaleString() : ''
                     }
                 },
                 scales: {
                     x: { grid: { display: false }, ticks: { font: { weight: '700', size: 14 } } },
-                    y: { beginAtZero: true, grid: { color: 'rgba(30,41,59,0.5)' } }
+                    y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.08)' } }
                 }
             },
             plugins: [ChartDataLabels]
@@ -1286,12 +1286,12 @@
                         anchor: 'end',
                         align: 'end',
                         font: { weight: '700', size: 11, family: "'JetBrains Mono'" },
-                        color: '#e2e8f0',
+                        color: '#e0e0e0',
                         formatter: v => v.toLocaleString()
                     }
                 },
                 scales: {
-                    x: { beginAtZero: true, grid: { color: 'rgba(30,41,59,0.5)' } },
+                    x: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.08)' } },
                     y: { grid: { display: false }, ticks: { font: { size: 11, weight: '500' } } }
                 }
             },
@@ -1331,7 +1331,7 @@
                         labels: { padding: 10, usePointStyle: true, pointStyle: 'circle', font: { size: 11, weight: '500' } }
                     },
                     datalabels: {
-                        color: '#fff',
+                        color: '#e0e0e0',
                         font: { weight: '700', size: 11, family: "'JetBrains Mono'" },
                         formatter: (v, ctx) => {
                             const total = ctx.dataset.data.reduce((a, b) => a + b, 0);

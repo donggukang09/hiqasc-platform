@@ -10,22 +10,22 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
-            --bg-deep: #0a0e1a;
-            --bg-card: #111827;
-            --bg-card-hover: #1a2332;
-            --border: #1e293b;
-            --border-light: #334155;
-            --blue-primary: #3b82f6;
-            --blue-light: #60a5fa;
-            --blue-glow: rgba(59, 130, 246, 0.15);
-            --green: #10b981;
-            --green-light: #34d399;
-            --amber: #f59e0b;
+            --bg-deep: #2a2a2a;
+            --bg-card: #353535;
+            --bg-card-hover: #3e3e3e;
+            --border: #4a4a4a;
+            --border-light: #5a5a5a;
+            --blue-primary: #4a90e2;
+            --blue-light: #5ba0f0;
+            --blue-glow: rgba(74, 144, 226, 0.15);
+            --green: #27ae60;
+            --green-light: #2ecc71;
+            --amber: #f5a623;
             --purple: #8b5cf6;
-            --red: #ef4444;
-            --text-primary: #f1f5f9;
-            --text-secondary: #94a3b8;
-            --text-muted: #64748b;
+            --red: #e74c3c;
+            --text-primary: #e0e0e0;
+            --text-secondary: #a0a0a0;
+            --text-muted: #808080;
         }
 
         body {
@@ -37,7 +37,7 @@
 
         /* === TOP NAVIGATION === */
         .top-bar {
-            background: linear-gradient(180deg, #0f1629 0%, var(--bg-deep) 100%);
+            background: linear-gradient(180deg, #1e1e1e 0%, var(--bg-deep) 100%);
             border-bottom: 1px solid var(--border);
             position: sticky;
             top: 0;
@@ -217,7 +217,7 @@
             transition: all 0.2s;
             white-space: nowrap;
         }
-        .tab-btn:hover { color: var(--text-secondary); background: rgba(255,255,255,0.02); }
+        .tab-btn:hover { color: var(--text-secondary); background: rgba(255,255,255,0.03); }
         .tab-btn.active { color: var(--blue-primary); border-bottom-color: var(--blue-primary); }
 
         /* === CONTENT === */
@@ -266,11 +266,11 @@
             height: 3px;
         }
         .stat-card:hover { transform: translateY(-3px); border-color: var(--border-light); }
-        .stat-card.blue { background: linear-gradient(160deg, rgba(59,130,246,0.12) 0%, var(--bg-card) 60%); }
+        .stat-card.blue { background: linear-gradient(160deg, rgba(74,144,226,0.12) 0%, var(--bg-card) 60%); }
         .stat-card.blue::before { background: linear-gradient(90deg, var(--blue-primary), var(--blue-light)); }
-        .stat-card.green { background: linear-gradient(160deg, rgba(16,185,129,0.12) 0%, var(--bg-card) 60%); }
+        .stat-card.green { background: linear-gradient(160deg, rgba(39,174,96,0.12) 0%, var(--bg-card) 60%); }
         .stat-card.green::before { background: linear-gradient(90deg, var(--green), var(--green-light)); }
-        .stat-card.amber { background: linear-gradient(160deg, rgba(245,158,11,0.12) 0%, var(--bg-card) 60%); }
+        .stat-card.amber { background: linear-gradient(160deg, rgba(245,166,35,0.12) 0%, var(--bg-card) 60%); }
         .stat-card.amber::before { background: linear-gradient(90deg, var(--amber), #fbbf24); }
         .stat-card.purple { background: linear-gradient(160deg, rgba(139,92,246,0.12) 0%, var(--bg-card) 60%); }
         .stat-card.purple::before { background: linear-gradient(90deg, var(--purple), #a78bfa); }
@@ -358,7 +358,7 @@
             flex: 1;
             max-width: 300px;
             padding: 10px 16px;
-            background: var(--bg-deep);
+            background: rgba(255,255,255,0.03);
             border: 1px solid var(--border);
             border-radius: 8px;
             color: var(--text-primary);
@@ -384,7 +384,7 @@
             border: 1px solid var(--border);
         }
         .data-table th {
-            background: rgba(59,130,246,0.08);
+            background: rgba(74,144,226,0.1);
             padding: 14px 18px;
             text-align: left;
             font-weight: 600;
@@ -400,7 +400,7 @@
             color: var(--text-primary);
         }
         .data-table tr:last-child td { border-bottom: none; }
-        .data-table tr:hover td { background: rgba(255,255,255,0.02); }
+        .data-table tr:hover td { background: rgba(255,255,255,0.03); }
         .data-table .num {
             font-family: 'JetBrains Mono', monospace;
             font-weight: 600;
@@ -415,7 +415,7 @@
         .mini-bar {
             flex: 1;
             height: 8px;
-            background: var(--bg-deep);
+            background: rgba(255,255,255,0.03);
             border-radius: 4px;
             overflow: hidden;
         }
@@ -486,7 +486,7 @@
         .ranking-table td {
             padding: 10px 16px;
             font-size: 14px;
-            border-bottom: 1px solid rgba(30,41,59,0.5);
+            border-bottom: 1px solid rgba(255,255,255,0.06);
         }
         .ranking-table tr:last-child td { border-bottom: none; }
         .ranking-table .name { font-weight: 600; }
@@ -728,8 +728,8 @@
     let rankingChart = null;
 
     // Chart.js defaults
-    Chart.defaults.color = '#94a3b8';
-    Chart.defaults.borderColor = '#1e293b';
+    Chart.defaults.color = '#a0a0a0';
+    Chart.defaults.borderColor = '#4a4a4a';
     Chart.defaults.font.family = "'Outfit', sans-serif";
 
     // ===== DATE HELPERS =====
@@ -1152,7 +1152,7 @@
                         anchor: 'end',
                         align: 'top',
                         font: { weight: '700', size: diffDays > 14 ? 10 : 13, family: "'JetBrains Mono'" },
-                        color: '#e2e8f0',
+                        color: '#e0e0e0',
                         formatter: v => v > 0 ? v : '',
                         display: diffDays > 25 ? false : true  // 날짜 많으면 라벨 숨김
                     }
@@ -1167,7 +1167,7 @@
                             maxTicksLimit: 20
                         }
                     },
-                    y: { beginAtZero: true, grid: { color: 'rgba(30,41,59,0.5)' } }
+                    y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.08)' } }
                 }
             },
             plugins: [ChartDataLabels]
@@ -1231,12 +1231,12 @@
                         anchor: 'end',
                         align: 'end',
                         font: { weight: '700', size: 12, family: "'JetBrains Mono'" },
-                        color: '#e2e8f0',
+                        color: '#e0e0e0',
                         formatter: v => v
                     }
                 },
                 scales: {
-                    x: { beginAtZero: true, grid: { color: 'rgba(30,41,59,0.5)' } },
+                    x: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.08)' } },
                     y: { grid: { display: false }, ticks: { font: { size: 12, weight: '500' } } }
                 }
             },
@@ -1306,7 +1306,7 @@
                         anchor: 'end',
                         align: 'top',
                         font: { weight: '700', size: diffDays > 14 ? 10 : 14, family: "'JetBrains Mono'" },
-                        color: '#60a5fa',
+                        color: '#5ba0f0',
                         formatter: v => v > 0 ? v : '',
                         display: diffDays > 25 ? false : true
                     }
@@ -1321,7 +1321,7 @@
                             maxTicksLimit: 20
                         }
                     },
-                    y: { beginAtZero: true, grid: { color: 'rgba(30,41,59,0.5)' } }
+                    y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.08)' } }
                 }
             },
             plugins: [ChartDataLabels]
@@ -1353,7 +1353,7 @@
                         labels: { padding: 12, usePointStyle: true, pointStyle: 'circle', font: { size: 12, weight: '500' } }
                     },
                     datalabels: {
-                        color: '#fff',
+                        color: '#e0e0e0',
                         font: { weight: '700', size: 12, family: "'JetBrains Mono'" },
                         formatter: (v, ctx) => {
                             const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
@@ -1444,13 +1444,13 @@
                         anchor: 'end',
                         align: 'top',
                         font: { weight: '700', size: 13, family: "'JetBrains Mono'" },
-                        color: '#e2e8f0',
+                        color: '#e0e0e0',
                         formatter: v => v > 0 ? v + '대' : ''
                     }
                 },
                 scales: {
                     x: { grid: { display: false }, ticks: { font: { weight: '600', size: 12 } } },
-                    y: { beginAtZero: true, grid: { color: 'rgba(30,41,59,0.5)' } }
+                    y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.08)' } }
                 }
             },
             plugins: [ChartDataLabels]
