@@ -111,10 +111,69 @@
         }
         .footer .developer-tag { margin-top: 6px; font-weight: 600; color: #e67e22; }
 
+        /* ── 알림 관리 패널 ── */
+        .noti-panel {
+            background: #353535;
+            border: 1px solid #4a4a4a;
+            border-radius: 12px;
+            padding: 24px;
+        }
+        .noti-form-group { margin-bottom: 16px; }
+        .noti-form-group label {
+            display: block; font-size: 0.85em; font-weight: 600;
+            color: #a0a0a0; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .noti-form-group input,
+        .noti-form-group textarea {
+            width: 100%; background: #2a2a2a; border: 1px solid #4a4a4a;
+            border-radius: 8px; padding: 12px 14px; color: #e0e0e0;
+            font-family: 'Segoe UI', 'Malgun Gothic', sans-serif; font-size: 0.95em;
+            transition: border-color 0.2s;
+        }
+        .noti-form-group input:focus,
+        .noti-form-group textarea:focus {
+            outline: none; border-color: #e67e22;
+            box-shadow: 0 0 0 3px rgba(230,126,34,0.15);
+        }
+        .noti-form-group textarea { resize: vertical; min-height: 80px; }
+        .noti-type-selector { display: flex; gap: 8px; }
+        .noti-type-btn {
+            flex: 1; padding: 10px; border-radius: 8px;
+            border: 2px solid #4a4a4a; background: transparent;
+            color: #a0a0a0; font-family: inherit; font-size: 0.9em;
+            font-weight: 600; cursor: pointer; transition: all 0.2s; text-align: center;
+        }
+        .noti-type-btn.sel-info { border-color: #4a90e2; color: #4a90e2; background: rgba(74,144,226,0.1); }
+        .noti-type-btn.sel-success { border-color: #27ae60; color: #27ae60; background: rgba(39,174,96,0.1); }
+        .noti-type-btn.sel-warning { border-color: #f39c12; color: #f39c12; background: rgba(243,156,18,0.1); }
+        .noti-send-btn {
+            width: 100%; padding: 14px; border-radius: 10px; border: none;
+            background: linear-gradient(135deg, #e67e22, #d35400);
+            color: #fff; font-family: inherit; font-size: 1em; font-weight: 700;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .noti-send-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(230,126,34,0.4); }
+        .noti-send-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+        .noti-status {
+            margin-top: 12px; padding: 10px 14px; border-radius: 8px;
+            font-size: 0.9em; display: none; text-align: center;
+        }
+        .noti-status.ok { display: block; background: rgba(39,174,96,0.15); color: #27ae60; }
+        .noti-status.err { display: block; background: rgba(231,76,60,0.15); color: #e74c3c; }
+        .noti-deactivate-btn {
+            width: 100%; padding: 10px; border-radius: 8px;
+            border: 1px solid #4a4a4a; background: transparent;
+            color: #a0a0a0; font-family: inherit; font-size: 0.85em;
+            cursor: pointer; transition: all 0.2s; margin-top: 10px;
+        }
+        .noti-deactivate-btn:hover { border-color: #e74c3c; color: #e74c3c; }
+
         @media (max-width: 768px) {
             .top-header { padding: 14px 16px; flex-wrap: wrap; gap: 10px; }
             .content { padding: 20px 12px; }
             .cards-grid { grid-template-columns: 1fr; }
+            .noti-type-selector { flex-wrap: wrap; }
+            .noti-type-btn { flex: 1 1 30%; }
         }
     </style>
 </head>
@@ -135,6 +194,34 @@
     </div>
 
     <div class="content">
+
+        <!-- 🔔 알림 관리 -->
+        <div class="section">
+            <h2 class="section-title">🔔 알림 관리</h2>
+            <div class="cards-grid">
+                <div class="noti-panel" style="grid-column: 1 / -1;">
+                    <div class="noti-form-group">
+                        <label>알림 유형</label>
+                        <div class="noti-type-selector">
+                            <button class="noti-type-btn sel-info" data-type="info" onclick="selectNotiType(this)">ℹ️ 일반</button>
+                            <button class="noti-type-btn" data-type="success" onclick="selectNotiType(this)">✅ 완료</button>
+                            <button class="noti-type-btn" data-type="warning" onclick="selectNotiType(this)">⚠️ 주의</button>
+                        </div>
+                    </div>
+                    <div class="noti-form-group">
+                        <label>제목</label>
+                        <input type="text" id="notiTitle" placeholder="알림 제목을 입력하세요">
+                    </div>
+                    <div class="noti-form-group">
+                        <label>내용</label>
+                        <textarea id="notiMessage" placeholder="알림 내용을 입력하세요"></textarea>
+                    </div>
+                    <button class="noti-send-btn" id="notiSendBtn" onclick="sendNotification()">🔔 알림 보내기</button>
+                    <div class="noti-status" id="notiStatus"></div>
+                    <button class="noti-deactivate-btn" onclick="deactivateAllNotifications()">🗑 모든 알림 비활성화</button>
+                </div>
+            </div>
+        </div>
 
         <!-- 승인 관리 -->
         <div class="section">
@@ -254,6 +341,81 @@
     </div>
 
     <script>
+        // ============================================
+        // 🔔 알림 보내기 (Apps Script 연동)
+        // ============================================
+        const NOTI_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwFsEvAkXNUNCggf-29k5PW1oVZhe6PFSft6sTmc20qVP2jZd1hjGsu0RP6GaJdamlndw/exec';
+        let selectedNotiType = 'info';
+
+        function selectNotiType(btn) {
+            document.querySelectorAll('.noti-type-btn').forEach(b => b.className = 'noti-type-btn');
+            selectedNotiType = btn.dataset.type;
+            btn.classList.add('sel-' + selectedNotiType);
+        }
+
+        async function sendNotification() {
+            const title = document.getElementById('notiTitle').value.trim();
+            const message = document.getElementById('notiMessage').value.trim();
+            const status = document.getElementById('notiStatus');
+            const btn = document.getElementById('notiSendBtn');
+
+            if (!title && !message) {
+                status.className = 'noti-status err';
+                status.textContent = '제목 또는 내용을 입력해주세요.';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = '⏳ 전송 중...';
+            status.className = 'noti-status';
+            status.style.display = 'none';
+
+            try {
+                await fetch(NOTI_APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'add',
+                        title: title,
+                        message: message,
+                        type: selectedNotiType
+                    })
+                });
+
+                status.className = 'noti-status ok';
+                status.textContent = '✅ 알림이 전송되었습니다! 약 1분 내에 모든 접속자에게 표시됩니다.';
+                document.getElementById('notiTitle').value = '';
+                document.getElementById('notiMessage').value = '';
+            } catch (err) {
+                status.className = 'noti-status err';
+                status.textContent = '❌ 전송 실패: ' + err.message;
+            }
+
+            btn.disabled = false;
+            btn.textContent = '🔔 알림 보내기';
+        }
+
+        async function deactivateAllNotifications() {
+            if (!confirm('모든 알림을 비활성화하시겠습니까?\n비활성화하면 더 이상 팝업이 뜨지 않습니다.')) return;
+            try {
+                await fetch(NOTI_APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'deactivateAll' })
+                });
+                const status = document.getElementById('notiStatus');
+                status.className = 'noti-status ok';
+                status.textContent = '✅ 모든 알림이 비활성화되었습니다.';
+            } catch (err) {
+                alert('비활성화 실패: ' + err.message);
+            }
+        }
+
+        // ============================================
+        // 기존 Admin 로직
+        // ============================================
         const APP_URLS = {
             leaveApproval: 'https://donggukang09.github.io/hiqasc-overtime/leave_approval.html',
             companyWeeklyPlan: 'https://donggukang09.github.io/hiqasc-platform/company-weekly-plan.html',
@@ -280,5 +442,6 @@
             }
         });
     </script>
+    <script src="hiq-notification.js"></script>
 </body>
 </html>
