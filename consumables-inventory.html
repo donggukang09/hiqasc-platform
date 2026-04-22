@@ -416,6 +416,9 @@
                         <th>안전재고</th>
                         <th>상태</th>
                         <th>비고</th>
+                        <th>위치</th>
+                        <th>변동률</th>
+                        <th>업데이트</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody">
@@ -487,7 +490,10 @@
                         unit: row.c[3]?.v || '',
                         safetyStock: parseFloat(row.c[4]?.v) || 0,
                         status: row.c[5]?.v || '',
-                        note: row.c[6]?.v || ''
+                        note: row.c[6]?.v || '',
+                        location: row.c[7]?.v || '',
+                        changeRate: row.c[8]?.v ?? '',
+                        updatedDate: row.c[9]?.v || ''
                     };
                     
                     allData.push(item);
@@ -510,6 +516,25 @@
                 loading.style.display = 'none';
                 alert('재고 데이터를 불러오는데 실패했습니다.\n\n구글 시트에 "소모품재고" 탭이 있는지 확인해주세요.');
             }
+        }
+
+        // 변동률 색상
+        function getChangeRateColor(val) {
+            if (val === '' || val === null || val === undefined) return '#808080';
+            const num = parseFloat(val);
+            if (isNaN(num)) return '#808080';
+            if (num > 0) return '#2ecc71';
+            if (num < 0) return '#e74c3c';
+            return '#808080';
+        }
+
+        // 변동률 포맷
+        function formatChangeRate(val) {
+            if (val === '' || val === null || val === undefined) return '-';
+            const num = parseFloat(val);
+            if (isNaN(num)) return val;
+            const sign = num > 0 ? '▲' : num < 0 ? '▼' : '';
+            return `${sign} ${Math.abs(num)}%`;
         }
 
         // 상태 판정 (통일 함수)
@@ -547,6 +572,9 @@
                     <td>${item.safetyStock.toLocaleString()}</td>
                     <td><span class="status-badge ${s.statusClass}">${s.statusText}</span></td>
                     <td style="color: #808080;">${item.note || '-'}</td>
+                    <td style="color: #b0b0b0;">${item.location || '-'}</td>
+                    <td style="font-weight:600; color:${getChangeRateColor(item.changeRate)}">${formatChangeRate(item.changeRate)}</td>
+                    <td style="color: #808080; font-size:12px;">${item.updatedDate || '-'}</td>
                 `;
                 
                 tbody.appendChild(row);
