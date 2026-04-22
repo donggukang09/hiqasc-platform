@@ -1,6 +1,5 @@
 // ============================================
-// 🔔 HIQASC 알림 시스템 v1.1
-// 각 페이지에 아래 한 줄만 추가하면 됩니다:
+// 🔔 HIQASC 알림 시스템 v1.2
 // <script src="hiq-notification.js"></script>
 // ============================================
 
@@ -11,17 +10,16 @@
     var SEEN_KEY = 'hiq_seen_alerts';
     var TOAST_DURATION = 15000;
 
-    // ── CSS 자동 주입 ──
     var css = '' +
     '.hiq-notification-overlay {' +
         'position: fixed; top: 30px; left: 50%; transform: translateX(-50%); z-index: 99999;' +
-        'display: flex; flex-direction: column; align-items: center; gap: 14px; pointer-events: none;' +
+        'display: flex; flex-direction: column; align-items: center; gap: 16px; pointer-events: none;' +
     '}' +
     '.hiq-toast {' +
-        'pointer-events: all; min-width: 460px; max-width: 560px;' +
-        'background: linear-gradient(135deg, #1a2a4a 0%, #1e1e3a 100%);' +
-        'border-radius: 16px; border: 2px solid rgba(74,144,226,0.4);' +
-        'box-shadow: 0 16px 50px rgba(0,0,0,0.6), 0 0 30px rgba(74,144,226,0.15);' +
+        'pointer-events: all; min-width: 540px; max-width: 660px;' +
+        'background: #f0f2f5;' +
+        'border-radius: 18px; border: 3px solid #4a90e2;' +
+        'box-shadow: 0 20px 60px rgba(0,0,0,0.35), 0 0 0 1px rgba(0,0,0,0.05);' +
         'overflow: hidden;' +
         'animation: hiq-toast-in 0.5s cubic-bezier(0.16, 1, 0.3, 1);' +
     '}' +
@@ -31,54 +29,60 @@
         'to { opacity: 1; transform: translateY(0) scale(1); }' +
     '}' +
     '@keyframes hiq-toast-out { to { opacity: 0; transform: translateY(-20px) scale(0.95); } }' +
-    '.hiq-toast-accent { height: 4px; width: 100%; }' +
-    '.hiq-toast-accent.info { background: linear-gradient(90deg, #4a90e2, #64b5f6, #4a90e2); background-size: 200% 100%; animation: hiq-accent-shimmer 2s infinite; }' +
-    '.hiq-toast-accent.success { background: linear-gradient(90deg, #27ae60, #66d9a0, #27ae60); background-size: 200% 100%; animation: hiq-accent-shimmer 2s infinite; }' +
-    '.hiq-toast-accent.warning { background: linear-gradient(90deg, #f39c12, #ffd54f, #f39c12); background-size: 200% 100%; animation: hiq-accent-shimmer 2s infinite; }' +
-    '@keyframes hiq-accent-shimmer { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }' +
+
+    '.hiq-toast-accent { height: 5px; width: 100%; }' +
+    '.hiq-toast-accent.info { background: linear-gradient(90deg, #4a90e2, #64b5f6, #4a90e2); background-size: 200% 100%; animation: hiq-shimmer 2s infinite; }' +
+    '.hiq-toast-accent.success { background: linear-gradient(90deg, #27ae60, #66d9a0, #27ae60); background-size: 200% 100%; animation: hiq-shimmer 2s infinite; }' +
+    '.hiq-toast-accent.warning { background: linear-gradient(90deg, #e67e22, #ffd54f, #e67e22); background-size: 200% 100%; animation: hiq-shimmer 2s infinite; }' +
+    '@keyframes hiq-shimmer { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }' +
+
     '.hiq-toast-content {' +
-        'padding: 20px 22px; display: flex; align-items: flex-start; gap: 16px;' +
+        'padding: 24px 26px; display: flex; align-items: flex-start; gap: 18px;' +
     '}' +
     '.hiq-toast-icon {' +
-        'width: 50px; height: 50px; border-radius: 12px;' +
+        'width: 60px; height: 60px; border-radius: 14px;' +
         'display: flex; align-items: center; justify-content: center;' +
-        'font-size: 26px; flex-shrink: 0;' +
+        'font-size: 32px; flex-shrink: 0;' +
     '}' +
-    '.hiq-toast-icon.info { background: rgba(74,144,226,0.2); border: 1px solid rgba(74,144,226,0.3); }' +
-    '.hiq-toast-icon.success { background: rgba(39,174,96,0.2); border: 1px solid rgba(39,174,96,0.3); }' +
-    '.hiq-toast-icon.warning { background: rgba(243,156,18,0.2); border: 1px solid rgba(243,156,18,0.3); }' +
+    '.hiq-toast-icon.info { background: rgba(74,144,226,0.15); border: 2px solid rgba(74,144,226,0.3); }' +
+    '.hiq-toast-icon.success { background: rgba(39,174,96,0.15); border: 2px solid rgba(39,174,96,0.3); }' +
+    '.hiq-toast-icon.warning { background: rgba(230,126,34,0.15); border: 2px solid rgba(230,126,34,0.3); }' +
+
     '.hiq-toast-body { flex: 1; }' +
     '.hiq-toast-title {' +
-        'font-size: 17px; font-weight: 800; color: #ffffff; margin-bottom: 6px; letter-spacing: -0.3px;' +
+        'font-size: 24px; font-weight: 900; color: #1a1a2e; margin-bottom: 8px; letter-spacing: -0.5px; line-height: 1.3;' +
     '}' +
     '.hiq-toast-msg {' +
-        'font-size: 14px; color: #c8d6e5; line-height: 1.6; white-space: pre-line;' +
+        'font-size: 18px; color: #333; line-height: 1.6; white-space: pre-line; font-weight: 500;' +
     '}' +
-    '.hiq-toast-time { font-size: 12px; color: #8899aa; margin-top: 8px; }' +
+    '.hiq-toast-time { font-size: 13px; color: #999; margin-top: 10px; font-weight: 400; }' +
+
     '.hiq-toast-close {' +
-        'background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); color: #8899aa;' +
-        'width: 32px; height: 32px; border-radius: 8px;' +
-        'font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center;' +
+        'background: rgba(0,0,0,0.06); border: 1px solid rgba(0,0,0,0.1); color: #999;' +
+        'width: 36px; height: 36px; border-radius: 10px;' +
+        'font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center;' +
         'transition: all 0.2s; flex-shrink: 0;' +
     '}' +
-    '.hiq-toast-close:hover { background: rgba(231,76,60,0.2); border-color: rgba(231,76,60,0.4); color: #e74c3c; }' +
-    '.hiq-toast-progress { height: 3px; background: rgba(255,255,255,0.06); }' +
+    '.hiq-toast-close:hover { background: rgba(231,76,60,0.15); border-color: rgba(231,76,60,0.3); color: #e74c3c; }' +
+
+    '.hiq-toast-progress { height: 4px; background: rgba(0,0,0,0.06); }' +
     '.hiq-toast-progress-bar {' +
-        'height: 100%; border-radius: 0 0 16px 16px;' +
+        'height: 100%;' +
         'animation: hiq-progress-shrink ' + (TOAST_DURATION / 1000) + 's linear forwards;' +
     '}' +
-    '.hiq-toast-progress-bar.info { background: rgba(74,144,226,0.5); }' +
-    '.hiq-toast-progress-bar.success { background: rgba(39,174,96,0.5); }' +
-    '.hiq-toast-progress-bar.warning { background: rgba(243,156,18,0.5); }' +
+    '.hiq-toast-progress-bar.info { background: #4a90e2; }' +
+    '.hiq-toast-progress-bar.success { background: #27ae60; }' +
+    '.hiq-toast-progress-bar.warning { background: #e67e22; }' +
     '@keyframes hiq-progress-shrink { from { width: 100%; } to { width: 0%; } }' +
-    '.hiq-toast.type-success { border-color: rgba(39,174,96,0.4); }' +
-    '.hiq-toast.type-success:hover { border-color: rgba(39,174,96,0.7); }' +
-    '.hiq-toast.type-warning { border-color: rgba(243,156,18,0.4); }' +
-    '.hiq-toast.type-warning:hover { border-color: rgba(243,156,18,0.7); }' +
-    '.hiq-toast:hover { border-color: rgba(74,144,226,0.7); }' +
+
+    '.hiq-toast.type-success { border-color: #27ae60; }' +
+    '.hiq-toast.type-warning { border-color: #e67e22; }' +
+
     '@media (max-width: 768px) {' +
         '.hiq-notification-overlay { left: 10px; right: 10px; transform: none; }' +
         '.hiq-toast { min-width: auto; max-width: 100%; }' +
+        '.hiq-toast-title { font-size: 20px; }' +
+        '.hiq-toast-msg { font-size: 16px; }' +
     '}';
 
     var styleEl = document.createElement('style');
