@@ -493,7 +493,7 @@
                         note: row.c[6]?.v || '',
                         location: row.c[7]?.v || '',
                         changeRate: row.c[8]?.v ?? '',
-                        updatedDate: row.c[9]?.v || ''
+                        updatedDate: parseGvizDate(row.c[9])
                     };
                     
                     allData.push(item);
@@ -516,6 +516,24 @@
                 loading.style.display = 'none';
                 alert('재고 데이터를 불러오는데 실패했습니다.\n\n구글 시트에 "소모품재고" 탭이 있는지 확인해주세요.');
             }
+        }
+
+        // gviz 날짜 파싱 (Date(y,m,d) → m은 0-based)
+        function parseGvizDate(cell) {
+            if (!cell) return '';
+            // f(포맷된 문자열)가 있으면 우선 사용
+            if (cell.f) return cell.f;
+            const v = cell.v;
+            if (!v) return '';
+            // "Date(2026,3,22)" 형태 파싱
+            const m = String(v).match(/Date\((\d+),(\d+),(\d+)\)/);
+            if (m) {
+                const year = parseInt(m[1]);
+                const month = parseInt(m[2]) + 1; // 0-based → 1-based
+                const day = parseInt(m[3]);
+                return `${year}. ${month}. ${day}`;
+            }
+            return String(v);
         }
 
         // 변동률 색상
