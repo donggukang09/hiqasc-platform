@@ -380,6 +380,7 @@ body { background: #2a2a2a; color: #e8e8e8; min-height: 100vh; padding: 20px; }
     <button class="btn btn-success" onclick="openScheduleModal()">📅 일정 추가</button>
     <button class="btn btn-secondary" onclick="openSheet()">📊 시트 열기</button>
     <button class="btn btn-secondary" onclick="manualRefresh()">🔄 새로고침</button>
+    <button class="btn btn-secondary" onclick="location.href='index.html'">🏠 메인으로</button>
   </div>
 </div>
 
@@ -482,13 +483,8 @@ body { background: #2a2a2a; color: #e8e8e8; min-height: 100vh; padding: 20px; }
 <script>
 // ===== 데이터 관리 =====
 // ⚠️ Apps Script 배포 후 웹 앱 URL을 여기에 붙여넣으세요
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwtNhSkSB-TrPU3HdVAvHIqgqga0LQ7A7U07G6FTDuRuFpBUKnJ3ngMJg3Ej_6eIRDy/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbycnRwpk0SzHMriiKrMVogqCjjCxZK1DCoPKzxBtwJzqgniFLpYff17Lrxgk9rdF-Oa2A/exec';
 const SHEET_ID = '1IET_cGI_RIRPXBp3-3C6VFNngFDz5VTr-34bvBoeDAc';
-
-// 읽기용 CSV URL (공개 게시 - 계정 로그인 문제 없음)
-const CSV_WAREHOUSES = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRYx2_onfp0LHK_uXksIJadT42qYbNugtrPf2UHLxGAK4OUSTfVqqavbq6eW25vm9iO4IWZqmx9N5vi/pub?gid=295845996&single=true&output=csv';
-const CSV_ITEMS = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRYx2_onfp0LHK_uXksIJadT42qYbNugtrPf2UHLxGAK4OUSTfVqqavbq6eW25vm9iO4IWZqmx9N5vi/pub?gid=432371574&single=true&output=csv';
-const CSV_SCHEDULES = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRYx2_onfp0LHK_uXksIJadT42qYbNugtrPf2UHLxGAK4OUSTfVqqavbq6eW25vm9iO4IWZqmx9N5vi/pub?gid=131138608&single=true&output=csv';
 
 let warehouses = [];
 let schedules = [];
@@ -505,70 +501,36 @@ function openSheet() {
   window.open('https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/edit', '_blank');
 }
 
-// ===== CSV 파싱 (RFC 4180 호환) =====
-function parseCSV(csvText) {
-  const rows = [];
-  let row = [];
-  let field = '';
-  let inQuotes = false;
-  let i = 0;
-  while (i < csvText.length) {
-    const c = csvText[i];
-    if (inQuotes) {
-      if (c === '"') {
-        if (csvText[i + 1] === '"') { field += '"'; i += 2; continue; }
-        inQuotes = false; i++; continue;
-      }
-      field += c; i++; continue;
+// JSONP 로 GET (10초 타임아웃)
+function jsonpGet() {
+  return new Promise((resolve, reject) => {
+    if (APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE') {
+      reject(new Error('Apps Script URL이 설정되지 않았습니다. HTML 파일 상단의 APPS_SCRIPT_URL을 수정하세요.'));
+      return;
     }
-    if (c === '"') { inQuotes = true; i++; continue; }
-    if (c === ',') { row.push(field); field = ''; i++; continue; }
-    if (c === '\r') { i++; continue; }
-    if (c === '\n') { row.push(field); rows.push(row); row = []; field = ''; i++; continue; }
-    field += c; i++;
-  }
-  // 마지막 필드/행 처리
-  if (field !== '' || row.length > 0) { row.push(field); rows.push(row); }
-  return rows;
+    const cbName = 'cb_' + Date.now() + '_' + Math.floor(Math.random()*10000);
+    const script = document.createElement('script');
+    const timeout = setTimeout(() => {
+      cleanup();
+      reject(new Error('서버 응답 시간 초과 (10초)'));
+    }, 10000);
+    function cleanup() {
+      clearTimeout(timeout);
+      delete window[cbName];
+      if (script.parentNode) script.parentNode.removeChild(script);
+    }
+    window[cbName] = (response) => {
+      cleanup();
+      if (response && response.ok) resolve(response.data);
+      else reject(new Error(response && response.error ? response.error : '알 수 없는 오류'));
+    };
+    script.src = APPS_SCRIPT_URL + '?callback=' + cbName + '&t=' + Date.now();
+    script.onerror = () => { cleanup(); reject(new Error('네트워크 오류')); };
+    document.body.appendChild(script);
+  });
 }
 
-// CSV → 객체 배열 (첫 행을 헤더로)
-function csvToObjects(csvText) {
-  const rows = parseCSV(csvText);
-  if (rows.length < 1) return [];
-  const headers = rows[0];
-  const result = [];
-  for (let i = 1; i < rows.length; i++) {
-    const r = rows[i];
-    // 빈 행 스킵
-    if (r.length === 1 && r[0] === '') continue;
-    if (r.every(c => c === '')) continue;
-    const obj = {};
-    headers.forEach((h, idx) => { obj[h] = r[idx] !== undefined ? r[idx] : ''; });
-    result.push(obj);
-  }
-  return result;
-}
-
-// 공개 CSV URL 에서 데이터 가져오기
-async function fetchCSV(url) {
-  const res = await fetch(url + '&_t=' + Date.now(), { cache: 'no-store' });
-  if (!res.ok) throw new Error('HTTP ' + res.status);
-  const text = await res.text();
-  return csvToObjects(text);
-}
-
-// 공개 CSV 로 GET (계정 리다이렉트 문제 없음)
-async function csvGet() {
-  const [whRows, itemRows, scheduleRows] = await Promise.all([
-    fetchCSV(CSV_WAREHOUSES),
-    fetchCSV(CSV_ITEMS),
-    fetchCSV(CSV_SCHEDULES)
-  ]);
-  return { warehouses: whRows, items: itemRows, schedules: scheduleRows };
-}
-
-// POST (no-cors) - 쓰기는 Apps Script 사용 (로그인 계정 무관하게 POST 는 정상 작동)
+// POST (no-cors)
 async function postData(payload) {
   if (APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE') {
     throw new Error('Apps Script URL이 설정되지 않았습니다.');
@@ -643,7 +605,7 @@ function schedulesToRows() {
 async function loadData() {
   showStatus('📡 시트에서 데이터 불러오는 중...');
   try {
-    const data = await csvGet();
+    const data = await jsonpGet();
     warehouses = rowsToWarehouses(data.warehouses || [], data.items || []);
     schedules = rowsToSchedules(data.schedules || []);
     showStatus('✅ 불러오기 완료', 2000);
@@ -1400,5 +1362,6 @@ document.querySelectorAll('.modal-overlay').forEach(m => {
   render();
 })();
 </script>
+    <script src="hiq-notification.js?v=2"></script>
 </body>
 </html>

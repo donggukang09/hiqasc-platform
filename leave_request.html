@@ -456,16 +456,6 @@
 </head>
 <body>
     <div class="container">
-        <!-- 메인으로 버튼 -->
-        <div style="text-align: center; margin-bottom: 12px;">
-            <button onclick="window.location.href='https://donggukang09.github.io/hiqasc-platform/'" 
-                    style="padding: 10px 20px; background: linear-gradient(135deg, #5dade2 0%, #3498db 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.3s; box-shadow: 0 2px 8px rgba(93, 173, 226, 0.3);"
-                    onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(93, 173, 226, 0.4)'"
-                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(93, 173, 226, 0.3)'">
-                ← 메인으로
-            </button>
-        </div>
-
         <div class="header">
             <div class="logo-section">
                 <span class="logo hiqasc">HIQASC</span>
@@ -616,7 +606,7 @@
     </div>
 
     <script>
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbymUluI5lJ6PYRlDrAUIvZ5yCE0wjD0WVy6fpC7HkYfl8JhQjVbqsnvDVt9QOgl0mnY/exec';
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzG8UQLph63cSwOZ6Z8aDg-TYgxh_cqTHCYRGowtSF9VlZDqxKiXkcXMGdNSyjnWv60/exec';
         
         const form = document.getElementById('leaveForm');
         const nameSelect = document.getElementById('name');
@@ -954,5 +944,6 @@
         generateCalendar(currentYear, currentMonth);
         console.log('초기화 완료!');
     </script>
+    <script src="hiq-notification.js?v=2"></script>
 </body>
 </html>
