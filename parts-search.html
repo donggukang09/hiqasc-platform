@@ -513,7 +513,7 @@ function loadData() {
   
   const cbName = 'partsCallback_' + Date.now();
   const query = encodeURIComponent('SELECT * WHERE A IS NOT NULL');
-  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json;responseHandler:${cbName}&sheet=${encodeURIComponent(SHEET_TAB)}&tq=${query}`;
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json;responseHandler:${cbName}&sheet=${encodeURIComponent(SHEET_TAB)}&headers=1&tq=${query}`;
   
   window[cbName] = function(response) {
     try {
@@ -547,38 +547,102 @@ function parseGvizResponse(response) {
   const cols = table.cols;
   const rows = table.rows;
   
-  // Detect header: check if cols have labels or if first row is header
-  let headers = cols.map(c => c.label || '');
-  let dataStartIdx = 0;
+  // gviz sometimes pushes header+data into cols.label as space-separated text
+  // Detect by checking if label contains the header name followed by data
+  const expectedCols = ['부품번호','부품명','별칭','머신종류','위치','구역','랙번호','단','서랍'];
+  let headers = [];
+  let labelData = []; // data embedded in labels
+  let headerInLabel = false;
   
-  // If headers are empty, first data row might be the header
-  if(headers.every(h => !h || h.trim() === '')) {
+  // Check if first col label starts with expected header
+  const firstLabel = (cols[0] && cols[0].label) || '';
+  if(firstLabel.startsWith('부품번호 ') || firstLabel === '부품번호') {
+    // Headers are in labels - extract header name (first word/expected col name)
+    headerInLabel = true;
+    cols.forEach((c, i) => {
+      const label = (c.label || '').trim();
+      // Find which expected col this label starts with
+      let matched = '';
+      for(const ec of expectedCols) {
+        if(label === ec || label.startsWith(ec + ' ')) {
+          matched = ec;
+          break;
+        }
+      }
+      headers.push(matched || label.split(' ')[0]);
+      
+      // Extract embedded data from label (everything after header name)
+      if(matched && label.length > matched.length) {
+        const dataStr = label.substring(matched.length).trim();
+        if(dataStr) {
+          // Split by whitespace - but this is tricky for multi-word values
+          // We'll handle this by counting rows to determine split
+          labelData.push(dataStr);
+        } else {
+          labelData.push('');
+        }
+      } else {
+        labelData.push('');
+      }
+    });
+  } else {
+    headers = cols.map(c => (c.label || '').trim());
+  }
+  
+  // If headers are still empty, try first data row
+  let dataStartIdx = 0;
+  if(headers.every(h => !h)) {
     if(rows.length > 0) {
       headers = rows[0].c.map(cell => (cell && cell.v) ? String(cell.v) : '');
       dataStartIdx = 1;
     }
   }
   
-  // Map columns
+  // Map columns by index
   const colMap = {};
-  const expectedCols = ['부품번호','부품명','별칭','머신종류','위치','구역','랙번호','단','서랍'];
   headers.forEach((h, i) => {
-    const trimmed = h.trim();
-    if(expectedCols.includes(trimmed)) colMap[trimmed] = i;
+    if(expectedCols.includes(h)) colMap[h] = i;
   });
   
+  // If no columns mapped, try partial match
+  if(Object.keys(colMap).length === 0) {
+    headers.forEach((h, i) => {
+      for(const ec of expectedCols) {
+        if(h.includes(ec)) { colMap[ec] = i; break; }
+      }
+    });
+  }
+  
   allData = [];
+  
+  // Parse label-embedded data if present (parsedNumHeaders tells how many rows are in labels)
+  if(headerInLabel && table.parsedNumHeaders > 0) {
+    // The parsedNumHeaders value tells us how many data rows got absorbed into labels
+    // We need to reconstruct those rows from label text
+    // Since label text is space-joined and ambiguous, we skip those and only use rows[]
+    // But we still have rows[] data which is everything after parsedNumHeaders
+    console.log('gviz absorbed ' + table.parsedNumHeaders + ' rows into headers, using rows[] data (' + rows.length + ' rows)');
+  }
+  
+  // Parse rows[] normally
   for(let r = dataStartIdx; r < rows.length; r++) {
     const row = rows[r].c;
+    if(!row) continue;
     const getVal = (colName) => {
       const idx = colMap[colName];
       if(idx === undefined) return '';
       const cell = row[idx];
-      return (cell && cell.v != null) ? String(cell.v).trim() : '';
+      if(!cell) return '';
+      // Handle formatted value (f) vs raw value (v)
+      if(cell.v != null) return String(cell.v).trim();
+      return '';
     };
     
     const partNo = getVal('부품번호');
     if(!partNo) continue;
+    
+    // Skip header sentinel rows
+    if(partNo === '부품번호') continue;
     
     allData.push({
       partNo: partNo,
@@ -592,6 +656,8 @@ function parseGvizResponse(response) {
       drawer: getVal('서랍'),
     });
   }
+  
+  console.log('Loaded ' + allData.length + ' parts from rows[]');
   
   // Collect machine types for filter
   const machineSet = new Set();
