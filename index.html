@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Version: 3.3.3 | Updated: 2026-04-13 | 업무 플레이북 → daily-playbook.html 연결 -->
+<!-- Version: 4.0.0 | Updated: 2026-04-24 | 전사 공통 업무 4개 센터로 분리 -->
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -199,7 +199,7 @@
             width: 100%;
             max-width: 1200px;
             padding: 0 30px;
-            margin-bottom: 50px;
+            margin-bottom: 24px;
             animation: fadeInUp 0.6s ease 0.15s both;
         }
 
@@ -251,6 +251,35 @@
             background: linear-gradient(90deg, #5a8a9a, #7ba8b8, #5a8a9a);
         }
 
+        /* 센터별 테마 컬러 */
+        .workspace-panel.theme-teal { background: linear-gradient(135deg, #2e3a3f 0%, #353535 60%); border-color: #3d5560; }
+        .workspace-panel.theme-teal::before { background: linear-gradient(90deg, #5a8a9a, #7ba8b8, #5a8a9a); }
+        .workspace-panel.theme-teal .workspace-title-icon { background: linear-gradient(135deg, #5a8a9a 0%, #3d6b7a 100%); box-shadow: 0 4px 12px rgba(90, 138, 154, 0.25); }
+        .workspace-panel.theme-teal .workspace-tag { background: rgba(123, 168, 184, 0.12); border-color: rgba(123, 168, 184, 0.35); color: #7ba8b8; }
+        .workspace-panel.theme-teal .workspace-item:hover { border-color: #5a8a9a; background: #2c3438; box-shadow: 0 8px 20px rgba(90, 138, 154, 0.18); }
+        .workspace-panel.theme-teal .workspace-item:hover .workspace-item-icon { background: linear-gradient(135deg, #5a8a9a 0%, #3d6b7a 100%); }
+
+        .workspace-panel.theme-blue { background: linear-gradient(135deg, #2e3545 0%, #353535 60%); border-color: #3d4f6a; }
+        .workspace-panel.theme-blue::before { background: linear-gradient(90deg, #4a90e2, #5ba0f0, #4a90e2); }
+        .workspace-panel.theme-blue .workspace-title-icon { background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%); box-shadow: 0 4px 12px rgba(74, 144, 226, 0.25); }
+        .workspace-panel.theme-blue .workspace-tag { background: rgba(74, 144, 226, 0.12); border-color: rgba(74, 144, 226, 0.35); color: #4a90e2; }
+        .workspace-panel.theme-blue .workspace-item:hover { border-color: #4a90e2; background: #2c3040; box-shadow: 0 8px 20px rgba(74, 144, 226, 0.18); }
+        .workspace-panel.theme-blue .workspace-item:hover .workspace-item-icon { background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%); }
+
+        .workspace-panel.theme-green { background: linear-gradient(135deg, #2e3f35 0%, #353535 60%); border-color: #3d6050; }
+        .workspace-panel.theme-green::before { background: linear-gradient(90deg, #27ae60, #2ecc71, #27ae60); }
+        .workspace-panel.theme-green .workspace-title-icon { background: linear-gradient(135deg, #27ae60 0%, #219a52 100%); box-shadow: 0 4px 12px rgba(39, 174, 96, 0.25); }
+        .workspace-panel.theme-green .workspace-tag { background: rgba(39, 174, 96, 0.12); border-color: rgba(39, 174, 96, 0.35); color: #27ae60; }
+        .workspace-panel.theme-green .workspace-item:hover { border-color: #27ae60; background: #2c3830; box-shadow: 0 8px 20px rgba(39, 174, 96, 0.18); }
+        .workspace-panel.theme-green .workspace-item:hover .workspace-item-icon { background: linear-gradient(135deg, #27ae60 0%, #219a52 100%); }
+
+        .workspace-panel.theme-purple { background: linear-gradient(135deg, #382e45 0%, #353535 60%); border-color: #5a3d6a; }
+        .workspace-panel.theme-purple::before { background: linear-gradient(90deg, #9b59b6, #b06cc8, #9b59b6); }
+        .workspace-panel.theme-purple .workspace-title-icon { background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%); box-shadow: 0 4px 12px rgba(155, 89, 182, 0.25); }
+        .workspace-panel.theme-purple .workspace-tag { background: rgba(155, 89, 182, 0.12); border-color: rgba(155, 89, 182, 0.35); color: #9b59b6; }
+        .workspace-panel.theme-purple .workspace-item:hover { border-color: #9b59b6; background: #342c40; box-shadow: 0 8px 20px rgba(155, 89, 182, 0.18); }
+        .workspace-panel.theme-purple .workspace-item:hover .workspace-item-icon { background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%); }
+
         .workspace-header {
             display: flex;
             align-items: center;
@@ -269,13 +298,12 @@
         .workspace-title-icon {
             width: 44px;
             height: 44px;
-            background: linear-gradient(135deg, #5a8a9a 0%, #3d6b7a 100%);
+            background: #3a3a3a;
             border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 22px;
-            box-shadow: 0 4px 12px rgba(90, 138, 154, 0.25);
         }
 
         .workspace-title h3 {
@@ -291,9 +319,9 @@
         }
 
         .workspace-tag {
-            background: rgba(123, 168, 184, 0.12);
-            border: 1px solid rgba(123, 168, 184, 0.35);
-            color: #7ba8b8;
+            background: rgba(128, 128, 128, 0.12);
+            border: 1px solid rgba(128, 128, 128, 0.35);
+            color: #808080;
             padding: 6px 14px;
             border-radius: 6px;
             font-size: 0.78em;
@@ -301,8 +329,9 @@
         }
 
         .workspace-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
             gap: 14px;
         }
 
@@ -315,13 +344,12 @@
             cursor: pointer;
             transition: all 0.3s ease;
             position: relative;
+            width: calc((100% - 56px) / 5);
+            min-width: 140px;
         }
 
         .workspace-item:hover {
             transform: translateY(-4px);
-            border-color: #5a8a9a;
-            background: #2c3438;
-            box-shadow: 0 8px 20px rgba(90, 138, 154, 0.18);
         }
 
         .workspace-item-icon {
@@ -338,7 +366,6 @@
         }
 
         .workspace-item:hover .workspace-item-icon {
-            background: linear-gradient(135deg, #5a8a9a 0%, #3d6b7a 100%);
             transform: scale(1.05);
         }
 
@@ -526,8 +553,8 @@
 
         /* 반응형 */
         @media (max-width: 1100px) {
-            .workspace-grid {
-                grid-template-columns: repeat(3, 1fr);
+            .workspace-item {
+                width: calc((100% - 28px) / 3);
             }
         }
 
@@ -541,8 +568,8 @@
             .team-card {
                 padding: 30px 24px;
             }
-            .workspace-grid {
-                grid-template-columns: repeat(2, 1fr);
+            .workspace-item {
+                width: calc((100% - 14px) / 2);
             }
             .workspace-panel {
                 padding: 24px 20px;
@@ -550,8 +577,8 @@
         }
 
         @media (max-width: 500px) {
-            .workspace-grid {
-                grid-template-columns: 1fr 1fr;
+            .workspace-item {
+                width: calc((100% - 14px) / 2);
             }
         }
     </style>
@@ -591,7 +618,7 @@
         </div>
 
         <!-- ============================================ -->
-        <!-- HIQ Workspace - 전사 공통 업무 (메인) -->
+        <!-- HIQ ASC -->
         <!-- ============================================ -->
         <div class="workspace-section">
             <div class="section-label">
@@ -600,73 +627,123 @@
                 <div class="section-label-line"></div>
             </div>
 
-            <div class="workspace-panel">
+            <div class="workspace-panel theme-teal">
                 <div class="workspace-header">
                     <div class="workspace-title-group">
                         <div class="workspace-title-icon">🏢</div>
                         <div class="workspace-title">
-                            <h3>전사 공통 업무</h3>
-                            <p>모든 구성원이 사용하는 핵심 업무 시스템</p>
+                            <h3>HIQ ASC</h3>
+                            <p>조직 운영 및 업무 가이드</p>
                         </div>
                     </div>
-                    <span class="workspace-tag">COMPANY-WIDE</span>
+                    <span class="workspace-tag">COMPANY</span>
                 </div>
-
                 <div class="workspace-grid">
-                    <div class="workspace-item" onclick="goTeam('team-dashboard.html')">
-                        <div class="workspace-item-icon">📊</div>
-                        <div class="workspace-item-name">HIQASC 팀 현황</div>
-                        <div class="workspace-item-desc">근무 현황, 연차,<br>당일 수리 현황</div>
-                    </div>
-
                     <div class="workspace-item" onclick="goTeam('org-dashboard.html?v=' + Date.now())">
                         <div class="workspace-item-icon">👥</div>
                         <div class="workspace-item-name">조직도 &amp; 담당</div>
                         <div class="workspace-item-desc">조직 구성 및<br>업무 담당자</div>
                     </div>
-
-                    <div class="workspace-item" onclick="goTeam('warehouse-dashboard.html')">
+                    <div class="workspace-item" onclick="goTeam('team-dashboard.html')">
                         <div class="workspace-item-icon">📊</div>
-                        <div class="workspace-item-name">창고 대시보드</div>
-                        <div class="workspace-item-desc">창고 사용 현황<br>실시간 모니터링</div>
+                        <div class="workspace-item-name">HIQASC 팀 현황</div>
+                        <div class="workspace-item-desc">근무 현황, 연차,<br>당일 수리 현황</div>
                     </div>
-
-                    <div class="workspace-item" onclick="goTeam('consumables-inventory.html')">
-                        <div class="workspace-item-icon">📦</div>
-                        <div class="workspace-item-name">소모품 재고</div>
-                        <div class="workspace-item-desc">실시간 소모품<br>재고 현황 조회</div>
-                    </div>
-
                     <div class="workspace-item" onclick="goTeam('daily-playbook.html')">
                         <div class="workspace-item-icon">📖</div>
                         <div class="workspace-item-name">업무 플레이북</div>
                         <div class="workspace-item-desc">전사 업무 흐름<br>&amp; 온보딩 가이드</div>
                     </div>
+                </div>
+            </div>
+        </div>
 
-                    <div class="workspace-item" onclick="goTeam('approval-system.html')">
-                        <div class="workspace-item-icon">📝</div>
-                        <div class="workspace-item-name">기안 &amp; 결재</div>
-                        <div class="workspace-item-desc">기안서 제출 및<br>승인 워크플로우</div>
+        <!-- ============================================ -->
+        <!-- 데이터 센터 -->
+        <!-- ============================================ -->
+        <div class="workspace-section">
+            <div class="workspace-panel theme-blue">
+                <div class="workspace-header">
+                    <div class="workspace-title-group">
+                        <div class="workspace-title-icon">📈</div>
+                        <div class="workspace-title">
+                            <h3>데이터 센터</h3>
+                            <p>AS 실적 분석 및 입고 데이터</p>
+                        </div>
                     </div>
-
-                    <div class="workspace-item" onclick="goTeam('daily-report.html')">
-                        <div class="workspace-item-icon">📅</div>
-                        <div class="workspace-item-name">일일 업무 보고</div>
-                        <div class="workspace-item-desc">매일 업무 종료 시<br>작성하는 보고서</div>
-                    </div>
-
+                    <span class="workspace-tag">DATA</span>
+                </div>
+                <div class="workspace-grid">
                     <div class="workspace-item" onclick="goTeam('weekly-closing-dashboard.html')">
                         <div class="workspace-item-icon">📊</div>
-                        <div class="workspace-item-name">AS 데이터 센터</div>
+                        <div class="workspace-item-name">AS 데이터</div>
                         <div class="workspace-item-desc">입고·완료 현황 및<br>테크니션 실적 분석</div>
                     </div>
-
                     <div class="workspace-item" onclick="goTeam('intake-trend-dashboard.html')">
                         <div class="workspace-item-icon">📉</div>
                         <div class="workspace-item-name">입고 추세 분석</div>
                         <div class="workspace-item-desc">주간·월별 입고량<br>추이 및 변동 분석</div>
                     </div>
+                </div>
+            </div>
+        </div>
 
+        <!-- ============================================ -->
+        <!-- 재고 관리 센터 -->
+        <!-- ============================================ -->
+        <div class="workspace-section">
+            <div class="workspace-panel theme-green">
+                <div class="workspace-header">
+                    <div class="workspace-title-group">
+                        <div class="workspace-title-icon">📦</div>
+                        <div class="workspace-title">
+                            <h3>재고 관리 센터</h3>
+                            <p>창고 현황 및 소모품 재고 관리</p>
+                        </div>
+                    </div>
+                    <span class="workspace-tag">INVENTORY</span>
+                </div>
+                <div class="workspace-grid">
+                    <div class="workspace-item" onclick="goTeam('warehouse-dashboard.html')">
+                        <div class="workspace-item-icon">🏭</div>
+                        <div class="workspace-item-name">창고 대시보드</div>
+                        <div class="workspace-item-desc">창고 사용 현황<br>실시간 모니터링</div>
+                    </div>
+                    <div class="workspace-item" onclick="goTeam('consumables-inventory.html')">
+                        <div class="workspace-item-icon">🧰</div>
+                        <div class="workspace-item-name">소모품 재고</div>
+                        <div class="workspace-item-desc">실시간 소모품<br>재고 현황 조회</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- 업무 지원 센터 -->
+        <!-- ============================================ -->
+        <div class="workspace-section">
+            <div class="workspace-panel theme-purple">
+                <div class="workspace-header">
+                    <div class="workspace-title-group">
+                        <div class="workspace-title-icon">📋</div>
+                        <div class="workspace-title">
+                            <h3>업무 지원 센터</h3>
+                            <p>결재, 보고, 근태 관리</p>
+                        </div>
+                    </div>
+                    <span class="workspace-tag">SUPPORT</span>
+                </div>
+                <div class="workspace-grid">
+                    <div class="workspace-item" onclick="goTeam('approval-system.html')">
+                        <div class="workspace-item-icon">📝</div>
+                        <div class="workspace-item-name">기안 &amp; 결재</div>
+                        <div class="workspace-item-desc">기안서 제출 및<br>승인 워크플로우</div>
+                    </div>
+                    <div class="workspace-item" onclick="goTeam('daily-report.html')">
+                        <div class="workspace-item-icon">📅</div>
+                        <div class="workspace-item-name">일일 업무 보고</div>
+                        <div class="workspace-item-desc">매일 업무 종료 시<br>작성하는 보고서</div>
+                    </div>
                     <div class="workspace-item" onclick="goExternal('https://donggukang09.github.io/hiqasc-overtime/leave_request.html')">
                         <div class="workspace-item-icon">🌴</div>
                         <div class="workspace-item-name">연차 신청</div>
