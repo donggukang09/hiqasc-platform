@@ -120,6 +120,12 @@ body {
   color:#fff;
   border-color:#4a90e2;
 }
+.filter-chip.has-results {
+  background:#e8f4fd;
+  color:#2980b9;
+  border-color:#7eb8e2;
+  font-weight:600;
+}
 
 /* ── Main Content ── */
 .main-content {
@@ -695,6 +701,7 @@ function doSearch() {
     document.getElementById('resultsList').innerHTML = '<div class="no-results"><div class="icon">🔍</div><p>부품명, 별칭 또는 부품번호를 입력하세요</p></div>';
     document.getElementById('resultCount').textContent = '0건';
     clearHighlights();
+    highlightFilterChips('');
     return;
   }
   
@@ -739,6 +746,37 @@ function doSearch() {
   
   // Highlight all matching locations on map
   highlightLocations(filteredData);
+  
+  // Highlight filter chips that have matching results
+  highlightFilterChips(query);
+}
+
+function highlightFilterChips(query) {
+  if(!query) {
+    // No search query - remove all has-results highlights
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('has-results'));
+    return;
+  }
+  
+  // Find which machines have matching parts (ignore active filter to show all matching models)
+  const matchingMachines = new Set();
+  allData.forEach(item => {
+    const matches = item.partName.toLowerCase().includes(query) ||
+                    item.alias.toLowerCase().includes(query) ||
+                    item.partNo.toLowerCase().includes(query);
+    if(matches && item.machine) matchingMachines.add(item.machine);
+  });
+  
+  // Update chip styles
+  document.querySelectorAll('.filter-chip').forEach(chip => {
+    const text = chip.textContent;
+    if(text === '전체') return;
+    if(matchingMachines.has(text)) {
+      chip.classList.add('has-results');
+    } else {
+      chip.classList.remove('has-results');
+    }
+  });
 }
 
 function selectItem(idx) {
