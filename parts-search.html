@@ -673,9 +673,8 @@ let activeFilter = '';
 function buildFilters() {
   const row = document.getElementById('filterRow');
   // Show top machine types
-  const topMachines = machineTypes.slice(0, 15);
   row.innerHTML = '<div class="filter-chip ' + (!activeFilter ? 'active' : '') + '" onclick="setFilter(\'\')">전체</div>' +
-    topMachines.map(m => '<div class="filter-chip" onclick="setFilter(\'' + m.replace(/'/g,"\\'") + '\')">' + m + '</div>').join('');
+    machineTypes.map(m => '<div class="filter-chip" onclick="setFilter(\'' + m.replace(/'/g,"\\'") + '\')">' + m + '</div>').join('');
 }
 
 function setFilter(machine) {
