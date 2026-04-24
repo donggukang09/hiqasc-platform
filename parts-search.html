@@ -292,34 +292,9 @@ body {
   stroke-width:1;
 }
 
-/* Location callout */
+/* Location callout - rendered inside SVG */
 .location-callout {
-  position:absolute;
-  background:#1a1a2e;
-  color:#fff;
-  padding:10px 16px;
-  border-radius:10px;
-  font-size:13px;
-  font-weight:600;
-  pointer-events:none;
-  opacity:0;
-  transition:opacity 0.3s;
-  z-index:10;
-  white-space:nowrap;
-  box-shadow:0 4px 16px rgba(0,0,0,0.3);
-}
-.location-callout.show { opacity:1; }
-.location-callout::after {
-  content:'';
-  position:absolute;
-  bottom:-6px;
-  left:50%;
-  transform:translateX(-50%);
-  width:12px;
-  height:12px;
-  background:#1a1a2e;
-  border-radius:2px;
-  transform:translateX(-50%) rotate(45deg);
+  display:none;
 }
 
 /* ── Detail Panel (below map) ── */
@@ -893,7 +868,8 @@ function clearHighlights() {
   document.querySelectorAll('.rack-rect').forEach(r => {
     r.classList.remove('highlight', 'highlight-drawer');
   });
-  document.getElementById('callout').classList.remove('show');
+  const old = document.getElementById('svgCallout');
+  if(old) old.remove();
 }
 
 function highlightRack(zone, rack, level, isDrawer) {
@@ -904,19 +880,62 @@ function highlightRack(zone, rack, level, isDrawer) {
   
   el.classList.add(isDrawer ? 'highlight-drawer' : 'highlight');
   
-  // Show callout
-  const rect = el.getBoundingClientRect();
-  const mapRect = document.getElementById('areaMap').getBoundingClientRect();
-  const callout = document.getElementById('callout');
+  // Show callout inside SVG using element's own coordinates
   const levelNames = { 'T':'Top', '1':'1단', '2':'2단', '3':'3단', '4':'4단' };
-  callout.textContent = `${zone}구역 ${rack}번랙 ${levelNames[level] || level}${isDrawer ? ' (서랍)' : ''}`;
-  callout.classList.add('show');
+  const text = `${zone}구역 ${rack}번랙 ${levelNames[level] || level}${isDrawer ? ' (서랍)' : ''}`;
   
-  const cx = rect.left - mapRect.left + rect.width/2;
-  const cy = rect.top - mapRect.top - 40;
-  callout.style.left = cx + 'px';
-  callout.style.top = cy + 'px';
-  callout.style.transform = 'translateX(-50%)';
+  const x = parseFloat(el.getAttribute('x'));
+  const y = parseFloat(el.getAttribute('y'));
+  const w = parseFloat(el.getAttribute('width'));
+  const h = parseFloat(el.getAttribute('height'));
+  
+  const cx = x + w / 2;
+  const cy = y - 12;
+  
+  // Remove existing callout
+  const old = document.getElementById('svgCallout');
+  if(old) old.remove();
+  
+  const svg = document.querySelector('#areaMap svg');
+  const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+  g.id = 'svgCallout';
+  
+  // Background rect (will size after text renders)
+  const bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+  bg.setAttribute('rx', '6');
+  bg.setAttribute('ry', '6');
+  bg.setAttribute('fill', '#1a1a2e');
+  bg.setAttribute('opacity', '0.95');
+  
+  // Arrow
+  const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+  arrow.setAttribute('fill', '#1a1a2e');
+  arrow.setAttribute('opacity', '0.95');
+  arrow.setAttribute('points', `${cx-5},${cy} ${cx+5},${cy} ${cx},${cy+6}`);
+  
+  // Text
+  const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+  t.setAttribute('x', cx);
+  t.setAttribute('y', cy - 8);
+  t.setAttribute('text-anchor', 'middle');
+  t.setAttribute('font-family', 'Manrope, sans-serif');
+  t.setAttribute('font-size', '11');
+  t.setAttribute('font-weight', '700');
+  t.setAttribute('fill', '#fff');
+  t.textContent = text;
+  
+  g.appendChild(bg);
+  g.appendChild(arrow);
+  g.appendChild(t);
+  svg.appendChild(g);
+  
+  // Size background to text
+  const bbox = t.getBBox();
+  const px = 10, py = 5;
+  bg.setAttribute('x', bbox.x - px);
+  bg.setAttribute('y', bbox.y - py);
+  bg.setAttribute('width', bbox.width + px * 2);
+  bg.setAttribute('height', bbox.height + py * 2);
 }
 
 function highlightLocations(items) {
