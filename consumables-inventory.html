@@ -411,11 +411,13 @@
                     <tr>
                         <th>품목명</th>
                         <th>규격</th>
+                        <th>전 주 수량</th>
                         <th>현재수량</th>
+                        <th>변동</th>
                         <th>단위</th>
                         <th>안전재고</th>
-                        <th>상태</th>
                         <th>비고</th>
+                        <th>위치</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody">
@@ -483,11 +485,13 @@
                     const item = {
                         name: row.c[0]?.v || '',
                         spec: row.c[1]?.v || '',
-                        quantity: parseFloat(row.c[2]?.v) || 0,
-                        unit: row.c[3]?.v || '',
-                        safetyStock: parseFloat(row.c[4]?.v) || 0,
-                        status: row.c[5]?.v || '',
-                        note: row.c[6]?.v || ''
+                        prevQuantity: parseFloat(row.c[2]?.v) || 0,
+                        quantity: parseFloat(row.c[3]?.v) || 0,
+                        change: row.c[4]?.v ?? '',
+                        unit: row.c[5]?.v || '',
+                        safetyStock: parseFloat(row.c[6]?.v) || 0,
+                        note: row.c[7]?.v || '',
+                        location: row.c[8]?.v || ''
                     };
                     
                     allData.push(item);
@@ -510,6 +514,43 @@
                 loading.style.display = 'none';
                 alert('재고 데이터를 불러오는데 실패했습니다.\n\n구글 시트에 "소모품재고" 탭이 있는지 확인해주세요.');
             }
+        }
+
+        // gviz 날짜 파싱 (Date(y,m,d) → m은 0-based)
+        function parseGvizDate(cell) {
+            if (!cell) return '';
+            // f(포맷된 문자열)가 있으면 우선 사용
+            if (cell.f) return cell.f;
+            const v = cell.v;
+            if (!v) return '';
+            // "Date(2026,3,22)" 형태 파싱
+            const m = String(v).match(/Date\((\d+),(\d+),(\d+)\)/);
+            if (m) {
+                const year = parseInt(m[1]);
+                const month = parseInt(m[2]) + 1; // 0-based → 1-based
+                const day = parseInt(m[3]);
+                return `${year}. ${month}. ${day}`;
+            }
+            return String(v);
+        }
+
+        // 변동량 색상
+        function getChangeRateColor(val) {
+            if (val === '' || val === null || val === undefined) return '#808080';
+            const num = parseFloat(val);
+            if (isNaN(num)) return '#808080';
+            if (num > 0) return '#2ecc71';
+            if (num < 0) return '#e74c3c';
+            return '#808080';
+        }
+
+        // 변동량 포맷
+        function formatChangeRate(val) {
+            if (val === '' || val === null || val === undefined) return '-';
+            const num = parseFloat(val);
+            if (isNaN(num)) return val;
+            if (num > 0) return `+${num}`;
+            return `${num}`;
         }
 
         // 상태 판정 (통일 함수)
@@ -542,11 +583,13 @@
                 row.innerHTML = `
                     <td><strong>${item.name}</strong></td>
                     <td>${item.spec || '-'}</td>
+                    <td>${item.prevQuantity.toLocaleString()}</td>
                     <td class="quantity-cell ${s.quantityClass}">${item.quantity.toLocaleString()}</td>
+                    <td style="font-weight:600; color:${getChangeRateColor(item.change)}">${formatChangeRate(item.change)}</td>
                     <td>${item.unit}</td>
                     <td>${item.safetyStock.toLocaleString()}</td>
-                    <td><span class="status-badge ${s.statusClass}">${s.statusText}</span></td>
                     <td style="color: #808080;">${item.note || '-'}</td>
+                    <td style="color: #b0b0b0;">${item.location || '-'}</td>
                 `;
                 
                 tbody.appendChild(row);
@@ -591,6 +634,5 @@
             updateStats(filtered);
         }
     </script>
-    <script src="hiq-notification.js?v=2"></script>
 </body>
 </html>
