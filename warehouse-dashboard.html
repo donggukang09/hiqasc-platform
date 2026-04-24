@@ -565,9 +565,7 @@ function rowsToSchedules(rows) {
   return rows.map(r => ({
     id: Number(r.id),
     type: String(r['유형'] || 'in'),
-    date: typeof r['예정일'] === 'object' && r['예정일'] instanceof Date
-      ? r['예정일'].toISOString().slice(0,10)
-      : String(r['예정일'] || ''),
+    date: normalizeDate(r['예정일']),
     warehouseId: Number(r['창고id']),
     itemName: String(r['품목명'] || ''),
     qty: Number(r['수량']) || 0,
@@ -575,6 +573,24 @@ function rowsToSchedules(rows) {
     done: r['완료여부'] === true || r['완료여부'] === 'TRUE' || r['완료여부'] === '완료',
     completedAt: r['완료일시'] ? String(r['완료일시']) : ''
   }));
+}
+
+// 날짜를 YYYY-MM-DD 형식으로 정규화 (시트에서 다양한 형식으로 올 수 있음)
+function normalizeDate(val) {
+  if (!val) return '';
+  // 이미 YYYY-MM-DD 형식이면 그대로
+  if (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(val)) return val;
+  // Date 객체이거나 파싱 가능한 문자열이면 변환
+  try {
+    const d = new Date(val);
+    if (!isNaN(d.getTime())) {
+      return d.getFullYear() + '-' +
+        String(d.getMonth()+1).padStart(2,'0') + '-' +
+        String(d.getDate()).padStart(2,'0');
+    }
+  } catch(e) {}
+  // 그래도 안 되면 문자열 그대로
+  return String(val);
 }
 
 // 앱 데이터 → 시트 행 변환
