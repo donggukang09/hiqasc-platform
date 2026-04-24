@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>부품 검색 | HIQASC</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family:'Manrope',sans-serif;
+  background:#f4f6f9;
+  color:#1a1a2e;
+  min-height:100vh;
+}
+
+/* ── Header ── */
+.header {
+  background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);
+  padding:20px 24px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  box-shadow:0 4px 20px rgba(0,0,0,0.3);
+}
+.header-left { display:flex; align-items:center; gap:14px; }
+.home-btn {
+  background:rgba(255,255,255,0.1);
+  border:1px solid rgba(255,255,255,0.2);
+  color:#fff;
+  padding:8px 14px;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:14px;
+  font-family:'Manrope',sans-serif;
+  transition:all 0.2s;
+  text-decoration:none;
+}
+.home-btn:hover { background:rgba(255,255,255,0.2); }
+.header h1 {
+  color:#fff;
+  font-size:20px;
+  font-weight:700;
+  letter-spacing:-0.5px;
+}
+.header h1 span { color:#4fc3f7; }
+.header-badge {
+  background:rgba(79,195,247,0.15);
+  color:#4fc3f7;
+  padding:4px 12px;
+  border-radius:20px;
+  font-size:11px;
+  font-weight:600;
+}
+
+/* ── Search Section ── */
+.search-section {
+  max-width:1400px;
+  margin:0 auto;
+  padding:24px 20px 0;
+}
+.search-box {
+  background:#fff;
+  border-radius:16px;
+  padding:20px 24px;
+  box-shadow:0 2px 12px rgba(0,0,0,0.06);
+  display:flex;
+  gap:12px;
+  align-items:center;
+}
+.search-box input {
+  flex:1;
+  border:2px solid #e8ecf1;
+  border-radius:10px;
+  padding:14px 18px;
+  font-size:15px;
+  font-family:'Manrope',sans-serif;
+  transition:border-color 0.2s;
+  outline:none;
+}
+.search-box input:focus { border-color:#4a90e2; }
+.search-box input::placeholder { color:#aab4c2; }
+.search-btn {
+  background:linear-gradient(135deg,#4a90e2,#357abd);
+  color:#fff;
+  border:none;
+  padding:14px 28px;
+  border-radius:10px;
+  font-size:15px;
+  font-weight:600;
+  font-family:'Manrope',sans-serif;
+  cursor:pointer;
+  transition:transform 0.15s,box-shadow 0.15s;
+  white-space:nowrap;
+}
+.search-btn:hover { transform:translateY(-1px); box-shadow:0 4px 12px rgba(74,144,226,0.4); }
+.search-btn:active { transform:translateY(0); }
+
+.filter-row {
+  display:flex;
+  gap:8px;
+  margin-top:12px;
+  flex-wrap:wrap;
+}
+.filter-chip {
+  padding:6px 14px;
+  border-radius:20px;
+  border:1.5px solid #dde2ea;
+  background:#fff;
+  font-size:12px;
+  font-weight:500;
+  cursor:pointer;
+  transition:all 0.2s;
+  font-family:'Manrope',sans-serif;
+  color:#5a6a7e;
+}
+.filter-chip:hover { border-color:#4a90e2; color:#4a90e2; }
+.filter-chip.active {
+  background:#4a90e2;
+  color:#fff;
+  border-color:#4a90e2;
+}
+
+/* ── Main Content ── */
+.main-content {
+  max-width:1400px;
+  margin:0 auto;
+  padding:20px;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:20px;
+}
+@media(max-width:1024px) {
+  .main-content { grid-template-columns:1fr; }
+}
+
+/* ── Results Panel ── */
+.panel {
+  background:#fff;
+  border-radius:16px;
+  box-shadow:0 2px 12px rgba(0,0,0,0.06);
+  overflow:hidden;
+}
+.panel-header {
+  padding:16px 20px;
+  border-bottom:1px solid #f0f2f5;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.panel-header h2 {
+  font-size:16px;
+  font-weight:700;
+  color:#1a1a2e;
+}
+.result-count {
+  background:#e8f4fd;
+  color:#2980b9;
+  padding:3px 10px;
+  border-radius:12px;
+  font-size:12px;
+  font-weight:600;
+}
+
+.results-list {
+  max-height:520px;
+  overflow-y:auto;
+  padding:8px;
+}
+.results-list::-webkit-scrollbar { width:5px; }
+.results-list::-webkit-scrollbar-track { background:transparent; }
+.results-list::-webkit-scrollbar-thumb { background:#d0d5dd; border-radius:10px; }
+
+.result-item {
+  padding:14px 16px;
+  border-radius:10px;
+  cursor:pointer;
+  transition:all 0.15s;
+  border:1.5px solid transparent;
+  margin-bottom:4px;
+}
+.result-item:hover { background:#f8fafc; }
+.result-item.selected {
+  background:#eef5ff;
+  border-color:#4a90e2;
+}
+.result-item .part-name {
+  font-weight:600;
+  font-size:14px;
+  color:#1a1a2e;
+  margin-bottom:4px;
+}
+.result-item .part-alias {
+  font-size:12px;
+  color:#4a90e2;
+  margin-bottom:4px;
+  font-weight:500;
+}
+.result-item .part-meta {
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  align-items:center;
+}
+.meta-tag {
+  font-size:11px;
+  padding:2px 8px;
+  border-radius:6px;
+  font-weight:500;
+}
+.meta-tag.machine { background:#f0f4ff; color:#4a6fa5; }
+.meta-tag.partno { background:#f5f0ff; color:#7c5cbf; }
+.meta-tag.location {
+  background:#e6f9ee;
+  color:#1d8348;
+  font-weight:700;
+}
+.meta-tag.drawer {
+  background:#fff8e1;
+  color:#e67e22;
+  font-weight:600;
+}
+
+.no-results {
+  padding:60px 20px;
+  text-align:center;
+  color:#aab4c2;
+}
+.no-results .icon { font-size:48px; margin-bottom:12px; }
+.no-results p { font-size:14px; }
+
+/* ── Map Panel ── */
+.map-container {
+  padding:16px;
+}
+.area-map {
+  position:relative;
+  background:#f8fafb;
+  border:2px solid #e8ecf1;
+  border-radius:12px;
+  width:100%;
+  aspect-ratio:1.3;
+  overflow:hidden;
+}
+
+/* SVG map styles */
+.area-map svg { width:100%; height:100%; }
+.rack-group { cursor:pointer; }
+.rack-rect {
+  fill:#dde4ed;
+  stroke:#c0c8d4;
+  stroke-width:1;
+  rx:3;
+  ry:3;
+  transition:all 0.3s;
+}
+.rack-rect.highlight {
+  fill:#4a90e2;
+  stroke:#2c6fba;
+  stroke-width:2;
+  filter:drop-shadow(0 0 8px rgba(74,144,226,0.5));
+}
+.rack-rect.highlight-drawer {
+  fill:#f39c12;
+  stroke:#d68910;
+  stroke-width:2;
+  filter:drop-shadow(0 0 8px rgba(243,156,18,0.5));
+}
+.rack-label {
+  font-family:'Manrope',sans-serif;
+  font-size:9px;
+  fill:#7a8694;
+  font-weight:600;
+  pointer-events:none;
+}
+.zone-label {
+  font-family:'Manrope',sans-serif;
+  font-size:16px;
+  fill:#2c3e50;
+  font-weight:800;
+  pointer-events:none;
+}
+.wall-rect {
+  fill:#bdc3c7;
+  stroke:#a0a8b0;
+  stroke-width:1;
+}
+
+/* Location callout */
+.location-callout {
+  position:absolute;
+  background:#1a1a2e;
+  color:#fff;
+  padding:10px 16px;
+  border-radius:10px;
+  font-size:13px;
+  font-weight:600;
+  pointer-events:none;
+  opacity:0;
+  transition:opacity 0.3s;
+  z-index:10;
+  white-space:nowrap;
+  box-shadow:0 4px 16px rgba(0,0,0,0.3);
+}
+.location-callout.show { opacity:1; }
+.location-callout::after {
+  content:'';
+  position:absolute;
+  bottom:-6px;
+  left:50%;
+  transform:translateX(-50%);
+  width:12px;
+  height:12px;
+  background:#1a1a2e;
+  border-radius:2px;
+  transform:translateX(-50%) rotate(45deg);
+}
+
+/* ── Detail Panel (below map) ── */
+.detail-panel {
+  margin-top:16px;
+  background:#f8fafb;
+  border-radius:12px;
+  padding:16px 20px;
+  display:none;
+}
+.detail-panel.show { display:block; }
+.detail-title {
+  font-size:15px;
+  font-weight:700;
+  color:#1a1a2e;
+  margin-bottom:12px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.detail-grid {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+}
+.detail-item {
+  background:#fff;
+  padding:10px 14px;
+  border-radius:8px;
+  border:1px solid #e8ecf1;
+}
+.detail-item .label {
+  font-size:11px;
+  color:#7a8694;
+  font-weight:500;
+  margin-bottom:2px;
+}
+.detail-item .value {
+  font-size:14px;
+  font-weight:600;
+  color:#1a1a2e;
+}
+.detail-item .value.loc-highlight {
+  color:#4a90e2;
+}
+
+/* ── Pulse Animation ── */
+@keyframes pulse {
+  0%,100% { opacity:1; }
+  50% { opacity:0.5; }
+}
+.rack-rect.highlight, .rack-rect.highlight-drawer {
+  animation:pulse 1.5s ease-in-out infinite;
+}
+
+/* ── Loading ── */
+.loading {
+  padding:80px 20px;
+  text-align:center;
+  color:#aab4c2;
+}
+.loading .spinner {
+  width:36px;
+  height:36px;
+  border:3px solid #e8ecf1;
+  border-top-color:#4a90e2;
+  border-radius:50%;
+  animation:spin 0.8s linear infinite;
+  margin:0 auto 12px;
+}
+@keyframes spin { to { transform:rotate(360deg); } }
+
+/* ── Credit ── */
+.credit {
+  text-align:center;
+  padding:20px;
+  font-size:11px;
+  color:#aab4c2;
+  font-weight:500;
+}
+
+/* ── Responsive ── */
+@media(max-width:600px) {
+  .header h1 { font-size:16px; }
+  .search-box { flex-direction:column; }
+  .search-btn { width:100%; }
+  .detail-grid { grid-template-columns:1fr; }
+  .main-content { padding:12px; gap:12px; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <a class="home-btn" onclick="goHome()">🏠 메인으로</a>
+    <h1><span>부품 검색</span> & 위치 안내</h1>
+  </div>
+  <div class="header-badge">PARTS FINDER</div>
+</div>
+
+<div class="search-section">
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="부품명, 별칭, 부품번호로 검색..." autocomplete="off">
+    <button class="search-btn" onclick="doSearch()">🔍 검색</button>
+  </div>
+  <div class="filter-row" id="filterRow"></div>
+</div>
+
+<div class="main-content">
+  <!-- Results -->
+  <div class="panel">
+    <div class="panel-header">
+      <h2>📋 검색 결과</h2>
+      <span class="result-count" id="resultCount">0건</span>
+    </div>
+    <div class="results-list" id="resultsList">
+      <div class="no-results">
+        <div class="icon">🔍</div>
+        <p>부품명, 별칭 또는 부품번호를 입력하세요</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Map + Detail -->
+  <div>
+    <div class="panel">
+      <div class="panel-header">
+        <h2>🗺️ 부품 에어리어 맵</h2>
+      </div>
+      <div class="map-container">
+        <div class="area-map" id="areaMap"></div>
+        <div class="location-callout" id="callout"></div>
+      </div>
+    </div>
+    <div class="detail-panel" id="detailPanel">
+      <div class="detail-title">📦 <span id="detailTitle"></span></div>
+      <div class="detail-grid" id="detailGrid"></div>
+    </div>
+  </div>
+</div>
+
+<div class="credit">Developed by DONGGU KANG</div>
+
+<script>
+// ── Config ──
+const SHEET_ID = '1IET_cGI_RIRPXBp3-3C6VFNngFDz5VTr-34bvBoeDAc';
+const SHEET_TAB = '부품검색';
+
+// ── Area Layout (from sketch) ──
+// Each zone: { racks: count, x, y, w, h, direction }
+// Coordinates in SVG viewBox 0 0 700 490
+const LAYOUT = {
+  walls: [
+    { x:30, y:20, w:640, h:12 },    // top wall
+    { x:658, y:20, w:12, h:450 },   // right wall
+    { x:30, y:458, w:640, h:12 },   // bottom wall
+  ],
+  zones: {
+    A: { racks:5, x:70, y:50, rackW:104, rackH:28, gap:6, dir:'horizontal' },
+    B: { racks:4, x:70, y:140, rackW:110, rackH:28, gap:8, dir:'horizontal' },
+    C: { racks:4, x:70, y:180, rackW:110, rackH:28, gap:8, dir:'horizontal' },
+    D: { racks:3, x:170, y:260, rackW:110, rackH:28, gap:8, dir:'horizontal' },
+    E: { racks:3, x:170, y:300, rackW:110, rackH:28, gap:8, dir:'horizontal' },
+    F: { racks:4, x:120, y:420, rackW:118, rackH:28, gap:10, dir:'horizontal' },
+    G: { racks:3, x:622, y:78, rackW:28, rackH:106, gap:9, dir:'vertical' },
+  }
+};
+
+const LEVELS = ['T','1','2','3','4'];
+
+let allData = [];
+let filteredData = [];
+let selectedItem = null;
+let machineTypes = [];
+
+// ── Initialize ──
+window.addEventListener('DOMContentLoaded', () => {
+  drawMap();
+  loadData();
+  document.getElementById('searchInput').addEventListener('keydown', e => {
+    if(e.key === 'Enter') doSearch();
+  });
+});
+
+function goHome() {
+  if(window.parent !== window) {
+    window.parent.location.href = 'index.html';
+  } else {
+    window.location.href = 'index.html';
+  }
+}
+
+// ── Load Data from Google Sheets ──
+function loadData() {
+  document.getElementById('resultsList').innerHTML = '<div class="loading"><div class="spinner"></div><p>데이터 로딩 중...</p></div>';
+  
+  const cbName = 'partsCallback_' + Date.now();
+  const query = encodeURIComponent('SELECT * WHERE A IS NOT NULL');
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json;responseHandler:${cbName}&sheet=${encodeURIComponent(SHEET_TAB)}&tq=${query}`;
+  
+  window[cbName] = function(response) {
+    try {
+      parseGvizResponse(response);
+    } catch(e) {
+      console.error('Parse error:', e);
+      document.getElementById('resultsList').innerHTML = '<div class="no-results"><div class="icon">⚠️</div><p>데이터 로딩 실패</p></div>';
+    }
+    delete window[cbName];
+    const s = document.getElementById('gvizScript');
+    if(s) s.remove();
+  };
+  
+  const script = document.createElement('script');
+  script.id = 'gvizScript';
+  script.src = url;
+  script.onerror = function() {
+    document.getElementById('resultsList').innerHTML = '<div class="no-results"><div class="icon">⚠️</div><p>시트 연결 실패. 시트 공유 설정을 확인하세요.</p></div>';
+  };
+  document.head.appendChild(script);
+  
+  setTimeout(() => {
+    if(!allData.length) {
+      document.getElementById('resultsList').innerHTML = '<div class="no-results"><div class="icon">⏱️</div><p>로딩 시간 초과. 시트가 "누구나 볼 수 있음"으로 공유되어 있는지 확인하세요.</p></div>';
+    }
+  }, 10000);
+}
+
+function parseGvizResponse(response) {
+  const table = response.table;
+  const cols = table.cols;
+  const rows = table.rows;
+  
+  // Detect header: check if cols have labels or if first row is header
+  let headers = cols.map(c => c.label || '');
+  let dataStartIdx = 0;
+  
+  // If headers are empty, first data row might be the header
+  if(headers.every(h => !h || h.trim() === '')) {
+    if(rows.length > 0) {
+      headers = rows[0].c.map(cell => (cell && cell.v) ? String(cell.v) : '');
+      dataStartIdx = 1;
+    }
+  }
+  
+  // Map columns
+  const colMap = {};
+  const expectedCols = ['부품번호','부품명','별칭','머신종류','위치','구역','랙번호','단','서랍'];
+  headers.forEach((h, i) => {
+    const trimmed = h.trim();
+    if(expectedCols.includes(trimmed)) colMap[trimmed] = i;
+  });
+  
+  allData = [];
+  for(let r = dataStartIdx; r < rows.length; r++) {
+    const row = rows[r].c;
+    const getVal = (colName) => {
+      const idx = colMap[colName];
+      if(idx === undefined) return '';
+      const cell = row[idx];
+      return (cell && cell.v != null) ? String(cell.v).trim() : '';
+    };
+    
+    const partNo = getVal('부품번호');
+    if(!partNo) continue;
+    
+    allData.push({
+      partNo: partNo,
+      partName: getVal('부품명'),
+      alias: getVal('별칭'),
+      machine: getVal('머신종류'),
+      location: getVal('위치'),
+      zone: getVal('구역'),
+      rack: getVal('랙번호'),
+      level: getVal('단'),
+      drawer: getVal('서랍'),
+    });
+  }
+  
+  // Collect machine types for filter
+  const machineSet = new Set();
+  allData.forEach(d => { if(d.machine) machineSet.add(d.machine); });
+  machineTypes = [...machineSet].sort();
+  buildFilters();
+  
+  document.getElementById('resultsList').innerHTML = '<div class="no-results"><div class="icon">🔍</div><p>부품명, 별칭 또는 부품번호를 입력하세요</p><p style="margin-top:8px;font-size:12px;color:#c0c8d4;">총 ' + allData.length + '개 부품 데이터 로드됨</p></div>';
+}
+
+// ── Filters ──
+let activeFilter = '';
+function buildFilters() {
+  const row = document.getElementById('filterRow');
+  // Show top machine types
+  const topMachines = machineTypes.slice(0, 15);
+  row.innerHTML = '<div class="filter-chip ' + (!activeFilter ? 'active' : '') + '" onclick="setFilter(\'\')">전체</div>' +
+    topMachines.map(m => '<div class="filter-chip" onclick="setFilter(\'' + m.replace(/'/g,"\\'") + '\')">' + m + '</div>').join('');
+}
+
+function setFilter(machine) {
+  activeFilter = machine;
+  document.querySelectorAll('.filter-chip').forEach(chip => {
+    chip.classList.toggle('active', 
+      (!machine && chip.textContent === '전체') || chip.textContent === machine
+    );
+  });
+  doSearch();
+}
+
+// ── Search ──
+function doSearch() {
+  const query = document.getElementById('searchInput').value.trim().toLowerCase();
+  
+  if(!query && !activeFilter) {
+    document.getElementById('resultsList').innerHTML = '<div class="no-results"><div class="icon">🔍</div><p>부품명, 별칭 또는 부품번호를 입력하세요</p></div>';
+    document.getElementById('resultCount').textContent = '0건';
+    clearHighlights();
+    return;
+  }
+  
+  filteredData = allData.filter(item => {
+    const machineMatch = !activeFilter || item.machine === activeFilter;
+    if(!machineMatch) return false;
+    if(!query) return true;
+    
+    return item.partName.toLowerCase().includes(query) ||
+           item.alias.toLowerCase().includes(query) ||
+           item.partNo.toLowerCase().includes(query) ||
+           item.machine.toLowerCase().includes(query);
+  });
+  
+  document.getElementById('resultCount').textContent = filteredData.length + '건';
+  
+  if(!filteredData.length) {
+    document.getElementById('resultsList').innerHTML = '<div class="no-results"><div class="icon">😕</div><p>"' + (query || activeFilter) + '" 검색 결과가 없습니다</p></div>';
+    clearHighlights();
+    return;
+  }
+  
+  // Render results (max 100)
+  const display = filteredData.slice(0, 100);
+  document.getElementById('resultsList').innerHTML = display.map((item, idx) => {
+    const drawerTag = item.drawer === 'Y' ? '<span class="meta-tag drawer">🗄 서랍</span>' : '';
+    const aliasHtml = item.alias ? '<div class="part-alias">' + escHtml(item.alias) + '</div>' : '';
+    const locTag = item.location ? '<span class="meta-tag location">📍 ' + escHtml(item.location) + '</span>' : '';
+    return '<div class="result-item" onclick="selectItem(' + idx + ')" id="ri_' + idx + '">' +
+      '<div class="part-name">' + highlightMatch(escHtml(item.partName), query) + '</div>' +
+      aliasHtml +
+      '<div class="part-meta">' +
+        '<span class="meta-tag partno">' + escHtml(item.partNo) + '</span>' +
+        '<span class="meta-tag machine">' + escHtml(item.machine) + '</span>' +
+        locTag + drawerTag +
+      '</div></div>';
+  }).join('');
+  
+  if(filteredData.length > 100) {
+    document.getElementById('resultsList').innerHTML += '<div style="text-align:center;padding:12px;color:#aab4c2;font-size:12px;">검색어를 더 구체적으로 입력하세요 (100/' + filteredData.length + '건 표시)</div>';
+  }
+  
+  // Highlight all matching locations on map
+  highlightLocations(filteredData);
+}
+
+function selectItem(idx) {
+  const item = filteredData[idx];
+  selectedItem = item;
+  
+  // Update selection UI
+  document.querySelectorAll('.result-item').forEach(el => el.classList.remove('selected'));
+  const el = document.getElementById('ri_' + idx);
+  if(el) el.classList.add('selected');
+  
+  // Show detail
+  showDetail(item);
+  
+  // Highlight single location
+  clearHighlights();
+  if(item.zone && item.rack && item.level) {
+    highlightRack(item.zone, item.rack, item.level, item.drawer === 'Y');
+  }
+}
+
+function showDetail(item) {
+  const panel = document.getElementById('detailPanel');
+  const title = document.getElementById('detailTitle');
+  const grid = document.getElementById('detailGrid');
+  
+  title.textContent = item.partName;
+  
+  const levelNames = { 'T':'Top (최상단)', '1':'1단 (상)', '2':'2단', '3':'3단', '4':'4단 (하)' };
+  const levelName = levelNames[item.level] || item.level || '-';
+  
+  grid.innerHTML = `
+    <div class="detail-item"><div class="label">부품번호</div><div class="value">${escHtml(item.partNo)}</div></div>
+    <div class="detail-item"><div class="label">머신종류</div><div class="value">${escHtml(item.machine)}</div></div>
+    <div class="detail-item"><div class="label">위치코드</div><div class="value loc-highlight">${escHtml(item.location || '미지정')}</div></div>
+    <div class="detail-item"><div class="label">구역</div><div class="value loc-highlight">${escHtml(item.zone || '-')} 구역</div></div>
+    <div class="detail-item"><div class="label">랙 번호</div><div class="value">${item.rack ? item.rack + '번 랙' : '-'}</div></div>
+    <div class="detail-item"><div class="label">단 (층)</div><div class="value">${levelName}</div></div>
+    ${item.alias ? '<div class="detail-item"><div class="label">별칭</div><div class="value">' + escHtml(item.alias) + '</div></div>' : ''}
+    ${item.drawer === 'Y' ? '<div class="detail-item"><div class="label">보관형태</div><div class="value" style="color:#e67e22;">🗄 서랍형 부품통 (C)</div></div>' : ''}
+  `;
+  
+  panel.classList.add('show');
+}
+
+// ── SVG Map ──
+function drawMap() {
+  const mapEl = document.getElementById('areaMap');
+  let svg = '<svg viewBox="0 0 700 490" xmlns="http://www.w3.org/2000/svg">';
+  
+  // Walls
+  LAYOUT.walls.forEach(w => {
+    svg += `<rect class="wall-rect" x="${w.x}" y="${w.y}" width="${w.w}" height="${w.h}" rx="2"/>`;
+  });
+  
+  // Draw each zone
+  Object.entries(LAYOUT.zones).forEach(([zone, cfg]) => {
+    // Zone label
+    if(cfg.dir === 'horizontal') {
+      svg += `<text class="zone-label" x="${cfg.x - 30}" y="${cfg.y + cfg.rackH/2 + 6}">${zone}</text>`;
+    } else {
+      svg += `<text class="zone-label" x="${cfg.x + cfg.rackW/2 - 5}" y="${cfg.y - 8}">${zone}</text>`;
+    }
+    
+    // Draw racks
+    for(let r = 1; r <= cfg.racks; r++) {
+      let rx, ry, rw, rh;
+      if(cfg.dir === 'horizontal') {
+        rx = cfg.x + (r - 1) * (cfg.rackW + cfg.gap);
+        ry = cfg.y;
+        rw = cfg.rackW;
+        rh = cfg.rackH;
+      } else {
+        rx = cfg.x;
+        ry = cfg.y + (r - 1) * (cfg.rackH + cfg.gap);
+        rw = cfg.rackW;
+        rh = cfg.rackH;
+      }
+      
+      // Draw level subdivisions (T,1,2,3,4)
+      const levelCount = 5;
+      if(cfg.dir === 'horizontal') {
+        const levelH = rh / levelCount;
+        LEVELS.forEach((lvl, li) => {
+          const id = `rack_${zone}_${r}_${lvl}`;
+          svg += `<rect class="rack-rect" id="${id}" x="${rx}" y="${ry + li * levelH}" width="${rw}" height="${levelH - 1}" data-zone="${zone}" data-rack="${r}" data-level="${lvl}"/>`;
+        });
+        // Rack label - B,D,F above; A,C,E below
+        const labelAbove = (zone === 'B' || zone === 'D' || zone === 'F');
+        if(labelAbove) {
+          svg += `<text class="rack-label" x="${rx + rw/2}" y="${ry - 6}" text-anchor="middle">${zone}${r}</text>`;
+        } else {
+          svg += `<text class="rack-label" x="${rx + rw/2}" y="${ry + rh + 14}" text-anchor="middle">${zone}${r}</text>`;
+        }
+      } else {
+        const levelW = rw / levelCount;
+        LEVELS.forEach((lvl, li) => {
+          const id = `rack_${zone}_${r}_${lvl}`;
+          svg += `<rect class="rack-rect" id="${id}" x="${rx + li * levelW}" y="${ry}" width="${levelW - 1}" height="${rh}" data-zone="${zone}" data-rack="${r}" data-level="${lvl}"/>`;
+        });
+        svg += `<text class="rack-label" x="${rx - 6}" y="${ry + rh/2 + 4}" text-anchor="end">${zone}${r}</text>`;
+      }
+    }
+  });
+  
+  // Entry indicator
+  svg += '<text x="18" y="220" text-anchor="middle" font-family="Manrope" font-size="11" fill="#aab4c2" font-weight="600" writing-mode="vertical-rl">입 구 ▶</text>';
+  
+  svg += '</svg>';
+  mapEl.innerHTML = svg;
+}
+
+function clearHighlights() {
+  document.querySelectorAll('.rack-rect').forEach(r => {
+    r.classList.remove('highlight', 'highlight-drawer');
+  });
+  document.getElementById('callout').classList.remove('show');
+}
+
+function highlightRack(zone, rack, level, isDrawer) {
+  clearHighlights();
+  const id = `rack_${zone}_${rack}_${level}`;
+  const el = document.getElementById(id);
+  if(!el) return;
+  
+  el.classList.add(isDrawer ? 'highlight-drawer' : 'highlight');
+  
+  // Show callout
+  const rect = el.getBoundingClientRect();
+  const mapRect = document.getElementById('areaMap').getBoundingClientRect();
+  const callout = document.getElementById('callout');
+  const levelNames = { 'T':'Top', '1':'1단', '2':'2단', '3':'3단', '4':'4단' };
+  callout.textContent = `${zone}구역 ${rack}번랙 ${levelNames[level] || level}${isDrawer ? ' (서랍)' : ''}`;
+  callout.classList.add('show');
+  
+  const cx = rect.left - mapRect.left + rect.width/2;
+  const cy = rect.top - mapRect.top - 40;
+  callout.style.left = cx + 'px';
+  callout.style.top = cy + 'px';
+  callout.style.transform = 'translateX(-50%)';
+}
+
+function highlightLocations(items) {
+  clearHighlights();
+  const locations = new Set();
+  items.forEach(item => {
+    if(item.zone && item.rack && item.level) {
+      const key = `${item.zone}_${item.rack}_${item.level}_${item.drawer}`;
+      locations.add(key);
+    }
+  });
+  
+  locations.forEach(key => {
+    const [zone, rack, level, drawer] = key.split('_');
+    const id = `rack_${zone}_${rack}_${level}`;
+    const el = document.getElementById(id);
+    if(el) {
+      el.classList.add(drawer === 'Y' ? 'highlight-drawer' : 'highlight');
+    }
+  });
+}
+
+// ── Utilities ──
+function escHtml(str) {
+  if(!str) return '';
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function highlightMatch(text, query) {
+  if(!query) return text;
+  const regex = new RegExp('(' + query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+  return text.replace(regex, '<mark style="background:#fff3cd;padding:0 2px;border-radius:2px;">$1</mark>');
+}
+</script>
+</body>
+</html>
