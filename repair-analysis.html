@@ -17,7 +17,7 @@
             <div class="top-bar-logo">AI</div>
             <div>
                 <div class="top-bar-title">AS 수리 분석 대시보드</div>
-                <div class="top-bar-sub">접수 내용 & 수리 이력 텍스트 기반 AI 분석 · Google Sheets 실시간 연동</div>
+                <div class="top-bar-sub">접수 내용 & 수리 이력 텍스트 기반 AI 분석 · Return Date 기준 · Google Sheets 실시간 연동</div>
             </div>
         </div>
         <div class="top-bar-right">
@@ -203,7 +203,7 @@ function loadData(){
     document.getElementById('errorScreen').classList.add('hidden');
     document.getElementById('loadingProgress').textContent='Google Sheets 연결 중...';
 
-    const query='SELECT N,T,X,AA,AL,AM,AO WHERE X IS NOT NULL';
+    const query='SELECT Q,T,X,AA,AL,AM,AO WHERE X IS NOT NULL';
     const cbName='gvizCB_'+Date.now();
     const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json;responseHandler:${cbName}&sheet=${encodeURIComponent(SHEET_TAB)}&tq=${encodeURIComponent(query)}`;
 
