@@ -958,9 +958,14 @@
                     <span class="workspace-tag">DATA</span>
                 </div>
                 <div class="workspace-grid">
+                    <div class="workspace-item" onclick="goTeam('machine-dashboard.html')">
+                        <div class="workspace-item-icon">🖥️</div>
+                        <div class="workspace-item-name">AS현황 대시보드</div>
+                        <div class="workspace-item-desc">머신 수량 현황<br>실시간 모니터링</div>
+                    </div>
                     <div class="workspace-item" onclick="goTeam('weekly-closing-dashboard.html')">
                         <div class="workspace-item-icon">📊</div>
-                        <div class="workspace-item-name">AS 데이터</div>
+                        <div class="workspace-item-name">AS 로우 데이터</div>
                         <div class="workspace-item-desc">입고·완료 현황 및<br>테크니션 실적 분석</div>
                     </div>
                     <div class="workspace-item" onclick="goTeam('intake-trend-dashboard.html')">
@@ -968,10 +973,10 @@
                         <div class="workspace-item-name">입고 추세 분석</div>
                         <div class="workspace-item-desc">주간·월별 입고량<br>추이 및 변동 분석</div>
                     </div>
-                    <div class="workspace-item" onclick="goTeam('machine-dashboard.html')">
-                        <div class="workspace-item-icon">🖥️</div>
-                        <div class="workspace-item-name">AS현황 대시보드</div>
-                        <div class="workspace-item-desc">머신 수량 현황<br>실시간 모니터링</div>
+                    <div class="workspace-item" onclick="goTeam('repair-analysis.html')">
+                        <div class="workspace-item-icon">🤖</div>
+                        <div class="workspace-item-name">AS 분석 대시보드</div>
+                        <div class="workspace-item-desc">접수 내용 텍스트 기반<br>AI 증상·부품 분석</div>
                     </div>
                 </div>
             </div>
@@ -1109,9 +1114,10 @@
             { name: 'HIQASC 팀 현황', icon: '📊', desc: '근무 현황, 연차, 당일 수리 현황', url: 'team-dashboard.html', team: '전사 공통', badge: 'common', iconClass: 'team-common', keywords: '팀현황,근무,연차,수리현황,team,dashboard' },
             { name: '업무 플레이북', icon: '📖', desc: '전사 업무 흐름 & 온보딩 가이드', url: 'daily-playbook.html', team: '전사 공통', badge: 'common', iconClass: 'team-common', keywords: '플레이북,온보딩,가이드,업무흐름,playbook' },
             // === index.html — 데이터 센터 ===
-            { name: 'AS 데이터', icon: '📊', desc: '입고·완료 현황 및 테크니션 실적 분석', url: 'weekly-closing-dashboard.html', team: '데이터 센터', badge: 'data', iconClass: 'team-data', keywords: '주간마감,마감,실적,입고,완료,weekly,closing' },
-            { name: '입고 추세 분석', icon: '📉', desc: '주간·월별 입고량 추이 및 변동 분석', url: 'intake-trend-dashboard.html', team: '데이터 센터', badge: 'data', iconClass: 'team-data', keywords: '입고추세,추세,트렌드,입고량,변동,intake,trend' },
             { name: 'AS현황 대시보드', icon: '🖥️', desc: '머신 수량 현황 실시간 모니터링', url: 'machine-dashboard.html', team: '데이터 센터', badge: 'data', iconClass: 'team-data', keywords: '머신,수량,현황,대시보드,machine,tv' },
+            { name: 'AS 로우 데이터', icon: '📊', desc: '입고·완료 현황 및 테크니션 실적 분석', url: 'weekly-closing-dashboard.html', team: '데이터 센터', badge: 'data', iconClass: 'team-data', keywords: '주간마감,마감,실적,입고,완료,weekly,closing,로우데이터,raw' },
+            { name: '입고 추세 분석', icon: '📉', desc: '주간·월별 입고량 추이 및 변동 분석', url: 'intake-trend-dashboard.html', team: '데이터 센터', badge: 'data', iconClass: 'team-data', keywords: '입고추세,추세,트렌드,입고량,변동,intake,trend' },
+            { name: 'AS 분석 대시보드', icon: '🤖', desc: '접수 내용 텍스트 기반 AI 증상·부품 분석', url: 'repair-analysis.html', team: '데이터 센터', badge: 'data', iconClass: 'team-data', keywords: '분석,AI,증상,부품,모델,텍스트,analysis,repair,DOA,NTF,재입고' },
             // === index.html — 재고 관리 센터 ===
             { name: '창고 대시보드', icon: '🏭', desc: '창고 사용 현황 실시간 모니터링', url: 'warehouse-dashboard.html', team: '재고 관리', badge: 'inventory', iconClass: 'team-inventory', keywords: '창고,warehouse,사용현황' },
             { name: '소모품 재고', icon: '🧰', desc: '실시간 소모품 재고 현황 조회', url: 'consumables-inventory.html', team: '재고 관리', badge: 'inventory', iconClass: 'team-inventory', keywords: '소모품,재고,consumables,inventory' },
