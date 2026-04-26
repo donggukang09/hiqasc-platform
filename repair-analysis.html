@@ -61,7 +61,7 @@
             <div class="kpi-card"><div class="kpi-label">일평균 수리</div><div class="kpi-value" id="kpiDaily">-</div><div class="kpi-sub">건 / 일</div></div>
             <div class="kpi-card"><div class="kpi-label">가장 많은 증상</div><div class="kpi-value" id="kpiTopSymptom" style="font-size:1.3em">-</div><div class="kpi-sub" id="kpiTopSymptomSub"></div></div>
             <div class="kpi-card"><div class="kpi-label">최다 입고 모델</div><div class="kpi-value" id="kpiTopModel" style="font-size:1.2em">-</div><div class="kpi-sub" id="kpiTopModelSub"></div></div>
-            <div class="kpi-card"><div class="kpi-label">교환 처리율</div><div class="kpi-value" id="kpiExchange">-</div><div class="kpi-sub">전체 대비</div></div>
+            <div class="kpi-card"><div class="kpi-label">초기불량 (DOA)</div><div class="kpi-value" id="kpiExchange">-</div><div class="kpi-sub" id="kpiExchangeSub">전체 대비</div></div>
         </div>
 
         <div class="section-grid">
@@ -80,17 +80,18 @@
 
         <div class="section-grid triple">
             <div class="chart-card"><div class="chart-card-header"><div class="chart-card-title"><span class="icon">⚙️</span> 부품 사용 TOP 10</div></div><div id="partsRank"></div></div>
-            <div class="chart-card"><div class="chart-card-header"><div class="chart-card-title"><span class="icon">🛡️</span> 보증 유형 분포</div></div><div class="chart-wrap"><canvas id="chartWarranty" height="220"></canvas></div></div>
+            <div class="chart-card"><div class="chart-card-header"><div class="chart-card-title"><span class="icon">🛡️</span> 보증 유형 분포</div><select class="model-select" id="warrantyModelSelect" onchange="renderWarranty(curAgg)"><option value="전체">전체</option></select></div><div class="chart-wrap"><canvas id="chartWarranty" height="220"></canvas></div></div>
             <div class="chart-card"><div class="chart-card-header"><div class="chart-card-title"><span class="icon">👨‍🔧</span> 테크니션 수리 건수</div></div><div id="techRank"></div></div>
         </div>
 
         <div class="section-grid">
             <div class="chart-card"><div class="chart-card-header"><div class="chart-card-title"><span class="icon">📊</span> 모델별 상세 — 증상</div><select class="model-select" id="modelSelectSymptom" onchange="updateModelDetail()"></select></div><div class="chart-wrap"><canvas id="chartModelSymptom" height="260"></canvas></div></div>
-            <div class="chart-card"><div class="chart-card-header"><div class="chart-card-title"><span class="icon">🔩</span> 모델별 상세 — 수리 작업</div><select class="model-select" id="modelSelectRepair" onchange="updateModelDetail()"></select></div><div class="chart-wrap"><canvas id="chartModelRepair" height="260"></canvas></div></div>
+            <div class="chart-card"><div class="chart-card-header"><div class="chart-card-title"><span class="icon">⚙️</span> 모델별 상세 — 부품 사용</div><select class="model-select" id="modelSelectParts" onchange="updateModelDetail()"></select></div><div class="chart-wrap"><canvas id="chartModelParts" height="260"></canvas></div></div>
         </div>
 
-        <div class="section-grid full">
-            <div class="chart-card"><div class="chart-card-header"><div class="chart-card-title"><span class="icon">🔄</span> 모델별 교환 처리율</div><span class="chart-card-badge">EXCHANGE RATE</span></div><div class="chart-wrap"><canvas id="chartExchange" height="200"></canvas></div></div>
+        <div class="section-grid">
+            <div class="chart-card"><div class="chart-card-header"><div class="chart-card-title"><span class="icon">⚡</span> 모델별 DOA (초기불량) 수량</div><span class="chart-card-badge">Repair Code 95</span></div><div class="chart-wrap"><canvas id="chartDOA" height="240"></canvas></div></div>
+            <div class="chart-card"><div class="chart-card-header"><div class="chart-card-title"><span class="icon">🔄</span> 재입고 모델별 현황</div><span class="chart-card-badge">RE-ENTRY</span></div><div class="chart-wrap"><canvas id="chartReentry" height="240"></canvas></div></div>
         </div>
     </div>
 
@@ -192,7 +193,7 @@ const SYMPTOM_PATTERNS=[['누수',/누수|누액|물샘|물이.*새|하부.*물|
 
 const REPAIR_PATTERNS=[['모노블럭 교체',/모노블럭.*교체|모노블록.*교체/i],['탑로터 교체',/탑로터.*교체/i],['메인보드 교체',/메인보드.*교체/i],['추출유닛 교체',/추출유닛.*교체/i],['아울렛 교체',/아울렛.*교체/i],['회전모터 교체',/회전모터.*교체|모터.*교체/i],['디스케일링',/디스케일링.*완료|디스케일링.*진행/i],['클린업',/클린업.*서비스/i],['튜브 세척',/튜브.*세척/i],['교환 처리',/교환.*대상|교환.*판단|K92/i],['이상없음',/이상.*없|정상.*판단|증상.*발생.*않/i]];
 
-const PART_NAMES={'NES-92050-1-SP':'모노블럭 (POP)','NES-36042-2-SP':'모노블럭 (V+)','NES-36034-CH-SP':'탑로터 (V+)','NES-54059-SP':'모노블럭 (NEXT)','NES-54040-1-PC-SP':'메인보드 (NEXT)','NES-41001-ASY-SP':'아울렛 (V+)','NES-36039-SP':'회전모터 (V+)','NES-36030-2-SP':'추출유닛 세트 (V+)','NES-18280-SP':'추출유닛 세트 (OL)','NES-36084-2-SP':'메인보드 (V+)','NES-54066-SP':'회전모터 (NEXT)','NES-306165-1-SP':'물량감지기','NES-54034-SP':'탑로터 (NEXT)','NES-54429-A-26-SP':'메인보드 (POP)','NES-54017-1-SP':'추출유닛 세트 (NEXT)','NES-36096-SP':'파워보드 (V+)','NES-41001-SP':'워터필터','118271':'추출유닛 세트 (Citiz)','99854':'물량감지기 (Citiz)','63049':'추출유닛 세트 (Essenza)','60761':'워터필터 (Citiz/Essenza)','116350':'밸브 (Citiz)'};
+const PART_NAMES={'NES-92050-1-SP':'탑사이드 (POP)','NES-36042-2-SP':'모노블럭 (V+)','NES-36034-CH-SP':'탑로터 (V+)','NES-54059-SP':'탑사이드 (NEXT)','NES-54040-1-PC-SP':'메인보드 (NEXT)','NES-41001-ASY-SP':'아울렛 (V+)','NES-36039-SP':'회전모터 (V+)','NES-36030-2-SP':'추출유닛 세트 (V+)','NES-18280-SP':'추출유닛 세트 (OL)','NES-36084-2-SP':'메인보드 (V+)','NES-54066-SP':'회전모터 (NEXT)','NES-306165-1-SP':'물량감지기','NES-54034-SP':'탑로터 (NEXT)','NES-54429-A-26-SP':'메인보드 (POP)','NES-54017-1-SP':'추출유닛 세트 (NEXT)','NES-36096-SP':'파워보드 (V+)','NES-41001-SP':'워터필터','118271':'추출유닛 세트 (Citiz)','99854':'물량감지기 (Citiz)','63049':'추출유닛 세트 (Essenza)','60761':'워터필터 (Citiz/Essenza)','116350':'밸브 (Citiz)'};
 
 let allRows=[],dateMin='',dateMax='';
 
@@ -203,7 +204,7 @@ function loadData(){
     document.getElementById('errorScreen').classList.add('hidden');
     document.getElementById('loadingProgress').textContent='Google Sheets 연결 중...';
 
-    const query='SELECT Q,T,X,AA,AL,AM,AO WHERE X IS NOT NULL';
+    const query='SELECT Q,T,X,AA,AI,AL,AM,AO WHERE X IS NOT NULL';
     const cbName='gvizCB_'+Date.now();
     const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json;responseHandler:${cbName}&sheet=${encodeURIComponent(SHEET_TAB)}&tq=${encodeURIComponent(query)}`;
 
@@ -246,13 +247,13 @@ function processData(table){
         const r=rows[i].c;if(!r)continue;
         const dateVal=parseDate(r[0]);if(!dateVal)continue;
         const text=r[1]?.v||'';const machine=r[2]?.v||'';if(!machine)continue;
-        const warranty=r[3]?.v||'';const techNote=r[4]?.v||'';const technician=r[5]?.v||'';const partsRaw=r[6]?.v||'';
+        const warranty=r[3]?.v||'';const repairCode1=String(r[4]?.v||'').trim();const techNote=r[5]?.v||'';const technician=r[6]?.v||'';const partsRaw=r[7]?.v||'';
 
         const symptoms=[];SYMPTOM_PATTERNS.forEach(([l,p])=>{if(p.test(text))symptoms.push(l);});if(!symptoms.length)symptoms.push('기타');
         const repairs=[];REPAIR_PATTERNS.forEach(([l,p])=>{if(p.test(techNote))repairs.push(l);});if(!repairs.length)repairs.push('기타');
         const parts=[];const pm=partsRaw.match(/(NES-[\w\-]+|[\d]{5,6})\(\d+\)/g);if(pm)pm.forEach(m=>parts.push(m.replace(/\(\d+\)$/,'')));
 
-        allRows.push({date:dateVal,machine,symptoms,repairs,technician,warranty,parts});
+        allRows.push({date:dateVal,machine,symptoms,repairs,technician,warranty,parts,repairCode1});
     }
 
     if(!allRows.length){showError('데이터 없음','시트에서 유효한 수리 데이터를 찾지 못했습니다.');return;}
@@ -268,7 +269,7 @@ function processData(table){
 function getFilteredRows(){const f=document.getElementById('dateFrom').value,t=document.getElementById('dateTo').value;return allRows.filter(r=>r.date>=f&&r.date<=t);}
 
 function aggregate(rows){
-    const a={total:0,machines:{},symptoms:{},repairs:{},warranty:{},techs:{},parts:{},daily:{},ms:{},mr:{},exByM:{},totByM:{}};
+    const a={total:0,machines:{},symptoms:{},repairs:{},warranty:{},techs:{},parts:{},daily:{},ms:{},mr:{},exByM:{},totByM:{},reentryByM:{},doaByM:{},warrantyByM:{},partsByM:{}};
     rows.forEach(r=>{
         a.total++;a.machines[r.machine]=(a.machines[r.machine]||0)+1;
         a.warranty[r.warranty]=(a.warranty[r.warranty]||0)+1;
@@ -277,7 +278,10 @@ function aggregate(rows){
         a.totByM[r.machine]=(a.totByM[r.machine]||0)+1;
         r.symptoms.forEach(s=>{a.symptoms[s]=(a.symptoms[s]||0)+1;if(!a.ms[r.machine])a.ms[r.machine]={};a.ms[r.machine][s]=(a.ms[r.machine][s]||0)+1;});
         r.repairs.forEach(rp=>{a.repairs[rp]=(a.repairs[rp]||0)+1;if(!a.mr[r.machine])a.mr[r.machine]={};a.mr[r.machine][rp]=(a.mr[r.machine][rp]||0)+1;if(rp==='교환 처리')a.exByM[r.machine]=(a.exByM[r.machine]||0)+1;});
-        r.parts.forEach(p=>{a.parts[p]=(a.parts[p]||0)+1;});
+        r.parts.forEach(p=>{a.parts[p]=(a.parts[p]||0)+1;if(!a.partsByM[r.machine])a.partsByM[r.machine]={};a.partsByM[r.machine][p]=(a.partsByM[r.machine][p]||0)+1;});
+        if(r.warranty==='재입고')a.reentryByM[r.machine]=(a.reentryByM[r.machine]||0)+1;
+        if(r.repairCode1==='95')a.doaByM[r.machine]=(a.doaByM[r.machine]||0)+1;
+        if(!a.warrantyByM[r.machine])a.warrantyByM[r.machine]={};a.warrantyByM[r.machine][r.warranty]=(a.warrantyByM[r.machine][r.warranty]||0)+1;
     });return a;
 }
 
@@ -302,9 +306,9 @@ function renderAll(agg){
     document.getElementById('kpiDaily').textContent=Math.round(agg.total/nd);
     const ts=so(agg.symptoms)[0];if(ts){document.getElementById('kpiTopSymptom').textContent=ts[0];document.getElementById('kpiTopSymptomSub').textContent=`${ts[1].toLocaleString()}건 (${(ts[1]/agg.total*100).toFixed(1)}%)`;}
     const tm=so(agg.machines)[0];if(tm){document.getElementById('kpiTopModel').textContent=tm[0];document.getElementById('kpiTopModelSub').textContent=`${tm[1].toLocaleString()}건`;}
-    const exc=agg.repairs['교환 처리']||0;document.getElementById('kpiExchange').textContent=(agg.total?(exc/agg.total*100).toFixed(1):0)+'%';
+    const doaTotal=Object.values(agg.doaByM).reduce((a,b)=>a+b,0);document.getElementById('kpiExchange').textContent=doaTotal.toLocaleString()+'건';document.getElementById('kpiExchangeSub').textContent=(agg.total?(doaTotal/agg.total*100).toFixed(1):0)+'%';
 
-    renderTrend(agg);renderModelPie(agg);renderSymBar(agg);renderRepBar(agg);renderHeatmap(agg);renderParts(agg);renderWarranty(agg);renderTech(agg);popModelSel(agg);updateModelDetail();renderExchange(agg);
+    renderTrend(agg);renderModelPie(agg);renderSymBar(agg);renderRepBar(agg);renderHeatmap(agg);renderParts(agg);renderWarranty(agg);renderTech(agg);popModelSel(agg);updateModelDetail();renderDOA(agg);renderReentry(agg);
 }
 
 function renderTrend(agg){dc('trend');const w={};Object.entries(agg.daily).forEach(([d,c])=>{const dt=new Date(d);const ws=new Date(dt);ws.setDate(dt.getDate()-dt.getDay()+1);const k=ws.toISOString().split('T')[0];w[k]=(w[k]||0)+c;});const l=Object.keys(w).sort();
@@ -331,7 +335,7 @@ e.forEach(([c,n],i)=>{const rc=i===0?'gold':i===1?'silver':i===2?'bronze':'norma
 h+=`<li class="rank-item"><span class="rank-num ${rc}">${i+1}</span><div class="rank-info"><div class="rank-name">${dn}</div><div class="rank-desc">${c}</div></div><div class="rank-bar-wrap"><div class="rank-bar" style="width:${(n/mx*100).toFixed(0)}%;background:var(--gradient-3)"></div></div><span class="rank-value">${n.toLocaleString()}</span></li>`;});
 h+='</ul>';document.getElementById('partsRank').innerHTML=h;}
 
-function renderWarranty(agg){dc('warranty');const e=so(agg.warranty);const cm={'무상':'#10b981','유상':'#f59e0b','재입고':'#f43f5e'};
+function renderWarranty(agg){dc('warranty');const sel=document.getElementById('warrantyModelSelect')?.value||'전체';let wData;if(sel==='전체'){wData=agg.warranty;}else{wData=agg.warrantyByM[sel]||{};}const e=so(wData);const cm={'무상':'#10b981','유상':'#f59e0b','재입고':'#f43f5e'};
 chs['warranty']=new Chart(document.getElementById('chartWarranty'),{type:'doughnut',data:{labels:e.map(x=>x[0]),datasets:[{data:e.map(x=>x[1]),backgroundColor:e.map(x=>cm[x[0]]||'#6366f1'),borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{position:'bottom',labels:{color:'#64748b',font:{size:11},padding:12,usePointStyle:true}},datalabels:{color:'#fff',font:{size:12,weight:700,family:'Outfit'},formatter:(v,ctx)=>{const t=ctx.dataset.data.reduce((a,b)=>a+b,0);return(v/t*100).toFixed(1)+'%';}}}},plugins:[ChartDataLabels]});}
 
 function renderTech(agg){const e=so(agg.techs,15);const mx=e[0]?.[1]||1;let h='<ul class="rank-list">';
@@ -339,18 +343,20 @@ e.forEach(([n,c],i)=>{const rc=i===0?'gold':i===1?'silver':i===2?'bronze':'norma
 h+=`<li class="rank-item"><span class="rank-num ${rc}">${i+1}</span><div class="rank-info"><div class="rank-name">${n}</div></div><div class="rank-bar-wrap"><div class="rank-bar" style="width:${(c/mx*100).toFixed(0)}%;background:var(--gradient-2)"></div></div><span class="rank-value">${c.toLocaleString()}</span></li>`;});
 h+='</ul>';document.getElementById('techRank').innerHTML=h;}
 
-function popModelSel(agg){const m=so(agg.machines,15).map(e=>e[0]);['modelSelectSymptom','modelSelectRepair'].forEach(id=>{const s=document.getElementById(id);const c=s.value;s.innerHTML=m.map(x=>`<option value="${x}" ${x===c?'selected':''}>${x}</option>`).join('');});}
+function popModelSel(agg){const m=so(agg.machines,15).map(e=>e[0]);['modelSelectSymptom','modelSelectParts'].forEach(id=>{const s=document.getElementById(id);const c=s.value;s.innerHTML=m.map(x=>`<option value="${x}" ${x===c?'selected':''}>${x}</option>`).join('');});const ws=document.getElementById('warrantyModelSelect');const wc=ws.value;ws.innerHTML='<option value="전체">전체</option>'+m.map(x=>`<option value="${x}" ${x===wc?'selected':''}>${x}</option>`).join('');}
 
 function updateModelDetail(){if(!curAgg)return;
-const mS=document.getElementById('modelSelectSymptom').value,mR=document.getElementById('modelSelectRepair').value;
+const mS=document.getElementById('modelSelectSymptom').value;
 dc('modelSymptom');const sd=curAgg.ms[mS]||{};const se=so(sd);if(se.length){
 chs['modelSymptom']=new Chart(document.getElementById('chartModelSymptom'),{type:'bar',data:{labels:se.map(e=>e[0]),datasets:[{data:se.map(e=>e[1]),backgroundColor:CL,borderRadius:6,barThickness:24}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},datalabels:{anchor:'end',align:'top',color:'#64748b',font:{size:10,weight:600,family:'Outfit'},formatter:v=>v.toLocaleString()}},scales:{x:{ticks:{color:'#64748b',font:{size:10},maxRotation:45},grid:{display:false}},y:{ticks:{color:'#94a3b8',font:{size:10}},grid:{color:'rgba(0,0,0,.06)'},beginAtZero:true}}},plugins:[ChartDataLabels]});}
-dc('modelRepair');const rd=curAgg.mr[mR]||{};const re=so(rd);if(re.length){
-chs['modelRepair']=new Chart(document.getElementById('chartModelRepair'),{type:'bar',data:{labels:re.map(e=>e[0]),datasets:[{data:re.map(e=>e[1]),backgroundColor:CL.map(c=>c+'cc'),borderRadius:6,barThickness:24}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},datalabels:{anchor:'end',align:'top',color:'#64748b',font:{size:10,weight:600,family:'Outfit'},formatter:v=>v.toLocaleString()}},scales:{x:{ticks:{color:'#64748b',font:{size:10},maxRotation:45},grid:{display:false}},y:{ticks:{color:'#94a3b8',font:{size:10}},grid:{color:'rgba(0,0,0,.06)'},beginAtZero:true}}},plugins:[ChartDataLabels]});}}
+dc('modelParts');const mP=document.getElementById('modelSelectParts').value;const pd=curAgg.partsByM[mP]||{};const pe=so(pd,8);if(pe.length){
+chs['modelParts']=new Chart(document.getElementById('chartModelParts'),{type:'bar',data:{labels:pe.map(e=>PART_NAMES[e[0]]||e[0]),datasets:[{data:pe.map(e=>e[1]),backgroundColor:CL,borderRadius:6,barThickness:24}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},datalabels:{anchor:'end',align:'top',color:'#64748b',font:{size:10,weight:600,family:'Outfit'},formatter:v=>v.toLocaleString()}},scales:{x:{ticks:{color:'#64748b',font:{size:10},maxRotation:45},grid:{display:false}},y:{ticks:{color:'#94a3b8',font:{size:10}},grid:{color:'rgba(0,0,0,.06)'},beginAtZero:true}}},plugins:[ChartDataLabels]});}}
 
-function renderExchange(agg){dc('exchange');const rates={};Object.keys(agg.totByM).forEach(m=>{if(agg.totByM[m]>=30){const ex=agg.exByM[m]||0;rates[m]=Math.round(ex/agg.totByM[m]*1000)/10;}});
-const e=Object.entries(rates).sort((a,b)=>b[1]-a[1]).filter(x=>x[1]>0).slice(0,12);if(!e.length)return;
-chs['exchange']=new Chart(document.getElementById('chartExchange'),{type:'bar',data:{labels:e.map(x=>x[0]),datasets:[{data:e.map(x=>x[1]),backgroundColor:e.map(x=>x[1]>8?'#f43f5e':x[1]>4?'#f59e0b':'#10b981'),borderRadius:6,barThickness:28}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},datalabels:{anchor:'end',align:'top',color:'#64748b',font:{size:11,weight:700,family:'Outfit'},formatter:v=>v+'%'}},scales:{x:{ticks:{color:'#64748b',font:{size:10},maxRotation:45},grid:{display:false}},y:{ticks:{color:'#94a3b8',font:{size:10},callback:v=>v+'%'},grid:{color:'rgba(0,0,0,.06)'},beginAtZero:true}}},plugins:[ChartDataLabels]});}
+function renderDOA(agg){dc('doa');const e=Object.entries(agg.doaByM).sort((a,b)=>b[1]-a[1]).slice(0,12);if(!e.length)return;
+chs['doa']=new Chart(document.getElementById('chartDOA'),{type:'bar',data:{labels:e.map(x=>x[0]),datasets:[{label:'DOA',data:e.map(x=>x[1]),backgroundColor:'#e11d48',borderRadius:6,barThickness:28}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},datalabels:{anchor:'end',align:'top',color:'#64748b',font:{size:11,weight:700,family:'Outfit'},formatter:v=>v.toLocaleString()}},scales:{x:{ticks:{color:'#64748b',font:{size:10},maxRotation:45},grid:{display:false}},y:{ticks:{color:'#94a3b8',font:{size:10}},grid:{color:'rgba(0,0,0,.06)'},beginAtZero:true}}},plugins:[ChartDataLabels]});}
+
+function renderReentry(agg){dc('reentry');const e=Object.entries(agg.reentryByM).sort((a,b)=>b[1]-a[1]).slice(0,12);if(!e.length)return;
+chs['reentry']=new Chart(document.getElementById('chartReentry'),{type:'bar',data:{labels:e.map(x=>x[0]),datasets:[{label:'재입고',data:e.map(x=>x[1]),backgroundColor:'#f97316',borderRadius:6,barThickness:28}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},datalabels:{anchor:'end',align:'top',color:'#64748b',font:{size:11,weight:700,family:'Outfit'},formatter:v=>v.toLocaleString()}},scales:{x:{ticks:{color:'#64748b',font:{size:10},maxRotation:45},grid:{display:false}},y:{ticks:{color:'#94a3b8',font:{size:10}},grid:{color:'rgba(0,0,0,.06)'},beginAtZero:true}}},plugins:[ChartDataLabels]});}
 
 window.addEventListener('DOMContentLoaded',()=>{Chart.defaults.font.family="'Noto Sans KR','Outfit',sans-serif";loadData();});
 </script>
