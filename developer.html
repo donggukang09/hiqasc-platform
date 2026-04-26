@@ -255,7 +255,7 @@
         .fishing-rod {
             position: absolute;
             bottom: 48px;
-            right: 14%;
+            right: 16%;
             z-index: 3;
         }
 
@@ -727,7 +727,7 @@
         <!-- 모닥불 (도트) -->
         <canvas class="campfire" id="fireCanvas" width="40" height="40"></canvas>
         <!-- 낚싯대 (도트) -->
-        <canvas class="fishing-rod" id="rodCanvas" width="54" height="66"></canvas>
+        <canvas class="fishing-rod" id="rodCanvas" width="78" height="75"></canvas>
         <!-- 물고기 -->
         <canvas class="fish" id="fishCanvas" width="30" height="20"></canvas>
         <!-- 음표 -->
@@ -984,17 +984,21 @@ function drawRod(canvas){
     const s = 3;
     ctx.imageSmoothingEnabled = false;
     const p = (x,y,c) => { ctx.fillStyle = c; ctx.fillRect(x*s, y*s, s, s); };
-    const rod = '#8B7355', rodL = '#A0522D', line = '#8899aa';
-    // 손잡이 (왼쪽 아래) — 코르크 느낌
-    p(0,14,'#6B5340');p(1,13,rod);p(2,12,rod);p(3,11,rod);
-    // 대 (대각선 위로 — 더 길게)
-    p(4,10,rod);p(5,9,rod);p(6,8,rod);p(7,7,rodL);p(8,6,rodL);p(9,5,rodL);p(10,4,rodL);p(11,3,rodL);p(12,2,rodL);p(13,1,rodL);p(14,0,'#B8956A');
-    // 줄 (끝에서 물 속까지 길게)
-    for(let i=1;i<=18;i++) p(14,i,line);
-    // 줄 끝 — 살짝 물 속에서 흔들리는 느낌
-    p(14,19,line);p(15,19,'#c0c0c0');
-    // 찌 (빨간 동그라미)
-    p(14,12,'#e74c3c');p(13,12,'#e74c3c');p(14,13,'#e74c3c');
+    const rod = '#8B7355', rodL = '#A0522D', rodT = '#B8956A', line = '#8899aa';
+    // 손잡이 (왼쪽 아래 - 덴데가 잡는 부분)
+    p(0,18,'#5D4037');p(1,17,'#6B5340');p(2,16,rod);p(3,15,rod);
+    // 대 (왼아래 -> 오른위로 길게)
+    p(4,14,rod);p(5,13,rod);p(6,12,rod);p(7,11,rodL);p(8,10,rodL);p(9,9,rodL);
+    p(10,8,rodL);p(11,7,rodL);p(12,6,rodL);p(13,5,rodL);p(14,4,rodL);
+    p(15,3,rodL);p(16,2,rodL);p(17,1,rodT);p(18,0,rodT);
+    // 가이드 링
+    p(9,9,'#aaa');p(13,5,'#aaa');p(17,1,'#aaa');
+    // 줄 (대 끝에서 아래로)
+    for(let i=1;i<=23;i++) p(18,i,line);
+    // 찌 (빨간 - 수면 높이)
+    p(17,16,'#e74c3c');p(18,16,'#e74c3c');p(19,16,'#e74c3c');p(18,17,'#e74c3c');
+    // 바늘
+    p(18,24,'#c0c0c0');p(19,24,'#c0c0c0');p(19,23,'#c0c0c0');
 }
 
 function drawFish(canvas){
