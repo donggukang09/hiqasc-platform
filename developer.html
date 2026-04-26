@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐱 DONGGU KANG</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=DotGothic16&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #1a1a2e;
+            --bg2: #16213e;
+            --card: #0f3460;
+            --accent: #e94560;
+            --accent2: #f7b731;
+            --text: #eaeaea;
+            --text2: #a0a0b8;
+            --pixel: 4px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Ctext y='18' font-size='18'%3E🐾%3C/text%3E%3C/svg%3E") 12 12, auto;
+        }
+
+        /* 별 배경 */
+        .stars {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .star {
+            position: absolute;
+            width: 2px; height: 2px;
+            background: #fff;
+            border-radius: 50%;
+            animation: twinkle var(--dur) ease-in-out infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 1; }
+        }
+
+        .shooting-star {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: #fff;
+            border-radius: 50%;
+            opacity: 0;
+            animation: shoot var(--shoot-dur) ease-in var(--shoot-delay) infinite;
+        }
+
+        .shooting-star::after {
+            content: '';
+            position: absolute;
+            width: var(--tail-len);
+            height: 2px;
+            top: 0;
+            right: 3px;
+            background: linear-gradient(to left, rgba(255,255,255,0.8), rgba(255,255,255,0.3), transparent);
+            transform: rotate(var(--tail-angle));
+            transform-origin: right center;
+            border-radius: 2px;
+        }
+
+        @keyframes shoot {
+            0% { opacity: 0; transform: translate(0, 0); }
+            3% { opacity: 1; }
+            20% { opacity: 0.8; transform: translate(var(--move-x), var(--move-y)); }
+            25% { opacity: 0; transform: translate(var(--move-x), var(--move-y)); }
+            100% { opacity: 0; transform: translate(0, 0); }
+        }
+
+        .page-wrap {
+            position: relative;
+            z-index: 1;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 24px 80px;
+        }
+
+        /* 입장 애니메이션 */
+        .fade-up {
+            animation: fadeUp 0.8s ease both;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 타이틀 */
+        .hero {
+            text-align: center;
+            padding: 40px 0 20px;
+            animation-delay: 0.1s;
+        }
+
+        .hero-pixel-title {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 1.6em;
+            color: var(--accent2);
+            text-shadow: 3px 3px 0 var(--accent), 6px 6px 0 rgba(0,0,0,0.3);
+            margin-bottom: 16px;
+            letter-spacing: 2px;
+        }
+
+        .hero-sub {
+            font-size: 0.95em;
+            color: var(--text2);
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+
+        .hero-role {
+            display: inline-block;
+            margin-top: 14px;
+            padding: 6px 18px;
+            background: linear-gradient(135deg, var(--accent), #c0392b);
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        /* 고양이 캔버스 */
+        .cat-stage {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            margin: 20px 0 30px;
+            border-bottom: 3px solid #2a2a4a;
+            overflow: hidden;
+            animation-delay: 0.3s;
+        }
+
+        .cat-sprite {
+            position: absolute;
+            bottom: 0;
+            image-rendering: pixelated;
+            transition: transform 0.1s;
+            cursor: pointer;
+        }
+
+        .cat-sprite:hover {
+            animation: catJump 0.4s ease;
+        }
+
+        @keyframes catJump {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .cat-name-tag {
+            position: absolute;
+            bottom: -22px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
+            color: var(--accent2);
+            white-space: nowrap;
+        }
+
+        /* 프로필 카드 */
+        .profile-card {
+            background: var(--bg2);
+            border: 2px solid #2a2a4a;
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 24px;
+            position: relative;
+            overflow: hidden;
+            animation-delay: 0.4s;
+        }
+
+        .profile-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent), var(--accent2), #6c5ce7, var(--accent));
+            background-size: 300% 100%;
+            animation: gradientMove 4s linear infinite;
+        }
+
+        @keyframes gradientMove {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 300% 50%; }
+        }
+
+        .profile-section-title {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 0.7em;
+            color: var(--accent2);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .profile-section-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, #2a2a4a, transparent);
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid #2a2a4a;
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+
+        .info-item:hover {
+            border-color: var(--accent);
+            background: rgba(233,69,96,0.05);
+            transform: translateX(4px);
+        }
+
+        .info-icon {
+            font-size: 1.4em;
+            width: 36px;
+            text-align: center;
+        }
+
+        .info-label {
+            font-size: 0.7em;
+            color: var(--text2);
+            margin-bottom: 2px;
+        }
+
+        .info-value {
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+
+        .info-value a {
+            color: var(--accent2);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .info-value a:hover {
+            color: var(--accent);
+        }
+
+        /* 고양이 소개 카드 */
+        .cats-card {
+            animation-delay: 0.5s;
+        }
+
+        .cat-profiles {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .cat-profile {
+            text-align: center;
+            padding: 24px 16px;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid #2a2a4a;
+            border-radius: 12px;
+            transition: all 0.3s;
+        }
+
+        .cat-profile:hover {
+            border-color: var(--accent2);
+            transform: translateY(-4px);
+        }
+
+        .cat-profile-sprite {
+            image-rendering: pixelated;
+            margin-bottom: 12px;
+        }
+
+        .cat-profile-name {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 0.75em;
+            color: var(--accent2);
+            margin-bottom: 8px;
+        }
+
+        .cat-profile-desc {
+            font-size: 0.8em;
+            color: var(--text2);
+            line-height: 1.6;
+        }
+
+        /* 뮤직 플레이어 */
+        .music-card {
+            animation-delay: 0.6s;
+        }
+
+        .music-player {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 20px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid #2a2a4a;
+            border-radius: 12px;
+        }
+
+        .music-disc {
+            width: 56px; height: 56px;
+            border-radius: 50%;
+            background: conic-gradient(from 0deg, #1a1a2e, #2a2a4a, #1a1a2e, #3a3a5a, #1a1a2e);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: spin 3s linear infinite paused;
+            flex-shrink: 0;
+            border: 2px solid #3a3a5a;
+        }
+
+        .music-disc.playing {
+            animation-play-state: running;
+            border-color: var(--accent);
+        }
+
+        .music-disc-inner {
+            width: 18px; height: 18px;
+            border-radius: 50%;
+            background: var(--accent2);
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .music-info { flex: 1; }
+
+        .music-title {
+            font-size: 0.9em;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .music-artist {
+            font-size: 0.75em;
+            color: var(--text2);
+        }
+
+        .music-btn {
+            width: 44px; height: 44px;
+            border-radius: 50%;
+            background: var(--accent);
+            border: none;
+            color: #fff;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .music-btn:hover {
+            background: #c0392b;
+            transform: scale(1.1);
+        }
+
+        /* 푸터 */
+        .secret-footer {
+            text-align: center;
+            padding: 40px 0 20px;
+            animation-delay: 0.7s;
+        }
+
+        .secret-footer-text {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 0.55em;
+            color: #3a3a5a;
+            line-height: 2;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 24px;
+            background: var(--bg2);
+            border: 1px solid #2a2a4a;
+            border-radius: 10px;
+            color: var(--text2);
+            text-decoration: none;
+            font-size: 0.85em;
+            transition: all 0.3s;
+        }
+
+        .back-link:hover {
+            border-color: var(--accent);
+            color: var(--text);
+        }
+
+        /* 말풍선 */
+        .speech-bubble {
+            position: absolute;
+            background: var(--bg2);
+            border: 2px solid var(--accent2);
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 7px;
+            color: var(--accent2);
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .speech-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 16px;
+            border: 4px solid transparent;
+            border-top-color: var(--accent2);
+        }
+
+        /* 반응형 */
+        @media (max-width: 600px) {
+            .hero-pixel-title { font-size: 1em; }
+            .info-grid { grid-template-columns: 1fr; }
+            .cat-profiles { grid-template-columns: 1fr; }
+            .page-wrap { padding: 20px 16px 60px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- 별 배경 -->
+<div class="stars" id="stars"></div>
+
+<div class="page-wrap">
+    <!-- 히어로 -->
+    <div class="hero fade-up">
+        <div class="hero-pixel-title">DONGGU KANG</div>
+        <div class="hero-sub">Developer · Designer · Cat Dad</div>
+        <div class="hero-role">HIQASC Platform Creator</div>
+    </div>
+
+    <!-- 고양이 스테이지 -->
+    <div class="cat-stage fade-up" id="catStage">
+        <div class="speech-bubble" id="bubble1"></div>
+        <div class="speech-bubble" id="bubble2"></div>
+        <!-- 덴데 (고등어 태비) -->
+        <canvas class="cat-sprite" id="dendeSprite" width="64" height="64" onclick="catClick('dende')" title="덴데"></canvas>
+        <!-- 부우 (치즈 태비) -->
+        <canvas class="cat-sprite" id="buuSprite" width="64" height="64" onclick="catClick('buu')" title="부우"></canvas>
+    </div>
+
+    <!-- 프로필 -->
+    <div class="profile-card fade-up">
+        <div class="profile-section-title">📋 PROFILE</div>
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-icon">👤</div>
+                <div><div class="info-label">NAME</div><div class="info-value">강동구 (Donggu Kang)</div></div>
+            </div>
+            <div class="info-item">
+                <div class="info-icon">💼</div>
+                <div><div class="info-label">ROLE</div><div class="info-value">HIQASC Manager</div></div>
+            </div>
+            <div class="info-item">
+                <div class="info-icon">📱</div>
+                <div><div class="info-label">PHONE</div><div class="info-value"><a href="tel:01056672864">010-5667-2864</a></div></div>
+            </div>
+            <div class="info-item">
+                <div class="info-icon">📧</div>
+                <div><div class="info-label">EMAIL</div><div class="info-value"><a href="mailto:donggu.kang@hiqasc.kr">donggu.kang@hiqasc.kr</a></div></div>
+            </div>
+            <div class="info-item">
+                <div class="info-icon">📸</div>
+                <div><div class="info-label">INSTAGRAM</div><div class="info-value"><a href="https://instagram.com/dizzykang" target="_blank">@dizzykang</a></div></div>
+            </div>
+            <div class="info-item">
+                <div class="info-icon">🐱</div>
+                <div><div class="info-label">CAT INSTAGRAM</div><div class="info-value"><a href="https://instagram.com/dende_boo" target="_blank">@dende_boo</a></div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 고양이 소개 -->
+    <div class="profile-card cats-card fade-up">
+        <div class="profile-section-title">🐾 MY CATS</div>
+        <div class="cat-profiles">
+            <div class="cat-profile">
+                <canvas class="cat-profile-sprite" id="dendeProfile" width="80" height="80"></canvas>
+                <div class="cat-profile-name">덴데 DENDE</div>
+                <div class="cat-profile-desc">고등어 태비 🐟<br>초록 눈의 도도한 고양이<br>앉아서 세상을 관찰하는 중</div>
+            </div>
+            <div class="cat-profile">
+                <canvas class="cat-profile-sprite" id="buuProfile" width="80" height="80"></canvas>
+                <div class="cat-profile-name">부우 BUU</div>
+                <div class="cat-profile-desc">치즈 태비 🧀<br>동글동글 통통한 체형<br>항상 높은 곳을 차지하는 중</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 뮤직 -->
+    <div class="profile-card music-card fade-up">
+        <div class="profile-section-title">🎵 FAVORITE MUSIC</div>
+        <div class="music-player">
+            <div class="music-disc" id="musicDisc">
+                <div class="music-disc-inner"></div>
+            </div>
+            <div class="music-info">
+                <div class="music-title">가낳지모</div>
+                <div class="music-artist">AI Generated Music 🎵</div>
+            </div>
+            <button class="music-btn" id="musicBtn" onclick="toggleMusic()">▶</button>
+        </div>
+    </div>
+
+    <!-- 푸터 -->
+    <div class="secret-footer fade-up">
+        <div class="secret-footer-text">
+            YOU FOUND THE SECRET PAGE!<br>
+            THIS IS THE WORLD OF DONGGU KANG<br>
+            WITH DENDE & BUU 🐱🐱
+        </div>
+        <a href="index.html" class="back-link">🏠 메인으로 돌아가기</a>
+    </div>
+</div>
+
+<script>
+// ============================================
+// 별 배경 생성
+// ============================================
+(function(){
+    const c = document.getElementById('stars');
+    // 일반 별
+    for(let i = 0; i < 120; i++){
+        const s = document.createElement('div');
+        s.className = 'star';
+        s.style.left = Math.random()*100+'%';
+        s.style.top = Math.random()*100+'%';
+        s.style.setProperty('--dur', (2+Math.random()*4)+'s');
+        s.style.animationDelay = Math.random()*3+'s';
+        if(Math.random()>0.7) { s.style.width='3px'; s.style.height='3px'; }
+        c.appendChild(s);
+    }
+    // 별똥별
+    for(let i = 0; i < 3; i++){
+        const ss = document.createElement('div');
+        ss.className = 'shooting-star';
+        ss.style.left = (5 + Math.random()*60) + '%';
+        ss.style.top = (3 + Math.random()*35) + '%';
+        const mx = 150 + Math.random()*200;
+        const my = 80 + Math.random()*150;
+        ss.style.setProperty('--move-x', mx + 'px');
+        ss.style.setProperty('--move-y', my + 'px');
+        ss.style.setProperty('--tail-len', (50 + Math.random()*80) + 'px');
+        // 꼬리 각도 = 이동 각도 (atan2로 계산)
+        const angle = Math.atan2(my, mx) * (180 / Math.PI);
+        ss.style.setProperty('--tail-angle', angle + 'deg');
+        ss.style.setProperty('--shoot-dur', (8 + Math.random()*10) + 's');
+        ss.style.setProperty('--shoot-delay', (i * 6 + Math.random()*8) + 's');
+        c.appendChild(ss);
+    }
+})();
+
+// ============================================
+// 도트 고양이 그리기
+// ============================================
+function drawPixelCat(canvas, type, scale){
+    const ctx = canvas.getContext('2d');
+    const s = scale || 4;
+    ctx.imageSmoothingEnabled = false;
+
+    // 색상 팔레트
+    const colors = type === 'dende' ? {
+        dark: '#4a3728',    // 고등어 진한색
+        mid: '#6b5240',     // 고등어 중간색
+        light: '#ffffff',   // 흰색
+        ear: '#d4a0a0',     // 귀 안쪽
+        eye: '#4CAF50',     // 초록 눈
+        nose: '#d4a0a0',    // 코
+        pupil: '#1a1a1a',
+        stripe: '#3d2b1f',  // 줄무늬
+    } : {
+        dark: '#e8913a',    // 치즈 진한색
+        mid: '#f0a852',     // 치즈 중간색
+        light: '#ffffff',   // 흰색
+        ear: '#e8a0a0',     // 귀 안쪽
+        eye: '#8BC34A',     // 노란/초록 눈
+        nose: '#e8a0a0',    // 코
+        pupil: '#1a1a1a',
+        stripe: '#d07830',  // 줄무늬
+    };
+
+    const p = (x,y,c) => { ctx.fillStyle = c; ctx.fillRect(x*s, y*s, s, s); };
+
+    // 16x16 고양이 (앉아있는 포즈)
+    const draw = [
+        // 귀 (y=1~3)
+        [4,1,colors.dark],[5,1,colors.dark],[9,1,colors.dark],[10,1,colors.dark],
+        [3,2,colors.dark],[4,2,colors.ear],[5,2,colors.dark],[9,2,colors.dark],[10,2,colors.ear],[11,2,colors.dark],
+        [3,3,colors.dark],[4,3,colors.dark],[5,3,colors.dark],[9,3,colors.dark],[10,3,colors.dark],[11,3,colors.dark],
+        // 머리 (y=3~7)
+        [4,3,colors.dark],[5,3,colors.mid],[6,3,colors.mid],[7,3,colors.dark],[8,3,colors.mid],[9,3,colors.dark],
+        [3,4,colors.dark],[4,4,colors.mid],[5,4,colors.light],[6,4,colors.mid],[7,4,colors.light],[8,4,colors.mid],[9,4,colors.light],[10,4,colors.mid],[11,4,colors.dark],
+        [3,5,colors.mid],[4,5,colors.light],[5,5,colors.eye],[6,5,colors.light],[7,5,colors.light],[8,5,colors.light],[9,5,colors.eye],[10,5,colors.light],[11,5,colors.mid],
+        [3,6,colors.mid],[4,6,colors.light],[5,6,colors.pupil],[6,6,colors.light],[7,6,colors.nose],[8,6,colors.light],[9,6,colors.pupil],[10,6,colors.light],[11,6,colors.mid],
+        [4,7,colors.light],[5,7,colors.light],[6,7,colors.light],[7,7,colors.light],[8,7,colors.light],[9,7,colors.light],[10,7,colors.light],
+        // 몸 (y=8~12)
+        [3,8,colors.dark],[4,8,colors.mid],[5,8,colors.light],[6,8,colors.light],[7,8,colors.light],[8,8,colors.light],[9,8,colors.light],[10,8,colors.mid],[11,8,colors.dark],
+        [2,9,colors.dark],[3,9,colors.mid],[4,9,colors.light],[5,9,colors.light],[6,9,colors.light],[7,9,colors.light],[8,9,colors.light],[9,9,colors.light],[10,9,colors.mid],[11,9,colors.dark],
+        [2,10,colors.dark],[3,10,colors.mid],[4,10,colors.light],[5,10,colors.light],[6,10,colors.light],[7,10,colors.light],[8,10,colors.light],[9,10,colors.light],[10,10,colors.mid],[11,10,colors.dark],
+        [2,11,colors.dark],[3,11,colors.mid],[4,11,colors.mid],[5,11,colors.light],[6,11,colors.light],[7,11,colors.light],[8,11,colors.light],[9,11,colors.mid],[10,11,colors.mid],[11,11,colors.dark],
+        // 앞발 + 꼬리 (y=12~14)
+        [3,12,colors.dark],[4,12,colors.light],[5,12,colors.light],[6,12,colors.light],[7,12,colors.light],[8,12,colors.light],[9,12,colors.light],[10,12,colors.dark],[12,12,colors.dark],
+        [3,13,colors.light],[4,13,colors.light],[5,13,colors.light],[6,13,colors.light],[7,13,colors.light],[8,13,colors.light],[9,13,colors.light],[10,13,colors.light],[11,13,colors.dark],[12,13,colors.dark],
+    ];
+
+    // 줄무늬 추가
+    const stripes = type === 'dende' ?
+        [[5,4,colors.stripe],[7,4,colors.stripe],[6,5,colors.stripe],[8,5,colors.stripe],[4,9,colors.stripe],[6,9,colors.stripe],[8,9,colors.stripe],[5,10,colors.stripe],[7,10,colors.stripe]] :
+        [[5,4,colors.stripe],[7,4,colors.stripe],[6,5,colors.stripe],[8,5,colors.stripe],[4,9,colors.stripe],[6,9,colors.stripe],[8,9,colors.stripe],[5,10,colors.stripe],[7,10,colors.stripe]];
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    draw.forEach(([x,y,c]) => p(x,y,c));
+    stripes.forEach(([x,y,c]) => p(x,y,c));
+}
+
+// 프로필 캔버스 그리기
+drawPixelCat(document.getElementById('dendeProfile'), 'dende', 5);
+drawPixelCat(document.getElementById('buuProfile'), 'buu', 5);
+
+// ============================================
+// 고양이 걷기 애니메이션
+// ============================================
+const stage = document.getElementById('catStage');
+const dendeEl = document.getElementById('dendeSprite');
+const buuEl = document.getElementById('buuSprite');
+
+const cats = {
+    dende: { el: dendeEl, x: 100, dir: 1, speed: 0.4 + Math.random()*0.3, frame: 0 },
+    buu: { el: buuEl, x: 400, dir: -1, speed: 0.3 + Math.random()*0.3, frame: 0 },
+};
+
+const catMessages = {
+    dende: ['냐옹...', '...뭐봐', '졸려...', '밥줘', '시끄러...', '치워..'],
+    buu: ['야옹~!', '놀자!!', '배고파!!', '위에올라갈거야', '뭐야뭐야?!', '간식!!'],
+};
+
+function catClick(name){
+    const cat = cats[name];
+    const msgs = catMessages[name];
+    const msg = msgs[Math.floor(Math.random()*msgs.length)];
+    const bubbleId = name === 'dende' ? 'bubble1' : 'bubble2';
+    const bubble = document.getElementById(bubbleId);
+
+    bubble.textContent = msg;
+    bubble.style.left = cat.x + 'px';
+    bubble.style.bottom = '90px';
+    bubble.style.opacity = 1;
+
+    setTimeout(() => { bubble.style.opacity = 0; }, 2000);
+
+    // 점프
+    cat.el.style.animation = 'none';
+    cat.el.offsetHeight;
+    cat.el.style.animation = 'catJump 0.4s ease';
+}
+
+function animateCats(){
+    const stageW = stage.offsetWidth;
+
+    Object.values(cats).forEach(cat => {
+        cat.x += cat.speed * cat.dir;
+
+        if(cat.x > stageW - 80) { cat.dir = -1; cat.el.style.transform = 'scaleX(-1)'; }
+        if(cat.x < 10) { cat.dir = 1; cat.el.style.transform = 'scaleX(1)'; }
+
+        cat.el.style.left = cat.x + 'px';
+
+        // 간헐적 방향 전환
+        if(Math.random() < 0.003){
+            cat.dir *= -1;
+            cat.el.style.transform = cat.dir > 0 ? 'scaleX(1)' : 'scaleX(-1)';
+        }
+
+        // 간헐적 속도 변화
+        if(Math.random() < 0.005){
+            cat.speed = 0.2 + Math.random() * 0.5;
+        }
+    });
+
+    requestAnimationFrame(animateCats);
+}
+
+// 초기 그리기
+drawPixelCat(dendeEl, 'dende', 4);
+drawPixelCat(buuEl, 'buu', 4);
+animateCats();
+
+// ============================================
+// 음악 (Web Audio API — 간단한 멜로디)
+// ============================================
+let audioCtx, isPlaying = false, oscillators = [];
+// MP3 파일이 있으면 이걸 사용 (GitHub에 업로드 후 경로 수정)
+const MP3_URL = 'bgm.mp3';
+
+
+const melody = [
+    // Lofi Jazz — 스윙 느낌
+    // Cmaj7 arpeggio
+    [262, 0.3], [330, 0.3], [392, 0.3], [494, 0.6],
+    [0, 0.2],
+    [440, 0.25], [494, 0.25], [523, 0.5],
+    [0, 0.3],
+    // Dm7
+    [294, 0.3], [349, 0.3], [440, 0.3], [523, 0.6],
+    [0, 0.2],
+    [494, 0.2], [440, 0.2], [392, 0.5],
+    [0, 0.3],
+    // Em7 → A7
+    [330, 0.3], [392, 0.3], [494, 0.3], [587, 0.5],
+    [0, 0.15],
+    [554, 0.25], [523, 0.25], [440, 0.5],
+    [0, 0.3],
+    // Dm7 → G7 → Cmaj7
+    [294, 0.3], [349, 0.3], [440, 0.5],
+    [392, 0.3], [494, 0.3], [587, 0.5],
+    [523, 0.4], [494, 0.3], [440, 0.3], [392, 0.8],
+    [0, 0.5],
+    // 부드러운 끝
+    [330, 0.3], [392, 0.3], [494, 0.5], [523, 0.8],
+    [0, 1.0],
+];
+
+function toggleMusic(){
+    const btn = document.getElementById('musicBtn');
+    const disc = document.getElementById('musicDisc');
+
+    // MP3 모드
+    if(MP3_URL){
+        let audio = document.getElementById('bgmAudio');
+        if(!audio){
+            audio = document.createElement('audio');
+            audio.id = 'bgmAudio';
+            audio.src = MP3_URL;
+            audio.loop = true;
+            document.body.appendChild(audio);
+        }
+        if(isPlaying){
+            isPlaying = false;
+            btn.textContent = '▶';
+            disc.classList.remove('playing');
+            audio.pause();
+        } else {
+            isPlaying = true;
+            btn.textContent = '⏸';
+            disc.classList.add('playing');
+            audio.play();
+        }
+        return;
+    }
+
+    // Web Audio 폴백 (MP3 없을 때)
+    if(isPlaying){
+        isPlaying = false;
+        btn.textContent = '▶';
+        disc.classList.remove('playing');
+        if(audioCtx) audioCtx.close();
+        audioCtx = null;
+        return;
+    }
+
+    isPlaying = true;
+    btn.textContent = '⏸';
+    disc.classList.add('playing');
+
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function playNote(freq, start, dur){
+        if(freq === 0) return;
+        // 메인 (sine — 재즈 피아노 느낌)
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        // 부드러운 어택 + 긴 릴리즈 (재즈 느낌)
+        gain.gain.setValueAtTime(0, start);
+        gain.gain.linearRampToValueAtTime(0.13, start + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.08, start + dur * 0.4);
+        gain.gain.exponentialRampToValueAtTime(0.001, start + dur * 1.5);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(start);
+        osc.stop(start + dur * 1.6);
+        // 옥타브 위 하모닉스 (따뜻함)
+        const osc2 = audioCtx.createOscillator();
+        const gain2 = audioCtx.createGain();
+        osc2.type = 'sine';
+        osc2.frequency.value = freq * 2;
+        gain2.gain.setValueAtTime(0, start);
+        gain2.gain.linearRampToValueAtTime(0.025, start + 0.02);
+        gain2.gain.exponentialRampToValueAtTime(0.001, start + dur * 1.0);
+        osc2.connect(gain2);
+        gain2.connect(audioCtx.destination);
+        osc2.start(start);
+        osc2.stop(start + dur * 1.1);
+        // 5도 위 살짝 (재즈 코드감)
+        if(Math.random() > 0.5){
+            const osc3 = audioCtx.createOscillator();
+            const gain3 = audioCtx.createGain();
+            osc3.type = 'sine';
+            osc3.frequency.value = freq * 1.5;
+            gain3.gain.setValueAtTime(0, start);
+            gain3.gain.linearRampToValueAtTime(0.015, start + 0.03);
+            gain3.gain.exponentialRampToValueAtTime(0.001, start + dur * 0.7);
+            osc3.connect(gain3);
+            gain3.connect(audioCtx.destination);
+            osc3.start(start);
+            osc3.stop(start + dur * 0.8);
+        }
+    }
+
+    function playMelody(){
+        if(!isPlaying || !audioCtx) return;
+        let time = audioCtx.currentTime + 0.1;
+        let totalDur = 0;
+        melody.forEach(([freq, dur]) => {
+            playNote(freq, time, dur * 0.9);
+            time += dur;
+            totalDur += dur;
+        });
+        setTimeout(() => { if(isPlaying) playMelody(); }, totalDur * 1000 + 500);
+    }
+
+    playMelody();
+}
+
+// ============================================
+// Fade-up 애니메이션 순차 적용
+// ============================================
+document.querySelectorAll('.fade-up').forEach((el, i) => {
+    el.style.animationDelay = (0.1 + i * 0.15) + 's';
+});
+</script>
+</body>
+</html>
