@@ -610,7 +610,7 @@
         <div class="secret-footer-text">
             YOU FOUND THE SECRET PAGE!<br>
             THIS IS THE WORLD OF DONGGU KANG<br>
-            WITH DENDE & BUU 🐱🐱
+            WITH DENDE & BOO 🐱🐱
         </div>
         <a href="index.html" class="back-link">🏠 메인으로 돌아가기</a>
     </div>
@@ -933,9 +933,31 @@ document.querySelectorAll('.fade-up').forEach((el, i) => {
     el.style.animationDelay = (0.1 + i * 0.15) + 's';
 });
 
-// 음악 자동 재생 (사용자 인터랙션 후 재생 — 브라우저 정책)
-function autoPlayMusic(){
-    if(!isPlaying) toggleMusic();
+// 음악 자동 재생 (첫 클릭/터치 시)
+function autoPlayMusic(e){
+    // 재생 버튼 직접 클릭은 toggleMusic이 처리
+    if(e.target === document.getElementById('musicBtn')) return;
+    if(!isPlaying){
+        const btn = document.getElementById('musicBtn');
+        const disc = document.getElementById('musicDisc');
+        if(MP3_URL){
+            let audio = document.getElementById('bgmAudio');
+            if(!audio){
+                audio = document.createElement('audio');
+                audio.id = 'bgmAudio';
+                audio.src = MP3_URL;
+                audio.loop = true;
+                document.body.appendChild(audio);
+            }
+            audio.play().then(()=>{
+                isPlaying = true;
+                btn.textContent = '⏸';
+                disc.classList.add('playing');
+            }).catch(()=>{});
+        } else {
+            toggleMusic();
+        }
+    }
     document.removeEventListener('click', autoPlayMusic);
     document.removeEventListener('touchstart', autoPlayMusic);
 }
