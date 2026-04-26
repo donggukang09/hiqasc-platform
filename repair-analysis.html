@@ -69,9 +69,17 @@
             <div class="chart-card"><div class="chart-card-header"><div class="chart-card-title"><span class="icon">☕</span> 모델별 입고 비중</div><span class="chart-card-badge">TOP 8</span></div><div class="chart-wrap"><canvas id="chartModel" height="260"></canvas></div></div>
         </div>
 
+        <!-- 총평 -->
+        <div class="section-grid full">
+            <div class="chart-card" style="border-left:3px solid #3b82f6">
+                <div class="chart-card-header"><div class="chart-card-title"><span class="icon">🤖</span> AI 분석 총평</div><span class="chart-card-badge">SUMMARY</span></div>
+                <div id="summaryContent" style="font-size:.88em;line-height:1.8;color:#475569"></div>
+            </div>
+        </div>
+
         <div class="section-grid">
             <div class="chart-card"><div class="chart-card-header"><div class="chart-card-title"><span class="icon">🔍</span> 접수 증상 분류 (텍스트 분석)</div><span class="chart-card-badge">AI 분류</span></div><div class="chart-wrap"><canvas id="chartSymptom" height="300"></canvas></div></div>
-            <div class="chart-card"><div class="chart-card-header"><div class="chart-card-title"><span class="icon">🔧</span> 수리 작업 분류 (테크노트 분석)</div><span class="chart-card-badge">AI 분류</span></div><div class="chart-wrap"><canvas id="chartRepair" height="300"></canvas></div></div>
+            <div class="chart-card"><div class="chart-card-header"><div class="chart-card-title"><span class="icon">📊</span> 모델별 상세 — 증상</div><select class="model-select" id="modelSelectSymptom" onchange="updateModelDetail()"></select></div><div class="chart-wrap"><canvas id="chartModelSymptom" height="300"></canvas></div></div>
         </div>
 
         <div class="section-grid full">
@@ -80,18 +88,25 @@
 
         <div class="section-grid triple">
             <div class="chart-card"><div class="chart-card-header"><div class="chart-card-title"><span class="icon">⚙️</span> 부품 사용 TOP 10</div></div><div id="partsRank"></div></div>
-            <div class="chart-card"><div class="chart-card-header"><div class="chart-card-title"><span class="icon">🛡️</span> 보증 유형 분포</div><select class="model-select" id="warrantyModelSelect" onchange="renderWarranty(curAgg)"><option value="전체">전체</option></select></div><div class="chart-wrap"><canvas id="chartWarranty" height="220"></canvas></div></div>
+            <div class="chart-card" style="display:flex;flex-direction:column;gap:0">
+                <div style="padding-bottom:16px;border-bottom:1px solid var(--border);margin-bottom:16px">
+                    <div class="chart-card-header" style="margin-bottom:14px"><div class="chart-card-title"><span class="icon">🛡️</span> 보증 유형 분포</div><select class="model-select" id="warrantyModelSelect" onchange="renderWarranty(curAgg)" style="font-size:.72em;min-width:120px;padding:4px 8px"><option value="전체">전체</option></select></div>
+                    <div class="chart-wrap"><canvas id="chartWarranty" height="180"></canvas></div>
+                </div>
+                <div>
+                    <div class="chart-card-header" style="margin-bottom:14px"><div class="chart-card-title"><span class="icon">🔄</span> 재입고 모델 TOP</div></div>
+                    <div class="chart-wrap"><canvas id="chartReentry" height="180"></canvas></div>
+                </div>
+            </div>
             <div class="chart-card"><div class="chart-card-header"><div class="chart-card-title"><span class="icon">👨‍🔧</span> 테크니션 수리 건수</div></div><div id="techRank"></div></div>
         </div>
 
-        <div class="section-grid">
-            <div class="chart-card"><div class="chart-card-header"><div class="chart-card-title"><span class="icon">📊</span> 모델별 상세 — 증상</div><select class="model-select" id="modelSelectSymptom" onchange="updateModelDetail()"></select></div><div class="chart-wrap"><canvas id="chartModelSymptom" height="260"></canvas></div></div>
-            <div class="chart-card"><div class="chart-card-header"><div class="chart-card-title"><span class="icon">⚙️</span> 모델별 상세 — 부품 사용</div><select class="model-select" id="modelSelectParts" onchange="updateModelDetail()"></select></div><div class="chart-wrap"><canvas id="chartModelParts" height="260"></canvas></div></div>
+        <div class="section-grid full">
+            <div class="chart-card"><div class="chart-card-header"><div class="chart-card-title"><span class="icon">⚙️</span> 모델별 부품 사용 TOP</div><select class="model-select" id="modelSelectParts" onchange="updateModelDetail()"></select></div><div class="chart-wrap"><canvas id="chartModelParts" height="220"></canvas></div></div>
         </div>
 
-        <div class="section-grid">
-            <div class="chart-card"><div class="chart-card-header"><div class="chart-card-title"><span class="icon">⚡</span> 모델별 DOA (초기불량) 수량</div><span class="chart-card-badge">Repair Code 95</span></div><div class="chart-wrap"><canvas id="chartDOA" height="240"></canvas></div></div>
-            <div class="chart-card"><div class="chart-card-header"><div class="chart-card-title"><span class="icon">🔄</span> 재입고 모델별 현황</div><span class="chart-card-badge">RE-ENTRY</span></div><div class="chart-wrap"><canvas id="chartReentry" height="240"></canvas></div></div>
+        <div class="section-grid full">
+            <div class="chart-card"><div class="chart-card-header"><div class="chart-card-title"><span class="icon">⚡</span> 모델별 DOA (초기불량) 수량</div><span class="chart-card-badge">Repair Code 95</span></div><div class="chart-wrap"><canvas id="chartDOA" height="200"></canvas></div></div>
         </div>
     </div>
 
@@ -308,7 +323,7 @@ function renderAll(agg){
     const tm=so(agg.machines)[0];if(tm){document.getElementById('kpiTopModel').textContent=tm[0];document.getElementById('kpiTopModelSub').textContent=`${tm[1].toLocaleString()}건`;}
     const doaTotal=Object.values(agg.doaByM).reduce((a,b)=>a+b,0);document.getElementById('kpiExchange').textContent=doaTotal.toLocaleString()+'건';document.getElementById('kpiExchangeSub').textContent=(agg.total?(doaTotal/agg.total*100).toFixed(1):0)+'%';
 
-    renderTrend(agg);renderModelPie(agg);renderSymBar(agg);renderRepBar(agg);renderHeatmap(agg);renderParts(agg);renderWarranty(agg);renderTech(agg);popModelSel(agg);updateModelDetail();renderDOA(agg);renderReentry(agg);
+    renderTrend(agg);renderModelPie(agg);renderSymBar(agg);renderHeatmap(agg);renderParts(agg);renderWarranty(agg);renderTech(agg);popModelSel(agg);updateModelDetail();renderDOA(agg);renderReentry(agg);renderSummary(agg);
 }
 
 function renderTrend(agg){dc('trend');const w={};Object.entries(agg.daily).forEach(([d,c])=>{const dt=new Date(d);const ws=new Date(dt);ws.setDate(dt.getDate()-dt.getDay()+1);const k=ws.toISOString().split('T')[0];w[k]=(w[k]||0)+c;});const l=Object.keys(w).sort();
@@ -320,8 +335,7 @@ chs['model']=new Chart(document.getElementById('chartModel'),{type:'doughnut',da
 function renderSymBar(agg){dc('symptom');const e=so(agg.symptoms);
 chs['symptom']=new Chart(document.getElementById('chartSymptom'),{type:'bar',data:{labels:e.map(x=>x[0]),datasets:[{data:e.map(x=>x[1]),backgroundColor:CL,borderRadius:6,barThickness:22}]},options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false},datalabels:{anchor:'end',align:'end',color:'#64748b',font:{size:10,weight:600,family:'Outfit'},formatter:v=>v.toLocaleString()}},scales:{x:{ticks:{color:'#94a3b8',font:{size:10}},grid:{color:'rgba(0,0,0,.06)'},beginAtZero:true},y:{ticks:{color:'#1e293b',font:{size:11}},grid:{display:false}}}},plugins:[ChartDataLabels]});}
 
-function renderRepBar(agg){dc('repair');const e=so(agg.repairs);
-chs['repair']=new Chart(document.getElementById('chartRepair'),{type:'bar',data:{labels:e.map(x=>x[0]),datasets:[{data:e.map(x=>x[1]),backgroundColor:CL.map(c=>c+'cc'),borderRadius:6,barThickness:22}]},options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false},datalabels:{anchor:'end',align:'end',color:'#64748b',font:{size:10,weight:600,family:'Outfit'},formatter:v=>v.toLocaleString()}},scales:{x:{ticks:{color:'#94a3b8',font:{size:10}},grid:{color:'rgba(0,0,0,.06)'},beginAtZero:true},y:{ticks:{color:'#1e293b',font:{size:11}},grid:{display:false}}}},plugins:[ChartDataLabels]});}
+
 
 function renderHeatmap(agg){const syms=so(agg.symptoms).map(e=>e[0]),mods=so(agg.machines,10).map(e=>e[0]);let mx=0;mods.forEach(m=>syms.forEach(s=>{const v=agg.ms[m]?.[s]||0;if(v>mx)mx=v;}));
 const hc=['rgba(59,130,246,.06)','rgba(59,130,246,.18)','rgba(59,130,246,.3)','rgba(59,130,246,.5)','rgba(59,130,246,.7)','rgba(59,130,246,.9)'];
@@ -351,6 +365,42 @@ dc('modelSymptom');const sd=curAgg.ms[mS]||{};const se=so(sd);if(se.length){
 chs['modelSymptom']=new Chart(document.getElementById('chartModelSymptom'),{type:'bar',data:{labels:se.map(e=>e[0]),datasets:[{data:se.map(e=>e[1]),backgroundColor:CL,borderRadius:6,barThickness:24}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},datalabels:{anchor:'end',align:'top',color:'#64748b',font:{size:10,weight:600,family:'Outfit'},formatter:v=>v.toLocaleString()}},scales:{x:{ticks:{color:'#64748b',font:{size:10},maxRotation:45},grid:{display:false}},y:{ticks:{color:'#94a3b8',font:{size:10}},grid:{color:'rgba(0,0,0,.06)'},beginAtZero:true}}},plugins:[ChartDataLabels]});}
 dc('modelParts');const mP=document.getElementById('modelSelectParts').value;const pd=curAgg.partsByM[mP]||{};const pe=so(pd,8);if(pe.length){
 chs['modelParts']=new Chart(document.getElementById('chartModelParts'),{type:'bar',data:{labels:pe.map(e=>PART_NAMES[e[0]]||e[0]),datasets:[{data:pe.map(e=>e[1]),backgroundColor:CL,borderRadius:6,barThickness:24}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},datalabels:{anchor:'end',align:'top',color:'#64748b',font:{size:10,weight:600,family:'Outfit'},formatter:v=>v.toLocaleString()}},scales:{x:{ticks:{color:'#64748b',font:{size:10},maxRotation:45},grid:{display:false}},y:{ticks:{color:'#94a3b8',font:{size:10}},grid:{color:'rgba(0,0,0,.06)'},beginAtZero:true}}},plugins:[ChartDataLabels]});}}
+
+
+function renderSummary(agg){
+    const days=Object.keys(agg.daily).length||1;
+    const avgDaily=Math.round(agg.total/days);
+    const topSym=so(agg.symptoms);
+    const topMach=so(agg.machines);
+    const doaTotal=Object.values(agg.doaByM).reduce((a,b)=>a+b,0);
+    const doaRate=agg.total?(doaTotal/agg.total*100).toFixed(1):0;
+    const reentryTotal=Object.values(agg.reentryByM).reduce((a,b)=>a+b,0);
+    const reentryRate=agg.total?(reentryTotal/agg.total*100).toFixed(1):0;
+    const topDoaModel=so(agg.doaByM)[0];
+    const topReentryModel=so(agg.reentryByM)[0];
+    
+    // 증상 비율 TOP 3
+    const symTop3=topSym.slice(0,3).map(([n,c])=>`<b>${n}</b> ${(c/agg.total*100).toFixed(1)}%`).join(', ');
+    // 모델 TOP 3
+    const machTop3=topMach.slice(0,3).map(([n,c])=>`<b>${n}</b> ${c.toLocaleString()}건`).join(', ');
+    
+    // 누수 비중이 높은 모델 찾기
+    let leakWorstModel='';let leakWorstRate=0;
+    topMach.slice(0,8).forEach(([m])=>{
+        const ms=agg.ms[m]||{};const leak=ms['누수']||0;const total=agg.machines[m]||1;
+        const rate=leak/total*100;
+        if(rate>leakWorstRate){leakWorstRate=rate;leakWorstModel=m;}
+    });
+    
+    let html='<div style="display:grid;gap:12px">';
+    html+=`<div>📊 조회 기간 <b>${days}일</b> 동안 총 <b>${agg.total.toLocaleString()}건</b>의 수리가 완료되었으며, 일평균 <b>${avgDaily}건</b>을 처리했습니다.</div>`;
+    html+=`<div>☕ 입고량 TOP 3 모델: ${machTop3}</div>`;
+    html+=`<div>🔍 주요 증상 TOP 3: ${symTop3}</div>`;
+    if(leakWorstModel)html+=`<div>💧 누수 비중이 가장 높은 모델은 <b>${leakWorstModel}</b>로, 전체 입고의 <b>${leakWorstRate.toFixed(1)}%</b>가 누수 관련 증상입니다.</div>`;
+    html+=`<div>⚡ DOA(초기불량)는 총 <b>${doaTotal.toLocaleString()}건</b>(${doaRate}%)이며${topDoaModel?`, <b>${topDoaModel[0]}</b>가 ${topDoaModel[1].toLocaleString()}건으로 최다`:''}.  🔄 재입고는 총 <b>${reentryTotal.toLocaleString()}건</b>(${reentryRate}%)이며${topReentryModel?`, <b>${topReentryModel[0]}</b>가 ${topReentryModel[1].toLocaleString()}건으로 최다`:''} 모델입니다.</div>`;
+    html+='</div>';
+    document.getElementById('summaryContent').innerHTML=html;
+}
 
 function renderDOA(agg){dc('doa');const e=Object.entries(agg.doaByM).sort((a,b)=>b[1]-a[1]).slice(0,12);if(!e.length)return;
 chs['doa']=new Chart(document.getElementById('chartDOA'),{type:'bar',data:{labels:e.map(x=>x[0]),datasets:[{label:'DOA',data:e.map(x=>x[1]),backgroundColor:'#e11d48',borderRadius:6,barThickness:28}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},datalabels:{anchor:'end',align:'top',color:'#64748b',font:{size:11,weight:700,family:'Outfit'},formatter:v=>v.toLocaleString()}},scales:{x:{ticks:{color:'#64748b',font:{size:10},maxRotation:45},grid:{display:false}},y:{ticks:{color:'#94a3b8',font:{size:10}},grid:{color:'rgba(0,0,0,.06)'},beginAtZero:true}}},plugins:[ChartDataLabels]});}
