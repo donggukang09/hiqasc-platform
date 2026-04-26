@@ -88,21 +88,25 @@
 
         <div class="section-grid triple">
             <div class="chart-card"><div class="chart-card-header"><div class="chart-card-title"><span class="icon">⚙️</span> 부품 사용 TOP 10</div></div><div id="partsRank"></div></div>
-            <div class="chart-card" style="display:flex;flex-direction:column;gap:0">
-                <div style="padding-bottom:20px;border-bottom:1px solid var(--border);margin-bottom:16px">
-                    <div class="chart-card-header" style="margin-bottom:10px"><div class="chart-card-title"><span class="icon">🛡️</span> 보증 유형 분포</div><select class="model-select" id="warrantyModelSelect" onchange="renderWarranty(curAgg)" style="font-size:.72em;min-width:120px;padding:4px 8px"><option value="전체">전체</option></select></div>
-                    <div class="chart-wrap" style="max-width:280px;margin:0 auto"><canvas id="chartWarranty" height="280"></canvas></div>
-                </div>
-                <div>
-                    <div class="chart-card-header" style="margin-bottom:10px"><div class="chart-card-title"><span class="icon">🔄</span> 재입고 모델 TOP</div></div>
-                    <div class="chart-wrap"><canvas id="chartReentry" height="200"></canvas></div>
-                </div>
-            </div>
+            <div class="chart-card"><div class="chart-card-header"><div class="chart-card-title"><span class="icon">🔩</span> 모델별 부품 사용 TOP</div><select class="model-select" id="modelSelectParts" onchange="updateModelDetail()"></select></div><div class="chart-wrap"><canvas id="chartModelParts" height="340"></canvas></div></div>
             <div class="chart-card"><div class="chart-card-header"><div class="chart-card-title"><span class="icon">👨‍🔧</span> 테크니션 수리 건수</div></div><div id="techRank"></div></div>
         </div>
 
+        
+
         <div class="section-grid full">
-            <div class="chart-card"><div class="chart-card-header"><div class="chart-card-title"><span class="icon">⚙️</span> 모델별 부품 사용 TOP</div><select class="model-select" id="modelSelectParts" onchange="updateModelDetail()"></select></div><div class="chart-wrap"><canvas id="chartModelParts" height="220"></canvas></div></div>
+            <div class="chart-card">
+                <div style="display:flex;gap:32px;align-items:flex-start;flex-wrap:wrap">
+                    <div style="flex:0 0 320px">
+                        <div class="chart-card-header" style="margin-bottom:12px"><div class="chart-card-title"><span class="icon">🛡️</span> 보증 유형 분포</div><select class="model-select" id="warrantyModelSelect" onchange="renderWarranty(curAgg)" style="font-size:.75em;min-width:130px;padding:5px 10px"><option value="전체">전체</option></select></div>
+                        <div class="chart-wrap" style="max-width:300px;margin:0 auto"><canvas id="chartWarranty" height="300"></canvas></div>
+                    </div>
+                    <div style="flex:1;min-width:280px">
+                        <div class="chart-card-header" style="margin-bottom:12px"><div class="chart-card-title"><span class="icon">🔄</span> 재입고 모델별 현황</div></div>
+                        <div class="chart-wrap"><canvas id="chartReentry" height="300"></canvas></div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="section-grid">
