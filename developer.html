@@ -134,23 +134,191 @@
             letter-spacing: 1px;
         }
 
-        /* 고양이 캔버스 */
+        /* 고양이 캔버스 — 캠핑 씬 */
         .cat-stage {
             position: relative;
             width: 100%;
-            height: 200px;
+            height: 320px;
             margin: 20px 0 30px;
-            border-bottom: 3px solid #2a2a4a;
+            border-radius: 16px;
             overflow: hidden;
             animation-delay: 0.3s;
+            background: linear-gradient(180deg, #050810 0%, #0a0e1a 20%, #0d1225 45%, #101530 65%, #1a2a1a 85%, #2d4a2a 100%);
+        }
+
+        /* 씬 안의 별 */
+        .scene-star {
+            position: absolute;
+            width: 2px; height: 2px;
+            background: #fff;
+            border-radius: 50%;
+            z-index: 1;
+            animation: twinkle var(--dur) ease-in-out infinite;
+        }
+
+        /* 잔디 바닥 (물가 부분은 비움) */
+        .ground {
+            position: absolute;
+            bottom: 0; left: 0;
+            width: 68%;
+            height: 50px;
+            background: linear-gradient(180deg, #2d5a2a, #1e4a20);
+            z-index: 1;
+        }
+
+        /* 잔디→물 경사면 */
+        .ground-slope {
+            position: absolute;
+            bottom: 0;
+            left: 68%;
+            width: 8%;
+            height: 50px;
+            background: linear-gradient(135deg, #2d5a2a 30%, #1a3520 50%, #15304a 70%, rgba(15,45,75,0.9) 100%);
+            z-index: 1;
+        }
+
+        /* 물가 */
+        .water-area {
+            position: absolute;
+            bottom: 0; right: 0;
+            width: 24%;
+            height: 50px;
+            background: linear-gradient(180deg, #0d3050 0%, #0a2540 30%, #081e35 100%);
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        /* 수면 반짝임 */
+        .water-area::before {
+            content: '';
+            position: absolute;
+            top: 4px; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent 10%, rgba(100,180,255,0.25) 30%, transparent 50%, rgba(100,180,255,0.2) 70%, transparent 90%);
+            animation: waterShimmer 3s ease-in-out infinite;
+        }
+
+        /* 물결 */
+        .water-area::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background:
+                repeating-linear-gradient(90deg, transparent, rgba(80,160,240,0.06) 25px, transparent 50px),
+                repeating-linear-gradient(90deg, transparent 15px, rgba(100,200,255,0.04) 35px, transparent 55px);
+            animation: waterWave 5s ease-in-out infinite;
+        }
+
+        @keyframes waterWave {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(12px); }
+        }
+
+        @keyframes waterShimmer {
+            0%, 100% { opacity: 0.3; transform: translateX(0); }
+            50% { opacity: 0.8; transform: translateX(10px); }
+        }
+
+        /* 달빛 물 반사 */
+        .water-reflection {
+            position: absolute;
+            bottom: 8px; right: 6%;
+            width: 20px; height: 30px;
+            background: linear-gradient(180deg, rgba(253,203,110,0.12), rgba(253,203,110,0.03), transparent);
+            z-index: 2;
+            filter: blur(3px);
+            animation: reflectionWave 4s ease-in-out infinite;
+        }
+
+        @keyframes reflectionWave {
+            0%, 100% { transform: scaleX(1); opacity: 0.6; }
+            50% { transform: scaleX(1.3); opacity: 0.9; }
+        }
+
+        /* 텐트 */
+        .tent {
+            position: absolute;
+            bottom: 48px;
+            left: 55px;
+            z-index: 2;
+        }
+
+        /* 모닥불 */
+        .campfire {
+            position: absolute;
+            bottom: 48px;
+            left: 180px;
+            z-index: 3;
+        }
+
+        /* 낚싯대 */
+        .fishing-rod {
+            position: absolute;
+            bottom: 48px;
+            right: 14%;
+            z-index: 3;
+        }
+
+        /* 물고기 */
+        .fish {
+            position: absolute;
+            bottom: 15px;
+            right: 8%;
+            z-index: 2;
+            opacity: 0;
+            animation: fishJump 8s ease-in-out infinite 4s;
+        }
+
+        @keyframes fishJump {
+            0%, 100% { opacity: 0; transform: translateY(0) rotate(0deg); }
+            5% { opacity: 1; transform: translateY(0) rotate(-10deg); }
+            15% { opacity: 1; transform: translateY(-35px) rotate(15deg); }
+            20% { opacity: 1; transform: translateY(-45px) rotate(-5deg) scaleX(-1); }
+            25% { opacity: 1; transform: translateY(-50px) rotate(10deg) scaleX(-1); }
+            30% { opacity: 1; transform: translateY(-40px) rotate(-15deg); }
+            35% { opacity: 1; transform: translateY(-30px) rotate(20deg); }
+            40% { opacity: 0.8; transform: translateY(-20px) rotate(-10deg); }
+            45% { opacity: 0; transform: translateY(5px) rotate(0deg); }
+            46%, 100% { opacity: 0; }
+        }
+
+        /* 음표 떠다님 */
+        .music-note {
+            position: absolute;
+            font-size: 16px;
+            opacity: 0;
+            z-index: 4;
+            animation: noteFloat var(--note-dur) ease-in-out infinite var(--note-delay);
+        }
+
+        @keyframes noteFloat {
+            0% { opacity: 0; transform: translateY(0) rotate(0deg); }
+            15% { opacity: 0.8; }
+            50% { opacity: 0.6; transform: translateY(-40px) rotate(15deg) translateX(10px); }
+            85% { opacity: 0.3; }
+            100% { opacity: 0; transform: translateY(-70px) rotate(-10deg) translateX(-5px); }
+        }
+
+        /* 달 */
+        .moon {
+            position: absolute;
+            top: 20px;
+            right: 40px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, #ffeaa7, #fdcb6e);
+            box-shadow: 0 0 20px rgba(253,203,110,0.3), 0 0 60px rgba(253,203,110,0.1);
+            z-index: 1;
         }
 
         .cat-sprite {
             position: absolute;
-            bottom: 0;
+            bottom: 40px;
             image-rendering: pixelated;
             transition: transform 0.1s;
             cursor: pointer;
+            z-index: 5;
         }
 
         .cat-sprite:hover {
@@ -485,26 +653,27 @@
         /* 말풍선 */
         .speech-bubble {
             position: absolute;
-            background: var(--bg2);
+            background: rgba(22,33,62,0.95);
             border: 2px solid var(--accent2);
-            border-radius: 8px;
-            padding: 6px 10px;
+            border-radius: 10px;
+            padding: 8px 14px;
             font-family: 'Press Start 2P', monospace;
-            font-size: 7px;
+            font-size: 11px;
             color: var(--accent2);
             white-space: nowrap;
             opacity: 0;
             transition: opacity 0.3s;
             pointer-events: none;
             z-index: 10;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5), 0 0 10px rgba(247,183,49,0.15);
         }
 
         .speech-bubble::after {
             content: '';
             position: absolute;
-            bottom: -8px;
-            left: 16px;
-            border: 4px solid transparent;
+            bottom: -10px;
+            left: 20px;
+            border: 5px solid transparent;
             border-top-color: var(--accent2);
         }
 
@@ -530,14 +699,48 @@
         <div class="hero-role">HIQASC Platform Creator</div>
     </div>
 
-    <!-- 고양이 스테이지 -->
+    <!-- 고양이 스테이지 — 캠핑 씬 -->
     <div class="cat-stage fade-up" id="catStage">
+        <!-- 달 -->
+        <div class="moon"></div>
+        <!-- 씬 내 별 -->
+        <div class="scene-star" style="left:8%;top:12%;--dur:3s"></div>
+        <div class="scene-star" style="left:15%;top:22%;--dur:4s;animation-delay:1s"></div>
+        <div class="scene-star" style="left:25%;top:8%;--dur:2.5s;animation-delay:0.5s"></div>
+        <div class="scene-star" style="left:35%;top:18%;--dur:3.5s;animation-delay:2s"></div>
+        <div class="scene-star" style="left:45%;top:10%;--dur:4s;animation-delay:0.8s"></div>
+        <div class="scene-star" style="left:55%;top:25%;--dur:3s;animation-delay:1.5s"></div>
+        <div class="scene-star" style="left:65%;top:14%;--dur:2.8s;animation-delay:0.3s"></div>
+        <div class="scene-star" style="left:72%;top:6%;--dur:3.2s;animation-delay:2.5s"></div>
+        <div class="scene-star" style="left:40%;top:30%;--dur:4.5s;animation-delay:1.2s"></div>
+        <div class="scene-star" style="left:20%;top:35%;--dur:3.8s;animation-delay:0.7s"></div>
+        <div class="scene-star" style="left:50%;top:5%;--dur:2.5s;animation-delay:1.8s;width:3px;height:3px"></div>
+        <div class="scene-star" style="left:30%;top:15%;--dur:3s;animation-delay:2.2s;width:3px;height:3px"></div>
+        <!-- 잔디 -->
+        <div class="ground"></div>
+        <div class="ground-slope"></div>
+        <!-- 물가 -->
+        <div class="water-area"></div>
+        <div class="water-reflection"></div>
+        <!-- 텐트 (도트) -->
+        <canvas class="tent" id="tentCanvas" width="72" height="56"></canvas>
+        <!-- 모닥불 (도트) -->
+        <canvas class="campfire" id="fireCanvas" width="40" height="40"></canvas>
+        <!-- 낚싯대 (도트) -->
+        <canvas class="fishing-rod" id="rodCanvas" width="54" height="66"></canvas>
+        <!-- 물고기 -->
+        <canvas class="fish" id="fishCanvas" width="30" height="20"></canvas>
+        <!-- 음표 -->
+        <div class="music-note" style="left:195px;bottom:120px;--note-dur:4s;--note-delay:0s">♪</div>
+        <div class="music-note" style="left:210px;bottom:130px;--note-dur:5s;--note-delay:1.5s">♫</div>
+        <div class="music-note" style="left:175px;bottom:115px;--note-dur:4.5s;--note-delay:3s">♪</div>
+        <!-- 말풍선 -->
         <div class="speech-bubble" id="bubble1"></div>
         <div class="speech-bubble" id="bubble2"></div>
-        <!-- 덴데 (고등어 태비) -->
-        <canvas class="cat-sprite" id="dendeSprite" width="64" height="64" onclick="catClick('dende')" title="덴데"></canvas>
-        <!-- 부우 (치즈 태비) -->
-        <canvas class="cat-sprite" id="booSprite" width="64" height="64" onclick="catClick('boo')" title="부우"></canvas>
+        <!-- 덴데 — 낚시하는 중 (오른쪽 물가 근처) -->
+        <canvas class="cat-sprite" id="dendeSprite" width="64" height="64" onclick="catClick('dende')" title="덴데" style="right:22%;bottom:48px;left:auto"></canvas>
+        <!-- 부우 — 모닥불 옆 (왼쪽) -->
+        <canvas class="cat-sprite" id="booSprite" width="64" height="64" onclick="catClick('boo')" title="부우" style="left:95px;bottom:48px"></canvas>
     </div>
 
     <!-- 프로필 -->
@@ -721,20 +924,131 @@ drawPixelCat(document.getElementById('dendeProfile'), 'dende', 5);
 drawPixelCat(document.getElementById('booProfile'), 'boo', 5);
 
 // ============================================
-// 고양이 걷기 애니메이션
+// 캠핑 씬 도트 그래픽
+// ============================================
+function drawTent(canvas){
+    const ctx = canvas.getContext('2d');
+    const s = 4;
+    ctx.imageSmoothingEnabled = false;
+    const p = (x,y,c) => { ctx.fillStyle = c; ctx.fillRect(x*s, y*s, s, s); };
+    // 삼각형 텐트
+    const tent = '#e67e22', tentD = '#d35400', tentL = '#f39c12', pole = '#8B7355';
+    // 지붕
+    p(8,1,tentL);
+    p(7,2,tent);p(8,2,tent);p(9,2,tent);
+    p(6,3,tent);p(7,3,tentL);p(8,3,tentL);p(9,3,tent);p(10,3,tent);
+    p(5,4,tent);p(6,4,tent);p(7,4,tentL);p(8,4,tentL);p(9,4,tent);p(10,4,tent);p(11,4,tent);
+    p(4,5,tent);p(5,5,tent);p(6,5,tentL);p(7,5,tentL);p(8,5,tent);p(9,5,tent);p(10,5,tent);p(11,5,tent);p(12,5,tent);
+    p(3,6,tent);p(4,6,tent);p(5,6,tentL);p(6,6,tentL);p(7,6,tent);p(8,6,tent);p(9,6,tent);p(10,6,tent);p(11,6,tent);p(12,6,tent);p(13,6,tent);
+    // 입구
+    p(2,7,tentD);p(3,7,tent);p(4,7,tent);p(5,7,tentL);p(6,7,'#1a1a2e');p(7,7,'#1a1a2e');p(8,7,'#1a1a2e');p(9,7,'#1a1a2e');p(10,7,tent);p(11,7,tent);p(12,7,tent);p(13,7,tentD);p(14,7,tentD);
+    p(1,8,tentD);p(2,8,tentD);p(3,8,tent);p(4,8,tent);p(5,8,'#1a1a2e');p(6,8,'#1a1a2e');p(7,8,'#1a1a2e');p(8,8,'#1a1a2e');p(9,8,'#1a1a2e');p(10,8,tent);p(11,8,tent);p(12,8,tentD);p(13,8,tentD);p(14,8,tentD);p(15,8,tentD);
+    // 바닥
+    p(0,9,tentD);p(1,9,tentD);p(2,9,tentD);p(3,9,tentD);p(4,9,tentD);p(5,9,'#1a1a2e');p(6,9,'#1a1a2e');p(7,9,'#1a1a2e');p(8,9,'#1a1a2e');p(9,9,'#1a1a2e');p(10,9,tentD);p(11,9,tentD);p(12,9,tentD);p(13,9,tentD);p(14,9,tentD);p(15,9,tentD);p(16,9,tentD);
+}
+
+function drawFire(canvas){
+    const ctx = canvas.getContext('2d');
+    const s = 4;
+    ctx.imageSmoothingEnabled = false;
+    const p = (x,y,c) => { ctx.fillStyle = c; ctx.fillRect(x*s, y*s, s, s); };
+    // 나무
+    p(3,8,'#5D4037');p(4,8,'#5D4037');p(5,8,'#5D4037');p(6,8,'#5D4037');
+    p(2,9,'#4E342E');p(3,9,'#5D4037');p(4,9,'#5D4037');p(5,9,'#5D4037');p(6,9,'#5D4037');p(7,9,'#4E342E');
+    // 불꽃 (애니메이션으로 변화)
+    const frame = Math.floor(Date.now() / 200) % 3;
+    if(frame === 0){
+        p(4,4,'#FDD835');p(5,4,'#FF6F00');
+        p(3,5,'#FF6F00');p(4,5,'#FFEB3B');p(5,5,'#FDD835');p(6,5,'#FF6F00');
+        p(3,6,'#FF6F00');p(4,6,'#FF9800');p(5,6,'#FFEB3B');p(6,6,'#FF6F00');
+        p(4,7,'#FF5722');p(5,7,'#FF9800');
+    } else if(frame === 1){
+        p(5,3,'#FDD835');
+        p(4,4,'#FF6F00');p(5,4,'#FFEB3B');p(6,4,'#FDD835');
+        p(3,5,'#FF5722');p(4,5,'#FF9800');p(5,5,'#FFEB3B');p(6,5,'#FF9800');
+        p(3,6,'#FF6F00');p(4,6,'#FFEB3B');p(5,6,'#FF9800');p(6,6,'#FF5722');
+        p(4,7,'#FF9800');p(5,7,'#FF5722');
+    } else {
+        p(4,3,'#FDD835');
+        p(3,4,'#FF9800');p(4,4,'#FFEB3B');p(5,4,'#FF6F00');
+        p(3,5,'#FF6F00');p(4,5,'#FFEB3B');p(5,5,'#FF9800');p(6,5,'#FF6F00');
+        p(4,6,'#FF9800');p(5,6,'#FFEB3B');p(6,6,'#FF5722');
+        p(4,7,'#FF5722');p(5,7,'#FF6F00');
+    }
+    // 불빛 반사
+    p(2,7,'rgba(255,150,0,0.3)');p(7,7,'rgba(255,150,0,0.3)');
+}
+
+function drawRod(canvas){
+    const ctx = canvas.getContext('2d');
+    const s = 3;
+    ctx.imageSmoothingEnabled = false;
+    const p = (x,y,c) => { ctx.fillStyle = c; ctx.fillRect(x*s, y*s, s, s); };
+    const rod = '#8B7355', rodL = '#A0522D', line = '#8899aa';
+    // 손잡이 (왼쪽 아래) — 코르크 느낌
+    p(0,14,'#6B5340');p(1,13,rod);p(2,12,rod);p(3,11,rod);
+    // 대 (대각선 위로 — 더 길게)
+    p(4,10,rod);p(5,9,rod);p(6,8,rod);p(7,7,rodL);p(8,6,rodL);p(9,5,rodL);p(10,4,rodL);p(11,3,rodL);p(12,2,rodL);p(13,1,rodL);p(14,0,'#B8956A');
+    // 줄 (끝에서 물 속까지 길게)
+    for(let i=1;i<=18;i++) p(14,i,line);
+    // 줄 끝 — 살짝 물 속에서 흔들리는 느낌
+    p(14,19,line);p(15,19,'#c0c0c0');
+    // 찌 (빨간 동그라미)
+    p(14,12,'#e74c3c');p(13,12,'#e74c3c');p(14,13,'#e74c3c');
+}
+
+function drawFish(canvas){
+    const ctx = canvas.getContext('2d');
+    const s = 3;
+    ctx.imageSmoothingEnabled = false;
+    const p = (x,y,c) => { ctx.fillStyle = c; ctx.fillRect(x*s, y*s, s, s); };
+    // 물고기 — 더 디테일하게
+    // 꼬리
+    p(0,2,'#4FC3F7');p(0,3,'#4FC3F7');
+    p(1,1,'#4FC3F7');p(1,2,'#29B6F6');p(1,3,'#29B6F6');p(1,4,'#4FC3F7');
+    // 몸통
+    p(2,1,'#29B6F6');p(2,2,'#81D4FA');p(2,3,'#81D4FA');p(2,4,'#29B6F6');
+    p(3,0,'#29B6F6');p(3,1,'#81D4FA');p(3,2,'#E1F5FE');p(3,3,'#81D4FA');p(3,4,'#29B6F6');p(3,5,'#4FC3F7');
+    p(4,0,'#29B6F6');p(4,1,'#B3E5FC');p(4,2,'#E1F5FE');p(4,3,'#B3E5FC');p(4,4,'#29B6F6');p(4,5,'#4FC3F7');
+    // 머리 + 눈
+    p(5,1,'#29B6F6');p(5,2,'#81D4FA');p(5,3,'#81D4FA');p(5,4,'#29B6F6');
+    p(6,1,'#29B6F6');p(6,2,'#1a1a2e');p(6,3,'#29B6F6');
+    p(7,2,'#4FC3F7');p(7,3,'#4FC3F7');
+    // 배 지느러미
+    p(3,5,'#81D4FA');
+    // 물방울 (위에)
+    p(8,0,'rgba(100,200,255,0.5)');p(7,0,'rgba(100,200,255,0.3)');
+}
+
+// 초기 그리기
+drawTent(document.getElementById('tentCanvas'));
+drawRod(document.getElementById('rodCanvas'));
+drawFish(document.getElementById('fishCanvas'));
+
+// 모닥불 애니메이션
+setInterval(() => {
+    const fc = document.getElementById('fireCanvas');
+    fc.getContext('2d').clearRect(0,0,fc.width,fc.height);
+    drawFire(fc);
+}, 200);
+
+// ============================================
+// 고양이 걷기 애니메이션 — 캠핑 모드 (제한된 영역)
 // ============================================
 const stage = document.getElementById('catStage');
 const dendeEl = document.getElementById('dendeSprite');
 const booEl = document.getElementById('booSprite');
 
 const cats = {
-    dende: { el: dendeEl, x: 100, dir: 1, speed: 0.4 + Math.random()*0.3, frame: 0 },
-    boo: { el: booEl, x: 400, dir: -1, speed: 0.3 + Math.random()*0.3, frame: 0 },
+    dende: { el: dendeEl, x: 0, dir: 1, speed: 0, frame: 0, mode: 'fishing' },
+    boo: { el: booEl, x: 0, dir: 1, speed: 0, frame: 0, mode: 'campfire' },
 };
 
+// 덴데: 낚시 자리에서 가끔 좌우로 살짝 움직임
+// 부우: 모닥불 근처에서 왔다갔다
 const catMessages = {
-    dende: ['냐옹...', '...뭐봐', '졸려...', '밥줘', '시끄러...', '치워..'],
-    boo: ['야옹~!', '놀자!!', '배고파!!', '위에올라갈거야', '뭐야뭐야?!', '간식!!'],
+    dende: ['...물고기 어딨어', '조용히해...', '낚시 중...', '입질이다!', '놓쳤다...', '...zzZ'],
+    boo: ['불 따뜻해~!', '마시멜로 줘!!', '캠핑 최고!!', '텐트 내꺼!!', '배고파!!', '별 예뻐~!'],
 };
 
 function catClick(name){
@@ -744,41 +1058,31 @@ function catClick(name){
     const bubbleId = name === 'dende' ? 'bubble1' : 'bubble2';
     const bubble = document.getElementById(bubbleId);
 
+    const rect = cat.el.getBoundingClientRect();
+    const stageRect = stage.getBoundingClientRect();
     bubble.textContent = msg;
-    bubble.style.left = cat.x + 'px';
-    bubble.style.bottom = '90px';
+    bubble.style.left = (rect.left - stageRect.left + 10) + 'px';
+    bubble.style.bottom = '120px';
     bubble.style.opacity = 1;
 
-    setTimeout(() => { bubble.style.opacity = 0; }, 2000);
+    setTimeout(() => { bubble.style.opacity = 0; }, 2500);
 
-    // 점프
     cat.el.style.animation = 'none';
     cat.el.offsetHeight;
     cat.el.style.animation = 'catJump 0.4s ease';
 }
 
+// 부우만 살짝 움직임 (모닥불 주변)
+let booBaseX = 90;
+let booWander = 0;
+
 function animateCats(){
-    const stageW = stage.offsetWidth;
-
-    Object.values(cats).forEach(cat => {
-        cat.x += cat.speed * cat.dir;
-
-        if(cat.x > stageW - 80) { cat.dir = -1; cat.el.style.transform = 'scaleX(-1)'; }
-        if(cat.x < 10) { cat.dir = 1; cat.el.style.transform = 'scaleX(1)'; }
-
-        cat.el.style.left = cat.x + 'px';
-
-        // 간헐적 방향 전환
-        if(Math.random() < 0.003){
-            cat.dir *= -1;
-            cat.el.style.transform = cat.dir > 0 ? 'scaleX(1)' : 'scaleX(-1)';
-        }
-
-        // 간헐적 속도 변화
-        if(Math.random() < 0.005){
-            cat.speed = 0.2 + Math.random() * 0.5;
-        }
-    });
+    // 부우: 모닥불 근처에서 느리게 왔다갔다
+    booWander += 0.008;
+    const booOffset = Math.sin(booWander) * 20;
+    booEl.style.left = (booBaseX + booOffset) + 'px';
+    if(booOffset > 0) booEl.style.transform = 'scaleX(1)';
+    else booEl.style.transform = 'scaleX(-1)';
 
     requestAnimationFrame(animateCats);
 }
