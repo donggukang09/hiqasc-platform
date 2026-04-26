@@ -89,13 +89,13 @@
         <div class="section-grid triple">
             <div class="chart-card"><div class="chart-card-header"><div class="chart-card-title"><span class="icon">⚙️</span> 부품 사용 TOP 10</div></div><div id="partsRank"></div></div>
             <div class="chart-card" style="display:flex;flex-direction:column;gap:0">
-                <div style="padding-bottom:16px;border-bottom:1px solid var(--border);margin-bottom:16px">
-                    <div class="chart-card-header" style="margin-bottom:14px"><div class="chart-card-title"><span class="icon">🛡️</span> 보증 유형 분포</div><select class="model-select" id="warrantyModelSelect" onchange="renderWarranty(curAgg)" style="font-size:.72em;min-width:120px;padding:4px 8px"><option value="전체">전체</option></select></div>
-                    <div class="chart-wrap"><canvas id="chartWarranty" height="180"></canvas></div>
+                <div style="padding-bottom:20px;border-bottom:1px solid var(--border);margin-bottom:16px">
+                    <div class="chart-card-header" style="margin-bottom:10px"><div class="chart-card-title"><span class="icon">🛡️</span> 보증 유형 분포</div><select class="model-select" id="warrantyModelSelect" onchange="renderWarranty(curAgg)" style="font-size:.72em;min-width:120px;padding:4px 8px"><option value="전체">전체</option></select></div>
+                    <div class="chart-wrap" style="max-width:280px;margin:0 auto"><canvas id="chartWarranty" height="280"></canvas></div>
                 </div>
                 <div>
-                    <div class="chart-card-header" style="margin-bottom:14px"><div class="chart-card-title"><span class="icon">🔄</span> 재입고 모델 TOP</div></div>
-                    <div class="chart-wrap"><canvas id="chartReentry" height="180"></canvas></div>
+                    <div class="chart-card-header" style="margin-bottom:10px"><div class="chart-card-title"><span class="icon">🔄</span> 재입고 모델 TOP</div></div>
+                    <div class="chart-wrap"><canvas id="chartReentry" height="200"></canvas></div>
                 </div>
             </div>
             <div class="chart-card"><div class="chart-card-header"><div class="chart-card-title"><span class="icon">👨‍🔧</span> 테크니션 수리 건수</div></div><div id="techRank"></div></div>
@@ -350,7 +350,7 @@ h+=`<li class="rank-item"><span class="rank-num ${rc}">${i+1}</span><div class="
 h+='</ul>';document.getElementById('partsRank').innerHTML=h;}
 
 function renderWarranty(agg){dc('warranty');const sel=document.getElementById('warrantyModelSelect')?.value||'전체';let wData;if(sel==='전체'){wData=agg.warranty;}else{wData=agg.warrantyByM[sel]||{};}const e=so(wData);const cm={'무상':'#10b981','유상':'#f59e0b','재입고':'#f43f5e'};
-chs['warranty']=new Chart(document.getElementById('chartWarranty'),{type:'doughnut',data:{labels:e.map(x=>x[0]),datasets:[{data:e.map(x=>x[1]),backgroundColor:e.map(x=>cm[x[0]]||'#6366f1'),borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{position:'bottom',labels:{color:'#64748b',font:{size:11},padding:12,usePointStyle:true}},datalabels:{color:'#fff',font:{size:12,weight:700,family:'Outfit'},formatter:(v,ctx)=>{const t=ctx.dataset.data.reduce((a,b)=>a+b,0);return(v/t*100).toFixed(1)+'%';}}}},plugins:[ChartDataLabels]});}
+chs['warranty']=new Chart(document.getElementById('chartWarranty'),{type:'doughnut',data:{labels:e.map(x=>x[0]),datasets:[{data:e.map(x=>x[1]),backgroundColor:e.map(x=>cm[x[0]]||'#6366f1'),borderWidth:2,borderColor:'#fff',hoverOffset:8}]},options:{responsive:true,maintainAspectRatio:false,cutout:'45%',plugins:{legend:{position:'bottom',labels:{color:'#334155',font:{size:12,weight:'600'},padding:16,usePointStyle:true,pointStyleWidth:10}},datalabels:{color:'#fff',font:{size:13,weight:700,family:'Outfit'},formatter:(v,ctx)=>{const t=ctx.dataset.data.reduce((a,b)=>a+b,0);return v.toLocaleString()+'\n'+(v/t*100).toFixed(1)+'%';},textAlign:'center'}}},plugins:[ChartDataLabels]});}
 
 function renderTech(agg){const e=so(agg.techs,15);const mx=e[0]?.[1]||1;let h='<ul class="rank-list">';
 e.forEach(([n,c],i)=>{const rc=i===0?'gold':i===1?'silver':i===2?'bronze':'normal';
@@ -406,7 +406,7 @@ function renderDOA(agg){dc('doa');const e=Object.entries(agg.doaByM).sort((a,b)=
 chs['doa']=new Chart(document.getElementById('chartDOA'),{type:'bar',data:{labels:e.map(x=>x[0]),datasets:[{label:'DOA',data:e.map(x=>x[1]),backgroundColor:'#e11d48',borderRadius:6,barThickness:28}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},datalabels:{anchor:'center',align:'center',color:'#fff',font:{size:11,weight:700,family:'Outfit'},formatter:v=>v.toLocaleString()}},scales:{x:{ticks:{color:'#64748b',font:{size:10},maxRotation:45},grid:{display:false}},y:{ticks:{color:'#94a3b8',font:{size:10}},grid:{color:'rgba(0,0,0,.06)'},beginAtZero:true}}},plugins:[ChartDataLabels]});}
 
 function renderReentry(agg){dc('reentry');const e=Object.entries(agg.reentryByM).sort((a,b)=>b[1]-a[1]).slice(0,8);if(!e.length)return;
-chs['reentry']=new Chart(document.getElementById('chartReentry'),{type:'bar',data:{labels:e.map(x=>x[0]),datasets:[{label:'재입고',data:e.map(x=>x[1]),backgroundColor:'#f97316',borderRadius:6,barThickness:18}]},options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false},datalabels:{anchor:'center',align:'center',color:'#fff',font:{size:10,weight:700,family:'Outfit'},formatter:v=>v.toLocaleString()}},scales:{x:{ticks:{color:'#94a3b8',font:{size:9}},grid:{color:'rgba(0,0,0,.06)'},beginAtZero:true},y:{ticks:{color:'#1e293b',font:{size:10}},grid:{display:false}}}},plugins:[ChartDataLabels]});}
+const reColors=['#f97316','#fb923c','#fdba74','#fed7aa','#ea580c','#c2410c','#9a3412','#7c2d12'];chs['reentry']=new Chart(document.getElementById('chartReentry'),{type:'bar',data:{labels:e.map(x=>x[0]),datasets:[{label:'재입고',data:e.map(x=>x[1]),backgroundColor:e.map((_,i)=>reColors[i%reColors.length]),borderRadius:6,barThickness:20}]},options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false},datalabels:{anchor:'center',align:'center',color:'#fff',font:{size:11,weight:700,family:'Outfit'},formatter:v=>v.toLocaleString()}},scales:{x:{display:false},y:{ticks:{color:'#1e293b',font:{size:10,weight:500}},grid:{display:false}}}},plugins:[ChartDataLabels]});}
 
 window.addEventListener('DOMContentLoaded',()=>{Chart.defaults.font.family="'Noto Sans KR','Outfit',sans-serif";loadData();});
 </script>
