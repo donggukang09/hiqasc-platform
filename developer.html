@@ -292,6 +292,74 @@
             transform: translateY(-4px);
         }
 
+        .cat-profile:hover .cat-profile-sprite {
+            animation: catWiggle 0.4s ease infinite;
+        }
+
+        .cat-profile:hover .cat-profile-name {
+            animation: nameGlow 0.8s ease infinite alternate;
+        }
+
+        .cat-profile:hover .cat-profile-desc {
+            color: var(--text);
+        }
+
+        /* 고양이 반응 말풍선 */
+        .cat-profile {
+            position: relative;
+        }
+
+        .cat-profile .cat-hover-msg {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100%);
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
+            color: var(--accent2);
+            background: var(--bg);
+            border: 2px solid var(--accent2);
+            border-radius: 8px;
+            padding: 6px 12px;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .cat-profile .cat-hover-msg::after {
+            content: '';
+            position: absolute;
+            bottom: -7px;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 4px solid transparent;
+            border-top-color: var(--accent2);
+        }
+
+        .cat-profile:hover .cat-hover-msg {
+            opacity: 1;
+            animation: bubbleBounce 0.5s ease;
+        }
+
+        @keyframes catWiggle {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-8deg) scale(1.1); }
+            75% { transform: rotate(8deg) scale(1.1); }
+        }
+
+        @keyframes nameGlow {
+            from { text-shadow: 0 0 4px rgba(247,183,49,0.3); }
+            to { text-shadow: 0 0 12px rgba(247,183,49,0.8), 0 0 20px rgba(247,183,49,0.4); }
+        }
+
+        @keyframes bubbleBounce {
+            0% { transform: translateX(-50%) translateY(-100%) scale(0.5); opacity: 0; }
+            50% { transform: translateX(-50%) translateY(-100%) scale(1.1); }
+            100% { transform: translateX(-50%) translateY(-100%) scale(1); opacity: 1; }
+        }
+
         .cat-profile-sprite {
             image-rendering: pixelated;
             margin-bottom: 12px;
@@ -469,7 +537,7 @@
         <!-- 덴데 (고등어 태비) -->
         <canvas class="cat-sprite" id="dendeSprite" width="64" height="64" onclick="catClick('dende')" title="덴데"></canvas>
         <!-- 부우 (치즈 태비) -->
-        <canvas class="cat-sprite" id="buuSprite" width="64" height="64" onclick="catClick('buu')" title="부우"></canvas>
+        <canvas class="cat-sprite" id="booSprite" width="64" height="64" onclick="catClick('boo')" title="부우"></canvas>
     </div>
 
     <!-- 프로필 -->
@@ -509,12 +577,14 @@
         <div class="cat-profiles">
             <div class="cat-profile">
                 <canvas class="cat-profile-sprite" id="dendeProfile" width="80" height="80"></canvas>
+                <div class="cat-hover-msg">...만지지마</div>
                 <div class="cat-profile-name">덴데 DENDE</div>
                 <div class="cat-profile-desc">고등어 태비 🐟<br>초록 눈의 도도한 고양이<br>앉아서 세상을 관찰하는 중</div>
             </div>
             <div class="cat-profile">
-                <canvas class="cat-profile-sprite" id="buuProfile" width="80" height="80"></canvas>
-                <div class="cat-profile-name">부우 BUU</div>
+                <canvas class="cat-profile-sprite" id="booProfile" width="80" height="80"></canvas>
+                <div class="cat-hover-msg">놀아줘!!!</div>
+                <div class="cat-profile-name">부우 BOO</div>
                 <div class="cat-profile-desc">치즈 태비 🧀<br>동글동글 통통한 체형<br>항상 높은 곳을 차지하는 중</div>
             </div>
         </div>
@@ -648,23 +718,23 @@ function drawPixelCat(canvas, type, scale){
 
 // 프로필 캔버스 그리기
 drawPixelCat(document.getElementById('dendeProfile'), 'dende', 5);
-drawPixelCat(document.getElementById('buuProfile'), 'buu', 5);
+drawPixelCat(document.getElementById('booProfile'), 'boo', 5);
 
 // ============================================
 // 고양이 걷기 애니메이션
 // ============================================
 const stage = document.getElementById('catStage');
 const dendeEl = document.getElementById('dendeSprite');
-const buuEl = document.getElementById('buuSprite');
+const booEl = document.getElementById('booSprite');
 
 const cats = {
     dende: { el: dendeEl, x: 100, dir: 1, speed: 0.4 + Math.random()*0.3, frame: 0 },
-    buu: { el: buuEl, x: 400, dir: -1, speed: 0.3 + Math.random()*0.3, frame: 0 },
+    boo: { el: booEl, x: 400, dir: -1, speed: 0.3 + Math.random()*0.3, frame: 0 },
 };
 
 const catMessages = {
     dende: ['냐옹...', '...뭐봐', '졸려...', '밥줘', '시끄러...', '치워..'],
-    buu: ['야옹~!', '놀자!!', '배고파!!', '위에올라갈거야', '뭐야뭐야?!', '간식!!'],
+    boo: ['야옹~!', '놀자!!', '배고파!!', '위에올라갈거야', '뭐야뭐야?!', '간식!!'],
 };
 
 function catClick(name){
@@ -715,7 +785,7 @@ function animateCats(){
 
 // 초기 그리기
 drawPixelCat(dendeEl, 'dende', 4);
-drawPixelCat(buuEl, 'buu', 4);
+drawPixelCat(buuEl, 'boo', 4);
 animateCats();
 
 // ============================================
@@ -862,6 +932,15 @@ function toggleMusic(){
 document.querySelectorAll('.fade-up').forEach((el, i) => {
     el.style.animationDelay = (0.1 + i * 0.15) + 's';
 });
+
+// 음악 자동 재생 (사용자 인터랙션 후 재생 — 브라우저 정책)
+function autoPlayMusic(){
+    if(!isPlaying) toggleMusic();
+    document.removeEventListener('click', autoPlayMusic);
+    document.removeEventListener('touchstart', autoPlayMusic);
+}
+document.addEventListener('click', autoPlayMusic);
+document.addEventListener('touchstart', autoPlayMusic);
 </script>
 </body>
 </html>
