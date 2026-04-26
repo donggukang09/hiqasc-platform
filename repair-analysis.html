@@ -105,6 +105,21 @@
             <div class="chart-card"><div class="chart-card-header"><div class="chart-card-title"><span class="icon">⚙️</span> 모델별 부품 사용 TOP</div><select class="model-select" id="modelSelectParts" onchange="updateModelDetail()"></select></div><div class="chart-wrap"><canvas id="chartModelParts" height="220"></canvas></div></div>
         </div>
 
+        <div class="section-grid">
+            <div class="chart-card">
+                <div class="chart-card-header"><div class="chart-card-title"><span class="icon">✅</span> 모델별 NTF (이상없음)</div><span class="chart-card-badge">Code 10 · 144</span></div>
+                <div class="chart-wrap"><canvas id="chartNTF" height="340"></canvas></div>
+            </div>
+            <div class="chart-card">
+                <div class="chart-card-header"><div class="chart-card-title"><span class="icon">📉</span> NTF 월별 추세</div><span class="chart-card-badge">TREND</span></div>
+                <div class="chart-wrap" style="margin-bottom:20px"><canvas id="chartNTFTrend" height="200"></canvas></div>
+                <div style="padding-top:16px;border-top:1px solid var(--border)">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><span style="font-size:1em">📊</span><span style="font-weight:700;font-size:.92em">NTF 요약</span></div>
+                    <div id="ntfSummary" style="font-size:.82em;line-height:1.8;color:#475569"></div>
+                </div>
+            </div>
+        </div>
+
         <div class="section-grid full">
             <div class="chart-card"><div class="chart-card-header"><div class="chart-card-title"><span class="icon">⚡</span> 모델별 DOA (초기불량) 수량</div><span class="chart-card-badge">Repair Code 95</span></div><div class="chart-wrap"><canvas id="chartDOA" height="320"></canvas></div></div>
         </div>
@@ -284,7 +299,7 @@ function processData(table){
 function getFilteredRows(){const f=document.getElementById('dateFrom').value,t=document.getElementById('dateTo').value;return allRows.filter(r=>r.date>=f&&r.date<=t);}
 
 function aggregate(rows){
-    const a={total:0,machines:{},symptoms:{},repairs:{},warranty:{},techs:{},parts:{},daily:{},ms:{},mr:{},exByM:{},totByM:{},reentryByM:{},doaByM:{},warrantyByM:{},partsByM:{}};
+    const a={total:0,machines:{},symptoms:{},repairs:{},warranty:{},techs:{},parts:{},daily:{},ms:{},mr:{},exByM:{},totByM:{},reentryByM:{},doaByM:{},warrantyByM:{},partsByM:{},ntfByM:{},ntfMonthly:{}};
     rows.forEach(r=>{
         a.total++;a.machines[r.machine]=(a.machines[r.machine]||0)+1;
         a.warranty[r.warranty]=(a.warranty[r.warranty]||0)+1;
@@ -296,6 +311,7 @@ function aggregate(rows){
         r.parts.forEach(p=>{a.parts[p]=(a.parts[p]||0)+1;if(!a.partsByM[r.machine])a.partsByM[r.machine]={};a.partsByM[r.machine][p]=(a.partsByM[r.machine][p]||0)+1;});
         if(r.warranty==='재입고')a.reentryByM[r.machine]=(a.reentryByM[r.machine]||0)+1;
         if(r.repairCode1==='95')a.doaByM[r.machine]=(a.doaByM[r.machine]||0)+1;
+        if(r.repairCode1==='10'||r.repairCode1==='144'){a.ntfByM[r.machine]=(a.ntfByM[r.machine]||0)+1;const mon=r.date.substring(0,7);if(mon)a.ntfMonthly[mon]=(a.ntfMonthly[mon]||0)+1;}
         if(!a.warrantyByM[r.machine])a.warrantyByM[r.machine]={};a.warrantyByM[r.machine][r.warranty]=(a.warrantyByM[r.machine][r.warranty]||0)+1;
     });return a;
 }
@@ -323,7 +339,7 @@ function renderAll(agg){
     const tm=so(agg.machines)[0];if(tm){document.getElementById('kpiTopModel').textContent=tm[0];document.getElementById('kpiTopModelSub').textContent=`${tm[1].toLocaleString()}건`;}
     const doaTotal=Object.values(agg.doaByM).reduce((a,b)=>a+b,0);document.getElementById('kpiExchange').textContent=doaTotal.toLocaleString()+'건';document.getElementById('kpiExchangeSub').textContent=(agg.total?(doaTotal/agg.total*100).toFixed(1):0)+'%';
 
-    renderTrend(agg);renderModelPie(agg);renderSymBar(agg);renderHeatmap(agg);renderParts(agg);renderWarranty(agg);renderTech(agg);popModelSel(agg);updateModelDetail();renderDOA(agg);renderReentry(agg);renderSummary(agg);
+    renderTrend(agg);renderModelPie(agg);renderSymBar(agg);renderHeatmap(agg);renderParts(agg);renderWarranty(agg);renderTech(agg);popModelSel(agg);updateModelDetail();renderNTF(agg);renderDOA(agg);renderReentry(agg);renderSummary(agg);
 }
 
 function renderTrend(agg){dc('trend');const w={};Object.entries(agg.daily).forEach(([d,c])=>{const dt=new Date(d);const ws=new Date(dt);ws.setDate(dt.getDate()-dt.getDay()+1);const k=ws.toISOString().split('T')[0];w[k]=(w[k]||0)+c;});const l=Object.keys(w).sort();
@@ -397,9 +413,44 @@ function renderSummary(agg){
     html+=`<div>☕ 입고량 TOP 3 모델: ${machTop3}</div>`;
     html+=`<div>🔍 주요 증상 TOP 3: ${symTop3}</div>`;
     if(leakWorstModel)html+=`<div>💧 누수 비중이 가장 높은 모델은 <b>${leakWorstModel}</b>로, 전체 입고의 <b>${leakWorstRate.toFixed(1)}%</b>가 누수 관련 증상입니다.</div>`;
+    const ntfTot=Object.values(agg.ntfByM).reduce((a,b)=>a+b,0);const ntfPct=agg.total?(ntfTot/agg.total*100).toFixed(1):0;
+    html+=`<div>✅ NTF(이상없음)는 총 <b>${ntfTot.toLocaleString()}건</b>(${ntfPct}%)입니다.</div>`;
     html+=`<div>⚡ DOA(초기불량)는 총 <b>${doaTotal.toLocaleString()}건</b>(${doaRate}%)이며${topDoaModel?`, <b>${topDoaModel[0]}</b>가 ${topDoaModel[1].toLocaleString()}건으로 최다`:''}.  🔄 재입고는 총 <b>${reentryTotal.toLocaleString()}건</b>(${reentryRate}%)이며${topReentryModel?`, <b>${topReentryModel[0]}</b>가 ${topReentryModel[1].toLocaleString()}건으로 최다`:''} 모델입니다.</div>`;
     html+='</div>';
     document.getElementById('summaryContent').innerHTML=html;
+}
+
+
+function renderNTF(agg){
+    // 모델별 NTF 가로 바
+    dc('ntf');
+    const e=Object.entries(agg.ntfByM).sort((a,b)=>b[1]-a[1]).slice(0,12);
+    if(e.length){
+        const ntfColors=['#10b981','#34d399','#6ee7b7','#a7f3d0','#059669','#047857','#065f46','#064e3b','#d1fae5','#a7f3d0','#6ee7b7','#34d399'];
+        chs['ntf']=new Chart(document.getElementById('chartNTF'),{type:'bar',data:{labels:e.map(x=>x[0]),datasets:[{data:e.map(x=>x[1]),backgroundColor:e.map((_,i)=>ntfColors[i%ntfColors.length]),borderRadius:6,barThickness:22}]},options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false},datalabels:{font:{size:11,weight:700,family:'Outfit'},formatter:v=>v.toLocaleString(),color:function(ctx){const mx=Math.max(...ctx.dataset.data);return ctx.dataset.data[ctx.dataIndex]<mx*0.1?'#64748b':'#fff';},anchor:function(ctx){const mx=Math.max(...ctx.dataset.data);return ctx.dataset.data[ctx.dataIndex]<mx*0.1?'end':'center';},align:function(ctx){const mx=Math.max(...ctx.dataset.data);return ctx.dataset.data[ctx.dataIndex]<mx*0.1?'end':'center';}}},scales:{x:{display:false},y:{ticks:{color:'#1e293b',font:{size:11,weight:500}},grid:{display:false}}}},plugins:[ChartDataLabels]});
+    }
+
+    // NTF 월별 추세
+    dc('ntfTrend');
+    const months=Object.keys(agg.ntfMonthly).sort();
+    if(months.length){
+        // 전체 월별 건수도 계산
+        const totalMonthly={};
+        Object.entries(agg.daily).forEach(([d,c])=>{const m=d.substring(0,7);totalMonthly[m]=(totalMonthly[m]||0)+c;});
+        const ntfRates=months.map(m=>{const t=totalMonthly[m]||1;return Math.round(agg.ntfMonthly[m]/t*1000)/10;});
+
+        chs['ntfTrend']=new Chart(document.getElementById('chartNTFTrend'),{type:'bar',data:{labels:months.map(m=>m.substring(5)+'월'),datasets:[{type:'bar',label:'NTF 건수',data:months.map(m=>agg.ntfMonthly[m]),backgroundColor:'rgba(16,185,129,0.3)',borderColor:'#10b981',borderWidth:1,borderRadius:6,barThickness:32,yAxisID:'y'},{type:'line',label:'NTF 비율(%)',data:ntfRates,borderColor:'#f59e0b',backgroundColor:'#f59e0b',pointRadius:5,pointBackgroundColor:'#f59e0b',borderWidth:2.5,tension:0.3,yAxisID:'y1'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#64748b',font:{size:10},usePointStyle:true,pointStyleWidth:8}},datalabels:{display:false}},scales:{y:{position:'left',ticks:{color:'#94a3b8',font:{size:10}},grid:{color:'rgba(0,0,0,.06)'},beginAtZero:true,title:{display:true,text:'건수',color:'#94a3b8',font:{size:10}}},y1:{position:'right',ticks:{color:'#d97706',font:{size:10},callback:v=>v+'%'},grid:{display:false},beginAtZero:true,title:{display:true,text:'비율(%)',color:'#d97706',font:{size:10}}},x:{ticks:{color:'#64748b',font:{size:11}},grid:{display:false}}}}});
+    }
+
+    // NTF 요약
+    const ntfTotal=Object.values(agg.ntfByM).reduce((a,b)=>a+b,0);
+    const ntfRate=agg.total?(ntfTotal/agg.total*100).toFixed(1):0;
+    const topNtf=e[0];
+    const topNtfRate=topNtf&&agg.machines[topNtf[0]]?(topNtf[1]/agg.machines[topNtf[0]]*100).toFixed(1):0;
+    let sh='';
+    sh+=`전체 수리 중 <b>${ntfTotal.toLocaleString()}건</b>(${ntfRate}%)이 이상없음(NTF) 판정<br>`;
+    if(topNtf)sh+=`NTF 최다 모델: <b>${topNtf[0]}</b> (${topNtf[1]}건, 해당 모델의 ${topNtfRate}%)`;
+    document.getElementById('ntfSummary').innerHTML=sh;
 }
 
 function renderDOA(agg){dc('doa');const e=Object.entries(agg.doaByM).sort((a,b)=>b[1]-a[1]).slice(0,12);if(!e.length)return;
