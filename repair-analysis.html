@@ -27,7 +27,7 @@
     </div>
 
     <div id="loadingScreen" class="loading-screen">
-        <div class="loading-spinner"></div>
+        <canvas id="loadingBoo" width="42" height="36" style="image-rendering:pixelated;margin-bottom:16px"></canvas>
         <div class="loading-text">Google Sheets에서 데이터를 불러오는 중...</div>
         <div class="loading-sub" id="loadingProgress">연결 중</div>
     </div>
@@ -153,6 +153,8 @@ body::before{content:'';position:fixed;top:-50%;left:-50%;width:200%;height:200%
 .refresh-btn{background:var(--gradient-1);border:none;color:#fff;padding:8px 18px;border-radius:var(--radius-sm);font-size:.85em;font-weight:600;cursor:pointer;font-family:inherit;transition:opacity .3s}
 .refresh-btn:hover{opacity:.85}.refresh-btn:disabled{opacity:.5;cursor:not-allowed}
 .loading-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:20px}
+#loadingBoo{animation:booRunLoad 2s ease-in-out infinite alternate}
+@keyframes booRunLoad{0%{transform:translateX(-80px) scaleX(1)}49%{transform:translateX(80px) scaleX(1)}50%{transform:translateX(80px) scaleX(-1)}100%{transform:translateX(-80px) scaleX(-1)}}
 .loading-spinner{width:48px;height:48px;border:3px solid #dfe4ec;border-top-color:var(--accent-blue);border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .loading-text{color:var(--text-secondary);font-size:.95em}
@@ -477,7 +479,10 @@ const doaColors=['#6366f1','#818cf8','#a5b4fc','#c7d2fe','#4f46e5','#4338ca','#3
 function renderReentry(agg){dc('reentry');const e=Object.entries(agg.reentryByM).sort((a,b)=>b[1]-a[1]).slice(0,8);if(!e.length)return;
 const reColors=['#3b82f6','#60a5fa','#93c5fd','#bfdbfe','#2563eb','#1d4ed8','#1e40af','#1e3a8a'];const reRates=e.map(x=>{const total=agg.machines[x[0]]||1;return Math.round(x[1]/total*1000)/10;});chs['reentry']=new Chart(document.getElementById('chartReentry'),{type:'bar',data:{labels:e.map(x=>x[0]),datasets:[{label:'재입고',data:e.map(x=>x[1]),backgroundColor:e.map((_,i)=>reColors[i%reColors.length]),borderRadius:6,barThickness:20}]},options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false},datalabels:{font:{size:10,weight:700,family:'Outfit'},formatter:function(v,ctx){const rate=reRates[ctx.dataIndex];return v.toLocaleString()+' ('+rate+'%)';},color:function(ctx){const mx=Math.max(...ctx.dataset.data);return ctx.dataset.data[ctx.dataIndex]<mx*0.15?'#475569':'#fff';},anchor:function(ctx){const mx=Math.max(...ctx.dataset.data);return ctx.dataset.data[ctx.dataIndex]<mx*0.15?'end':'center';},align:function(ctx){const mx=Math.max(...ctx.dataset.data);return ctx.dataset.data[ctx.dataIndex]<mx*0.15?'end':'center';}}},scales:{x:{display:false},y:{ticks:{color:'#1e293b',font:{size:10,weight:500}},grid:{display:false}}}},plugins:[ChartDataLabels]});}
 
-window.addEventListener('DOMContentLoaded',()=>{Chart.defaults.font.family="'Noto Sans KR','Outfit',sans-serif";loadData();});
+window.addEventListener('DOMContentLoaded',()=>{Chart.defaults.font.family="'Noto Sans KR','Outfit',sans-serif";
+// 로딩 부우 그리기
+const bc=document.getElementById('loadingBoo');if(bc){const ctx=bc.getContext('2d');ctx.imageSmoothingEnabled=false;const s=3,px=(x,y,c)=>{ctx.fillStyle=c;ctx.fillRect(x*s,y*s,s,s)};const d='#e8913a',m='#f0a852',l='#fff',ear='#e8a0a0',eye='#8BC34A',nose='#e8a0a0',p='#1a1a1a';px(3,0,d);px(4,0,d);px(9,0,d);px(10,0,d);px(2,1,d);px(3,1,ear);px(4,1,d);px(9,1,d);px(10,1,ear);px(11,1,d);px(2,2,d);px(3,2,m);px(4,2,m);px(5,2,m);px(6,2,d);px(7,2,m);px(8,2,d);px(9,2,d);px(10,2,d);px(11,2,d);px(2,3,d);px(3,3,m);px(4,3,l);px(5,3,m);px(6,3,l);px(7,3,m);px(8,3,l);px(9,3,m);px(10,3,d);px(2,4,m);px(3,4,l);px(4,4,eye);px(5,4,l);px(6,4,l);px(7,4,l);px(8,4,eye);px(9,4,l);px(10,4,m);px(2,5,m);px(3,5,l);px(4,5,p);px(5,5,l);px(6,5,nose);px(7,5,l);px(8,5,p);px(9,5,l);px(10,5,m);px(3,6,l);px(4,6,l);px(5,6,l);px(6,6,l);px(7,6,l);px(8,6,l);px(9,6,l);px(2,7,d);px(3,7,m);px(4,7,l);px(5,7,l);px(6,7,l);px(7,7,l);px(8,7,l);px(9,7,m);px(10,7,d);px(1,8,d);px(2,8,m);px(3,8,l);px(4,8,l);px(5,8,l);px(6,8,l);px(7,8,l);px(8,8,l);px(9,8,m);px(10,8,d);px(2,9,d);px(3,9,l);px(4,9,l);px(8,9,l);px(9,9,l);px(10,9,d);px(11,7,d);px(12,6,d);px(13,5,d);}
+loadData();});
 </script>
 </body>
 </html>
