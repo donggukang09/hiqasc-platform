@@ -559,17 +559,18 @@
             left: 50%;
             transform: translateX(-50%) translateY(-100%);
             font-family: 'Press Start 2P', monospace;
-            font-size: 8px;
+            font-size: 11px;
             color: var(--accent2);
-            background: var(--bg);
+            background: rgba(22,33,62,0.95);
             border: 2px solid var(--accent2);
-            border-radius: 8px;
-            padding: 6px 12px;
+            border-radius: 10px;
+            padding: 8px 14px;
             white-space: nowrap;
             opacity: 0;
             transition: opacity 0.3s;
             pointer-events: none;
             z-index: 5;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5), 0 0 10px rgba(247,183,49,0.15);
         }
 
         .cat-profile .cat-hover-msg::after {
@@ -726,6 +727,32 @@
             color: var(--text);
         }
 
+        /* 자유 고양이 (화면 전체 돌아다님) */
+        .free-cat {
+            position: fixed;
+            image-rendering: pixelated;
+            z-index: 50;
+            pointer-events: none;
+            transition: none;
+        }
+
+        .free-cat-bubble {
+            position: fixed;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 11px;
+            color: var(--accent2);
+            background: rgba(22,33,62,0.95);
+            border: 2px solid var(--accent2);
+            border-radius: 10px;
+            padding: 8px 14px;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 51;
+            pointer-events: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5), 0 0 10px rgba(247,183,49,0.15);
+        }
+
         /* 말풍선 */
         .speech-bubble {
             position: absolute;
@@ -851,6 +878,12 @@
 
 <!-- 별 배경 -->
 <div class="stars" id="stars"></div>
+
+<!-- 자유 고양이 (화면 전체 돌아다님) -->
+<canvas class="free-cat" id="freeDende" width="42" height="42"></canvas>
+<canvas class="free-cat" id="freeBoo" width="42" height="42"></canvas>
+<div class="free-cat-bubble" id="freeBubbleDende"></div>
+<div class="free-cat-bubble" id="freeBubbleBoo"></div>
 
 <div class="page-wrap">
     <!-- 히어로 — 시크릿 메시지 -->
@@ -1305,6 +1338,258 @@ function animateCats(){
 drawPixelCat(dendeEl, 'dende', 4);
 drawPixelCat(booEl, 'boo', 4);
 animateCats();
+
+// ============================================
+// 자유 고양이 — 화면 전체 돌아다님 + 쫓고 쫓기
+// ============================================
+(function() {
+    const fDende = document.getElementById('freeDende');
+    const fBoo = document.getElementById('freeBoo');
+    const fBubbleD = document.getElementById('freeBubbleDende');
+    const fBubbleB = document.getElementById('freeBubbleBoo');
+
+    const fCtxD = fDende.getContext('2d');
+    const fCtxB = fBoo.getContext('2d');
+    fCtxD.imageSmoothingEnabled = false;
+    fCtxB.imageSmoothingEnabled = false;
+
+    function drawSmallCat(ctx, type) {
+        ctx.clearRect(0, 0, 42, 42);
+        const s = 3;
+        const px = (x,y,c) => { ctx.fillStyle = c; ctx.fillRect(x*s, y*s, s, s); };
+
+        const c = type === 'dende' ? {
+            d:'#4a3728',m:'#6b5240',l:'#fff',ear:'#d4a0a0',eye:'#4CAF50',nose:'#d4a0a0',p:'#1a1a1a'
+        } : {
+            d:'#e8913a',m:'#f0a852',l:'#fff',ear:'#e8a0a0',eye:'#8BC34A',nose:'#e8a0a0',p:'#1a1a1a'
+        };
+        px(3,0,c.d);px(4,0,c.d);px(9,0,c.d);px(10,0,c.d);
+        px(2,1,c.d);px(3,1,c.ear);px(4,1,c.d);px(9,1,c.d);px(10,1,c.ear);px(11,1,c.d);
+        px(2,2,c.d);px(3,2,c.m);px(4,2,c.m);px(5,2,c.m);px(6,2,c.d);px(7,2,c.m);px(8,2,c.d);px(9,2,c.d);px(10,2,c.d);px(11,2,c.d);
+        px(2,3,c.d);px(3,3,c.m);px(4,3,c.l);px(5,3,c.m);px(6,3,c.l);px(7,3,c.m);px(8,3,c.l);px(9,3,c.m);px(10,3,c.d);
+        px(2,4,c.m);px(3,4,c.l);px(4,4,c.eye);px(5,4,c.l);px(6,4,c.l);px(7,4,c.l);px(8,4,c.eye);px(9,4,c.l);px(10,4,c.m);
+        px(2,5,c.m);px(3,5,c.l);px(4,5,c.p);px(5,5,c.l);px(6,5,c.nose);px(7,5,c.l);px(8,5,c.p);px(9,5,c.l);px(10,5,c.m);
+        px(3,6,c.l);px(4,6,c.l);px(5,6,c.l);px(6,6,c.l);px(7,6,c.l);px(8,6,c.l);px(9,6,c.l);
+        px(2,7,c.d);px(3,7,c.m);px(4,7,c.l);px(5,7,c.l);px(6,7,c.l);px(7,7,c.l);px(8,7,c.l);px(9,7,c.m);px(10,7,c.d);
+        px(1,8,c.d);px(2,8,c.m);px(3,8,c.l);px(4,8,c.l);px(5,8,c.l);px(6,8,c.l);px(7,8,c.l);px(8,8,c.l);px(9,8,c.m);px(10,8,c.d);
+        px(2,9,c.d);px(3,9,c.l);px(4,9,c.l);px(8,9,c.l);px(9,9,c.l);px(10,9,c.d);
+        px(11,7,c.d);px(12,6,c.d);px(13,5,c.d);
+    }
+
+    drawSmallCat(fCtxD, 'dende');
+    drawSmallCat(fCtxB, 'boo');
+
+    // 고양이 상태
+    const screenW = () => window.innerWidth;
+    const screenH = () => window.innerHeight;
+
+    const cats = {
+        dende: {
+            x: Math.random() * (screenW() - 50),
+            y: Math.random() * (screenH() - 50),
+            vx: 0, vy: 0,
+            state: 'wander', // wander, chase, flee, rest, pounce
+            stateTimer: 0,
+            facing: 1,
+            el: fDende,
+            role: 'chaser', // 덴데가 쫓는 역할
+            frame: 0,
+        },
+        boo: {
+            x: Math.random() * (screenW() - 50),
+            y: Math.random() * (screenH() - 50),
+            vx: 0, vy: 0,
+            state: 'wander',
+            stateTimer: 0,
+            facing: 1,
+            el: fBoo,
+            role: 'runner', // 부우가 도망가는 역할
+            frame: 0,
+        }
+    };
+
+    const dendeMsgs = ['잡았다!', '어딜 도망가...', 'zzZ...', '...뭐봐', '간식 어딨어'];
+    const booMsgs = ['살려줘~!!', '잡히면 안돼!', '나 빠르다!!', '캣타워 올라갈거야!', '헉헉...'];
+
+    let lastRoleSwap = Date.now();
+
+    function showBubble(cat, msg) {
+        const bub = cat === cats.dende ? fBubbleD : fBubbleB;
+        bub.textContent = msg;
+        bub.style.left = cat.x + 'px';
+        bub.style.top = (cat.y - 18) + 'px';
+        bub.style.opacity = 1;
+        setTimeout(() => { bub.style.opacity = 0; }, 2000);
+    }
+
+    function updateFreeCats() {
+        const d = cats.dende;
+        const b = cats.boo;
+        const chaser = d.role === 'chaser' ? d : b;
+        const runner = d.role === 'runner' ? d : b;
+
+        // 역할 교대 (20~40초마다)
+        if (Date.now() - lastRoleSwap > 20000 + Math.random() * 20000) {
+            d.role = d.role === 'chaser' ? 'runner' : 'chaser';
+            b.role = b.role === 'chaser' ? 'runner' : 'chaser';
+            lastRoleSwap = Date.now();
+
+            const newChaser = d.role === 'chaser' ? d : b;
+            const chaserName = newChaser === d ? '덴데' : '부우';
+            showBubble(newChaser, '이번엔 내 차례!');
+        }
+
+        // 둘 사이 거리
+        const dx = runner.x - chaser.x;
+        const dy = runner.y - chaser.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        // 상태 타이머
+        d.stateTimer--;
+        b.stateTimer--;
+
+        // === 쫓는 고양이 AI ===
+        if (chaser.stateTimer <= 0) {
+            if (dist > 300) {
+                chaser.state = 'wander';
+                chaser.stateTimer = 60 + Math.random() * 120;
+            } else if (dist < 50) {
+                chaser.state = 'pounce';
+                chaser.stateTimer = 30;
+                const chaserName = chaser === d ? dendeMsgs : booMsgs;
+                if (Math.random() < 0.3) showBubble(chaser, chaserName[0]);
+            } else {
+                chaser.state = 'chase';
+                chaser.stateTimer = 30 + Math.random() * 60;
+            }
+        }
+
+        // === 도망가는 고양이 AI ===
+        if (runner.stateTimer <= 0) {
+            if (dist < 150) {
+                runner.state = 'flee';
+                runner.stateTimer = 40 + Math.random() * 60;
+                const runnerMsgs = runner === d ? dendeMsgs : booMsgs;
+                if (Math.random() < 0.2) showBubble(runner, runnerMsgs[1]);
+            } else if (dist > 400) {
+                runner.state = 'rest';
+                runner.stateTimer = 100 + Math.random() * 150;
+                if (Math.random() < 0.2) showBubble(runner, runner === d ? '...zzZ' : '헉헉...');
+            } else {
+                runner.state = 'wander';
+                runner.stateTimer = 60 + Math.random() * 100;
+            }
+        }
+
+        // 물리 적용
+        [d, b].forEach(cat => {
+            const speed = 1.2;
+            const other = cat === d ? b : d;
+
+            switch(cat.state) {
+                case 'chase': {
+                    const ax = other.x - cat.x;
+                    const ay = other.y - cat.y;
+                    const ad = Math.sqrt(ax*ax + ay*ay) || 1;
+                    cat.vx += (ax/ad) * 0.3;
+                    cat.vy += (ay/ad) * 0.3;
+                    break;
+                }
+                case 'flee': {
+                    const ax = cat.x - other.x;
+                    const ay = cat.y - other.y;
+                    const ad = Math.sqrt(ax*ax + ay*ay) || 1;
+                    cat.vx += (ax/ad) * 0.35;
+                    cat.vy += (ay/ad) * 0.35;
+                    break;
+                }
+                case 'pounce': {
+                    const ax = other.x - cat.x;
+                    const ay = other.y - cat.y;
+                    const ad = Math.sqrt(ax*ax + ay*ay) || 1;
+                    cat.vx += (ax/ad) * 0.8;
+                    cat.vy += (ay/ad) * 0.8;
+                    break;
+                }
+                case 'rest': {
+                    cat.vx *= 0.9;
+                    cat.vy *= 0.9;
+                    break;
+                }
+                case 'wander': {
+                    if (Math.random() < 0.03) {
+                        cat.vx += (Math.random() - 0.5) * 2;
+                        cat.vy += (Math.random() - 0.5) * 2;
+                    }
+                    break;
+                }
+            }
+
+            // 속도 제한
+            const maxSpeed = cat.state === 'pounce' ? 4 : (cat.state === 'flee' ? 3 : 2);
+            const spd = Math.sqrt(cat.vx*cat.vx + cat.vy*cat.vy);
+            if (spd > maxSpeed) {
+                cat.vx = (cat.vx/spd) * maxSpeed;
+                cat.vy = (cat.vy/spd) * maxSpeed;
+            }
+
+            // 마찰
+            cat.vx *= 0.95;
+            cat.vy *= 0.95;
+
+            // 이동
+            cat.x += cat.vx;
+            cat.y += cat.vy;
+
+            // 화면 경계 바운스
+            if (cat.x < 0) { cat.x = 0; cat.vx = Math.abs(cat.vx) * 0.8; }
+            if (cat.x > screenW() - 42) { cat.x = screenW() - 42; cat.vx = -Math.abs(cat.vx) * 0.8; }
+            if (cat.y < 0) { cat.y = 0; cat.vy = Math.abs(cat.vy) * 0.8; }
+            if (cat.y > screenH() - 42) { cat.y = screenH() - 42; cat.vy = -Math.abs(cat.vy) * 0.8; }
+
+            // 방향
+            if (Math.abs(cat.vx) > 0.3) {
+                cat.facing = cat.vx > 0 ? 1 : -1;
+            }
+
+            // 렌더
+            cat.el.style.left = cat.x + 'px';
+            cat.el.style.top = cat.y + 'px';
+            cat.el.style.transform = cat.facing < 0 ? 'scaleX(-1)' : 'scaleX(1)';
+        });
+
+        // 잡았을 때 (가까우면) — 역할 교대 트리거
+        if (dist < 30 && chaser.state === 'pounce') {
+            // 부딪힘! 둘 다 튕겨남
+            const pushX = (runner.x - chaser.x) || 1;
+            const pushY = (runner.y - chaser.y) || 1;
+            const pd = Math.sqrt(pushX*pushX + pushY*pushY);
+            runner.vx += (pushX/pd) * 5;
+            runner.vy += (pushY/pd) * 5;
+            chaser.vx -= (pushX/pd) * 3;
+            chaser.vy -= (pushY/pd) * 3;
+
+            chaser.state = 'rest';
+            chaser.stateTimer = 60;
+            runner.state = 'flee';
+            runner.stateTimer = 60;
+
+            showBubble(chaser, chaser === d ? '잡았다!' : '야옹~!');
+            setTimeout(() => {
+                showBubble(runner, runner === d ? '...뭐봐' : '살려줘~!!');
+            }, 800);
+        }
+
+        requestAnimationFrame(updateFreeCats);
+    }
+
+    // 시작 (페이지 로드 2초 후)
+    setTimeout(() => {
+        fDende.style.opacity = 1;
+        fBoo.style.opacity = 1;
+        updateFreeCats();
+    }, 2000);
+})();
 
 // ============================================
 // 음악 (Web Audio API — 간단한 멜로디)
