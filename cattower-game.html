@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>🐱 부우의 캣타워</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Press Start 2P', monospace;
+            background: #0a0e1a;
+            color: #eaeaea;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow: hidden;
+            user-select: none;
+            touch-action: none;
+        }
+
+        canvas#game {
+            image-rendering: pixelated;
+            border-radius: 8px;
+            margin-top: 6px;
+        }
+
+        .hud {
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 16px;
+        }
+
+        .hud-item {
+            display: flex; align-items: center; gap: 6px;
+            font-size: 9px; color: #f7b731;
+        }
+
+        .hud-value { font-size: 13px; color: #fff; }
+
+        .overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(5,8,16,0.92);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            z-index: 100; gap: 14px;
+        }
+
+        .overlay.hidden { display: none; }
+
+        .overlay-title {
+            font-size: 18px; color: #f7b731;
+            text-shadow: 2px 2px 0 #e94560;
+            text-align: center; line-height: 1.8;
+        }
+
+        .overlay-sub {
+            font-size: 8px; color: #8892a8;
+            text-align: center; line-height: 2.2;
+            max-width: 380px;
+        }
+
+        .overlay-score { font-size: 26px; color: #f7b731; margin: 8px 0; }
+
+        .overlay-btn {
+            margin-top: 8px; padding: 14px 32px;
+            background: linear-gradient(135deg, #e94560, #c0392b);
+            border: none; color: #fff;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 10px; border-radius: 8px;
+            cursor: pointer; transition: transform 0.2s;
+        }
+
+        .overlay-btn:hover { transform: scale(1.05); }
+
+        .back-link {
+            position: fixed; top: 14px; left: 14px;
+            padding: 6px 14px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 6px; color: #8892a8;
+            text-decoration: none; font-size: 8px;
+            z-index: 200; transition: all 0.3s;
+        }
+
+        .back-link:hover { color: #fff; border-color: #f7b731; }
+
+        .mobile-controls {
+            display: none;
+            width: 100%; max-width: 400px;
+            justify-content: space-between;
+            padding: 8px 20px; gap: 20px;
+        }
+
+        .mobile-btn {
+            flex: 1; padding: 18px;
+            background: rgba(255,255,255,0.06);
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 12px; color: #f7b731;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 18px; cursor: pointer;
+            text-align: center;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .mobile-btn:active {
+            background: rgba(247,183,49,0.15);
+            border-color: #f7b731;
+        }
+
+        @media (max-width: 500px) {
+            .mobile-controls { display: flex; }
+        }
+
+        .height-record {
+            font-size: 8px; color: #8892a8;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+
+<a href="developer.html" class="back-link">← 돌아가기</a>
+
+<div class="hud">
+    <div class="hud-item">📏 <span class="hud-value" id="hudHeight">0</span>m</div>
+    <div class="hud-item">⭐ <span class="hud-value" id="hudScore">0</span></div>
+    <div class="hud-item">🏆 <span class="hud-value" id="hudBest">0</span>m</div>
+</div>
+
+<canvas id="game" width="400" height="600"></canvas>
+
+<div class="mobile-controls">
+    <div class="mobile-btn" id="btnLeft">◀</div>
+    <div class="mobile-btn" id="btnRight">▶</div>
+</div>
+
+<!-- 시작 -->
+<div class="overlay" id="startOverlay">
+    <div class="overlay-title">🐱 부우의 캣타워</div>
+    <div class="overlay-sub">
+        ← → 또는 터치로 좌우 이동<br>
+        발판을 밟고 계속 위로 올라가자!<br><br>
+        🟫 일반 발판 · 🟦 움직이는 발판<br>
+        🟥 부서지는 발판 · 🟩 스프링 발판<br><br>
+        🐟 츄르 +50점 · 🌿 캣닢 슈퍼점프<br>
+        🥒 오이 조심!! 기절해요
+    </div>
+    <button class="overlay-btn" onclick="startGame()">올라가자!</button>
+</div>
+
+<!-- 결과 -->
+<div class="overlay hidden" id="resultOverlay">
+    <div class="overlay-title" id="resultTitle">떨어졌다!</div>
+    <div class="overlay-score" id="resultScore">0m</div>
+    <div class="overlay-sub" id="resultMsg"></div>
+    <button class="overlay-btn" onclick="startGame()">다시 올라가기!</button>
+</div>
+
+<script>
+const CVS = document.getElementById('game');
+const CTX = CVS.getContext('2d');
+CTX.imageSmoothingEnabled = false;
+
+const W = 400, H = 600;
+const PX = 3;
+const GRAVITY = 0.22;
+const JUMP_FORCE = -7;
+const SPRING_FORCE = -11;
+const CATNIP_FORCE = -14;
+const MOVE_SPEED = 4;
+const PLATFORM_COUNT = 8;
+
+// ============================================
+// 게임 상태
+// ============================================
+let player, platforms, items, particles;
+let score, maxHeight, bestHeight, camera;
+let gameOver, gameStarted;
+let keys = { left: false, right: false };
+let stunTime = 0;
+
+// 로컬 베스트
+bestHeight = parseInt(localStorage.getItem('boo_best') || '0');
+document.getElementById('hudBest').textContent = bestHeight;
+
+// ============================================
+// 도트 캐릭터
+// ============================================
+function getBooPixels() {
+    const c = { d: '#e8913a', m: '#f0a852', l: '#ffffff', ear: '#e8a0a0', eye: '#8BC34A', nose: '#e8a0a0', p: '#1a1a1a', st: '#d07830' };
+    return [
+        [4,0,c.d],[5,0,c.d],[9,0,c.d],[10,0,c.d],
+        [3,1,c.d],[4,1,c.ear],[5,1,c.d],[9,1,c.d],[10,1,c.ear],[11,1,c.d],
+        [3,2,c.d],[4,2,c.m],[5,2,c.m],[6,2,c.m],[7,2,c.d],[8,2,c.m],[9,2,c.d],[10,2,c.d],[11,2,c.d],
+        [3,3,c.d],[4,3,c.m],[5,3,c.l],[6,3,c.m],[7,3,c.l],[8,3,c.m],[9,3,c.l],[10,3,c.m],[11,3,c.d],
+        [3,4,c.m],[4,4,c.l],[5,4,c.eye],[6,4,c.l],[7,4,c.l],[8,4,c.l],[9,4,c.eye],[10,4,c.l],[11,4,c.m],
+        [3,5,c.m],[4,5,c.l],[5,5,c.p],[6,5,c.l],[7,5,c.nose],[8,5,c.l],[9,5,c.p],[10,5,c.l],[11,5,c.m],
+        [4,6,c.l],[5,6,c.l],[6,6,c.l],[7,6,c.l],[8,6,c.l],[9,6,c.l],[10,6,c.l],
+        [3,7,c.d],[4,7,c.m],[5,7,c.l],[6,7,c.l],[7,7,c.l],[8,7,c.l],[9,7,c.l],[10,7,c.m],[11,7,c.d],
+        [2,8,c.d],[3,8,c.m],[4,8,c.l],[5,8,c.l],[6,8,c.l],[7,8,c.l],[8,8,c.l],[9,8,c.l],[10,8,c.m],[11,8,c.d],
+        [2,9,c.d],[3,9,c.m],[4,9,c.l],[5,9,c.l],[6,9,c.l],[7,9,c.l],[8,9,c.l],[9,9,c.l],[10,9,c.m],[11,9,c.d],
+        [3,10,c.d],[4,10,c.l],[5,10,c.l],[9,10,c.l],[10,10,c.d],
+        [3,11,c.l],[4,11,c.l],[9,11,c.l],[10,11,c.l],
+    ];
+}
+
+function getDendePixels() {
+    const c = { d: '#4a3728', m: '#6b5240', l: '#ffffff', ear: '#d4a0a0', eye: '#4CAF50', nose: '#d4a0a0', p: '#1a1a1a' };
+    return [
+        [4,0,c.d],[5,0,c.d],[9,0,c.d],[10,0,c.d],
+        [3,1,c.d],[4,1,c.ear],[5,1,c.d],[9,1,c.d],[10,1,c.ear],[11,1,c.d],
+        [3,2,c.d],[4,2,c.m],[5,2,c.m],[6,2,c.m],[7,2,c.d],[8,2,c.m],[9,2,c.d],[10,2,c.d],[11,2,c.d],
+        [3,3,c.d],[4,3,c.m],[5,3,c.l],[6,3,c.m],[7,3,c.l],[8,3,c.m],[9,3,c.l],[10,3,c.m],[11,3,c.d],
+        [3,4,c.m],[4,4,c.l],[5,4,c.eye],[6,4,c.l],[7,4,c.l],[8,4,c.l],[9,4,c.eye],[10,4,c.l],[11,4,c.m],
+        [3,5,c.m],[4,5,c.l],[5,5,c.p],[6,5,c.l],[7,5,c.nose],[8,5,c.l],[9,5,c.p],[10,5,c.l],[11,5,c.m],
+        [4,6,c.l],[5,6,c.l],[6,6,c.l],[7,6,c.l],[8,6,c.l],[9,6,c.l],[10,6,c.l],
+        [3,7,c.d],[4,7,c.m],[5,7,c.l],[6,7,c.l],[7,7,c.l],[8,7,c.l],[9,7,c.l],[10,7,c.m],[11,7,c.d],
+        [2,8,c.d],[3,8,c.m],[4,8,c.l],[5,8,c.l],[6,8,c.l],[7,8,c.l],[8,8,c.l],[9,8,c.l],[10,8,c.m],[11,8,c.d],
+    ];
+}
+
+// ============================================
+// 발판/아이템 생성
+// ============================================
+function createPlatform(x, y) {
+    const rand = Math.random();
+    const height = maxHeight || 0;
+    let type = 'normal';
+
+    if (height > 500 && rand < 0.08) type = 'break';
+    else if (height > 300 && rand < 0.15) type = 'move';
+    else if (height > 200 && rand < 0.1) type = 'spring';
+    else if (height > 800 && rand < 0.12) type = 'break';
+
+    const p = {
+        x: x, y: y, w: 60, h: 10, type: type,
+        moveDir: 1, moveSpeed: 1 + Math.random() * 1.5,
+        broken: false, springAnim: 0,
+    };
+
+    // 난이도 — 높이 올라갈수록 발판 좁아짐
+    if (height > 1000) p.w = 50;
+    if (height > 2000) p.w = 45;
+
+    return p;
+}
+
+function createItem(x, y) {
+    const rand = Math.random();
+    const height = maxHeight || 0;
+
+    if (rand < 0.08 && height > 100) return { x: x, y: y - 25, type: 'catnip', w: 16, h: 16, collected: false };
+    if (rand < 0.35) return { x: x + Math.random()*20, y: y - 25, type: 'churu', w: 12, h: 12, collected: false };
+    if (rand < 0.12 && height > 300) return { x: x + 20, y: y - 25, type: 'cucumber', w: 14, h: 14, collected: false };
+
+    return null;
+}
+
+function initGame() {
+    player = {
+        x: W / 2 - 20, y: H - 100,
+        w: 42, h: 39, vy: JUMP_FORCE, vx: 0,
+        facing: 1, frame: 0,
+    };
+
+    platforms = [];
+    items = [];
+    particles = [];
+    score = 0;
+    maxHeight = 0;
+    camera = 0;
+    gameOver = false;
+    stunTime = 0;
+
+    // 시작 발판
+    platforms.push({ x: W / 2 - 30, y: H - 50, w: 60, h: 10, type: 'normal', broken: false, springAnim: 0 });
+
+    for (let i = 1; i < PLATFORM_COUNT; i++) {
+        const py = H - 50 - i * 70;
+        const px = 20 + Math.random() * (W - 80);
+        platforms.push(createPlatform(px, py));
+        const item = createItem(px, py);
+        if (item) items.push(item);
+    }
+}
+
+// ============================================
+// 파티클
+// ============================================
+function addParticles(x, y, color, count) {
+    for (let i = 0; i < count; i++) {
+        particles.push({
+            x: x, y: y,
+            vx: (Math.random() - 0.5) * 4,
+            vy: -Math.random() * 3 - 1,
+            life: 30 + Math.random() * 20,
+            color: color,
+            size: 2 + Math.random() * 2,
+        });
+    }
+}
+
+// ============================================
+// 업데이트
+// ============================================
+function update() {
+    if (gameOver) return;
+
+    // 기절 상태
+    if (stunTime > 0) {
+        stunTime--;
+        player.vy += GRAVITY;
+        player.y += player.vy;
+        return;
+    }
+
+    // 이동
+    if (keys.left) { player.vx = -MOVE_SPEED; player.facing = -1; }
+    else if (keys.right) { player.vx = MOVE_SPEED; player.facing = 1; }
+    else { player.vx *= 0.85; }
+
+    player.x += player.vx;
+
+    // 화면 래핑
+    if (player.x + player.w < 0) player.x = W;
+    if (player.x > W) player.x = -player.w;
+
+    // 중력
+    player.vy += GRAVITY;
+    player.y += player.vy;
+
+    // 카메라 (플레이어가 화면 상단 40%에 오면 올림)
+    const screenY = player.y - camera;
+    if (screenY < H * 0.4) {
+        camera = player.y - H * 0.4;
+    }
+
+    // 높이 점수
+    const height = Math.floor(-camera / 10);
+    if (height > maxHeight) {
+        score += (height - maxHeight);
+        maxHeight = height;
+    }
+
+    // 발판 충돌 (아래로 떨어질 때만)
+    if (player.vy > 0) {
+        platforms.forEach(p => {
+            if (p.broken) return;
+            const py = p.y - camera;
+            if (player.x + player.w > p.x + 5 && player.x < p.x + p.w - 5 &&
+                player.y + player.h >= p.y && player.y + player.h <= p.y + p.h + player.vy + 2) {
+
+                if (p.type === 'break') {
+                    p.broken = true;
+                    addParticles(p.x + p.w / 2, p.y, '#8B4513', 8);
+                    return;
+                }
+
+                player.y = p.y - player.h;
+
+                if (p.type === 'spring') {
+                    player.vy = SPRING_FORCE;
+                    p.springAnim = 10;
+                    addParticles(p.x + p.w / 2, p.y, '#4CAF50', 6);
+                } else {
+                    player.vy = JUMP_FORCE;
+                }
+
+                addParticles(player.x + player.w / 2, player.y + player.h, '#f7b731', 3);
+            }
+        });
+    }
+
+    // 아이템 충돌
+    items.forEach(item => {
+        if (item.collected) return;
+        if (player.x + player.w > item.x && player.x < item.x + item.w &&
+            player.y + player.h > item.y && player.y < item.y + item.h) {
+
+            item.collected = true;
+
+            if (item.type === 'churu') {
+                score += 50;
+                addParticles(item.x, item.y, '#FFD700', 8);
+            } else if (item.type === 'catnip') {
+                player.vy = CATNIP_FORCE;
+                addParticles(item.x, item.y, '#4CAF50', 12);
+            } else if (item.type === 'cucumber') {
+                stunTime = 40;
+                player.vy = -5;
+                addParticles(item.x, item.y, '#8BC34A', 10);
+            }
+        }
+    });
+
+    // 움직이는 발판
+    platforms.forEach(p => {
+        if (p.type === 'move') {
+            p.x += p.moveSpeed * p.moveDir;
+            if (p.x <= 10 || p.x + p.w >= W - 10) p.moveDir *= -1;
+        }
+        if (p.springAnim > 0) p.springAnim--;
+    });
+
+    // 새 발판 생성 (위로)
+    const topPlatY = Math.min(...platforms.map(p => p.y));
+    if (topPlatY > camera - 100) {
+        const gap = 50 + Math.min(maxHeight / 80, 25); // 높이에 따라 간격 증가
+        const newY = topPlatY - gap;
+        const newX = 20 + Math.random() * (W - 80);
+        platforms.push(createPlatform(newX, newY));
+        const item = createItem(newX, newY);
+        if (item) items.push(item);
+    }
+
+    // 아래로 떨어진 발판/아이템 제거
+    platforms = platforms.filter(p => p.y - camera < H + 50);
+    items = items.filter(i => i.y - camera < H + 50);
+
+    // 파티클
+    particles.forEach(p => {
+        p.x += p.vx; p.y += p.vy;
+        p.vy += 0.1; p.life--;
+    });
+    particles = particles.filter(p => p.life > 0);
+
+    // 게임 오버 (화면 아래로 떨어짐)
+    if (player.y - camera > H + 50) {
+        gameOver = true;
+        endGame();
+    }
+
+    updateHUD();
+}
+
+// ============================================
+// 그리기
+// ============================================
+function draw() {
+    CTX.clearRect(0, 0, W, H);
+
+    // 배경 — 높이에 따라 색상 변화
+    const bgProgress = Math.min(maxHeight / 3000, 1);
+    const r1 = Math.floor(10 + bgProgress * 10);
+    const g1 = Math.floor(14 + bgProgress * 5);
+    const b1 = Math.floor(26 + bgProgress * 40);
+    CTX.fillStyle = `rgb(${r1},${g1},${b1})`;
+    CTX.fillRect(0, 0, W, H);
+
+    // 별 (높이 올라갈수록 많아짐)
+    const starCount = Math.min(30 + maxHeight / 20, 80);
+    for (let i = 0; i < starCount; i++) {
+        const sx = (i * 137.5 + maxHeight * 0.1) % W;
+        const sy = (i * 97.3 + camera * 0.02) % H;
+        const alpha = 0.3 + 0.5 * Math.abs(Math.sin(i + Date.now() * 0.001));
+        CTX.fillStyle = `rgba(255,255,255,${alpha})`;
+        CTX.fillRect(sx, sy, i % 3 === 0 ? 2 : 1, i % 3 === 0 ? 2 : 1);
+    }
+
+    // 높이 미터 표시 (좌측)
+    for (let h = 0; h <= maxHeight + 200; h += 100) {
+        const sy = (-h * 10) - camera + H - 50;
+        if (sy > -20 && sy < H + 20) {
+            CTX.fillStyle = 'rgba(255,255,255,0.08)';
+            CTX.fillRect(0, sy, W, 1);
+            CTX.fillStyle = 'rgba(255,255,255,0.15)';
+            CTX.font = '7px "Press Start 2P"';
+            CTX.fillText(h + 'm', 5, sy - 3);
+        }
+    }
+
+    // 발판
+    platforms.forEach(p => {
+        if (p.broken) return;
+        const py = p.y - camera;
+        if (py < -20 || py > H + 20) return;
+
+        let color;
+        switch (p.type) {
+            case 'normal': color = '#8B6914'; break;
+            case 'move': color = '#2980b9'; break;
+            case 'break': color = '#c0392b'; break;
+            case 'spring': color = '#27ae60'; break;
+        }
+
+        // 발판 본체
+        CTX.fillStyle = color;
+        const springOffset = p.springAnim > 0 ? Math.sin(p.springAnim) * 3 : 0;
+        CTX.fillRect(p.x, py + springOffset, p.w, p.h);
+
+        // 하이라이트
+        CTX.fillStyle = 'rgba(255,255,255,0.15)';
+        CTX.fillRect(p.x + 2, py + springOffset, p.w - 4, 3);
+
+        // 스프링 표시
+        if (p.type === 'spring') {
+            CTX.fillStyle = '#2ecc71';
+            CTX.fillRect(p.x + p.w / 2 - 4, py - 6 + springOffset, 8, 6);
+            CTX.fillStyle = '#27ae60';
+            CTX.fillRect(p.x + p.w / 2 - 2, py - 8 + springOffset, 4, 3);
+        }
+
+        // 부서지는 발판 균열
+        if (p.type === 'break') {
+            CTX.fillStyle = 'rgba(0,0,0,0.3)';
+            CTX.fillRect(p.x + 10, py + 2, 2, p.h - 2);
+            CTX.fillRect(p.x + p.w - 15, py + 1, 2, p.h - 1);
+        }
+    });
+
+    // 아이템
+    items.forEach(item => {
+        if (item.collected) return;
+        const iy = item.y - camera;
+        if (iy < -20 || iy > H + 20) return;
+
+        const bob = Math.sin(Date.now() * 0.004 + item.x) * 3;
+        const s = 2; // 도트 크기
+        const ix = item.x;
+        const iby = iy + bob;
+
+        if (item.type === 'churu') {
+            // 츄르 패키지 (도트)
+            const dp = (x,y,c) => { CTX.fillStyle=c; CTX.fillRect(ix+x*s, iby+y*s, s, s); };
+            // 패키지 몸체
+            dp(1,0,'#e8e8e8');dp(2,0,'#e8e8e8');dp(3,0,'#e8e8e8');dp(4,0,'#e8e8e8');
+            dp(0,1,'#f5f5f5');dp(1,1,'#FF7043');dp(2,1,'#FF5722');dp(3,1,'#FF7043');dp(4,1,'#FF5722');dp(5,1,'#f5f5f5');
+            dp(0,2,'#f5f5f5');dp(1,2,'#FF5722');dp(2,2,'#FFCCBC');dp(3,2,'#FF5722');dp(4,2,'#FFCCBC');dp(5,2,'#f5f5f5');
+            dp(0,3,'#f5f5f5');dp(1,3,'#FF7043');dp(2,3,'#FF5722');dp(3,3,'#FF7043');dp(4,3,'#FF5722');dp(5,3,'#f5f5f5');
+            dp(0,4,'#e0e0e0');dp(1,4,'#FF5722');dp(2,4,'#FF7043');dp(3,4,'#FF5722');dp(4,4,'#FF7043');dp(5,4,'#e0e0e0');
+            dp(1,5,'#e0e0e0');dp(2,5,'#e0e0e0');dp(3,5,'#e0e0e0');dp(4,5,'#e0e0e0');
+            // 짤린 윗부분
+            dp(2,-1,'#bbb');dp(3,-1,'#bbb');
+            // 반짝임
+            if (Math.floor(Date.now()/400)%2===0) {
+                CTX.fillStyle='rgba(255,255,255,0.7)';
+                CTX.fillRect(ix+8*s, iby-2*s, s, s);
+            }
+        } else if (item.type === 'catnip') {
+            // 캣닢 잎사귀 (도트)
+            const dp = (x,y,c) => { CTX.fillStyle=c; CTX.fillRect(ix+x*s, iby+y*s, s, s); };
+            // 줄기
+            dp(3,5,'#33691E');dp(3,4,'#33691E');dp(3,3,'#558B2F');
+            // 잎 왼쪽
+            dp(0,2,'#4CAF50');dp(1,1,'#66BB6A');dp(1,2,'#81C784');dp(2,0,'#81C784');dp(2,1,'#A5D6A7');dp(2,2,'#66BB6A');
+            // 잎 오른쪽
+            dp(4,0,'#81C784');dp(4,1,'#A5D6A7');dp(4,2,'#66BB6A');dp(5,1,'#66BB6A');dp(5,2,'#81C784');dp(6,2,'#4CAF50');
+            // 가운데
+            dp(3,0,'#C8E6C9');dp(3,1,'#A5D6A7');dp(3,2,'#81C784');
+            // 빛남
+            const glow = 0.15 + Math.sin(Date.now()*0.005)*0.1;
+            CTX.fillStyle = `rgba(100,255,100,${glow})`;
+            CTX.beginPath();
+            CTX.arc(ix+3*s, iby+2*s, 12, 0, Math.PI*2);
+            CTX.fill();
+        } else if (item.type === 'cucumber') {
+            // 오이 (도트)
+            const dp = (x,y,c) => { CTX.fillStyle=c; CTX.fillRect(ix+x*s, iby+y*s, s, s); };
+            // 꼭지
+            dp(2,-1,'#33691E');dp(3,-1,'#2E7D32');
+            // 몸체
+            dp(1,0,'#558B2F');dp(2,0,'#689F38');dp(3,0,'#7CB342');dp(4,0,'#558B2F');
+            dp(1,1,'#689F38');dp(2,1,'#8BC34A');dp(3,1,'#9CCC65');dp(4,1,'#689F38');
+            dp(0,2,'#558B2F');dp(1,2,'#7CB342');dp(2,2,'#8BC34A');dp(3,2,'#7CB342');dp(4,2,'#689F38');dp(5,2,'#558B2F');
+            dp(0,3,'#558B2F');dp(1,3,'#689F38');dp(2,3,'#8BC34A');dp(3,3,'#689F38');dp(4,3,'#558B2F');dp(5,3,'#558B2F');
+            dp(1,4,'#558B2F');dp(2,4,'#689F38');dp(3,4,'#7CB342');dp(4,4,'#558B2F');
+            dp(1,5,'#33691E');dp(2,5,'#558B2F');dp(3,5,'#689F38');dp(4,5,'#33691E');
+            dp(2,6,'#33691E');dp(3,6,'#558B2F');
+            // 돌기
+            dp(5,1,'#7CB342');dp(0,4,'#689F38');
+            // 위험 표시 (느낌표)
+            if(Math.floor(Date.now()/500)%2===0){
+                CTX.fillStyle='#f44336';
+                CTX.font='8px "Press Start 2P"';
+                CTX.fillText('!', ix+6*s, iby-1*s);
+            }
+        }
+    });
+
+    // 부우 (플레이어)
+    const px = player.x;
+    const py = player.y - camera;
+    const booPixels = getBooPixels();
+
+    if (stunTime > 0 && Math.floor(stunTime / 3) % 2 === 0) {
+        // 기절 깜빡임
+    } else {
+        CTX.save();
+        if (player.facing < 0) {
+            CTX.translate(px + player.w, 0);
+            CTX.scale(-1, 1);
+            booPixels.forEach(([bx, by, c]) => {
+                CTX.fillStyle = c;
+                CTX.fillRect(bx * PX, py + by * PX, PX, PX);
+            });
+        } else {
+            booPixels.forEach(([bx, by, c]) => {
+                CTX.fillStyle = c;
+                CTX.fillRect(px + bx * PX, py + by * PX, PX, PX);
+            });
+        }
+        CTX.restore();
+    }
+
+    // 기절 이펙트
+    if (stunTime > 0) {
+        CTX.fillStyle = '#f7b731';
+        CTX.font = '10px "Press Start 2P"';
+        const stY = py - 10 + Math.sin(Date.now() * 0.01) * 3;
+        CTX.fillText('💫', px + 5, stY);
+        CTX.fillText('💫', px + 25, stY - 5);
+    }
+
+    // 파티클
+    particles.forEach(p => {
+        const ppy = p.y - camera;
+        CTX.fillStyle = p.color;
+        CTX.globalAlpha = p.life / 50;
+        CTX.fillRect(p.x, ppy, p.size, p.size);
+    });
+    CTX.globalAlpha = 1;
+
+    // 바닥 덴데 (시작 지점에서 올려다보는 중)
+    if (camera < H) {
+        const dendeY = H - 40 - camera;
+        const dendePixels = getDendePixels();
+        dendePixels.forEach(([bx, by, c]) => {
+            CTX.fillStyle = c;
+            CTX.fillRect(30 + bx * 2, dendeY + by * 2, 2, 2);
+        });
+        // 덴데 말풍선
+        if (maxHeight > 50) {
+            let msg = '올라가!!';
+            if (maxHeight > 500) msg = '대단해!';
+            if (maxHeight > 1000) msg = '미쳤다!!';
+            CTX.fillStyle = 'rgba(22,33,62,0.9)';
+            CTX.fillRect(60, dendeY - 10, msg.length * 8 + 10, 16);
+            CTX.strokeStyle = '#f7b731';
+            CTX.lineWidth = 1;
+            CTX.strokeRect(60, dendeY - 10, msg.length * 8 + 10, 16);
+            CTX.fillStyle = '#f7b731';
+            CTX.font = '7px "Press Start 2P"';
+            CTX.fillText(msg, 65, dendeY + 2);
+        }
+    }
+}
+
+function updateHUD() {
+    document.getElementById('hudHeight').textContent = maxHeight;
+    document.getElementById('hudScore').textContent = score;
+}
+
+// ============================================
+// 게임 시작/종료
+// ============================================
+function startGame() {
+    document.getElementById('startOverlay').classList.add('hidden');
+    document.getElementById('resultOverlay').classList.add('hidden');
+    initGame();
+    gameStarted = true;
+}
+
+function endGame() {
+    gameStarted = false;
+
+    if (maxHeight > bestHeight) {
+        bestHeight = maxHeight;
+        localStorage.setItem('boo_best', bestHeight);
+        document.getElementById('hudBest').textContent = bestHeight;
+    }
+
+    let title, msg;
+    if (maxHeight >= 3000) { title = '🏆 캣타워의 신!'; msg = '부우가 우주까지 올라갔어!'; }
+    else if (maxHeight >= 2000) { title = '⭐ 하늘을 넘어!'; msg = '구름 위에서 낮잠 자는 중~'; }
+    else if (maxHeight >= 1000) { title = '🌙 달까지 갈 기세!'; msg = '부우의 점프력은 무한대!'; }
+    else if (maxHeight >= 500) { title = '😺 제법 높이 올라갔네!'; msg = '덴데가 감탄하고 있어!'; }
+    else if (maxHeight >= 200) { title = '🐱 아직 2층이야~'; msg = '더 높이 올라가보자!'; }
+    else { title = '😿 미끄러졌다...'; msg = '부우가 다시 도전하고 싶대!'; }
+
+    document.getElementById('resultTitle').textContent = title;
+    document.getElementById('resultScore').textContent = maxHeight + 'm (⭐ ' + score + '점)';
+    document.getElementById('resultMsg').innerHTML = msg + `<br>최고 기록: ${bestHeight}m`;
+    document.getElementById('resultOverlay').classList.remove('hidden');
+}
+
+// ============================================
+// 입력
+// ============================================
+document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowLeft' || e.key === 'a') keys.left = true;
+    if (e.key === 'ArrowRight' || e.key === 'd') keys.right = true;
+});
+
+document.addEventListener('keyup', e => {
+    if (e.key === 'ArrowLeft' || e.key === 'a') keys.left = false;
+    if (e.key === 'ArrowRight' || e.key === 'd') keys.right = false;
+});
+
+// 모바일 터치
+const btnL = document.getElementById('btnLeft');
+const btnR = document.getElementById('btnRight');
+
+btnL.addEventListener('touchstart', e => { e.preventDefault(); keys.left = true; });
+btnL.addEventListener('touchend', e => { e.preventDefault(); keys.left = false; });
+btnR.addEventListener('touchstart', e => { e.preventDefault(); keys.right = true; });
+btnR.addEventListener('touchend', e => { e.preventDefault(); keys.right = false; });
+
+// 틸트 컨트롤 (모바일 기울기)
+if (window.DeviceOrientationEvent) {
+    window.addEventListener('deviceorientation', e => {
+        if (!gameStarted) return;
+        const tilt = e.gamma; // -90 ~ 90
+        if (tilt < -8) { keys.left = true; keys.right = false; }
+        else if (tilt > 8) { keys.right = true; keys.left = false; }
+        else { keys.left = false; keys.right = false; }
+    });
+}
+
+// ============================================
+// 게임 루프
+// ============================================
+initGame(); // 초기 상태 생성 (화면 그리기용)
+gameStarted = false;
+
+function gameLoop() {
+    if (gameStarted && !gameOver) update();
+    if (player) draw();
+    requestAnimationFrame(gameLoop);
+}
+
+gameLoop();
+</script>
+</body>
+</html>

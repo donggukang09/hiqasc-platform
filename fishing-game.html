@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎣 덴데의 낚시</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Press Start 2P', monospace;
+            background: #050810;
+            color: #eaeaea;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* 게임 캔버스 */
+        canvas#game {
+            image-rendering: pixelated;
+            cursor: pointer;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        /* HUD */
+        .hud {
+            width: 100%;
+            max-width: 640px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+        }
+
+        .hud-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 10px;
+            color: #f7b731;
+        }
+
+        .hud-value {
+            font-size: 14px;
+            color: #fff;
+        }
+
+        /* 시작/결과 오버레이 */
+        .overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(5,8,16,0.92);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            gap: 16px;
+        }
+
+        .overlay.hidden { display: none; }
+
+        .overlay-title {
+            font-size: 20px;
+            color: #f7b731;
+            text-shadow: 2px 2px 0 #e94560;
+            text-align: center;
+            line-height: 1.8;
+        }
+
+        .overlay-sub {
+            font-size: 9px;
+            color: #8892a8;
+            text-align: center;
+            line-height: 2;
+            max-width: 400px;
+        }
+
+        .overlay-score {
+            font-size: 28px;
+            color: #f7b731;
+            margin: 10px 0;
+        }
+
+        .overlay-btn {
+            margin-top: 10px;
+            padding: 14px 32px;
+            background: linear-gradient(135deg, #e94560, #c0392b);
+            border: none;
+            color: #fff;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 11px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .overlay-btn:hover { transform: scale(1.05); }
+        .overlay-btn:active { transform: scale(0.95); }
+
+        .catch-list {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 8px 0;
+        }
+
+        .catch-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 12px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            font-size: 8px;
+        }
+
+        .catch-emoji { font-size: 24px; }
+        .catch-count { color: #f7b731; }
+
+        .back-link {
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            color: #8892a8;
+            text-decoration: none;
+            font-size: 8px;
+            z-index: 200;
+            transition: all 0.3s;
+        }
+
+        .back-link:hover { color: #fff; border-color: #f7b731; }
+
+        /* 콤보/피드백 텍스트 */
+        .feedback {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 16px;
+            color: #f7b731;
+            text-shadow: 2px 2px 0 #e94560;
+            pointer-events: none;
+            opacity: 0;
+            z-index: 50;
+            transition: none;
+        }
+
+        .feedback.show {
+            animation: feedbackPop 1s ease forwards;
+        }
+
+        @keyframes feedbackPop {
+            0% { opacity: 1; transform: translate(-50%, -50%) scale(0.5); }
+            30% { opacity: 1; transform: translate(-50%, -50%) scale(1.3); }
+            100% { opacity: 0; transform: translate(-50%, -70%) scale(1); }
+        }
+    </style>
+</head>
+<body>
+
+<a href="developer.html" class="back-link">← 돌아가기</a>
+
+<!-- HUD -->
+<div class="hud">
+    <div class="hud-item">🐱 <span class="hud-value" id="hudCombo">x0</span> COMBO</div>
+    <div class="hud-item">🎣 <span class="hud-value" id="hudCatch">0</span> 마리</div>
+    <div class="hud-item">⭐ <span class="hud-value" id="hudScore">0</span> 점</div>
+    <div class="hud-item">⏱️ <span class="hud-value" id="hudTime">60</span> 초</div>
+</div>
+
+<!-- 게임 캔버스 -->
+<canvas id="game" width="640" height="480"></canvas>
+
+<!-- 피드백 -->
+<div class="feedback" id="feedback"></div>
+
+<!-- 시작 오버레이 -->
+<div class="overlay" id="startOverlay">
+    <div class="overlay-title">🎣 덴데의 낚시 🐱</div>
+    <div class="overlay-sub">
+        찌가 물속으로 빠지면 클릭!<br>
+        타이밍이 좋을수록 큰 물고기가!<br>
+        너무 빠르거나 느리면 놓쳐요...<br><br>
+        🐟 잡어 10점 · 🐠 열대어 30점 · 🐡 복어 50점<br>
+        ✨ 황금잉어 100점 · 🦈 상어 200점
+    </div>
+    <button class="overlay-btn" onclick="startGame()">낚시 시작!</button>
+</div>
+
+<!-- 결과 오버레이 -->
+<div class="overlay hidden" id="resultOverlay">
+    <div class="overlay-title" id="resultTitle">수고했어, 덴데!</div>
+    <div class="overlay-score" id="resultScore">0</div>
+    <div class="catch-list" id="catchList"></div>
+    <div class="overlay-sub" id="resultMsg"></div>
+    <button class="overlay-btn" onclick="startGame()">다시 낚시!</button>
+</div>
+
+<script>
+// ============================================
+// 게임 상수
+// ============================================
+const CVS = document.getElementById('game');
+const CTX = CVS.getContext('2d');
+CTX.imageSmoothingEnabled = false;
+
+const W = 640, H = 480;
+const GROUND_Y = 380;
+const WATER_START_X = 320;
+const WATER_Y = 395;
+const PX = 3; // 픽셀 크기
+
+// 물고기 종류
+const FISH_TYPES = [
+    { name: '잡어', emoji: '🐟', score: 10, color: '#81D4FA', weight: 50, minTiming: 0 },
+    { name: '열대어', emoji: '🐠', score: 30, color: '#FFD54F', weight: 30, minTiming: 0.3 },
+    { name: '복어', emoji: '🐡', score: 50, color: '#EF9A9A', weight: 12, minTiming: 0.5 },
+    { name: '황금잉어', emoji: '✨', score: 100, color: '#FFD700', weight: 6, minTiming: 0.7 },
+    { name: '상어', emoji: '🦈', score: 200, color: '#78909C', weight: 2, minTiming: 0.85 },
+];
+
+// ============================================
+// 게임 상태
+// ============================================
+let gameState = 'idle'; // idle, waiting, nibble, bite, reeling, caught, missed
+let score = 0, combo = 0, maxCombo = 0, catchCount = 0, timeLeft = 60;
+let catches = {};
+let timer = null;
+
+// 낚시 타이밍
+let nibbleTime = 0;
+let biteTime = 0;
+let biteWindow = 0;
+let biteDuration = 800; // ms
+let clickTime = 0;
+
+// 애니메이션
+let frameCount = 0;
+let floatY = 0; // 찌 흔들림
+let reelProgress = 0;
+let caughtFish = null;
+let caughtShowTime = 0;
+let missShowTime = 0;
+
+// 부우 반응
+let booMsg = '';
+let booMsgTime = 0;
+
+// 별
+const stars = [];
+for (let i = 0; i < 60; i++) {
+    stars.push({ x: Math.random() * W, y: Math.random() * (GROUND_Y - 60), size: Math.random() > 0.7 ? 2 : 1, speed: 1 + Math.random() * 3 });
+}
+
+// 물결
+let waveOffset = 0;
+
+// ============================================
+// 픽셀 그리기 유틸
+// ============================================
+function px(x, y, c, s) {
+    s = s || PX;
+    CTX.fillStyle = c;
+    CTX.fillRect(x, y, s, s);
+}
+
+function drawPixelSprite(baseX, baseY, pixels, scale) {
+    const s = scale || PX;
+    pixels.forEach(([x, y, c]) => {
+        CTX.fillStyle = c;
+        CTX.fillRect(baseX + x * s, baseY + y * s, s, s);
+    });
+}
+
+// ============================================
+// 고양이 도트 데이터
+// ============================================
+function getCatPixels(type) {
+    const c = type === 'dende' ? {
+        d: '#4a3728', m: '#6b5240', l: '#ffffff', ear: '#d4a0a0',
+        eye: '#4CAF50', nose: '#d4a0a0', p: '#1a1a1a', st: '#3d2b1f'
+    } : {
+        d: '#e8913a', m: '#f0a852', l: '#ffffff', ear: '#e8a0a0',
+        eye: '#8BC34A', nose: '#e8a0a0', p: '#1a1a1a', st: '#d07830'
+    };
+
+    return [
+        [4,1,c.d],[5,1,c.d],[9,1,c.d],[10,1,c.d],
+        [3,2,c.d],[4,2,c.ear],[5,2,c.d],[9,2,c.d],[10,2,c.ear],[11,2,c.d],
+        [3,3,c.d],[4,3,c.d],[5,3,c.m],[6,3,c.m],[7,3,c.d],[8,3,c.m],[9,3,c.d],[10,3,c.d],[11,3,c.d],
+        [3,4,c.d],[4,4,c.m],[5,4,c.l],[6,4,c.m],[7,4,c.l],[8,4,c.m],[9,4,c.l],[10,4,c.m],[11,4,c.d],
+        [5,4,c.st],[7,4,c.st],
+        [3,5,c.m],[4,5,c.l],[5,5,c.eye],[6,5,c.l],[7,5,c.l],[8,5,c.l],[9,5,c.eye],[10,5,c.l],[11,5,c.m],
+        [3,6,c.m],[4,6,c.l],[5,6,c.p],[6,6,c.l],[7,6,c.nose],[8,6,c.l],[9,6,c.p],[10,6,c.l],[11,6,c.m],
+        [4,7,c.l],[5,7,c.l],[6,7,c.l],[7,7,c.l],[8,7,c.l],[9,7,c.l],[10,7,c.l],
+        [3,8,c.d],[4,8,c.m],[5,8,c.l],[6,8,c.l],[7,8,c.l],[8,8,c.l],[9,8,c.l],[10,8,c.m],[11,8,c.d],
+        [2,9,c.d],[3,9,c.m],[4,9,c.l],[5,9,c.l],[6,9,c.l],[7,9,c.l],[8,9,c.l],[9,9,c.l],[10,9,c.m],[11,9,c.d],
+        [2,10,c.d],[3,10,c.m],[4,10,c.l],[5,10,c.l],[6,10,c.l],[7,10,c.l],[8,10,c.l],[9,10,c.l],[10,10,c.m],[11,10,c.d],
+        [2,11,c.d],[3,11,c.m],[4,11,c.m],[5,11,c.l],[6,11,c.l],[7,11,c.l],[8,11,c.l],[9,11,c.m],[10,11,c.m],[11,11,c.d],
+        [3,12,c.d],[4,12,c.l],[5,12,c.l],[6,12,c.l],[7,12,c.l],[8,12,c.l],[9,12,c.l],[10,12,c.d],
+        [3,13,c.l],[4,13,c.l],[5,13,c.l],[6,13,c.l],[7,13,c.l],[8,13,c.l],[9,13,c.l],[10,13,c.l],
+    ];
+}
+
+// ============================================
+// 그리기
+// ============================================
+function draw() {
+    CTX.clearRect(0, 0, W, H);
+    frameCount++;
+
+    // 배경 — 밤하늘
+    const skyGrad = CTX.createLinearGradient(0, 0, 0, GROUND_Y);
+    skyGrad.addColorStop(0, '#050810');
+    skyGrad.addColorStop(0.4, '#0a0e1a');
+    skyGrad.addColorStop(0.7, '#101530');
+    skyGrad.addColorStop(1, '#1a2a1a');
+    CTX.fillStyle = skyGrad;
+    CTX.fillRect(0, 0, W, GROUND_Y);
+
+    // 별
+    stars.forEach(s => {
+        const alpha = 0.3 + 0.7 * Math.abs(Math.sin(frameCount * 0.02 * s.speed));
+        CTX.fillStyle = `rgba(255,255,255,${alpha})`;
+        CTX.fillRect(s.x, s.y, s.size, s.size);
+    });
+
+    // 달
+    CTX.fillStyle = '#ffeaa7';
+    CTX.beginPath();
+    CTX.arc(540, 60, 22, 0, Math.PI * 2);
+    CTX.fill();
+    CTX.fillStyle = 'rgba(253,203,110,0.1)';
+    CTX.beginPath();
+    CTX.arc(540, 60, 35, 0, Math.PI * 2);
+    CTX.fill();
+
+    // 잔디
+    CTX.fillStyle = '#2d5a2a';
+    CTX.fillRect(0, GROUND_Y, WATER_START_X + 40, H - GROUND_Y);
+
+    // 경사면
+    const slopeGrad = CTX.createLinearGradient(WATER_START_X + 20, 0, WATER_START_X + 70, 0);
+    slopeGrad.addColorStop(0, '#2d5a2a');
+    slopeGrad.addColorStop(1, '#0d3050');
+    CTX.fillStyle = slopeGrad;
+    CTX.fillRect(WATER_START_X + 20, GROUND_Y, 50, H - GROUND_Y);
+
+    // 물
+    CTX.fillStyle = '#0a2540';
+    CTX.fillRect(WATER_START_X + 70, GROUND_Y, W - WATER_START_X - 70, H - GROUND_Y);
+
+    // 물결
+    waveOffset += 0.03;
+    for (let x = WATER_START_X + 70; x < W; x += 3) {
+        const wy = Math.sin((x * 0.03) + waveOffset) * 2;
+        CTX.fillStyle = `rgba(100,180,255,${0.06 + Math.sin((x * 0.05) + waveOffset * 1.5) * 0.03})`;
+        CTX.fillRect(x, GROUND_Y + 3 + wy, 3, 2);
+    }
+
+    // 수면 빛 반사
+    const reflectAlpha = 0.1 + Math.sin(frameCount * 0.03) * 0.05;
+    CTX.fillStyle = `rgba(253,203,110,${reflectAlpha})`;
+    CTX.fillRect(510, GROUND_Y + 8, 8, 20);
+
+    // 텐트
+    drawTent(60, GROUND_Y - 44);
+
+    // 모닥불
+    drawFire(190, GROUND_Y - 40);
+
+    // 부우 (모닥불 옆)
+    drawPixelSprite(110, GROUND_Y - 42, getCatPixels('boo'), PX);
+
+    // 부우 말풍선
+    if (booMsg && Date.now() - booMsgTime < 2500) {
+        CTX.fillStyle = 'rgba(22,33,62,0.95)';
+        const tw = CTX.measureText(booMsg).width;
+        const bx = 115, by = GROUND_Y - 60;
+        CTX.fillRect(bx - 4, by - 12, tw + 12, 18);
+        CTX.strokeStyle = '#f7b731';
+        CTX.lineWidth = 1;
+        CTX.strokeRect(bx - 4, by - 12, tw + 12, 18);
+        CTX.fillStyle = '#f7b731';
+        CTX.font = '8px "Press Start 2P"';
+        CTX.fillText(booMsg, bx + 2, by);
+    }
+
+    // 덴데 (물가 근처)
+    drawPixelSprite(290, GROUND_Y - 42, getCatPixels('dende'), PX);
+
+    // 낚싯대
+    drawRod(320, GROUND_Y - 30);
+
+    // 찌
+    drawFloat();
+
+    // 잡은 물고기 표시
+    if (caughtFish && Date.now() - caughtShowTime < 1500) {
+        drawCaughtFish();
+    }
+
+    // 놓침 표시
+    if (missShowTime && Date.now() - missShowTime < 1000) {
+        CTX.fillStyle = '#e74c3c';
+        CTX.font = '12px "Press Start 2P"';
+        CTX.fillText('놓쳤다...!', 400, GROUND_Y - 20);
+    }
+}
+
+function drawTent(x, y) {
+    const s = PX;
+    const tent = '#e67e22', tentD = '#d35400', tentL = '#f39c12';
+    const pixels = [
+        [8,1,tentL],
+        [7,2,tent],[8,2,tent],[9,2,tent],
+        [6,3,tent],[7,3,tentL],[8,3,tentL],[9,3,tent],[10,3,tent],
+        [5,4,tent],[6,4,tent],[7,4,tentL],[8,4,tentL],[9,4,tent],[10,4,tent],[11,4,tent],
+        [4,5,tent],[5,5,tent],[6,5,tentL],[7,5,tentL],[8,5,tent],[9,5,tent],[10,5,tent],[11,5,tent],[12,5,tent],
+        [3,6,tent],[4,6,tent],[5,6,tentL],[6,6,tentL],[7,6,tent],[8,6,tent],[9,6,tent],[10,6,tent],[11,6,tent],[12,6,tent],[13,6,tent],
+        [2,7,tentD],[3,7,tent],[4,7,tent],[5,7,tentL],[6,7,'#0a0e1a'],[7,7,'#0a0e1a'],[8,7,'#0a0e1a'],[9,7,'#0a0e1a'],[10,7,tent],[11,7,tent],[12,7,tent],[13,7,tentD],[14,7,tentD],
+        [1,8,tentD],[2,8,tentD],[3,8,tent],[4,8,tent],[5,8,'#0a0e1a'],[6,8,'#0a0e1a'],[7,8,'#0a0e1a'],[8,8,'#0a0e1a'],[9,8,'#0a0e1a'],[10,8,tent],[11,8,tent],[12,8,tentD],[13,8,tentD],[14,8,tentD],[15,8,tentD],
+    ];
+    drawPixelSprite(x, y, pixels, s);
+}
+
+function drawFire(x, y) {
+    const s = PX;
+    const frame = Math.floor(frameCount / 8) % 3;
+    const wood = [[3,8,'#5D4037'],[4,8,'#5D4037'],[5,8,'#5D4037'],[6,8,'#5D4037'],[2,9,'#4E342E'],[3,9,'#5D4037'],[4,9,'#5D4037'],[5,9,'#5D4037'],[6,9,'#5D4037'],[7,9,'#4E342E']];
+    const flames = [
+        [[4,4,'#FDD835'],[5,4,'#FF6F00'],[3,5,'#FF6F00'],[4,5,'#FFEB3B'],[5,5,'#FDD835'],[6,5,'#FF6F00'],[3,6,'#FF6F00'],[4,6,'#FF9800'],[5,6,'#FFEB3B'],[6,6,'#FF6F00'],[4,7,'#FF5722'],[5,7,'#FF9800']],
+        [[5,3,'#FDD835'],[4,4,'#FF6F00'],[5,4,'#FFEB3B'],[6,4,'#FDD835'],[3,5,'#FF5722'],[4,5,'#FF9800'],[5,5,'#FFEB3B'],[6,5,'#FF9800'],[3,6,'#FF6F00'],[4,6,'#FFEB3B'],[5,6,'#FF9800'],[6,6,'#FF5722'],[4,7,'#FF9800'],[5,7,'#FF5722']],
+        [[4,3,'#FDD835'],[3,4,'#FF9800'],[4,4,'#FFEB3B'],[5,4,'#FF6F00'],[3,5,'#FF6F00'],[4,5,'#FFEB3B'],[5,5,'#FF9800'],[6,5,'#FF6F00'],[4,6,'#FF9800'],[5,6,'#FFEB3B'],[6,6,'#FF5722'],[4,7,'#FF5722'],[5,7,'#FF6F00']],
+    ];
+    // 불빛
+    CTX.fillStyle = `rgba(255,150,0,${0.03 + Math.sin(frameCount*0.1)*0.02})`;
+    CTX.beginPath();
+    CTX.arc(x + 15, y + 24, 40, 0, Math.PI * 2);
+    CTX.fill();
+
+    drawPixelSprite(x, y, [...wood, ...flames[frame]], s);
+}
+
+function drawRod(x, y) {
+    CTX.strokeStyle = '#8B7355';
+    CTX.lineWidth = 2;
+    CTX.beginPath();
+    CTX.moveTo(x, y + 10);
+    CTX.lineTo(x + 140, y - 50);
+    CTX.stroke();
+
+    // 줄
+    const lineEndX = x + 140;
+    const lineEndY = WATER_Y + 20;
+    CTX.strokeStyle = '#8899aa';
+    CTX.lineWidth = 1;
+    CTX.beginPath();
+    CTX.moveTo(x + 140, y - 50);
+    CTX.lineTo(lineEndX, lineEndY);
+    CTX.stroke();
+
+    // 가이드 링
+    [[0.3],[0.6],[0.9]].forEach(([t]) => {
+        const rx = x + (140) * t;
+        const ry = y + 10 + (-60) * t;
+        CTX.fillStyle = '#aaa';
+        CTX.fillRect(rx - 1, ry - 1, 3, 3);
+    });
+}
+
+function drawFloat() {
+    const floatX = 460;
+    floatY = WATER_Y + Math.sin(frameCount * 0.05) * 3;
+
+    if (gameState === 'bite') {
+        // 찌가 잠김!
+        floatY = WATER_Y + 12 + Math.sin(frameCount * 0.3) * 2;
+        // 물보라
+        CTX.fillStyle = 'rgba(100,200,255,0.4)';
+        for (let i = 0; i < 4; i++) {
+            const sx = floatX - 8 + Math.random() * 20;
+            const sy = floatY - 6 + Math.random() * 8;
+            CTX.fillRect(sx, sy, 2, 2);
+        }
+    } else if (gameState === 'nibble') {
+        // 살짝 움직임
+        floatY = WATER_Y + Math.sin(frameCount * 0.15) * 5;
+    }
+
+    if (gameState !== 'reeling' && gameState !== 'caught') {
+        // 찌 몸체 (빨강+흰)
+        CTX.fillStyle = '#e74c3c';
+        CTX.fillRect(floatX - 2, floatY - 6, 5, 4);
+        CTX.fillStyle = '#fff';
+        CTX.fillRect(floatX - 2, floatY - 2, 5, 4);
+        // 찌 봉
+        CTX.fillStyle = '#333';
+        CTX.fillRect(floatX, floatY - 10, 1, 4);
+    }
+}
+
+function drawCaughtFish() {
+    const elapsed = Date.now() - caughtShowTime;
+    const progress = Math.min(elapsed / 1000, 1);
+    const fishY = WATER_Y - progress * 80;
+    const fishX = 450 + Math.sin(progress * 10) * 10;
+    const size = 8 + caughtFish.score / 10;
+
+    // 물고기
+    CTX.fillStyle = caughtFish.color;
+    CTX.beginPath();
+    CTX.ellipse(fishX, fishY, size, size * 0.6, 0, 0, Math.PI * 2);
+    CTX.fill();
+
+    // 눈
+    CTX.fillStyle = '#000';
+    CTX.fillRect(fishX + size * 0.3, fishY - 2, 2, 2);
+
+    // 꼬리
+    CTX.fillStyle = caughtFish.color;
+    CTX.beginPath();
+    CTX.moveTo(fishX - size, fishY);
+    CTX.lineTo(fishX - size - 6, fishY - 5);
+    CTX.lineTo(fishX - size - 6, fishY + 5);
+    CTX.closePath();
+    CTX.fill();
+
+    // 점수 텍스트
+    CTX.fillStyle = '#f7b731';
+    CTX.font = '10px "Press Start 2P"';
+    CTX.fillText(`+${caughtFish.score}`, fishX + 15, fishY - 5);
+
+    // 이름
+    CTX.fillStyle = '#fff';
+    CTX.font = '8px "Press Start 2P"';
+    CTX.fillText(caughtFish.name, fishX - 15, fishY - size - 8);
+}
+
+// ============================================
+// 게임 로직
+// ============================================
+function startGame() {
+    document.getElementById('startOverlay').classList.add('hidden');
+    document.getElementById('resultOverlay').classList.add('hidden');
+
+    score = 0; combo = 0; maxCombo = 0; catchCount = 0; timeLeft = 60;
+    catches = {};
+    updateHUD();
+
+    gameState = 'waiting';
+    scheduleNibble();
+
+    if (timer) clearInterval(timer);
+    timer = setInterval(() => {
+        timeLeft--;
+        document.getElementById('hudTime').textContent = timeLeft;
+        if (timeLeft <= 0) endGame();
+    }, 1000);
+}
+
+function scheduleNibble() {
+    const delay = 1500 + Math.random() * 3000;
+    setTimeout(() => {
+        if (gameState !== 'waiting') return;
+        gameState = 'nibble';
+        // 잠깐 쿡쿡 → 바이트
+        setTimeout(() => {
+            if (gameState !== 'nibble') return;
+            gameState = 'bite';
+            biteTime = Date.now();
+            biteDuration = 600 + Math.random() * 500;
+            // 바이트 시간 초과하면 놓침
+            setTimeout(() => {
+                if (gameState === 'bite') {
+                    miss();
+                }
+            }, biteDuration);
+        }, 500 + Math.random() * 800);
+    }, delay);
+}
+
+function handleClick() {
+    if (gameState === 'bite') {
+        // 성공!
+        const elapsed = Date.now() - biteTime;
+        const timing = elapsed / biteDuration; // 0~1 (낮을수록 빠른 반응)
+        catchFish(timing);
+    } else if (gameState === 'nibble') {
+        // 너무 빨리!
+        miss('너무 빨라!');
+    } else if (gameState === 'waiting') {
+        // 아직!
+        miss('아직이야!');
+    }
+}
+
+function catchFish(timing) {
+    // timing 기반 물고기 결정 — 빠를수록 좋은 물고기
+    const quality = 1 - timing; // 높을수록 좋음
+
+    // 가중치 기반 랜덤 선택 (quality가 높으면 희귀 물고기 확률 증가)
+    const available = FISH_TYPES.filter(f => quality >= f.minTiming);
+    const weights = available.map(f => f.weight * (quality >= f.minTiming ? 1 + quality * 2 : 0.1));
+    const totalWeight = weights.reduce((a, b) => a + b, 0);
+    let rand = Math.random() * totalWeight;
+    let fish = available[0];
+    for (let i = 0; i < available.length; i++) {
+        rand -= weights[i];
+        if (rand <= 0) { fish = available[i]; break; }
+    }
+
+    // 점수 계산
+    combo++;
+    if (combo > maxCombo) maxCombo = combo;
+    const comboBonus = Math.min(combo, 5);
+    const finalScore = fish.score * comboBonus;
+    score += finalScore;
+    catchCount++;
+
+    catches[fish.name] = (catches[fish.name] || 0) + 1;
+
+    // 피드백
+    caughtFish = fish;
+    caughtShowTime = Date.now();
+
+    const fb = document.getElementById('feedback');
+    let msg = fish.emoji + ' ' + fish.name + '!';
+    if (combo >= 3) msg += ` x${combo} COMBO!`;
+    if (fish.score >= 100) msg = '⭐ ' + msg + ' ⭐';
+    fb.textContent = msg;
+    fb.className = 'feedback';
+    void fb.offsetWidth;
+    fb.className = 'feedback show';
+
+    // 부우 반응
+    if (fish.score >= 100) {
+        setBooMsg('대박!!!');
+    } else if (combo >= 3) {
+        setBooMsg('콤보다!!');
+    } else if (fish.score >= 50) {
+        setBooMsg('오~~!');
+    } else {
+        const msgs = ['잡았다!', '나이스~', '굿!', '오!'];
+        setBooMsg(msgs[Math.floor(Math.random() * msgs.length)]);
+    }
+
+    gameState = 'caught';
+    updateHUD();
+
+    // 다시 대기
+    setTimeout(() => {
+        gameState = 'waiting';
+        caughtFish = null;
+        scheduleNibble();
+    }, 1500);
+}
+
+function miss(msg) {
+    combo = 0;
+    missShowTime = Date.now();
+    gameState = 'waiting';
+
+    const fb = document.getElementById('feedback');
+    fb.textContent = msg || '놓쳤다...!';
+    fb.className = 'feedback';
+    void fb.offsetWidth;
+    fb.className = 'feedback show';
+
+    const booMsgs = ['에이...', '아깝다!', '다음에!', '집중!!'];
+    setBooMsg(booMsgs[Math.floor(Math.random() * booMsgs.length)]);
+
+    updateHUD();
+    scheduleNibble();
+}
+
+function setBooMsg(msg) {
+    booMsg = msg;
+    booMsgTime = Date.now();
+}
+
+function updateHUD() {
+    document.getElementById('hudScore').textContent = score;
+    document.getElementById('hudCatch').textContent = catchCount;
+    document.getElementById('hudCombo').textContent = 'x' + combo;
+}
+
+function endGame() {
+    clearInterval(timer);
+    gameState = 'idle';
+
+    // 결과
+    let title = '수고했어, 덴데!';
+    let msg = '';
+    if (score >= 2000) { title = '🏆 전설의 낚시꾼!'; msg = '덴데가 감동하고 있어요...!'; }
+    else if (score >= 1000) { title = '⭐ 낚시 마스터!'; msg = '부우도 인정한 실력!'; }
+    else if (score >= 500) { title = '🎣 제법인데?'; msg = '다음엔 더 큰 물고기를!'; }
+    else if (score >= 200) { title = '🐟 초보 낚시꾼'; msg = '연습이 필요해~'; }
+    else { title = '😺 구경만 했네...'; msg = '덴데가 졸고 있었나봐'; }
+
+    document.getElementById('resultTitle').textContent = title;
+    document.getElementById('resultScore').textContent = score + '점';
+    document.getElementById('resultMsg').innerHTML = msg + `<br>최대 콤보: x${maxCombo} · 총 ${catchCount}마리`;
+
+    // 잡은 물고기 목록
+    const listEl = document.getElementById('catchList');
+    listEl.innerHTML = '';
+    FISH_TYPES.forEach(f => {
+        const count = catches[f.name] || 0;
+        if (count > 0) {
+            listEl.innerHTML += `<div class="catch-item"><span class="catch-emoji">${f.emoji}</span><span class="catch-count">${count}마리</span><span>${f.name}</span></div>`;
+        }
+    });
+
+    document.getElementById('resultOverlay').classList.remove('hidden');
+}
+
+// ============================================
+// 게임 루프
+// ============================================
+function gameLoop() {
+    draw();
+    requestAnimationFrame(gameLoop);
+}
+
+CVS.addEventListener('click', handleClick);
+gameLoop();
+</script>
+</body>
+</html>
