@@ -100,24 +100,93 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* 타이틀 */
+        /* 히어로 — 시크릿 메시지 */
         .hero {
             text-align: center;
-            padding: 40px 0 20px;
+            padding: 50px 0 10px;
             animation-delay: 0.1s;
+            perspective: 800px;
         }
 
-        .hero-pixel-title {
+        .secret-msg {
             font-family: 'Press Start 2P', monospace;
-            font-size: 1.6em;
-            color: var(--accent2);
-            text-shadow: 3px 3px 0 var(--accent), 6px 6px 0 rgba(0,0,0,0.3);
-            margin-bottom: 16px;
-            letter-spacing: 2px;
+            overflow: hidden;
         }
 
-        .hero-sub {
-            font-size: 0.95em;
+        .secret-line {
+            opacity: 0;
+            font-size: 1.1em;
+            letter-spacing: 3px;
+            margin-bottom: 10px;
+            color: var(--accent2);
+        }
+
+        .secret-line:nth-child(1) {
+            animation: secretReveal 0.8s ease 0.5s forwards, glitchText 0.1s ease 0.5s 3;
+            font-size: 1.3em;
+            color: #fff;
+            text-shadow: 0 0 20px rgba(247,183,49,0.5), 0 0 40px rgba(233,69,96,0.3);
+        }
+
+        .secret-line:nth-child(2) {
+            animation: secretReveal 0.8s ease 1.3s forwards, textGlow 2s ease-in-out 2.1s infinite alternate;
+            font-size: 1em;
+            color: var(--accent2);
+        }
+
+        .secret-line:nth-child(3) {
+            animation: secretReveal 0.8s ease 2.0s forwards;
+            font-size: 0.85em;
+            color: var(--accent);
+        }
+
+        @keyframes secretReveal {
+            0% {
+                opacity: 0;
+                transform: scale(3) rotateX(90deg);
+                filter: blur(10px);
+            }
+            60% {
+                opacity: 1;
+                transform: scale(1.1) rotateX(-5deg);
+                filter: blur(0);
+            }
+            80% {
+                transform: scale(0.95) rotateX(3deg);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) rotateX(0);
+                filter: blur(0);
+            }
+        }
+
+        @keyframes glitchText {
+            0% { transform: translate(0); }
+            25% { transform: translate(-3px, 2px) skewX(2deg); }
+            50% { transform: translate(3px, -1px) skewX(-1deg); }
+            75% { transform: translate(-2px, -2px); }
+            100% { transform: translate(0); }
+        }
+
+        @keyframes textGlow {
+            from { text-shadow: 0 0 8px rgba(247,183,49,0.3); }
+            to { text-shadow: 0 0 20px rgba(247,183,49,0.6), 0 0 40px rgba(247,183,49,0.2); }
+        }
+
+        .hero-divider {
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--accent), var(--accent2), transparent);
+            margin: 18px auto;
+            opacity: 0;
+            animation: fadeIn 0.5s ease 2.8s forwards;
+        }
+
+        .hero-sub-info {
+            opacity: 0;
+            animation: fadeIn 0.6s ease 3s forwards;
+            font-size: 0.8em;
             color: var(--text2);
             font-weight: 300;
             letter-spacing: 1px;
@@ -125,13 +194,20 @@
 
         .hero-role {
             display: inline-block;
-            margin-top: 14px;
+            margin-top: 12px;
             padding: 6px 18px;
             background: linear-gradient(135deg, var(--accent), #c0392b);
             border-radius: 20px;
-            font-size: 0.8em;
+            font-size: 0.75em;
             font-weight: 600;
             letter-spacing: 1px;
+            opacity: 0;
+            animation: fadeIn 0.5s ease 3.3s forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         /* 고양이 캔버스 — 캠핑 씬 */
@@ -777,10 +853,15 @@
 <div class="stars" id="stars"></div>
 
 <div class="page-wrap">
-    <!-- 히어로 -->
+    <!-- 히어로 — 시크릿 메시지 -->
     <div class="hero fade-up">
-        <div class="hero-pixel-title">DONGGU KANG</div>
-        <div class="hero-sub">Developer · Designer · Cat Dad</div>
+        <div class="secret-msg">
+            <div class="secret-line">YOU FOUND THE SECRET PAGE!</div>
+            <div class="secret-line">THIS IS THE WORLD OF DONGGU KANG</div>
+            <div class="secret-line">WITH DENDE & BOO 🐱🐱</div>
+        </div>
+        <div class="hero-divider"></div>
+        <div class="hero-sub-info">Developer · Designer · Cat Dad</div>
         <div class="hero-role">HIQASC Platform Creator</div>
     </div>
 
@@ -906,9 +987,8 @@
     <!-- 푸터 -->
     <div class="secret-footer fade-up">
         <div class="secret-footer-text">
-            YOU FOUND THE SECRET PAGE!<br>
-            THIS IS THE WORLD OF DONGGU KANG<br>
-            WITH DENDE & BOO 🐱🐱
+            DONGGU KANG © 2025<br>
+            DENDE & BOO FOREVER 🐱🐱
         </div>
         <a href="index.html" class="back-link">🏠 메인으로 돌아가기</a>
     </div>
