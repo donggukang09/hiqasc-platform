@@ -321,6 +321,159 @@
     margin-top: 4px;
   }
 
+  /* 랭킹 섹션 */
+  .ranking-section {
+    background: #353535;
+    border: 1px solid #4a4a4a;
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-bottom: 25px;
+  }
+
+  .ranking-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .ranking-header h2 {
+    font-size: 1.1em;
+    color: #fff;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .ranking-tabs {
+    display: flex;
+    gap: 4px;
+    background: #2a2a2a;
+    border-radius: 8px;
+    padding: 3px;
+  }
+
+  .ranking-tab {
+    padding: 6px 14px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: #808080;
+    font-size: 0.82em;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .ranking-tab.active {
+    background: #4a90e2;
+    color: #fff;
+  }
+
+  .ranking-tab:hover:not(.active) {
+    color: #e0e0e0;
+  }
+
+  .ranking-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .ranking-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 16px;
+    background: #2a2a2a;
+    border: 1px solid #4a4a4a;
+    border-radius: 8px;
+    transition: all 0.2s;
+  }
+
+  .ranking-item:hover {
+    border-color: rgba(74,144,226,0.3);
+  }
+
+  .ranking-item.top1 {
+    background: linear-gradient(135deg, rgba(255,215,0,0.08), rgba(255,215,0,0.02));
+    border-color: rgba(255,215,0,0.3);
+  }
+
+  .ranking-item.top2 {
+    background: linear-gradient(135deg, rgba(192,192,192,0.08), rgba(192,192,192,0.02));
+    border-color: rgba(192,192,192,0.3);
+  }
+
+  .ranking-item.top3 {
+    background: linear-gradient(135deg, rgba(205,127,50,0.08), rgba(205,127,50,0.02));
+    border-color: rgba(205,127,50,0.3);
+  }
+
+  .ranking-medal {
+    font-size: 1.4em;
+    width: 32px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .ranking-num {
+    width: 32px;
+    text-align: center;
+    font-size: 0.9em;
+    font-weight: 700;
+    color: #606060;
+    flex-shrink: 0;
+  }
+
+  .ranking-name {
+    flex: 1;
+    font-size: 1em;
+    font-weight: 600;
+    color: #e0e0e0;
+  }
+
+  .ranking-count {
+    font-size: 1.3em;
+    font-weight: 700;
+    color: #4a90e2;
+    min-width: 40px;
+    text-align: right;
+  }
+
+  .ranking-unit {
+    font-size: 0.8em;
+    color: #808080;
+    font-weight: 500;
+  }
+
+  .ranking-bar-bg {
+    flex: 1;
+    max-width: 120px;
+    height: 6px;
+    background: #3a3a3a;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .ranking-bar {
+    height: 100%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, #4a90e2, #357abd);
+    transition: width 0.6s ease;
+  }
+
+  .ranking-empty {
+    text-align: center;
+    padding: 24px;
+    color: #606060;
+    font-size: 0.9em;
+  }
+
   /* 오늘 기록 테이블 */
   .history-section {
     background: #353535;
@@ -443,6 +596,22 @@
     <h2>📊 모델별 평균 수리시간 (누적)</h2>
     <div class="avg-grid" id="avgGrid">
       <div class="history-empty">기록이 쌓이면 평균이 표시됩니다.</div>
+    </div>
+  </div>
+
+  <!-- 테크니션 랭킹 -->
+  <div class="ranking-section">
+    <div class="ranking-header">
+      <h2>🏆 수리 등록 랭킹</h2>
+      <div class="ranking-tabs">
+        <button class="ranking-tab active" onclick="setRankingPeriod('today')">오늘</button>
+        <button class="ranking-tab" onclick="setRankingPeriod('week')">이번 주</button>
+        <button class="ranking-tab" onclick="setRankingPeriod('month')">이번 달</button>
+        <button class="ranking-tab" onclick="setRankingPeriod('all')">전체</button>
+      </div>
+    </div>
+    <div class="ranking-list" id="rankingList">
+      <div class="ranking-empty">기록이 쌓이면 랭킹이 표시됩니다.</div>
     </div>
   </div>
 
@@ -667,6 +836,7 @@ function stopTimer() {
   todayRecords.unshift(record);
   renderHistory();
   renderAverage();
+  renderRanking();
 
   // 구글시트 저장
   saveToSheet(record);
@@ -768,6 +938,7 @@ async function loadAllRecords() {
   todayRecords.reverse();
   renderHistory();
   renderAverage();
+  renderRanking();
 }
 
 // ===== 기록 렌더링 =====
@@ -824,6 +995,107 @@ function renderAverage() {
         <div class="avg-model">${model}</div>
         <div class="avg-time">${avgStr}</div>
         <div class="avg-count">${times.length}건 평균</div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ===== 랭킹 =====
+let currentRankingPeriod = 'today';
+
+function setRankingPeriod(period) {
+  currentRankingPeriod = period;
+  // 탭 UI 업데이트
+  document.querySelectorAll('.ranking-tab').forEach(tab => {
+    tab.classList.toggle('active', tab.textContent === {
+      'today': '오늘', 'week': '이번 주', 'month': '이번 달', 'all': '전체'
+    }[period]);
+  });
+  renderRanking();
+}
+
+function renderRanking() {
+  const container = document.getElementById('rankingList');
+
+  if (todayRecords.length === 0) {
+    container.innerHTML = '<div class="ranking-empty">기록이 쌓이면 랭킹이 표시됩니다.</div>';
+    return;
+  }
+
+  // 기간별 필터링
+  const now = new Date();
+  const todayStr = `${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')}`;
+  
+  // 이번 주 시작일 (월요일)
+  const dayOfWeek = now.getDay();
+  const mondayOffset = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - mondayOffset);
+  monday.setHours(0, 0, 0, 0);
+
+  // 이번 달 시작
+  const monthStr = `${String(now.getMonth()+1).padStart(2,'0')}/`;
+
+  const filtered = todayRecords.filter(r => {
+    if (currentRankingPeriod === 'all') return true;
+    if (!r.date) return false;
+    
+    if (currentRankingPeriod === 'today') {
+      return r.date === todayStr;
+    }
+    
+    if (currentRankingPeriod === 'month') {
+      return r.date.startsWith(monthStr);
+    }
+    
+    if (currentRankingPeriod === 'week') {
+      // timestamp에서 날짜 파싱
+      const ts = r.timestamp;
+      if (!ts) return false;
+      const dateMatch = ts.match(/(\d{4})\.\s*(\d{1,2})\.\s*(\d{1,2})/);
+      if (!dateMatch) return false;
+      const recordDate = new Date(parseInt(dateMatch[1]), parseInt(dateMatch[2])-1, parseInt(dateMatch[3]));
+      return recordDate >= monday && recordDate <= now;
+    }
+    
+    return true;
+  });
+
+  // 테크니션별 집계
+  const techMap = {};
+  filtered.forEach(r => {
+    if (!r.technician) return;
+    if (!techMap[r.technician]) techMap[r.technician] = 0;
+    techMap[r.technician]++;
+  });
+
+  const sorted = Object.entries(techMap).sort((a, b) => b[1] - a[1]);
+
+  if (sorted.length === 0) {
+    const periodName = { 'today': '오늘', 'week': '이번 주', 'month': '이번 달', 'all': '전체' }[currentRankingPeriod];
+    container.innerHTML = `<div class="ranking-empty">${periodName} 기록이 없습니다.</div>`;
+    return;
+  }
+
+  const maxCount = sorted[0][1];
+  const medals = ['🥇', '🥈', '🥉'];
+
+  container.innerHTML = sorted.map(([name, count], idx) => {
+    const rank = idx + 1;
+    const topClass = rank <= 3 ? ` top${rank}` : '';
+    const medalOrNum = rank <= 3
+      ? `<span class="ranking-medal">${medals[idx]}</span>`
+      : `<span class="ranking-num">${rank}</span>`;
+    const barWidth = Math.round((count / maxCount) * 100);
+
+    return `
+      <div class="ranking-item${topClass}">
+        ${medalOrNum}
+        <span class="ranking-name">${name}</span>
+        <div class="ranking-bar-bg">
+          <div class="ranking-bar" style="width: ${barWidth}%"></div>
+        </div>
+        <span class="ranking-count">${count}<span class="ranking-unit">건</span></span>
       </div>
     `;
   }).join('');
