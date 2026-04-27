@@ -683,6 +683,91 @@
             .info-grid { grid-template-columns: 1fr; }
             .cat-profiles { grid-template-columns: 1fr; }
             .page-wrap { padding: 20px 16px 60px; }
+            .game-modal-content { width: 95vw; height: 85vh; }
+        }
+
+        /* PLAY 배지 */
+        .play-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 7px;
+            color: #fff;
+            background: linear-gradient(135deg, #e94560, #c0392b);
+            padding: 4px 8px;
+            border-radius: 6px;
+            z-index: 3;
+            animation: badgePulse 2s ease-in-out infinite;
+        }
+
+        @keyframes badgePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); box-shadow: 0 0 12px rgba(233,69,96,0.5); }
+        }
+
+        /* 게임 모달 */
+        .game-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .game-modal.open {
+            display: flex;
+            animation: modalFadeIn 0.3s ease;
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .game-modal-content {
+            position: relative;
+            width: 660px;
+            height: 90vh;
+            max-height: 700px;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8), 0 0 40px rgba(233,69,96,0.15);
+            border: 2px solid rgba(247,183,49,0.3);
+        }
+
+        .game-modal-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.7);
+            border: 2px solid rgba(255,255,255,0.2);
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+            z-index: 1001;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .game-modal-close:hover {
+            background: #e94560;
+            border-color: #e94560;
+            transform: scale(1.1);
+        }
+
+        .game-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #0a0e1a;
         }
     </style>
 </head>
@@ -778,17 +863,19 @@
     <div class="profile-card cats-card fade-up">
         <div class="profile-section-title">🐾 MY CATS</div>
         <div class="cat-profiles">
-            <div class="cat-profile">
+            <div class="cat-profile" onclick="openGame('fishing')" style="cursor:pointer">
+                <div class="play-badge">🎣 PLAY</div>
                 <canvas class="cat-profile-sprite" id="dendeProfile" width="80" height="80"></canvas>
-                <div class="cat-hover-msg">...만지지마</div>
+                <div class="cat-hover-msg">낚시하러 가자!</div>
                 <div class="cat-profile-name">덴데 DENDE</div>
-                <div class="cat-profile-desc">고등어 태비 🐟<br>초록 눈의 도도한 고양이<br>앉아서 세상을 관찰하는 중</div>
+                <div class="cat-profile-desc">고등어 태비 🐟<br>초록 눈의 도도한 고양이<br>🎣 클릭하면 낚시 게임!</div>
             </div>
-            <div class="cat-profile">
+            <div class="cat-profile" onclick="openGame('cattower')" style="cursor:pointer">
+                <div class="play-badge">🐱 PLAY</div>
                 <canvas class="cat-profile-sprite" id="booProfile" width="80" height="80"></canvas>
-                <div class="cat-hover-msg">놀아줘!!!</div>
+                <div class="cat-hover-msg">올라갈꺼야!</div>
                 <div class="cat-profile-name">부우 BOO</div>
-                <div class="cat-profile-desc">치즈 태비 🧀<br>동글동글 통통한 체형<br>항상 높은 곳을 차지하는 중</div>
+                <div class="cat-profile-desc">치즈 태비 🧀<br>동글동글 통통한 체형<br>🏔️ 클릭하면 캣타워 게임!</div>
             </div>
         </div>
     </div>
@@ -808,6 +895,14 @@
         </div>
     </div>
 
+    <!-- 게임 모달 -->
+    <div class="game-modal" id="gameModal">
+        <div class="game-modal-content">
+            <button class="game-modal-close" onclick="closeGame()">✕</button>
+            <iframe class="game-iframe" id="gameIframe" frameborder="0"></iframe>
+        </div>
+    </div>
+
     <!-- 푸터 -->
     <div class="secret-footer fade-up">
         <div class="secret-footer-text">
@@ -820,6 +915,41 @@
 </div>
 
 <script>
+// ============================================
+// 게임 모달
+// ============================================
+function openGame(type) {
+    const modal = document.getElementById('gameModal');
+    const iframe = document.getElementById('gameIframe');
+
+    if (type === 'fishing') {
+        iframe.src = 'fishing-game.html';
+    } else if (type === 'cattower') {
+        iframe.src = 'cattower-game.html';
+    }
+
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeGame() {
+    const modal = document.getElementById('gameModal');
+    const iframe = document.getElementById('gameIframe');
+    modal.classList.remove('open');
+    iframe.src = '';
+    document.body.style.overflow = '';
+}
+
+// ESC 키로 닫기
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeGame();
+});
+
+// 모달 바깥 클릭으로 닫기
+document.getElementById('gameModal').addEventListener('click', function(e) {
+    if (e.target === this) closeGame();
+});
+
 // ============================================
 // 별 배경 생성
 // ============================================
