@@ -525,29 +525,51 @@
         }
 
         .hub-footer .developer-tag {
-            margin-top: 10px;
-            font-weight: 700;
-            font-size: 1.1em;
-            letter-spacing: 2px;
-            background: linear-gradient(90deg, #4a90e2, #6c5ce7, #e94560, #f7b731, #4a90e2);
-            background-size: 300% 100%;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            animation: devShine 4s linear infinite;
+            margin-top: 6px;
+            font-weight: 600;
+            color: #4a90e2;
+        }
+
+        /* 이스터에그 고양이 */
+        .hub-footer {
+            position: relative;
+            overflow: visible;
+        }
+
+        .easter-cat {
+            position: absolute;
+            bottom: 100%;
+            image-rendering: pixelated;
             cursor: pointer;
-            transition: transform 0.3s, filter 0.3s;
-            display: inline-block;
+            opacity: 0;
+            transition: transform 0.15s;
+            z-index: 10;
+            pointer-events: none;
         }
 
-        .hub-footer .developer-tag:hover {
-            transform: scale(1.05);
-            filter: brightness(1.3);
+        .easter-cat.peek {
+            opacity: 1;
+            pointer-events: auto;
+            animation: catPeek 4s ease-in-out forwards;
         }
 
-        @keyframes devShine {
-            0% { background-position: 0% 50%; }
-            100% { background-position: 300% 50%; }
+        .easter-cat:hover {
+            transform: scale(1.2);
+        }
+
+        .easter-cat:active {
+            transform: scale(0.9);
+        }
+
+        @keyframes catPeek {
+            0% { transform: translateY(100%); opacity: 0; }
+            8% { transform: translateY(30%); opacity: 1; }
+            12% { transform: translateY(40%); opacity: 1; }
+            16% { transform: translateY(25%); opacity: 1; }
+            70% { transform: translateY(25%); opacity: 1; }
+            85% { transform: translateY(35%); opacity: 1; }
+            95% { transform: translateY(100%); opacity: 0; }
+            100% { transform: translateY(100%); opacity: 0; }
         }
 
         /* ============================================ */
@@ -1120,7 +1142,8 @@
 
         <div class="hub-footer">
             <p>&copy; 2025 HIQASC Repair Team Management Platform. All rights reserved.</p>
-            <p class="developer-tag" onclick="window.location.href='developer.html'" title="🐱">DEVELOPED BY DONGGU KANG</p>
+            <p class="developer-tag">DEVELOPED BY DONGGU KANG</p>
+            <canvas class="easter-cat" id="easterCat" width="42" height="42" onclick="window.location.href='developer.html'"></canvas>
         </div>
     </div>
 
@@ -1495,6 +1518,77 @@
                 document.getElementById('loginOverlay').style.display = 'none';
                 document.getElementById('hubContent').classList.add('unlocked');
             }
+
+            // ============================================
+            // 이스터에그 고양이
+            // ============================================
+            const easterCat = document.getElementById('easterCat');
+            const ectx = easterCat.getContext('2d');
+            ectx.imageSmoothingEnabled = false;
+            const es = 3;
+
+            function drawEasterCat(type) {
+                ectx.clearRect(0, 0, 42, 42);
+                const px = (x,y,c) => { ectx.fillStyle = c; ectx.fillRect(x*es, y*es, es, es); };
+
+                if (type === 'dende') {
+                    const d='#4a3728',m='#6b5240',l='#ffffff',ear='#d4a0a0',eye='#4CAF50',nose='#d4a0a0',p='#1a1a1a';
+                    // 귀
+                    px(3,0,d);px(4,0,d);px(9,0,d);px(10,0,d);
+                    px(2,1,d);px(3,1,ear);px(4,1,d);px(9,1,d);px(10,1,ear);px(11,1,d);
+                    // 머리
+                    px(2,2,d);px(3,2,m);px(4,2,m);px(5,2,m);px(6,2,d);px(7,2,m);px(8,2,d);px(9,2,d);px(10,2,d);px(11,2,d);
+                    px(2,3,d);px(3,3,m);px(4,3,l);px(5,3,m);px(6,3,l);px(7,3,m);px(8,3,l);px(9,3,m);px(10,3,d);
+                    px(2,4,m);px(3,4,l);px(4,4,eye);px(5,4,l);px(6,4,l);px(7,4,l);px(8,4,eye);px(9,4,l);px(10,4,m);
+                    px(2,5,m);px(3,5,l);px(4,5,p);px(5,5,l);px(6,5,nose);px(7,5,l);px(8,5,p);px(9,5,l);px(10,5,m);
+                    px(3,6,l);px(4,6,l);px(5,6,l);px(6,6,l);px(7,6,l);px(8,6,l);px(9,6,l);
+                    // 앞발
+                    px(2,7,d);px(3,7,l);px(4,7,l);px(5,7,l);px(7,7,l);px(8,7,l);px(9,7,l);px(10,7,d);
+                } else {
+                    const d='#e8913a',m='#f0a852',l='#ffffff',ear='#e8a0a0',eye='#8BC34A',nose='#e8a0a0',p='#1a1a1a';
+                    px(3,0,d);px(4,0,d);px(9,0,d);px(10,0,d);
+                    px(2,1,d);px(3,1,ear);px(4,1,d);px(9,1,d);px(10,1,ear);px(11,1,d);
+                    px(2,2,d);px(3,2,m);px(4,2,m);px(5,2,m);px(6,2,d);px(7,2,m);px(8,2,d);px(9,2,d);px(10,2,d);px(11,2,d);
+                    px(2,3,d);px(3,3,m);px(4,3,l);px(5,3,m);px(6,3,l);px(7,3,m);px(8,3,l);px(9,3,m);px(10,3,d);
+                    px(2,4,m);px(3,4,l);px(4,4,eye);px(5,4,l);px(6,4,l);px(7,4,l);px(8,4,eye);px(9,4,l);px(10,4,m);
+                    px(2,5,m);px(3,5,l);px(4,5,p);px(5,5,l);px(6,5,nose);px(7,5,l);px(8,5,p);px(9,5,l);px(10,5,m);
+                    px(3,6,l);px(4,6,l);px(5,6,l);px(6,6,l);px(7,6,l);px(8,6,l);px(9,6,l);
+                    px(2,7,d);px(3,7,l);px(4,7,l);px(5,7,l);px(7,7,l);px(8,7,l);px(9,7,l);px(10,7,d);
+                }
+            }
+
+            function showEasterCat() {
+                const cat = easterCat;
+                const type = Math.random() > 0.5 ? 'dende' : 'boo';
+                drawEasterCat(type);
+
+                // 랜덤 위치 (footer 텍스트 근처)
+                const footer = document.querySelector('.hub-footer');
+                const footerW = footer.offsetWidth;
+                const tagEl = document.querySelector('.developer-tag');
+                const tagRect = tagEl.getBoundingClientRect();
+                const footerRect = footer.getBoundingClientRect();
+                const offsetX = tagRect.left - footerRect.left + Math.random() * tagRect.width - 21;
+                cat.style.left = Math.max(10, Math.min(offsetX, footerW - 50)) + 'px';
+
+                cat.classList.remove('peek');
+                void cat.offsetWidth;
+                cat.classList.add('peek');
+
+                // 사라진 후 다음 등장 예약
+                setTimeout(() => {
+                    cat.classList.remove('peek');
+                    scheduleEasterCat();
+                }, 4500);
+            }
+
+            function scheduleEasterCat() {
+                const delay = 15000 + Math.random() * 30000; // 15~45초 간격
+                setTimeout(showEasterCat, delay);
+            }
+
+            // 첫 등장 (10~20초 후)
+            setTimeout(showEasterCat, 10000 + Math.random() * 10000);
         });
     </script>
     <script src="hiq-notification.js?v=2"></script>
