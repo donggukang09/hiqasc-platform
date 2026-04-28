@@ -1576,7 +1576,7 @@
             drawBooLoading();
 
             setTimeout(function() {
-                loader.style.transition = 'opacity 0.5s ease';
+                loader.style.transition = 'opacity 0.3s ease';
                 loader.style.opacity = '0';
                 setTimeout(function() {
                     loader.classList.remove('active');
@@ -1584,8 +1584,8 @@
                     loader.style.transition = '';
                     loader.style.opacity = '';
                     if (callback) callback();
-                }, 500);
-            }, 1800);
+                }, 300);
+            }, 600);
         }
 
         function checkPassword() {
