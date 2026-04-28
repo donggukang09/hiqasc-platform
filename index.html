@@ -1593,9 +1593,7 @@
             if (VALID_PASSWORDS.includes(password)) {
                 sessionStorage.setItem('hiqasc_authenticated', 'true');
                 document.getElementById('loginOverlay').style.display = 'none';
-                showBooLoading(function() {
-                    document.getElementById('hubContent').classList.add('unlocked');
-                });
+                document.getElementById('hubContent').classList.add('unlocked');
             } else {
                 errorDiv.style.display = 'block';
                 setTimeout(() => {
