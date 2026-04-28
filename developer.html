@@ -1068,9 +1068,10 @@
                 <div class="music-disc-inner"></div>
             </div>
             <div class="music-info">
-                <div class="music-title">가낳지모</div>
-                <div class="music-artist">AI Generated Music 🎵</div>
+                <div class="music-title" id="musicTitle">🎵 Ready</div>
+                <div class="music-artist" id="musicArtist">AI Generated Music</div>
             </div>
+            <button class="music-btn" id="musicSkip" onclick="skipTrack()" title="다음 곡" style="font-size:12px;width:36px;height:36px;background:#2a2a4a">⏭</button>
             <button class="music-btn" id="musicBtn" onclick="toggleMusic()">▶</button>
         </div>
     </div>
@@ -1895,141 +1896,81 @@ function addSnow(stage) {
 updateTimeAndWeather();
 
 // ============================================
-// 음악 (Web Audio API — 간단한 멜로디)
+// 음악 — 다중 트랙 랜덤 재생
 // ============================================
-let audioCtx, isPlaying = false, oscillators = [];
-// MP3 파일이 있으면 이걸 사용 (GitHub에 업로드 후 경로 수정)
-const MP3_URL = 'bgm.mp3';
+let isPlaying = false;
+let currentTrackIndex = -1;
 
-
-const melody = [
-    // Lofi Jazz — 스윙 느낌
-    // Cmaj7 arpeggio
-    [262, 0.3], [330, 0.3], [392, 0.3], [494, 0.6],
-    [0, 0.2],
-    [440, 0.25], [494, 0.25], [523, 0.5],
-    [0, 0.3],
-    // Dm7
-    [294, 0.3], [349, 0.3], [440, 0.3], [523, 0.6],
-    [0, 0.2],
-    [494, 0.2], [440, 0.2], [392, 0.5],
-    [0, 0.3],
-    // Em7 → A7
-    [330, 0.3], [392, 0.3], [494, 0.3], [587, 0.5],
-    [0, 0.15],
-    [554, 0.25], [523, 0.25], [440, 0.5],
-    [0, 0.3],
-    // Dm7 → G7 → Cmaj7
-    [294, 0.3], [349, 0.3], [440, 0.5],
-    [392, 0.3], [494, 0.3], [587, 0.5],
-    [523, 0.4], [494, 0.3], [440, 0.3], [392, 0.8],
-    [0, 0.5],
-    // 부드러운 끝
-    [330, 0.3], [392, 0.3], [494, 0.5], [523, 0.8],
-    [0, 1.0],
+// 트랙 목록 — GitHub 레포에 MP3 올린 후 여기에 추가하면 됨
+const TRACKS = [
+    { file: 'bgm.mp3', title: '가낳지모', artist: 'AI Generated 🎵' },
+    { file: 'bgm2.mp3', title: 'Broken Wallet', artist: 'AI Generated 🎵' },
+    { file: 'bgm3.mp3', title: 'Rusted Keys', artist: 'AI Generated 🎵' },
+    { file: 'bgm4.mp3', title: 'Satin Exit Wound', artist: 'AI Generated 🎵' },
+    { file: 'bgm5.mp3', title: 'Vinyl Bruise', artist: 'AI Generated 🎵' },
+    { file: 'bgm6.mp3', title: 'Vinyl Heartbreak', artist: 'AI Generated 🎵' },
 ];
 
-function toggleMusic(){
+function getRandomTrack(excludeIndex) {
+    if (TRACKS.length === 1) return 0;
+    let idx;
+    do { idx = Math.floor(Math.random() * TRACKS.length); } while (idx === excludeIndex);
+    return idx;
+}
+
+function loadTrack(index) {
+    currentTrackIndex = index;
+    const track = TRACKS[index];
+    let audio = document.getElementById('bgmAudio');
+    if (!audio) {
+        audio = document.createElement('audio');
+        audio.id = 'bgmAudio';
+        audio.addEventListener('ended', function() { playNext(); });
+        document.body.appendChild(audio);
+    }
+    audio.src = track.file;
+    document.getElementById('musicTitle').textContent = track.title;
+    document.getElementById('musicArtist').textContent = track.artist;
+    return audio;
+}
+
+function playNext() {
+    const nextIdx = getRandomTrack(currentTrackIndex);
+    const audio = loadTrack(nextIdx);
+    audio.play();
+}
+
+function skipTrack() {
+    if (TRACKS.length <= 1) return;
+    const wasPlaying = isPlaying;
+    const nextIdx = getRandomTrack(currentTrackIndex);
+    const audio = loadTrack(nextIdx);
+    if (wasPlaying) audio.play();
+}
+
+function toggleMusic() {
     const btn = document.getElementById('musicBtn');
     const disc = document.getElementById('musicDisc');
 
-    // MP3 모드
-    if(MP3_URL){
-        let audio = document.getElementById('bgmAudio');
-        if(!audio){
-            audio = document.createElement('audio');
-            audio.id = 'bgmAudio';
-            audio.src = MP3_URL;
-            audio.loop = true;
-            document.body.appendChild(audio);
-        }
-        if(isPlaying){
-            isPlaying = false;
-            btn.textContent = '▶';
-            disc.classList.remove('playing');
-            audio.pause();
-        } else {
-            isPlaying = true;
-            btn.textContent = '⏸';
-            disc.classList.add('playing');
-            audio.play();
-        }
-        return;
-    }
+    if (TRACKS.length === 0) return;
 
-    // Web Audio 폴백 (MP3 없을 때)
-    if(isPlaying){
+    let audio = document.getElementById('bgmAudio');
+
+    if (isPlaying) {
         isPlaying = false;
         btn.textContent = '▶';
         disc.classList.remove('playing');
-        if(audioCtx) audioCtx.close();
-        audioCtx = null;
-        return;
-    }
-
-    isPlaying = true;
-    btn.textContent = '⏸';
-    disc.classList.add('playing');
-
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-    function playNote(freq, start, dur){
-        if(freq === 0) return;
-        // 메인 (sine — 재즈 피아노 느낌)
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = 'sine';
-        osc.frequency.value = freq;
-        // 부드러운 어택 + 긴 릴리즈 (재즈 느낌)
-        gain.gain.setValueAtTime(0, start);
-        gain.gain.linearRampToValueAtTime(0.13, start + 0.02);
-        gain.gain.exponentialRampToValueAtTime(0.08, start + dur * 0.4);
-        gain.gain.exponentialRampToValueAtTime(0.001, start + dur * 1.5);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start(start);
-        osc.stop(start + dur * 1.6);
-        // 옥타브 위 하모닉스 (따뜻함)
-        const osc2 = audioCtx.createOscillator();
-        const gain2 = audioCtx.createGain();
-        osc2.type = 'sine';
-        osc2.frequency.value = freq * 2;
-        gain2.gain.setValueAtTime(0, start);
-        gain2.gain.linearRampToValueAtTime(0.025, start + 0.02);
-        gain2.gain.exponentialRampToValueAtTime(0.001, start + dur * 1.0);
-        osc2.connect(gain2);
-        gain2.connect(audioCtx.destination);
-        osc2.start(start);
-        osc2.stop(start + dur * 1.1);
-        // 5도 위 살짝 (재즈 코드감)
-        if(Math.random() > 0.5){
-            const osc3 = audioCtx.createOscillator();
-            const gain3 = audioCtx.createGain();
-            osc3.type = 'sine';
-            osc3.frequency.value = freq * 1.5;
-            gain3.gain.setValueAtTime(0, start);
-            gain3.gain.linearRampToValueAtTime(0.015, start + 0.03);
-            gain3.gain.exponentialRampToValueAtTime(0.001, start + dur * 0.7);
-            osc3.connect(gain3);
-            gain3.connect(audioCtx.destination);
-            osc3.start(start);
-            osc3.stop(start + dur * 0.8);
+        if (audio) audio.pause();
+    } else {
+        if (!audio || currentTrackIndex < 0) {
+            const idx = getRandomTrack(-1);
+            audio = loadTrack(idx);
         }
+        isPlaying = true;
+        btn.textContent = '⏸';
+        disc.classList.add('playing');
+        audio.play();
     }
-
-    function playMelody(){
-        if(!isPlaying || !audioCtx) return;
-        let time = audioCtx.currentTime + 0.1;
-        let totalDur = 0;
-        melody.forEach(([freq, dur]) => {
-            playNote(freq, time, dur * 0.9);
-            time += dur;
-            totalDur += dur;
-        });
-        setTimeout(() => { if(isPlaying) playMelody(); }, totalDur * 1000 + 500);
-    }
-
-    playMelody();
 }
 
 // ============================================
@@ -2041,28 +1982,15 @@ document.querySelectorAll('.fade-up').forEach((el, i) => {
 
 // 음악 자동 재생 (첫 클릭/터치 시)
 function autoPlayMusic(e){
-    // 재생 버튼 직접 클릭은 toggleMusic이 처리
-    if(e.target === document.getElementById('musicBtn')) return;
-    if(!isPlaying){
-        const btn = document.getElementById('musicBtn');
-        const disc = document.getElementById('musicDisc');
-        if(MP3_URL){
-            let audio = document.getElementById('bgmAudio');
-            if(!audio){
-                audio = document.createElement('audio');
-                audio.id = 'bgmAudio';
-                audio.src = MP3_URL;
-                audio.loop = true;
-                document.body.appendChild(audio);
-            }
-            audio.play().then(()=>{
-                isPlaying = true;
-                btn.textContent = '⏸';
-                disc.classList.add('playing');
-            }).catch(()=>{});
-        } else {
-            toggleMusic();
-        }
+    if(e.target === document.getElementById('musicBtn') || e.target === document.getElementById('musicSkip')) return;
+    if(!isPlaying && TRACKS.length > 0){
+        const idx = getRandomTrack(-1);
+        const audio = loadTrack(idx);
+        audio.play().then(()=>{
+            isPlaying = true;
+            document.getElementById('musicBtn').textContent = '⏸';
+            document.getElementById('musicDisc').classList.add('playing');
+        }).catch(()=>{});
     }
     document.removeEventListener('click', autoPlayMusic);
     document.removeEventListener('touchstart', autoPlayMusic);
