@@ -1628,14 +1628,22 @@
             function showBooLoading(callback) {
                 const loader = document.getElementById('booLoading');
                 loader.classList.add('active');
+                loader.style.opacity = '1';
                 drawBooLoading();
 
                 setTimeout(function() {
-                    loader.classList.add('fade-out');
+                    // 페이드아웃
+                    loader.style.transition = 'opacity 0.5s ease';
+                    loader.style.opacity = '0';
                     setTimeout(function() {
-                        loader.classList.remove('active', 'fade-out');
+                        // 완전 제거
+                        loader.classList.remove('active');
+                        loader.style.display = 'none';
+                        loader.style.transition = '';
+                        loader.style.opacity = '';
+                        // 허브 표시
                         if (callback) callback();
-                    }, 600);
+                    }, 500);
                 }, 1800);
             }
 
