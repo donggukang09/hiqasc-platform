@@ -621,7 +621,7 @@
         .easter-cat.peek {
             opacity: 1;
             pointer-events: auto;
-            animation: catPeek 4s ease-in-out forwards;
+            animation: catPeek 2s ease-in-out forwards;
         }
 
         .easter-cat:hover {
@@ -634,12 +634,10 @@
 
         @keyframes catPeek {
             0% { transform: translateY(20px); opacity: 0; }
-            8% { transform: translateY(-5px); opacity: 1; }
-            12% { transform: translateY(0px); opacity: 1; }
-            16% { transform: translateY(-3px); opacity: 1; }
-            70% { transform: translateY(-3px); opacity: 1; }
-            85% { transform: translateY(2px); opacity: 1; }
-            95% { transform: translateY(20px); opacity: 0; }
+            15% { transform: translateY(-5px); opacity: 1; }
+            25% { transform: translateY(-3px); opacity: 1; }
+            60% { transform: translateY(-3px); opacity: 1; }
+            80% { transform: translateY(2px); opacity: 0.5; }
             100% { transform: translateY(20px); opacity: 0; }
         }
 
@@ -1704,16 +1702,16 @@
                 setTimeout(() => {
                     cat.classList.remove('peek');
                     scheduleEasterCat();
-                }, 4500);
+                }, 2200);
             }
 
             function scheduleEasterCat() {
-                const delay = 8000 + Math.random() * 12000; // 8~20초 간격
+                const delay = 25000 + Math.random() * 25000; // 25~50초 간격
                 setTimeout(showEasterCat, delay);
             }
 
             // 첫 등장 (10~20초 후)
-            setTimeout(showEasterCat, 5000 + Math.random() * 5000);
+            setTimeout(showEasterCat, 30000 + Math.random() * 30000);
         });
     </script>
     <script src="hiq-notification.js?v=2"></script>
