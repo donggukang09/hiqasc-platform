@@ -116,6 +116,10 @@ panel.innerHTML = `
     </div>
 </div>
 <div class="wt-card">
+    <div class="wt-card-t">🏖️ 금일 연차자</div>
+    <div id="wtLeaveList" style="font-size:.8em;color:#888;text-align:center;padding:4px 0">확인 중...</div>
+</div>
+<div class="wt-card">
     <div class="wt-card-t">⏱️ 리페어 타이머</div>
     <div class="mt-row">
         <select class="mt-sel" id="wtTech"><option value="">테크니션</option></select>
@@ -281,6 +285,67 @@ function loadASStats() {
 }
 loadASStats();
 setInterval(loadASStats, 300000);
+
+
+// ===== 금일 연차자 =====
+function loadLeaveToday() {
+    var leaveSheetId = '1cmMEbIkmEL629RT04hpUUgXddnSVLGo1YwRzBwfyzCY';
+    var url = 'https://docs.google.com/spreadsheets/d/' + leaveSheetId + "/gviz/tq?tqx=out:json;responseHandler:wt_leave&sheet=" + encodeURIComponent('연차신청') + "&headers=1&tq=" + encodeURIComponent("SELECT B, E, F, I WHERE I = '승인'") + "&_=" + Date.now();
+    // B=이름, E=시작일, F=종료일, I=승인상태
+
+    window.wt_leave = function(r) {
+        var today = new Date();
+        var todayStr = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
+        var onLeave = [];
+
+        if (r.table && r.table.rows) {
+            r.table.rows.forEach(function(row) {
+                if (!row.c) return;
+                var name = row.c[0] ? (row.c[0].f || row.c[0].v || '') : '';
+                var startRaw = row.c[1] ? (row.c[1].f || String(row.c[1].v || '')) : '';
+                var endRaw = row.c[2] ? (row.c[2].f || String(row.c[2].v || '')) : '';
+
+                var startDate = wtNormalizeDate(startRaw);
+                var endDate = wtNormalizeDate(endRaw);
+
+                if (name && startDate && endDate && startDate <= todayStr && endDate >= todayStr) {
+                    onLeave.push(name);
+                }
+            });
+        }
+
+        var el = document.getElementById('wtLeaveList');
+        if (onLeave.length === 0) {
+            el.innerHTML = '<div style="color:#27ae60;font-weight:600">✅ 금일 연차자 없음</div>';
+        } else {
+            var html = '<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center">';
+            onLeave.forEach(function(name) {
+                html += '<span style="display:inline-block;padding:4px 10px;background:rgba(230,126,34,.12);border:1px solid rgba(230,126,34,.3);border-radius:6px;color:#e67e22;font-weight:600;font-size:.85em">🏖️ ' + name + '</span>';
+            });
+            html += '</div>';
+            html += '<div style="color:#666;font-size:.75em;margin-top:6px">' + onLeave.length + '명 연차</div>';
+            el.innerHTML = html;
+        }
+
+        delete window.wt_leave;
+    };
+    var s = document.createElement('script'); s.src = url; document.body.appendChild(s);
+}
+
+function wtNormalizeDate(val) {
+    if (!val) return '';
+    var str = String(val).trim();
+    var gm = str.match(/Date\((\d+),\s*(\d+),\s*(\d+)/);
+    if (gm) return gm[1] + '-' + String(parseInt(gm[2])+1).padStart(2,'0') + '-' + String(gm[3]).padStart(2,'0');
+    var dm = str.match(/(\d{4})\.\s*(\d{1,2})\.\s*(\d{1,2})/);
+    if (dm) return dm[1] + '-' + String(dm[2]).padStart(2,'0') + '-' + String(dm[3]).padStart(2,'0');
+    var hm = str.match(/(\d{4})-(\d{1,2})-(\d{1,2})/);
+    if (hm) return hm[1] + '-' + String(hm[2]).padStart(2,'0') + '-' + String(hm[3]).padStart(2,'0');
+    return str;
+}
+
+loadLeaveToday();
+setInterval(loadLeaveToday, 300000);
 
 // ===== 리페어 타이머 (미니 버전) =====
 let wtElapsed = 0, wtRunning = false, wtPaused = false, wtInterval = null, wtStartTime = 0;
