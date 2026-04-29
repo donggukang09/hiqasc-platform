@@ -39,6 +39,10 @@
             z-index: 9999;
         }
 
+        /* 이미 인증된 경우 로그인 숨기고 허브 바로 표시 */
+        .login-overlay.pre-auth { display: none !important; }
+        .hub-content.pre-auth { display: block; opacity: 1; }
+
         .login-box {
             background: #353535;
             border: 1px solid #4a4a4a;
@@ -964,6 +968,16 @@
                 width: calc((100% - 14px) / 2);
             }
         }
+    </style>
+    <script>
+    // 즉시 실행 — 인증 상태면 로그인 화면 깜빡임 방지
+    if (sessionStorage.getItem('hiqasc_authenticated') === 'true') {
+        document.documentElement.classList.add('authenticated');
+    }
+    </script>
+    <style>
+    .authenticated .login-overlay { display: none !important; }
+    .authenticated .hub-content { display: block !important; opacity: 1 !important; }
     </style>
 </head>
 <body>
