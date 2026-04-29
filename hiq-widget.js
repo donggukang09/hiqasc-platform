@@ -96,6 +96,10 @@ panel.innerHTML = `
     <div class="wt-date" id="wtDate"></div>
     <div class="wt-greet" id="wtGreet"></div>
 </div>
+<div class="wt-card" id="wtWeatherCard">
+    <div class="wt-card-t">🌤️ 오늘의 날씨</div>
+    <div id="wtWeatherContent" style="text-align:center;color:#666;font-size:.78em;padding:8px 0">날씨 정보 준비 중</div>
+</div>
 <div class="wt-card">
     <div class="wt-card-t">📦 오늘의 AS 현황</div>
     <div class="as-grid">
@@ -149,26 +153,78 @@ function updateClock() {
 setInterval(updateClock, 1000);
 updateClock();
 
-// ===== AS 현황 (machine-dashboard와 동일한 gviz 방식) =====
+// ===== AS 현황 (machine-dashboard와 동일한 방식) =====
+// config.js의 SHEETS_CONFIG.machineQuantity에서 시트 ID를 가져옴
+// 완료/잔여 탭에서 모델별 분류 후 ORIGINAL+VERTUO만 카운트 (OTHER 제외)
 function loadASStats() {
     try {
-        const sheetId = (typeof SHEETS_CONFIG !== 'undefined') ? SHEETS_CONFIG.machineQuantity : SHEET_IDS.main;
-        const completeUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=완료&_=${Date.now()}`;
-        const remainUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=잔여&_=${Date.now()}`;
+        if (typeof SHEETS_CONFIG === 'undefined' || !SHEETS_CONFIG.machineQuantity) {
+            console.warn('SHEETS_CONFIG.machineQuantity not found');
+            return;
+        }
+        const sheetId = SHEETS_CONFIG.machineQuantity;
+        const modelUrl = 'https://docs.google.com/spreadsheets/d/'+sheetId+'/gviz/tq?tqx=out:json&sheet=model&_='+Date.now();
+        const completeUrl = 'https://docs.google.com/spreadsheets/d/'+sheetId+'/gviz/tq?tqx=out:json&sheet=완료&_='+Date.now();
+        const remainUrl = 'https://docs.google.com/spreadsheets/d/'+sheetId+'/gviz/tq?tqx=out:json&sheet=잔여&_='+Date.now();
 
         Promise.all([
-            fetch(completeUrl).then(r => r.text()),
-            fetch(remainUrl).then(r => r.text())
-        ]).then(([cText, rText]) => {
-            const cData = JSON.parse(cText.substring(47).slice(0,-2));
-            const rData = JSON.parse(rText.substring(47).slice(0,-2));
-            const done = cData.table.rows.length;
-            const remain = rData.table.rows.length;
-            const intake = done + remain;
+            fetch(modelUrl).then(function(r){return r.text();}),
+            fetch(completeUrl).then(function(r){return r.text();}),
+            fetch(remainUrl).then(function(r){return r.text();})
+        ]).then(function(results) {
+            var mText = results[0], cText = results[1], rText = results[2];
+
+            function parseGviz(text) {
+                try {
+                    var json = JSON.parse(text.substring(47).slice(0,-2));
+                    var cols = json.table.cols.map(function(c){return c.label||'';});
+                    return json.table.rows.map(function(row) {
+                        var obj = {};
+                        row.c.forEach(function(cell, i) {
+                            obj[cols[i]] = cell ? (cell.v || '') : '';
+                        });
+                        return obj;
+                    });
+                } catch(e) { return []; }
+            }
+
+            // 모델 DB 로드
+            var modelDB = parseGviz(mText);
+
+            // 모델 매칭 함수 (machine-dashboard와 동일)
+            function getModelLine(machineId) {
+                if (!machineId) return 'OTHER';
+                var id = String(machineId).trim();
+                for (var i = 0; i < modelDB.length; i++) {
+                    var m = modelDB[i];
+                    var prefix = m['Machine ID Prefix'] || m['prefix'] || '';
+                    if (prefix && id.indexOf(prefix) === 0) {
+                        return (m['Line'] || m['line'] || 'OTHER').toUpperCase();
+                    }
+                }
+                return 'OTHER';
+            }
+
+            function countValid(data) {
+                var count = 0;
+                data.forEach(function(row) {
+                    var machineId = row['International Machine ID'] || '';
+                    var line = getModelLine(machineId);
+                    if (line === 'ORIGINAL' || line === 'VERTUO') count++;
+                });
+                return count;
+            }
+
+            var completeData = parseGviz(cText);
+            var remainData = parseGviz(rText);
+            var done = countValid(completeData);
+            var remain = countValid(remainData);
+            var intake = done + remain;
+
             document.getElementById('wtDone').textContent = done.toLocaleString();
             document.getElementById('wtRemain').textContent = remain.toLocaleString();
             document.getElementById('wtIntake').textContent = intake.toLocaleString();
-        }).catch(() => {
+        }).catch(function() {
             document.getElementById('wtIntake').textContent = '-';
             document.getElementById('wtDone').textContent = '-';
             document.getElementById('wtRemain').textContent = '-';
@@ -176,7 +232,7 @@ function loadASStats() {
     } catch(e) {}
 }
 loadASStats();
-setInterval(loadASStats, 300000); // 5분마다 갱신
+setInterval(loadASStats, 300000);
 
 // ===== 리페어 타이머 (미니 버전) =====
 let wtElapsed = 0, wtRunning = false, wtPaused = false, wtInterval = null, wtStartTime = 0;
