@@ -285,6 +285,64 @@ setInterval(loadASStats, 300000);
 // ===== 리페어 타이머 (미니 버전) =====
 let wtElapsed = 0, wtRunning = false, wtPaused = false, wtInterval = null, wtStartTime = 0;
 
+// 타이머 상태 저장/복원
+function saveTimerState() {
+    var state = {
+        running: wtRunning,
+        paused: wtPaused,
+        startTime: wtStartTime,
+        elapsed: wtElapsed,
+        tech: document.getElementById('wtTech').value,
+        model: document.getElementById('wtModel').value,
+        symptom: document.getElementById('wtSymptom').value
+    };
+    sessionStorage.setItem('wt_timer', JSON.stringify(state));
+}
+
+function restoreTimerState() {
+    var saved = sessionStorage.getItem('wt_timer');
+    if (!saved) return;
+    try {
+        var state = JSON.parse(saved);
+        if (!state.tech && !state.running && !state.paused) return;
+
+        // 드롭다운 값 복원 (드롭다운 로드 후 실행해야 하므로 딜레이)
+        setTimeout(function() {
+            if (state.tech) document.getElementById('wtTech').value = state.tech;
+            if (state.model) document.getElementById('wtModel').value = state.model;
+            if (state.symptom) document.getElementById('wtSymptom').value = state.symptom;
+
+            if (state.running) {
+                // 실행 중이었으면 — 경과 시간 계산해서 이어서
+                wtStartTime = state.startTime;
+                wtElapsed = Date.now() - wtStartTime;
+                wtRunning = true;
+                wtInterval = setInterval(function(){wtElapsed=Date.now()-wtStartTime;updateTimerDisplay();saveTimerState();},50);
+                document.getElementById('wtTimerInfo').textContent = state.tech + ' · ' + state.model + ' 수리 중...';
+                document.getElementById('wtStart').disabled = true;
+                document.getElementById('wtPause').disabled = false;
+                document.getElementById('wtStop').disabled = false;
+                document.getElementById('wtTech').disabled = true;
+                document.getElementById('wtModel').disabled = true;
+                document.getElementById('wtSymptom').disabled = true;
+            } else if (state.paused) {
+                // 일시정지 상태였으면
+                wtElapsed = state.elapsed;
+                wtPaused = true;
+                updateTimerDisplay();
+                document.getElementById('wtTimerInfo').textContent = state.tech + ' · ' + state.model + ' (일시정지)';
+                document.getElementById('wtStart').disabled = false;
+                document.getElementById('wtStart').textContent = '▶ 계속';
+                document.getElementById('wtPause').disabled = true;
+                document.getElementById('wtStop').disabled = false;
+                document.getElementById('wtTech').disabled = true;
+                document.getElementById('wtModel').disabled = true;
+                document.getElementById('wtSymptom').disabled = true;
+            }
+        }, 1500); // 드롭다운 로드 대기
+    } catch(e) {}
+}
+
 function loadTimerData() {
     // 테크니션
     const tUrl = `https://docs.google.com/spreadsheets/d/${SHEET_IDS.leave}/gviz/tq?tqx=out:json;responseHandler:wt_tech&sheet=테크니션정보&headers=1&tq=${encodeURIComponent('SELECT A')}&_=${Date.now()}`;
@@ -321,6 +379,7 @@ function loadTimerData() {
     const s2 = document.createElement('script'); s2.src = mUrl; document.body.appendChild(s2);
 }
 loadTimerData();
+restoreTimerState();
 
 function updateTimerDisplay() {
     const t = wtElapsed;
@@ -343,7 +402,7 @@ window.HIQW = {
             wtElapsed = 0;
         }
         wtRunning = true;
-        wtInterval = setInterval(()=>{wtElapsed=Date.now()-wtStartTime;updateTimerDisplay();},50);
+        wtInterval = setInterval(()=>{wtElapsed=Date.now()-wtStartTime;updateTimerDisplay();saveTimerState();},50);
         document.getElementById('wtTimerInfo').textContent = `${tech} · ${model} 수리 중...`;
         document.getElementById('wtStart').disabled = true;
         document.getElementById('wtPause').disabled = false;
@@ -362,6 +421,7 @@ window.HIQW = {
         document.getElementById('wtStart').textContent = '▶ 계속';
         document.getElementById('wtPause').disabled = true;
         document.getElementById('wtTimerInfo').textContent += ' (일시정지)';
+        saveTimerState();
     },
 
     stopTimer: function() {
@@ -405,6 +465,7 @@ window.HIQW = {
         document.getElementById('wtStart').disabled = true;
         document.getElementById('wtPause').disabled = true;
         document.getElementById('wtStop').disabled = true;
+        sessionStorage.removeItem('wt_timer');
     },
 
     resetTimer: function() {
@@ -422,6 +483,7 @@ window.HIQW = {
         document.getElementById('wtSymptom').value = '';
         const msg = document.getElementById('wtSaveMsg');
         msg.className='mt-msg';msg.style.display='none';
+        sessionStorage.removeItem('wt_timer');
     }
 };
 
