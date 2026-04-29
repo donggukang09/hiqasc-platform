@@ -98,7 +98,14 @@ panel.innerHTML = `
 </div>
 <div class="wt-card" id="wtWeatherCard">
     <div class="wt-card-t">🌤️ 오늘의 날씨</div>
-    <div id="wtWeatherContent" style="text-align:center;color:#666;font-size:.78em;padding:8px 0">날씨 정보 준비 중</div>
+    <div style="display:flex;align-items:center;gap:10px" id="wtWxRow">
+        <div style="font-size:2em" id="wtWxIcon">⏳</div>
+        <div>
+            <div style="font-family:'Outfit',sans-serif;font-size:1.6em;font-weight:700;color:#fff" id="wtWxTemp">--°</div>
+            <div style="font-size:.75em;color:#888" id="wtWxDesc">위치 확인 중...</div>
+        </div>
+    </div>
+    <div style="font-size:.7em;color:#666;margin-top:6px;display:flex;gap:12px" id="wtWxDetail"></div>
 </div>
 <div class="wt-card">
     <div class="wt-card-t">📦 오늘의 AS 현황</div>
@@ -153,16 +160,56 @@ function updateClock() {
 setInterval(updateClock, 1000);
 updateClock();
 
+
+
+// ===== 날씨 =====
+function loadWeather() {
+    if(navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(pos) {
+            fetchWeather(pos.coords.latitude + ',' + pos.coords.longitude);
+        }, function() { fetchWeather('Gwangju,South Korea'); });
+    } else {
+        fetchWeather('Gwangju,South Korea');
+    }
+}
+
+function fetchWeather(loc) {
+    fetch('https://wttr.in/' + loc + '?format=j1')
+        .then(function(r){return r.json();})
+        .then(function(data) {
+            var cur = data.current_condition[0];
+            var temp = cur.temp_C;
+            var feel = cur.FeelsLikeC;
+            var humid = cur.humidity;
+            var wind = cur.windspeedKmph;
+            var desc = (cur.lang_ko && cur.lang_ko[0]) ? cur.lang_ko[0].value : cur.weatherDesc[0].value;
+            var city = data.nearest_area[0].areaName[0].value;
+            var icon = '☀️';
+            if(desc.indexOf('맑')>=0)icon='☀️';
+            else if(desc.indexOf('구름')>=0||desc.indexOf('흐')>=0)icon='⛅';
+            else if(desc.indexOf('비')>=0||desc.indexOf('소나기')>=0)icon='🌧️';
+            else if(desc.indexOf('눈')>=0)icon='❄️';
+            else if(desc.indexOf('안개')>=0)icon='🌫️';
+            else if(desc.indexOf('천둥')>=0)icon='⛈️';
+            document.getElementById('wtWxIcon').textContent = icon;
+            document.getElementById('wtWxTemp').textContent = temp + '°';
+            document.getElementById('wtWxDesc').textContent = desc + ' • ' + city;
+            document.getElementById('wtWxDetail').innerHTML = '<span>💧 습도 ' + humid + '%</span><span>💨 바람 ' + wind + 'km/h</span><span>🌡️ 체감 ' + feel + '°</span>';
+        }).catch(function() {
+            document.getElementById('wtWxIcon').textContent = '❓';
+            document.getElementById('wtWxTemp').textContent = '--°';
+            document.getElementById('wtWxDesc').textContent = '날씨 정보를 가져올 수 없습니다';
+            document.getElementById('wtWxDetail').innerHTML = '';
+        });
+}
+loadWeather();
+
 // ===== AS 현황 (machine-dashboard와 동일한 방식) =====
 // config.js의 SHEETS_CONFIG.machineQuantity에서 시트 ID를 가져옴
 // 완료/잔여 탭에서 모델별 분류 후 ORIGINAL+VERTUO만 카운트 (OTHER 제외)
 function loadASStats() {
     try {
-        if (typeof SHEETS_CONFIG === 'undefined' || !SHEETS_CONFIG.machineQuantity) {
-            console.warn('SHEETS_CONFIG.machineQuantity not found');
-            return;
-        }
-        const sheetId = SHEETS_CONFIG.machineQuantity;
+        const sheetId = '111K9l8gt-14roqvynNFEJrT2aLsTYjU8gQBsKNiyFmI';
         const modelUrl = 'https://docs.google.com/spreadsheets/d/'+sheetId+'/gviz/tq?tqx=out:json&sheet=model&_='+Date.now();
         const completeUrl = 'https://docs.google.com/spreadsheets/d/'+sheetId+'/gviz/tq?tqx=out:json&sheet=완료&_='+Date.now();
         const remainUrl = 'https://docs.google.com/spreadsheets/d/'+sheetId+'/gviz/tq?tqx=out:json&sheet=잔여&_='+Date.now();
