@@ -204,79 +204,80 @@ function fetchWeather(loc) {
 }
 loadWeather();
 
-// ===== AS 현황 (machine-dashboard와 동일한 방식) =====
-// config.js의 SHEETS_CONFIG.machineQuantity에서 시트 ID를 가져옴
-// 완료/잔여 탭에서 모델별 분류 후 ORIGINAL+VERTUO만 카운트 (OTHER 제외)
-function loadASStats() {
-    try {
-        const sheetId = '111K9l8gt-14roqvynNFEJrT2aLsTYjU8gQBsKNiyFmI';
-        const modelUrl = 'https://docs.google.com/spreadsheets/d/'+sheetId+'/gviz/tq?tqx=out:json&sheet=model&_='+Date.now();
-        const completeUrl = 'https://docs.google.com/spreadsheets/d/'+sheetId+'/gviz/tq?tqx=out:json&sheet=완료&_='+Date.now();
-        const remainUrl = 'https://docs.google.com/spreadsheets/d/'+sheetId+'/gviz/tq?tqx=out:json&sheet=잔여&_='+Date.now();
+// ===== AS 현황 (machine-dashboard.html 로직 그대로) =====
+var WIDGET_MODEL_DB = [];
+var WIDGET_EXCLUDED = ['Vertuo Creatista'];
 
-        Promise.all([
-            fetch(modelUrl).then(function(r){return r.text();}),
-            fetch(completeUrl).then(function(r){return r.text();}),
-            fetch(remainUrl).then(function(r){return r.text();})
-        ]).then(function(results) {
-            var mText = results[0], cText = results[1], rText = results[2];
-
-            function parseGviz(text) {
-                try {
-                    var json = JSON.parse(text.substring(47).slice(0,-2));
-                    var cols = json.table.cols.map(function(c){return c.label||'';});
-                    return json.table.rows.map(function(row) {
-                        var obj = {};
-                        row.c.forEach(function(cell, i) {
-                            obj[cols[i]] = cell ? (cell.v || '') : '';
-                        });
-                        return obj;
-                    });
-                } catch(e) { return []; }
-            }
-
-            // 모델 DB 로드
-            var modelDB = parseGviz(mText);
-
-            // 모델 매칭 함수 (machine-dashboard와 동일)
-            function getModelLine(machineId) {
-                if (!machineId) return 'OTHER';
-                var id = String(machineId).trim();
-                for (var i = 0; i < modelDB.length; i++) {
-                    var m = modelDB[i];
-                    var prefix = m['Machine ID Prefix'] || m['prefix'] || '';
-                    if (prefix && id.indexOf(prefix) === 0) {
-                        return (m['Line'] || m['line'] || 'OTHER').toUpperCase();
-                    }
-                }
-                return 'OTHER';
-            }
-
-            function countValid(data) {
-                var count = 0;
-                data.forEach(function(row) {
-                    var machineId = row['International Machine ID'] || '';
-                    var line = getModelLine(machineId);
-                    if (line === 'ORIGINAL' || line === 'VERTUO') count++;
-                });
-                return count;
-            }
-
-            var completeData = parseGviz(cText);
-            var remainData = parseGviz(rText);
-            var done = countValid(completeData);
-            var remain = countValid(remainData);
-            var intake = done + remain;
-
-            document.getElementById('wtDone').textContent = done.toLocaleString();
-            document.getElementById('wtRemain').textContent = remain.toLocaleString();
-            document.getElementById('wtIntake').textContent = intake.toLocaleString();
-        }).catch(function() {
-            document.getElementById('wtIntake').textContent = '-';
-            document.getElementById('wtDone').textContent = '-';
-            document.getElementById('wtRemain').textContent = '-';
+function widgetParseSheets(text, isModel) {
+    var json = JSON.parse(text.substring(47).slice(0,-2));
+    var rows = json.table.rows;
+    var cols, startRow = 0;
+    if (isModel) {
+        cols = ['International Machine ID','model line','model'];
+        startRow = 1;
+    } else {
+        cols = json.table.cols.map(function(c){return c.label;});
+    }
+    return rows.slice(startRow).map(function(row) {
+        var obj = {};
+        row.c.forEach(function(cell, i) {
+            obj[cols[i]] = cell ? cell.v : null;
         });
-    } catch(e) {}
+        return obj;
+    });
+}
+
+function widgetGetModelInfo(machineId) {
+    var searchId = String(machineId).trim();
+    for (var i = 0; i < WIDGET_MODEL_DB.length; i++) {
+        var m = WIDGET_MODEL_DB[i];
+        if (String(m['International Machine ID']).trim() === searchId) {
+            var modelName = m['model'];
+            var line = m['model line'];
+            if (WIDGET_EXCLUDED.indexOf(modelName) >= 0) return { line:'OTHER' };
+            return { line: line };
+        }
+    }
+    return { line: 'OTHER' };
+}
+
+function widgetCountValid(data) {
+    var count = 0;
+    data.forEach(function(row) {
+        var machineId = row['International Machine ID'];
+        if (!machineId) return;
+        var info = widgetGetModelInfo(machineId);
+        if (info.line === 'ORIGINAL' || info.line === 'VERTUO') count++;
+    });
+    return count;
+}
+
+function loadASStats() {
+    var sheetId = '111K9l8gt-14roqvynNFEJrT2aLsTYjU8gQBsKNiyFmI';
+    var modelUrl = 'https://docs.google.com/spreadsheets/d/'+sheetId+'/gviz/tq?tqx=out:json&sheet=model&_='+Date.now();
+    var completeUrl = 'https://docs.google.com/spreadsheets/d/'+sheetId+'/gviz/tq?tqx=out:json&sheet=완료&_='+Date.now();
+    var remainUrl = 'https://docs.google.com/spreadsheets/d/'+sheetId+'/gviz/tq?tqx=out:json&sheet=잔여&_='+Date.now();
+
+    Promise.all([
+        fetch(modelUrl).then(function(r){return r.text();}),
+        fetch(completeUrl).then(function(r){return r.text();}),
+        fetch(remainUrl).then(function(r){return r.text();})
+    ]).then(function(results) {
+        WIDGET_MODEL_DB = widgetParseSheets(results[0], true);
+        var completeData = widgetParseSheets(results[1], false);
+        var remainData = widgetParseSheets(results[2], false);
+        var done = widgetCountValid(completeData);
+        var remain = widgetCountValid(remainData);
+        var intake = done + remain;
+        document.getElementById('wtDone').textContent = done.toLocaleString();
+        document.getElementById('wtRemain').textContent = remain.toLocaleString();
+        document.getElementById('wtIntake').textContent = intake.toLocaleString();
+    }).catch(function(e) {
+        console.error('Widget AS load error:', e);
+        document.getElementById('wtIntake').textContent = '-';
+        document.getElementById('wtDone').textContent = '-';
+        document.getElementById('wtRemain').textContent = '-';
+    });
 }
 loadASStats();
 setInterval(loadASStats, 300000);
