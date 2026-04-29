@@ -497,10 +497,21 @@ function loadNotices() {
         list.innerHTML = '';
         if(r.table && r.table.rows && r.table.rows.length > 0) {
             r.table.rows.forEach(row => {
-                const date = (row.c[0]&&row.c[0].v)||'';
-                const type = (row.c[1]&&row.c[1].v)||'info';
+                // 날짜 파싱 — gviz는 "Date(2026,3,29)" 형태로 반환 (월 0-indexed)
+                let date = '';
+                if(row.c[0]) {
+                    if(row.c[0].f) {
+                        date = row.c[0].f; // 포맷된 값 우선
+                    } else if(row.c[0].v && typeof row.c[0].v === 'string' && row.c[0].v.indexOf('Date(') === 0) {
+                        var dm = row.c[0].v.match(/Date\((\d+),(\d+),(\d+)\)/);
+                        if(dm) date = (parseInt(dm[2])+1) + '/' + dm[3];
+                    } else {
+                        date = row.c[0].v || '';
+                    }
+                }
+                const type = (row.c[1]&&row.c[1].v)||'안내';
                 const text = (row.c[2]&&row.c[2].v)||'';
-                const author = (row.c[3]&&row.c[3].v)||'';
+                const author = (row.c[3]&&(row.c[3].f||row.c[3].v))||'';
                 const badgeClass = type === '긴급' ? 'urgent' : type === '업데이트' ? 'update' : 'info';
                 const itemClass = type === '긴급' ? 'nt-item urgent' : 'nt-item';
                 list.innerHTML += `<div class="${itemClass}"><div class="nt-text"><span class="nt-badge ${badgeClass}">${type}</span>${text}</div><div class="nt-date">${date} • ${author}</div></div>`;
