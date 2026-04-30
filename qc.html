@@ -130,7 +130,6 @@ body {
   letter-spacing: 1.5px;
   outline: none;
   transition: border-color 0.3s;
-  text-transform: uppercase;
 }
 .serial-input:focus { border-color: var(--accent); }
 .serial-input::placeholder { color:var(--text2); font-size:14px; letter-spacing:0; font-weight:400; }
@@ -771,7 +770,7 @@ async function loadHistory(serial) {
 
 // ========== SERIAL PARSING ==========
 function parseSerial(serial) {
-  serial = serial.trim().toUpperCase();
+  serial = serial.trim();
   if (serial.length < 12) return null;
 
   // 제조일: 첫 5자리 (YYDDD)
@@ -789,15 +788,18 @@ function parseSerial(serial) {
   // 색상코드: 뒤에서 4번째,3번째 (끝에서 index -4, -3)
   const colorCode = serial.substring(serial.length - 4, serial.length - 2);
 
-  const modelMatch = models.find(m => m.code === modelCode);
-  const colorMatch = colors.find(c => c.modelCode === modelCode && c.colorCode === colorCode);
+  const modelMatch = models.find(m => m.code.trim().toUpperCase() === modelCode.toUpperCase());
+  const colorMatch = colors.find(c => 
+    c.modelCode.trim().toUpperCase() === modelCode.toUpperCase() && 
+    c.colorCode.trim().toUpperCase() === colorCode.toUpperCase()
+  );
 
   return {
     modelCode,
-    modelName: modelMatch ? modelMatch.name : null,
+    modelName: modelMatch ? modelMatch.name.trim() : null,
     colorCode,
-    colorName: colorMatch ? colorMatch.colorName : '알 수 없음',
-    fullColorName: colorMatch ? colorMatch.fullName : '',
+    colorName: colorMatch ? colorMatch.colorName.trim() : '알 수 없음',
+    fullColorName: colorMatch ? colorMatch.fullName.trim() : '',
     dateStr
   };
 }
@@ -845,7 +847,7 @@ async function processSerial(serial) {
 
   document.getElementById('modelUnknown').classList.remove('show');
 
-  currentSerial = serial.toUpperCase();
+  currentSerial = serial.trim();
   currentModelCode = info.modelCode;
   currentModelName = info.modelName;
   currentColorCode = info.colorCode;
