@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>🏃 동구의 피하기 게임</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Press Start 2P', monospace;
+            background: #0a0e1a;
+            color: #eaeaea;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow: hidden;
+            user-select: none;
+            touch-action: none;
+        }
+
+        canvas#game { image-rendering: pixelated; border-radius: 8px; margin-top: 6px; }
+
+        .hud {
+            width: 100%; max-width: 480px;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 16px;
+        }
+        .hud-item { display: flex; align-items: center; gap: 6px; font-size: 9px; color: #f7b731; }
+        .hud-value { font-size: 13px; color: #fff; }
+
+        .overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(5,8,16,0.92);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 100; gap: 14px;
+        }
+        .overlay.hidden { display: none; }
+        .overlay-title { font-size: 22px; color: #f7b731; text-shadow: 2px 2px 0 #e94560; text-align: center; line-height: 1.8; }
+        .overlay-sub { font-size: 12px; color: #8892a8; text-align: center; line-height: 2.4; max-width: 460px; }
+        .overlay-score { font-size: 26px; color: #f7b731; margin: 8px 0; }
+        .overlay-btn {
+            margin-top: 8px; padding: 14px 32px;
+            background: linear-gradient(135deg, #e94560, #c0392b);
+            border: none; color: #fff; font-family: 'Press Start 2P', monospace;
+            font-size: 10px; border-radius: 8px; cursor: pointer; transition: transform 0.2s;
+        }
+        .overlay-btn:hover { transform: scale(1.05); }
+
+        .back-link {
+            position: fixed; top: 14px; left: 14px; padding: 6px 14px;
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 6px; color: #8892a8; text-decoration: none; font-size: 8px; z-index: 200;
+        }
+        .back-link:hover { color: #fff; border-color: #f7b731; }
+
+        .lives { display: flex; gap: 4px; }
+        .life { font-size: 14px; }
+    </style>
+</head>
+<body>
+
+<a href="developer.html" class="back-link">← 돌아가기</a>
+
+<div class="hud">
+    <div class="hud-item">⭐ <span class="hud-value" id="hudScore">0</span></div>
+    <div class="hud-item">🏆 <span class="hud-value" id="hudBest">0</span></div>
+    <div class="hud-item">
+        <div class="lives" id="hudLives">
+            <span class="life">❤️</span><span class="life">❤️</span><span class="life">❤️</span>
+        </div>
+    </div>
+</div>
+
+<canvas id="game" width="480" height="640"></canvas>
+
+<!-- 시작 -->
+<div class="overlay" id="startOverlay">
+    <div class="overlay-title">🏃 동구의 피하기 게임</div>
+    <div class="overlay-sub">
+        ← → 또는 터치로 좌우 이동<br><br>
+        ✅ 받으면 좋은 것:<br>
+        🐱 덴데 · 🐱 부우 · 🎣 낚싯대 · ⛺ 텐트 · 🐟 츄르<br><br>
+        ❌ 피해야 할 것:<br>
+        ☕ 커피머신 · 💩 똥 · 🥒 오이 · ⚡ 고장머신<br><br>
+        3번 맞으면 게임 오버!
+    </div>
+    <button class="overlay-btn" onclick="startGame()">게임 시작!</button>
+</div>
+
+<!-- 결과 -->
+<div class="overlay hidden" id="resultOverlay">
+    <div class="overlay-title" id="resultTitle">게임 오버!</div>
+    <div class="overlay-score" id="resultScore">0</div>
+    <div class="overlay-sub" id="resultMsg"></div>
+    <button class="overlay-btn" onclick="startGame()">다시 하기!</button>
+</div>
+
+<script>
+const CVS = document.getElementById('game');
+const CTX = CVS.getContext('2d');
+CTX.imageSmoothingEnabled = false;
+const W = 480, H = 640;
+const PX = 3;
+
+// ============================================
+// 도트 캐릭터 — 동구 (검은 머리, 안경, 검은 티)
+// ============================================
+function drawDonggu(ctx, x, y, s) {
+    const p = (dx,dy,c) => { ctx.fillStyle = c; ctx.fillRect(x+dx*s, y+dy*s, s, s); };
+    const hair='#1a1a1a', skin='#e8b88a', skinD='#d4a070', glass='#555', glassL='#88ccff', shirt='#2a2a2a', shirtD='#1a1a1a';
+    // 머리카락 (곱슬)
+    p(4,0,hair);p(5,0,hair);p(6,0,hair);p(7,0,hair);p(8,0,hair);
+    p(3,1,hair);p(4,1,hair);p(5,1,hair);p(6,1,hair);p(7,1,hair);p(8,1,hair);p(9,1,hair);
+    p(3,2,hair);p(4,2,hair);p(5,2,hair);p(6,2,hair);p(7,2,hair);p(8,2,hair);p(9,2,hair);
+    // 이마
+    p(3,3,skin);p(4,3,skin);p(5,3,skin);p(6,3,skin);p(7,3,skin);p(8,3,skin);p(9,3,skin);
+    // 안경 + 눈
+    p(3,4,skin);p(4,4,glass);p(5,4,glassL);p(6,4,glass);p(7,4,glass);p(8,4,glassL);p(9,4,glass);
+    // 코 + 볼
+    p(3,5,skin);p(4,5,skin);p(5,5,skin);p(6,5,skinD);p(7,5,skin);p(8,5,skin);p(9,5,skin);
+    // 입
+    p(3,6,skin);p(4,6,skin);p(5,6,'#c0392b');p(6,6,'#c0392b');p(7,6,'#c0392b');p(8,6,skin);p(9,6,skin);
+    // 목
+    p(5,7,skin);p(6,7,skin);p(7,7,skin);
+    // 티셔츠
+    p(2,8,shirt);p(3,8,shirt);p(4,8,shirt);p(5,8,shirt);p(6,8,shirt);p(7,8,shirt);p(8,8,shirt);p(9,8,shirt);p(10,8,shirt);
+    p(2,9,shirtD);p(3,9,shirt);p(4,9,shirt);p(5,9,shirt);p(6,9,shirt);p(7,9,shirt);p(8,9,shirt);p(9,9,shirt);p(10,9,shirtD);
+    p(2,10,shirtD);p(3,10,shirt);p(4,10,shirt);p(5,10,shirt);p(6,10,shirt);p(7,10,shirt);p(8,10,shirt);p(9,10,shirt);p(10,10,shirtD);
+    // 다리
+    p(4,11,shirtD);p(5,11,'#3d3d5c');p(6,11,shirtD);p(7,11,shirtD);p(8,11,'#3d3d5c');
+}
+
+// ============================================
+// 아이템 도트 스프라이트
+// ============================================
+const ITEMS = [
+    // 좋은 것 (받으면 +점수)
+    { name: '덴데', good: true, score: 20, draw: function(ctx,x,y,s) {
+        const p=(dx,dy,c)=>{ctx.fillStyle=c;ctx.fillRect(x+dx*s,y+dy*s,s,s)};
+        const d='#4a3728',m='#6b5240',l='#fff',eye='#4CAF50';
+        p(2,0,d);p(3,0,d);p(6,0,d);p(7,0,d);
+        p(1,1,d);p(2,1,m);p(3,1,d);p(6,1,d);p(7,1,m);p(8,1,d);
+        p(1,2,m);p(2,2,l);p(3,2,eye);p(4,2,l);p(5,2,l);p(6,2,eye);p(7,2,l);p(8,2,m);
+        p(2,3,l);p(3,3,l);p(4,3,l);p(5,3,l);p(6,3,l);p(7,3,l);
+        p(1,4,d);p(2,4,l);p(3,4,l);p(4,4,l);p(5,4,l);p(6,4,l);p(7,4,l);p(8,4,d);
+        p(1,5,d);p(2,5,l);p(3,5,l);p(4,5,l);p(5,5,l);p(6,5,l);p(7,5,l);p(8,5,d);
+    }},
+    { name: '부우', good: true, score: 20, draw: function(ctx,x,y,s) {
+        const p=(dx,dy,c)=>{ctx.fillStyle=c;ctx.fillRect(x+dx*s,y+dy*s,s,s)};
+        const d='#e8913a',m='#f0a852',l='#fff',eye='#8BC34A';
+        p(2,0,d);p(3,0,d);p(6,0,d);p(7,0,d);
+        p(1,1,d);p(2,1,m);p(3,1,d);p(6,1,d);p(7,1,m);p(8,1,d);
+        p(1,2,m);p(2,2,l);p(3,2,eye);p(4,2,l);p(5,2,l);p(6,2,eye);p(7,2,l);p(8,2,m);
+        p(2,3,l);p(3,3,l);p(4,3,l);p(5,3,l);p(6,3,l);p(7,3,l);
+        p(1,4,d);p(2,4,l);p(3,4,l);p(4,4,l);p(5,4,l);p(6,4,l);p(7,4,l);p(8,4,d);
+        p(1,5,d);p(2,5,l);p(3,5,l);p(4,5,l);p(5,5,l);p(6,5,l);p(7,5,l);p(8,5,d);
+    }},
+    { name: '츄르', good: true, score: 15, draw: function(ctx,x,y,s) {
+        const p=(dx,dy,c)=>{ctx.fillStyle=c;ctx.fillRect(x+dx*s,y+dy*s,s,s)};
+        p(3,0,'#bbb');p(4,0,'#bbb');
+        p(2,1,'#FF5722');p(3,1,'#FF7043');p(4,1,'#FF5722');p(5,1,'#FF7043');
+        p(2,2,'#FF7043');p(3,2,'#FFCCBC');p(4,2,'#FF5722');p(5,2,'#FFCCBC');
+        p(2,3,'#FF5722');p(3,3,'#FF7043');p(4,3,'#FF5722');p(5,3,'#FF7043');
+        p(2,4,'#e0e0e0');p(3,4,'#e0e0e0');p(4,4,'#e0e0e0');p(5,4,'#e0e0e0');
+    }},
+    { name: '낚싯대', good: true, score: 25, draw: function(ctx,x,y,s) {
+        const p=(dx,dy,c)=>{ctx.fillStyle=c;ctx.fillRect(x+dx*s,y+dy*s,s,s)};
+        p(7,0,'#B8956A');p(6,1,'#A0522D');p(5,2,'#8B7355');p(4,3,'#8B7355');p(3,4,'#8B7355');p(2,5,'#6B5340');
+        p(7,1,'#8899aa');p(7,2,'#8899aa');p(7,3,'#8899aa');p(7,4,'#8899aa');p(7,5,'#c0c0c0');
+        p(6,4,'#e74c3c');
+    }},
+    { name: '텐트', good: true, score: 30, draw: function(ctx,x,y,s) {
+        const p=(dx,dy,c)=>{ctx.fillStyle=c;ctx.fillRect(x+dx*s,y+dy*s,s,s)};
+        const t='#e67e22',tl='#f39c12',td='#d35400';
+        p(4,0,tl);p(3,1,t);p(4,1,tl);p(5,1,t);
+        p(2,2,t);p(3,2,tl);p(4,2,tl);p(5,2,t);p(6,2,t);
+        p(1,3,td);p(2,3,t);p(3,3,'#0a0e1a');p(4,3,'#0a0e1a');p(5,3,t);p(6,3,td);p(7,3,td);
+        p(0,4,td);p(1,4,td);p(2,4,'#0a0e1a');p(3,4,'#0a0e1a');p(4,4,'#0a0e1a');p(5,4,td);p(6,4,td);p(7,4,td);p(8,4,td);
+    }},
+    // 나쁜 것 (맞으면 -생명)
+    { name: '커피머신', good: false, draw: function(ctx,x,y,s) {
+        const p=(dx,dy,c)=>{ctx.fillStyle=c;ctx.fillRect(x+dx*s,y+dy*s,s,s)};
+        p(2,0,'#555');p(3,0,'#555');p(4,0,'#555');p(5,0,'#555');p(6,0,'#555');
+        p(2,1,'#444');p(3,1,'#666');p(4,1,'#e74c3c');p(5,1,'#666');p(6,1,'#444');
+        p(2,2,'#444');p(3,2,'#555');p(4,2,'#555');p(5,2,'#555');p(6,2,'#444');
+        p(2,3,'#333');p(3,3,'#333');p(4,3,'#333');p(5,3,'#333');p(6,3,'#333');
+        p(3,4,'#8B6914');p(4,4,'#8B6914');p(5,4,'#8B6914');
+        p(2,4,'#333');p(6,4,'#333');
+        p(3,5,'#6B5340');p(4,5,'#6B5340');p(5,5,'#6B5340');
+    }},
+    { name: '똥', good: false, draw: function(ctx,x,y,s) {
+        const p=(dx,dy,c)=>{ctx.fillStyle=c;ctx.fillRect(x+dx*s,y+dy*s,s,s)};
+        p(4,0,'#8B6914');
+        p(3,1,'#8B6914');p(4,1,'#A0522D');p(5,1,'#8B6914');
+        p(2,2,'#8B6914');p(3,2,'#A0522D');p(4,2,'#c0894a');p(5,2,'#A0522D');p(6,2,'#8B6914');
+        p(2,3,'#6B5340');p(3,3,'#8B6914');p(4,3,'#A0522D');p(5,3,'#8B6914');p(6,3,'#6B5340');
+        p(2,4,'#5D4037');p(3,4,'#6B5340');p(4,4,'#8B6914');p(5,4,'#6B5340');p(6,4,'#5D4037');
+        p(3,5,'#5D4037');p(4,5,'#5D4037');p(5,5,'#5D4037');
+    }},
+    { name: '오이', good: false, draw: function(ctx,x,y,s) {
+        const p=(dx,dy,c)=>{ctx.fillStyle=c;ctx.fillRect(x+dx*s,y+dy*s,s,s)};
+        p(3,0,'#33691E');p(4,0,'#2E7D32');
+        p(3,1,'#558B2F');p(4,1,'#689F38');p(5,1,'#558B2F');
+        p(2,2,'#689F38');p(3,2,'#8BC34A');p(4,2,'#9CCC65');p(5,2,'#689F38');
+        p(2,3,'#558B2F');p(3,3,'#7CB342');p(4,3,'#689F38');p(5,3,'#558B2F');
+        p(3,4,'#33691E');p(4,4,'#558B2F');
+    }},
+    { name: '고장머신', good: false, draw: function(ctx,x,y,s) {
+        const p=(dx,dy,c)=>{ctx.fillStyle=c;ctx.fillRect(x+dx*s,y+dy*s,s,s)};
+        p(1,0,'#555');p(2,0,'#555');p(3,0,'#555');p(4,0,'#555');p(5,0,'#555');p(6,0,'#555');p(7,0,'#555');
+        p(1,1,'#444');p(2,1,'#e74c3c');p(3,1,'#e74c3c');p(4,1,'#444');p(5,1,'#e74c3c');p(6,1,'#e74c3c');p(7,1,'#444');
+        p(1,2,'#333');p(2,2,'#555');p(3,2,'#555');p(4,2,'#333');p(5,2,'#555');p(6,2,'#555');p(7,2,'#333');
+        p(1,3,'#333');p(2,3,'#333');p(3,3,'#333');p(4,3,'#333');p(5,3,'#333');p(6,3,'#333');p(7,3,'#333');
+        p(3,4,'#555');p(4,4,'#8B6914');p(5,4,'#555');
+        // X 표시
+        p(2,1,'#e74c3c');p(6,1,'#e74c3c');p(3,2,'#e74c3c');p(5,2,'#e74c3c');
+    }},
+];
+
+// 좋은것/나쁜것 분리
+const GOOD_ITEMS = ITEMS.filter(i => i.good);
+const BAD_ITEMS = ITEMS.filter(i => !i.good);
+
+// ============================================
+// 게임 상태
+// ============================================
+let player, fallingItems, score, lives, bestScore, gameOver, gameStarted, spawnTimer, difficulty;
+let keys = { left: false, right: false };
+let particles = [];
+let hitFlash = 0;
+
+bestScore = parseInt(localStorage.getItem('donggu_dodge_best') || '0');
+document.getElementById('hudBest').textContent = bestScore;
+
+function initGame() {
+    player = { x: W/2 - 20, y: H - 60, w: 39, h: 36, speed: 5 };
+    fallingItems = [];
+    particles = [];
+    score = 0; lives = 3; gameOver = false; spawnTimer = 0; difficulty = 1;
+    hitFlash = 0;
+    updateHUD();
+}
+
+// ============================================
+// 아이템 스폰
+// ============================================
+function spawnItem() {
+    var isGood = Math.random() < 0.55; // 55% 좋은것
+    var pool = isGood ? GOOD_ITEMS : BAD_ITEMS;
+    var item = pool[Math.floor(Math.random() * pool.length)];
+    fallingItems.push({
+        x: 20 + Math.random() * (W - 60),
+        y: -30,
+        w: 30, h: 24,
+        speed: 1.5 + Math.random() * difficulty,
+        type: item
+    });
+}
+
+// ============================================
+// 파티클
+// ============================================
+function addParticles(x, y, color, count) {
+    for (var i = 0; i < count; i++) {
+        particles.push({
+            x: x, y: y,
+            vx: (Math.random()-0.5)*6, vy: -Math.random()*4-1,
+            life: 20+Math.random()*15, color: color, size: 2+Math.random()*3
+        });
+    }
+}
+
+// ============================================
+// 업데이트
+// ============================================
+function update() {
+    if (gameOver) return;
+
+    // 난이도 증가
+    difficulty = 1 + score / 200;
+
+    // 이동
+    if (keys.left) player.x -= player.speed;
+    if (keys.right) player.x += player.speed;
+    if (player.x < 0) player.x = 0;
+    if (player.x > W - player.w) player.x = W - player.w;
+
+    // 스폰
+    spawnTimer++;
+    var spawnRate = Math.max(25, 55 - difficulty * 3);
+    if (spawnTimer >= spawnRate) {
+        spawnItem();
+        spawnTimer = 0;
+    }
+
+    // 아이템 이동 + 충돌
+    for (var i = fallingItems.length - 1; i >= 0; i--) {
+        var item = fallingItems[i];
+        item.y += item.speed;
+
+        // 화면 밖
+        if (item.y > H + 30) {
+            fallingItems.splice(i, 1);
+            continue;
+        }
+
+        // 충돌 체크
+        if (item.x + item.w > player.x + 5 && item.x < player.x + player.w - 5 &&
+            item.y + item.h > player.y + 5 && item.y < player.y + player.h) {
+
+            if (item.type.good) {
+                score += item.type.score;
+                addParticles(item.x + 15, item.y + 12, '#f7b731', 8);
+            } else {
+                lives--;
+                hitFlash = 15;
+                addParticles(item.x + 15, item.y + 12, '#e74c3c', 12);
+                if (lives <= 0) {
+                    gameOver = true;
+                    endGame();
+                }
+            }
+            fallingItems.splice(i, 1);
+        }
+    }
+
+    // 파티클
+    particles.forEach(function(p) { p.x += p.vx; p.y += p.vy; p.vy += 0.15; p.life--; });
+    particles = particles.filter(function(p) { return p.life > 0; });
+
+    if (hitFlash > 0) hitFlash--;
+    updateHUD();
+}
+
+// ============================================
+// 그리기
+// ============================================
+function draw() {
+    CTX.clearRect(0, 0, W, H);
+
+    // 배경
+    var grad = CTX.createLinearGradient(0, 0, 0, H);
+    grad.addColorStop(0, '#050810');
+    grad.addColorStop(0.6, '#0d1225');
+    grad.addColorStop(1, '#1a2a1a');
+    CTX.fillStyle = grad;
+    CTX.fillRect(0, 0, W, H);
+
+    // 별
+    for (var i = 0; i < 40; i++) {
+        var sx = (i * 137.5 + score * 0.1) % W;
+        var sy = (i * 97.3) % (H * 0.6);
+        var alpha = 0.3 + 0.5 * Math.abs(Math.sin(i + Date.now() * 0.001));
+        CTX.fillStyle = 'rgba(255,255,255,' + alpha + ')';
+        CTX.fillRect(sx, sy, i % 3 === 0 ? 2 : 1, i % 3 === 0 ? 2 : 1);
+    }
+
+    // 바닥
+    CTX.fillStyle = '#2d5a2a';
+    CTX.fillRect(0, H - 20, W, 20);
+
+    // 히트 플래시
+    if (hitFlash > 0) {
+        CTX.fillStyle = 'rgba(231,76,60,' + (hitFlash / 30) + ')';
+        CTX.fillRect(0, 0, W, H);
+    }
+
+    // 떨어지는 아이템
+    fallingItems.forEach(function(item) {
+        item.type.draw(CTX, item.x, item.y, PX);
+        // 좋은건 초록 테두리 힌트, 나쁜건 빨간 힌트
+        if (item.y > H * 0.5) {
+            CTX.strokeStyle = item.type.good ? 'rgba(39,174,96,0.3)' : 'rgba(231,76,60,0.3)';
+            CTX.lineWidth = 1;
+            CTX.strokeRect(item.x - 2, item.y - 2, item.w + 4, item.h + 4);
+        }
+    });
+
+    // 플레이어
+    drawDonggu(CTX, player.x, player.y, PX);
+
+    // 파티클
+    particles.forEach(function(p) {
+        CTX.fillStyle = p.color;
+        CTX.globalAlpha = p.life / 35;
+        CTX.fillRect(p.x, p.y, p.size, p.size);
+    });
+    CTX.globalAlpha = 1;
+
+    // 점수 표시 (화면 위)
+    CTX.fillStyle = 'rgba(255,255,255,0.15)';
+    CTX.font = '40px "Press Start 2P"';
+    CTX.textAlign = 'center';
+    CTX.fillText(score, W/2, 80);
+    CTX.textAlign = 'start';
+}
+
+function updateHUD() {
+    document.getElementById('hudScore').textContent = score;
+    var livesHtml = '';
+    for (var i = 0; i < 3; i++) {
+        livesHtml += '<span class="life">' + (i < lives ? '❤️' : '🖤') + '</span>';
+    }
+    document.getElementById('hudLives').innerHTML = livesHtml;
+}
+
+// ============================================
+// 게임 시작/종료
+// ============================================
+function startGame() {
+    document.getElementById('startOverlay').classList.add('hidden');
+    document.getElementById('resultOverlay').classList.add('hidden');
+    initGame();
+    gameStarted = true;
+}
+
+function endGame() {
+    gameStarted = false;
+    if (score > bestScore) {
+        bestScore = score;
+        localStorage.setItem('donggu_dodge_best', bestScore);
+        document.getElementById('hudBest').textContent = bestScore;
+    }
+
+    var title, msg;
+    if (score >= 500) { title = '🏆 전설의 회피왕!'; msg = '동구가 감동하고 있어!'; }
+    else if (score >= 300) { title = '⭐ 대단해!'; msg = '덴데와 부우가 응원해!'; }
+    else if (score >= 150) { title = '😺 괜찮은데?'; msg = '다음엔 더 잘할 수 있어!'; }
+    else if (score >= 50) { title = '🐱 초보 회피러'; msg = '연습이 필요해~'; }
+    else { title = '💩 으악!'; msg = '똥을 너무 많이 맞았어...'; }
+
+    document.getElementById('resultTitle').textContent = title;
+    document.getElementById('resultScore').textContent = score + '점';
+    document.getElementById('resultMsg').innerHTML = msg + '<br>최고 기록: ' + bestScore + '점';
+    document.getElementById('resultOverlay').classList.remove('hidden');
+}
+
+// ============================================
+// 입력
+// ============================================
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowLeft' || e.key === 'a') keys.left = true;
+    if (e.key === 'ArrowRight' || e.key === 'd') keys.right = true;
+});
+document.addEventListener('keyup', function(e) {
+    if (e.key === 'ArrowLeft' || e.key === 'a') keys.left = false;
+    if (e.key === 'ArrowRight' || e.key === 'd') keys.right = false;
+});
+
+// 터치
+var touchX = null;
+CVS.addEventListener('touchstart', function(e) {
+    e.preventDefault();
+    touchX = e.touches[0].clientX;
+});
+CVS.addEventListener('touchmove', function(e) {
+    e.preventDefault();
+    if (touchX !== null) {
+        var rect = CVS.getBoundingClientRect();
+        var cx = e.touches[0].clientX - rect.left;
+        var scale = W / rect.width;
+        player.x = cx * scale - player.w / 2;
+        if (player.x < 0) player.x = 0;
+        if (player.x > W - player.w) player.x = W - player.w;
+    }
+});
+CVS.addEventListener('touchend', function() { touchX = null; });
+
+// ============================================
+// 게임 루프
+// ============================================
+initGame();
+gameStarted = false;
+
+function gameLoop() {
+    if (gameStarted && !gameOver) update();
+    if (player) draw();
+    requestAnimationFrame(gameLoop);
+}
+gameLoop();
+</script>
+</body>
+</html>
