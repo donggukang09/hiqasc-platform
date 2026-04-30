@@ -7,671 +7,349 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap');
 
-* { margin:0; padding:0; box-sizing:border-box; }
+*{margin:0;padding:0;box-sizing:border-box;}
 
-:root {
-  --bg: #1a1a2e;
-  --card: #16213e;
-  --card2: #1a2540;
-  --accent: #4a90e2;
-  --accent2: #64b5f6;
-  --pass: #00c853;
-  --fail: #ff5252;
-  --warn: #ffab40;
-  --text: #e8eaf6;
-  --text2: #90a4ae;
-  --border: rgba(74,144,226,0.2);
-  --glow: rgba(74,144,226,0.15);
+:root{
+  --bg:#1a1a2e;--card:#16213e;--card2:#1a2540;
+  --accent:#4a90e2;--accent2:#64b5f6;
+  --pass:#00c853;--fail:#ff5252;--warn:#ffab40;
+  --text:#e8eaf6;--text2:#90a4ae;
+  --border:rgba(74,144,226,0.2);
 }
 
-body {
-  font-family: 'Manrope', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100vh;
-  overflow-x: hidden;
+body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* ===== HEADER ===== */
+.header{
+  background:linear-gradient(135deg,var(--card) 0%,#0f3460 100%);
+  padding:14px 20px;display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;
+}
+.header h1{font-size:18px;font-weight:700;letter-spacing:-0.5px;}
+.header h1 span{color:var(--accent2);}
+.header-right{display:flex;align-items:center;gap:10px;}
+.tech-badge{
+  display:flex;align-items:center;gap:6px;
+  padding:6px 14px;background:rgba(74,144,226,0.12);
+  border:1px solid var(--border);border-radius:20px;
+  font-size:13px;font-weight:600;color:var(--accent2);
+}
+.btn-sm{
+  padding:6px 14px;background:rgba(255,255,255,0.06);
+  border:1px solid rgba(255,255,255,0.1);border-radius:8px;
+  color:var(--text2);font-family:inherit;font-size:12px;cursor:pointer;
+  transition:all 0.2s;
+}
+.btn-sm:hover{background:rgba(255,255,255,0.12);}
+.back-btn{
+  padding:6px 14px;background:rgba(74,144,226,0.15);
+  border:1px solid var(--border);border-radius:8px;
+  color:var(--accent2);font-family:inherit;font-size:12px;cursor:pointer;
 }
 
-/* Header */
-.header {
-  background: linear-gradient(135deg, var(--card) 0%, #0f3460 100%);
-  padding: 16px 24px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid var(--border);
-  position: sticky;
-  top: 0;
-  z-index: 100;
-}
-.header-left { display:flex; align-items:center; gap:12px; }
-.header h1 { font-size:20px; font-weight:700; letter-spacing:-0.5px; }
-.header h1 span { color:var(--accent2); }
-.back-btn {
-  background: rgba(74,144,226,0.15);
-  border: 1px solid var(--border);
-  color: var(--accent2);
-  padding: 8px 16px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 13px;
-  transition: all 0.2s;
-}
-.back-btn:hover { background:rgba(74,144,226,0.3); }
+/* ===== PAGES ===== */
+.page{display:none;}
+.page.active{display:block;}
 
-/* Container */
-.container {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 24px 16px;
+/* ===== LOGIN PAGE ===== */
+.login-wrap{
+  display:flex;align-items:center;justify-content:center;
+  min-height:calc(100vh - 52px);padding:20px;
+}
+.login-card{
+  background:var(--card);border:1px solid var(--border);border-radius:20px;
+  padding:40px 32px;width:100%;max-width:400px;text-align:center;
+}
+.login-card h2{font-size:22px;margin-bottom:6px;}
+.login-card p{color:var(--text2);font-size:14px;margin-bottom:28px;}
+.login-card .icon{font-size:48px;margin-bottom:16px;}
+.tech-grid{display:grid;gap:10px;}
+.tech-btn{
+  padding:14px;background:var(--card2);border:2px solid var(--border);
+  border-radius:12px;color:var(--text);font-family:inherit;font-size:16px;
+  font-weight:600;cursor:pointer;transition:all 0.2s;
+}
+.tech-btn:hover{border-color:var(--accent);background:rgba(74,144,226,0.08);}
+
+/* ===== MAIN PAGE (Serial Input) ===== */
+.main-container{max-width:800px;margin:0 auto;padding:24px 16px;}
+
+.serial-section{margin-bottom:20px;}
+.serial-section .card-title{
+  font-size:13px;font-weight:600;color:var(--accent2);
+  text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;
 }
 
-/* Step Indicator */
-.steps {
-  display: flex;
-  gap: 4px;
-  margin-bottom: 28px;
+.serial-slots{display:grid;gap:12px;}
+.serial-slot{
+  background:var(--card);border:1px solid var(--border);border-radius:12px;
+  padding:14px 16px;display:flex;align-items:center;gap:12px;
 }
-.step-dot {
-  flex: 1;
-  height: 4px;
-  background: rgba(255,255,255,0.08);
-  border-radius: 4px;
-  transition: background 0.4s;
+.slot-num{
+  width:28px;height:28px;min-width:28px;
+  background:var(--accent);border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:800;color:#fff;
 }
-.step-dot.active { background: var(--accent); }
-.step-dot.done { background: var(--pass); }
-
-/* Sections */
-.section {
-  display: none;
-  animation: fadeUp 0.35s ease;
+.slot-input{
+  flex:1;padding:10px 14px;background:var(--card2);
+  border:1px solid rgba(255,255,255,0.06);border-radius:8px;
+  color:var(--text);font-family:'Manrope',monospace;font-size:15px;
+  font-weight:600;letter-spacing:1px;outline:none;
+  transition:border-color 0.2s;
 }
-.section.active { display: block; }
-
-@keyframes fadeUp {
-  from { opacity:0; transform:translateY(16px); }
-  to { opacity:1; transform:translateY(0); }
+.slot-input:focus{border-color:var(--accent);}
+.slot-input::placeholder{color:var(--text2);font-size:13px;letter-spacing:0;font-weight:400;}
+.slot-model{
+  font-size:12px;color:var(--accent2);font-weight:600;min-width:100px;text-align:right;
 }
-
-/* Card */
-.card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 24px;
-  margin-bottom: 16px;
-}
-.card-title {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--accent2);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 16px;
+.slot-model.error{color:var(--fail);}
+.slot-clear{
+  background:none;border:none;color:var(--text2);font-size:16px;
+  cursor:pointer;padding:4px;display:none;
 }
 
-/* Serial Input */
-.serial-input-wrap {
-  position: relative;
+.btn-primary{
+  width:100%;padding:16px;
+  background:linear-gradient(135deg,var(--accent) 0%,#357abd 100%);
+  border:none;border-radius:12px;color:#fff;font-family:inherit;
+  font-size:16px;font-weight:700;cursor:pointer;transition:all 0.2s;
+  margin-top:16px;
 }
-.serial-input {
-  width: 100%;
-  padding: 16px 20px;
-  padding-right: 50px;
-  background: var(--card2);
-  border: 2px solid var(--border);
-  border-radius: 12px;
-  color: var(--text);
-  font-family: 'Manrope', monospace;
-  font-size: 18px;
-  font-weight: 600;
-  letter-spacing: 1.5px;
-  outline: none;
-  transition: border-color 0.3s;
-}
-.serial-input:focus { border-color: var(--accent); }
-.serial-input::placeholder { color:var(--text2); font-size:14px; letter-spacing:0; font-weight:400; }
-.serial-clear {
-  position: absolute;
-  right: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  color: var(--text2);
-  font-size: 20px;
-  cursor: pointer;
-  display: none;
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(74,144,226,0.35);}
+.btn-primary:disabled{opacity:0.4;cursor:not-allowed;transform:none;box-shadow:none;}
+
+/* ===== QC PAGE (4-box) ===== */
+.qc-container{max-width:1400px;margin:0 auto;padding:16px 12px;padding-bottom:100px;}
+.qc-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+
+@media(max-width:900px){
+  .qc-grid{grid-template-columns:1fr;}
 }
 
-/* Model Info */
-.model-info {
-  display: none;
-  margin-top: 16px;
-  padding: 16px;
-  background: rgba(74,144,226,0.08);
-  border: 1px solid var(--border);
-  border-radius: 10px;
+.qc-box{
+  background:var(--card);border:1px solid var(--border);border-radius:14px;
+  overflow:hidden;display:flex;flex-direction:column;
 }
-.model-info.show { display:block; animation: fadeUp 0.3s ease; }
-.model-info-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+.qc-box-header{
+  padding:12px 16px;display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--border);
 }
-.model-info-item label {
-  font-size: 11px;
-  color: var(--text2);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+.qc-box-num{
+  width:26px;height:26px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:800;color:#fff;
 }
-.model-info-item .value {
-  font-size: 16px;
-  font-weight: 700;
-  margin-top: 2px;
-  color: var(--accent2);
+.qc-box-num.c1{background:#4a90e2;}.qc-box-num.c2{background:#7c4dff;}
+.qc-box-num.c3{background:#ff6d00;}.qc-box-num.c4{background:#00bfa5;}
+
+.qc-box-info{display:flex;align-items:center;gap:8px;}
+.qc-box-model{font-size:14px;font-weight:700;}
+.qc-box-serial{font-size:11px;color:var(--text2);font-weight:500;}
+.qc-box-color{font-size:11px;color:var(--text2);}
+
+.qc-box-round{
+  padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700;
+}
+.round-1{background:rgba(74,144,226,0.15);color:var(--accent2);}
+.round-2{background:rgba(255,171,64,0.15);color:var(--warn);}
+.round-3{background:rgba(255,82,82,0.15);color:var(--fail);}
+
+.qc-box-body{padding:12px 14px;flex:1;overflow-y:auto;max-height:360px;}
+
+/* Checklist in box */
+.mini-checklist{list-style:none;}
+.mini-chk{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 10px;border-radius:8px;margin-bottom:4px;
+  cursor:pointer;user-select:none;transition:all 0.15s;
+  border:1px solid transparent;
+}
+.mini-chk:hover{background:rgba(255,255,255,0.03);}
+.mini-chk.checked{background:rgba(0,200,83,0.06);border-color:rgba(0,200,83,0.2);}
+.mini-chk-box{
+  width:20px;height:20px;min-width:20px;border:2px solid var(--text2);
+  border-radius:5px;display:flex;align-items:center;justify-content:center;
+  font-size:12px;transition:all 0.15s;
+}
+.mini-chk.checked .mini-chk-box{background:var(--pass);border-color:var(--pass);color:#fff;}
+.mini-chk-label{font-size:13px;font-weight:500;}
+.mini-progress{font-size:11px;color:var(--text2);text-align:right;margin-bottom:6px;}
+
+/* Note in box */
+.mini-note{
+  width:100%;padding:8px 10px;background:var(--card2);
+  border:1px solid rgba(255,255,255,0.06);border-radius:8px;
+  color:var(--text);font-family:inherit;font-size:12px;
+  outline:none;resize:none;min-height:40px;margin-top:6px;
+}
+.mini-note::placeholder{color:var(--text2);}
+.mini-note:focus{border-color:var(--accent);}
+
+/* PASS/FAIL in box */
+.qc-box-footer{
+  padding:10px 14px;border-top:1px solid var(--border);
+  display:flex;gap:8px;
+}
+.pf-btn{
+  flex:1;padding:14px 8px;border:2px solid;border-radius:10px;
+  font-family:inherit;font-size:18px;font-weight:800;letter-spacing:1px;
+  cursor:pointer;transition:all 0.2s;
+}
+.pf-pass{
+  background:rgba(0,200,83,0.06);border-color:rgba(0,200,83,0.3);color:var(--pass);
+}
+.pf-pass:hover{background:rgba(0,200,83,0.15);}
+.pf-pass.selected{background:rgba(0,200,83,0.2);border-color:var(--pass);box-shadow:0 0 16px rgba(0,200,83,0.2);}
+
+.pf-fail{
+  background:rgba(255,82,82,0.06);border-color:rgba(255,82,82,0.3);color:var(--fail);
+}
+.pf-fail:hover{background:rgba(255,82,82,0.15);}
+.pf-fail.selected{background:rgba(255,82,82,0.2);border-color:var(--fail);box-shadow:0 0 16px rgba(255,82,82,0.2);}
+
+/* Submit All */
+.submit-bar{
+  position:fixed;bottom:0;left:0;right:0;
+  background:linear-gradient(transparent,var(--bg) 30%);
+  padding:20px 12px 24px;z-index:50;
+}
+.submit-bar-inner{max-width:1400px;margin:0 auto;}
+.btn-submit-all{
+  width:100%;padding:18px;
+  background:linear-gradient(135deg,#00c853 0%,#009624 100%);
+  border:none;border-radius:14px;color:#fff;font-family:inherit;
+  font-size:18px;font-weight:800;letter-spacing:1px;cursor:pointer;
+  transition:all 0.2s;
+}
+.btn-submit-all:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(0,200,83,0.35);}
+.btn-submit-all:disabled{opacity:0.4;cursor:not-allowed;transform:none;box-shadow:none;}
+.submit-status{
+  text-align:center;font-size:13px;color:var(--text2);margin-top:8px;
 }
 
-.model-unknown {
-  display: none;
-  margin-top: 12px;
-  padding: 12px 16px;
-  background: rgba(255,82,82,0.1);
-  border: 1px solid rgba(255,82,82,0.3);
-  border-radius: 10px;
-  color: var(--fail);
-  font-size: 14px;
+/* ===== Loading & Toast ===== */
+.loading-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);
+  z-index:999;align-items:center;justify-content:center;flex-direction:column;gap:16px;
 }
-.model-unknown.show { display:block; }
+.loading-overlay.show{display:flex;}
+.spinner{
+  width:40px;height:40px;border:3px solid rgba(255,255,255,0.1);
+  border-top-color:var(--accent2);border-radius:50%;
+  animation:spin 0.8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{color:var(--text2);font-size:14px;}
 
-/* History Badge */
-.history-badge {
-  display: none;
-  margin-top: 12px;
-  padding: 10px 16px;
-  background: rgba(255,171,64,0.1);
-  border: 1px solid rgba(255,171,64,0.25);
-  border-radius: 10px;
-  font-size: 13px;
-  color: var(--warn);
-}
-.history-badge.show { display:flex; align-items:center; gap:8px; }
-
-/* Next Button */
-.btn-next {
-  width: 100%;
-  padding: 16px;
-  background: linear-gradient(135deg, var(--accent) 0%, #357abd 100%);
-  border: none;
-  border-radius: 12px;
-  color: #fff;
-  font-family: inherit;
-  font-size: 16px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s;
-  margin-top: 8px;
-}
-.btn-next:hover { transform:translateY(-1px); box-shadow:0 6px 20px rgba(74,144,226,0.35); }
-.btn-next:disabled {
-  opacity:0.4;
-  cursor:not-allowed;
-  transform:none;
-  box-shadow:none;
-}
-
-/* Checklist */
-.checklist { list-style:none; }
-.checklist-item {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 14px 16px;
-  background: var(--card2);
-  border: 1px solid rgba(255,255,255,0.04);
-  border-radius: 10px;
-  margin-bottom: 8px;
-  cursor: pointer;
-  transition: all 0.2s;
-  user-select: none;
-}
-.checklist-item:hover { border-color:var(--border); }
-.checklist-item.checked { border-color: rgba(0,200,83,0.3); background: rgba(0,200,83,0.06); }
-
-.chk-box {
-  width: 24px;
-  height: 24px;
-  min-width: 24px;
-  border: 2px solid var(--text2);
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-  font-size: 14px;
-}
-.checklist-item.checked .chk-box {
-  background: var(--pass);
-  border-color: var(--pass);
-  color: #fff;
-}
-.chk-label { font-size:15px; font-weight:500; }
-
-.checklist-progress {
-  font-size: 13px;
-  color: var(--text2);
-  text-align: right;
-  margin-top: 8px;
-  margin-bottom: 4px;
-}
-
-/* Technician Select */
-.tech-select {
-  width: 100%;
-  padding: 12px 16px;
-  background: var(--card2);
-  border: 2px solid var(--border);
-  border-radius: 10px;
-  color: var(--text);
-  font-family: inherit;
-  font-size: 15px;
-  outline: none;
-  appearance: none;
-  cursor: pointer;
-}
-
-/* Note textarea */
-.note-input {
-  width: 100%;
-  padding: 12px 16px;
-  background: var(--card2);
-  border: 2px solid var(--border);
-  border-radius: 10px;
-  color: var(--text);
-  font-family: inherit;
-  font-size: 14px;
-  outline: none;
-  resize: vertical;
-  min-height: 80px;
-}
-.note-input:focus { border-color:var(--accent); }
-
-/* PASS / FAIL Buttons */
-.result-buttons {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-top: 8px;
-}
-.result-btn {
-  padding: 40px 20px;
-  border: 3px solid;
-  border-radius: 16px;
-  font-family: inherit;
-  font-size: 28px;
-  font-weight: 800;
-  letter-spacing: 2px;
-  cursor: pointer;
-  transition: all 0.25s;
-  position: relative;
-  overflow: hidden;
-}
-.result-btn::before {
-  content:'';
-  position:absolute;
-  inset:0;
-  opacity:0;
-  transition: opacity 0.25s;
-}
-.btn-pass {
-  background: rgba(0,200,83,0.08);
-  border-color: var(--pass);
-  color: var(--pass);
-}
-.btn-pass::before { background: radial-gradient(circle, rgba(0,200,83,0.2), transparent 70%); }
-.btn-pass:hover { background:rgba(0,200,83,0.15); transform:scale(1.02); }
-.btn-pass:hover::before { opacity:1; }
-
-.btn-fail {
-  background: rgba(255,82,82,0.08);
-  border-color: var(--fail);
-  color: var(--fail);
-}
-.btn-fail::before { background: radial-gradient(circle, rgba(255,82,82,0.2), transparent 70%); }
-.btn-fail:hover { background:rgba(255,82,82,0.15); transform:scale(1.02); }
-.btn-fail:hover::before { opacity:1; }
-
-.result-btn .sub-text {
-  display: block;
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0;
-  margin-top: 6px;
-  opacity: 0.7;
-}
-
-/* Round indicator */
-.round-indicator {
-  text-align: center;
-  margin-bottom: 16px;
-}
-.round-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 20px;
-  border-radius: 30px;
-  font-size: 14px;
-  font-weight: 700;
-}
-.round-1 { background:rgba(74,144,226,0.15); color:var(--accent2); }
-.round-2 { background:rgba(255,171,64,0.15); color:var(--warn); }
-.round-3 { background:rgba(255,82,82,0.15); color:var(--fail); }
-
-/* Summary */
-.summary-result {
-  text-align: center;
-  padding: 32px;
-  border-radius: 14px;
-  margin-bottom: 16px;
-}
-.summary-result.pass {
-  background: rgba(0,200,83,0.08);
-  border: 2px solid rgba(0,200,83,0.3);
-}
-.summary-result.fail {
-  background: rgba(255,82,82,0.08);
-  border: 2px solid rgba(255,82,82,0.3);
-}
-.summary-result .icon { font-size:48px; margin-bottom:8px; }
-.summary-result .label { font-size:28px; font-weight:800; letter-spacing:2px; }
-.summary-result.pass .label { color:var(--pass); }
-.summary-result.fail .label { color:var(--fail); }
-
-.summary-grid {
-  display: grid;
-  gap: 8px;
-}
-.summary-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 10px 0;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
-  font-size: 14px;
-}
-.summary-row .lbl { color:var(--text2); }
-.summary-row .val { font-weight:600; }
-
-/* History Table */
-.history-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-  margin-top: 12px;
-}
-.history-table th {
-  text-align: left;
-  padding: 8px 10px;
-  background: var(--card2);
-  color: var(--text2);
-  font-weight: 600;
-  font-size: 11px;
-  text-transform: uppercase;
-}
-.history-table td {
-  padding: 8px 10px;
-  border-bottom: 1px solid rgba(255,255,255,0.04);
-}
-.badge-pass {
-  background: rgba(0,200,83,0.15);
-  color: var(--pass);
-  padding: 3px 10px;
-  border-radius: 12px;
-  font-weight: 700;
-  font-size: 11px;
-}
-.badge-fail {
-  background: rgba(255,82,82,0.15);
-  color: var(--fail);
-  padding: 3px 10px;
-  border-radius: 12px;
-  font-weight: 700;
-  font-size: 11px;
-}
-
-/* Loading */
-.loading-overlay {
-  display:none;
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,0.6);
-  z-index:999;
-  align-items:center;
-  justify-content:center;
-  flex-direction: column;
-  gap: 16px;
-}
-.loading-overlay.show { display:flex; }
-.spinner {
-  width:40px; height:40px;
-  border: 3px solid rgba(255,255,255,0.1);
-  border-top-color: var(--accent2);
-  border-radius:50%;
-  animation: spin 0.8s linear infinite;
-}
-@keyframes spin { to{transform:rotate(360deg)} }
-.loading-text { color:var(--text2); font-size:14px; }
-
-/* Toast */
-.toast {
-  position:fixed;
-  bottom:30px;
-  left:50%;
+.toast{
+  position:fixed;bottom:100px;left:50%;
   transform:translateX(-50%) translateY(100px);
-  padding: 14px 28px;
-  border-radius: 12px;
-  font-size: 14px;
-  font-weight: 600;
-  z-index:1000;
-  transition: transform 0.35s ease;
-  white-space: nowrap;
+  padding:14px 28px;border-radius:12px;font-size:14px;font-weight:600;
+  z-index:1000;transition:transform 0.35s ease;white-space:nowrap;
 }
-.toast.show { transform:translateX(-50%) translateY(0); }
-.toast.success { background:var(--pass); color:#fff; }
-.toast.error { background:var(--fail); color:#fff; }
+.toast.show{transform:translateX(-50%) translateY(0);}
+.toast.success{background:var(--pass);color:#fff;}
+.toast.error{background:var(--fail);color:#fff;}
 
-/* Footer */
-.footer {
-  text-align:center;
-  padding:24px;
-  font-size:11px;
-  color:var(--text2);
-  opacity:0.5;
-}
+.footer{text-align:center;padding:24px;font-size:11px;color:var(--text2);opacity:0.5;}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+.fade-up{animation:fadeUp 0.3s ease;}
 </style>
 </head>
 <body>
 
 <div class="loading-overlay" id="loadingOverlay">
   <div class="spinner"></div>
-  <div class="loading-text" id="loadingText">데이터 로딩 중...</div>
+  <div class="loading-text" id="loadingText">로딩 중...</div>
 </div>
-
 <div class="toast" id="toast"></div>
 
-<div class="header">
-  <div class="header-left">
+<!-- ==================== PAGE: LOGIN ==================== -->
+<div class="page active" id="pageLogin">
+  <div class="header">
     <h1>⚙️ <span>QC</span> 품질검사</h1>
+    <button class="back-btn" onclick="goHome()">🏠 메인으로</button>
   </div>
-  <button class="back-btn" onclick="goBack()">🏠 메인으로</button>
+  <div class="login-wrap">
+    <div class="login-card fade-up">
+      <div class="icon">👤</div>
+      <h2>담당자 선택</h2>
+      <p>QC 검사를 시작하려면 담당자를 선택하세요</p>
+      <div class="tech-grid" id="techGrid"></div>
+    </div>
+  </div>
 </div>
 
-<div class="container">
-
-  <!-- Step dots -->
-  <div class="steps">
-    <div class="step-dot active" id="dot0"></div>
-    <div class="step-dot" id="dot1"></div>
-    <div class="step-dot" id="dot2"></div>
-    <div class="step-dot" id="dot3"></div>
-  </div>
-
-  <!-- STEP 0: Serial Input -->
-  <div class="section active" id="step0">
-    <div class="card">
-      <div class="card-title">📋 시리얼 번호 입력</div>
-      <div class="serial-input-wrap">
-        <input type="text" class="serial-input" id="serialInput" placeholder="시리얼 번호를 입력하세요" autocomplete="off">
-        <button class="serial-clear" id="serialClear" onclick="clearSerial()">✕</button>
-      </div>
-
-      <div class="model-info" id="modelInfo">
-        <div class="model-info-grid">
-          <div class="model-info-item">
-            <label>모델명</label>
-            <div class="value" id="infoModel">-</div>
-          </div>
-          <div class="model-info-item">
-            <label>모델코드</label>
-            <div class="value" id="infoCode">-</div>
-          </div>
-          <div class="model-info-item">
-            <label>색상</label>
-            <div class="value" id="infoColor">-</div>
-          </div>
-          <div class="model-info-item">
-            <label>제조일</label>
-            <div class="value" id="infoDate">-</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="model-unknown" id="modelUnknown">
-        ⚠️ 등록되지 않은 모델코드입니다. QC_모델 시트를 확인하세요.
-      </div>
-
-      <div class="history-badge" id="historyBadge">
-        <span>🔄</span>
-        <span id="historyText"></span>
-      </div>
-    </div>
-
-    <button class="btn-next" id="btnToStep1" disabled onclick="goToStep(1)">다음: 체크리스트 →</button>
-  </div>
-
-  <!-- STEP 1: Checklist -->
-  <div class="section" id="step1">
-    <div class="round-indicator">
-      <span class="round-badge" id="roundBadge">🔵 1차 검사</span>
-    </div>
-
-    <div class="card">
-      <div class="card-title">✅ 체크리스트 — <span id="checklistModelName"></span></div>
-      <div class="checklist-progress" id="checkProgress">0 / 0</div>
-      <ul class="checklist" id="checklistArea"></ul>
-    </div>
-
-    <div class="card">
-      <div class="card-title">👤 담당자</div>
-      <select class="tech-select" id="techSelect">
-        <option value="">선택하세요</option>
-      </select>
-    </div>
-
-    <div class="card">
-      <div class="card-title">📝 비고</div>
-      <textarea class="note-input" id="noteInput" placeholder="특이사항을 입력하세요 (선택)"></textarea>
-    </div>
-
-    <button class="btn-next" onclick="goToStep(2)">다음: 판정 →</button>
-  </div>
-
-  <!-- STEP 2: PASS / FAIL -->
-  <div class="section" id="step2">
-    <div class="round-indicator">
-      <span class="round-badge" id="roundBadge2">🔵 1차 검사</span>
-    </div>
-
-    <div class="card">
-      <div class="card-title">🏆 판정</div>
-      <div class="result-buttons">
-        <button class="result-btn btn-pass" onclick="submitResult('PASS')">
-          PASS
-          <span class="sub-text">합격</span>
-        </button>
-        <button class="result-btn btn-fail" onclick="submitResult('FAIL')">
-          FAIL
-          <span class="sub-text">불합격</span>
-        </button>
-      </div>
+<!-- ==================== PAGE: MAIN (Serial Input) ==================== -->
+<div class="page" id="pageMain">
+  <div class="header">
+    <h1>⚙️ <span>QC</span> 품질검사</h1>
+    <div class="header-right">
+      <div class="tech-badge">👤 <span id="techNameMain"></span></div>
+      <button class="btn-sm" onclick="changeTech()">담당자 변경</button>
+      <button class="back-btn" onclick="goHome()">🏠</button>
     </div>
   </div>
-
-  <!-- STEP 3: Summary -->
-  <div class="section" id="step3">
-    <div class="summary-result" id="summaryResultBox">
-      <div class="icon" id="summaryIcon"></div>
-      <div class="label" id="summaryLabel"></div>
+  <div class="main-container fade-up">
+    <div class="serial-section">
+      <div class="card-title">📋 시리얼 번호 입력 (4대)</div>
+      <div class="serial-slots" id="serialSlots"></div>
     </div>
-
-    <div class="card">
-      <div class="card-title">📄 검사 결과 요약</div>
-      <div class="summary-grid" id="summaryGrid"></div>
-    </div>
-
-    <div class="card" id="historyCard" style="display:none">
-      <div class="card-title">📊 전체 QC 이력</div>
-      <div style="overflow-x:auto">
-        <table class="history-table" id="historyTable">
-          <thead>
-            <tr><th>일시</th><th>차수</th><th>판정</th><th>담당자</th></tr>
-          </thead>
-          <tbody id="historyBody"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <button class="btn-next" id="btnNewQC" onclick="resetAll()">🔄 새 QC 검사 시작</button>
-    <button class="btn-next" id="btnRetry" style="display:none; margin-top:8px; background:linear-gradient(135deg, var(--warn) 0%, #e69100 100%);" onclick="retryQC()">🔁 재검사 (다음 차수)</button>
+    <button class="btn-primary" id="btnStartQC" disabled onclick="startQC()">QC 검사 시작 →</button>
   </div>
+</div>
 
+<!-- ==================== PAGE: QC (4-box) ==================== -->
+<div class="page" id="pageQC">
+  <div class="header">
+    <h1>⚙️ <span>QC</span> 검사 진행</h1>
+    <div class="header-right">
+      <div class="tech-badge">👤 <span id="techNameQC"></span></div>
+      <button class="btn-sm" onclick="backToMain()">← 시리얼 입력</button>
+    </div>
+  </div>
+  <div class="qc-container">
+    <div class="qc-grid" id="qcGrid"></div>
+  </div>
+  <div class="submit-bar">
+    <div class="submit-bar-inner">
+      <button class="btn-submit-all" id="btnSubmitAll" disabled onclick="submitAll()">📦 전체 저장</button>
+      <div class="submit-status" id="submitStatus"></div>
+    </div>
+  </div>
 </div>
 
 <div class="footer">DONGGU KANG — HIQASC QC System</div>
 
 <script>
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzLVq20w-QyrFqMKpWqsqq3evnTGVAoJR2HwsXVhq6-9MZfOZ-3tEpy-eZnSpYDJlu4/exec';
+const SLOT_COUNT = 4;
+const BOX_COLORS = ['c1','c2','c3','c4'];
 
 let models = [];
 let colors = [];
-let checklist = [];
 let technicians = [];
-let currentSerial = '';
-let currentModelCode = '';
-let currentModelName = '';
-let currentColorCode = '';
-let currentColorName = '';
-let currentManufDate = '';
-let currentRound = 1;
-let checkStates = [];
-let history = [];
+let currentTech = '';
+
+let slots = [];
+let qcStates = [];
 
 // ========== INIT ==========
 async function init() {
   showLoading('데이터 로딩 중...');
   await Promise.all([loadModels(), loadColors(), loadTechnicians()]);
   hideLoading();
+  renderSerialSlots();
 }
 
+// ========== UTILITY ==========
 function showLoading(msg) {
   document.getElementById('loadingText').textContent = msg || '처리 중...';
   document.getElementById('loadingOverlay').classList.add('show');
 }
-function hideLoading() {
-  document.getElementById('loadingOverlay').classList.remove('show');
-}
+function hideLoading() { document.getElementById('loadingOverlay').classList.remove('show'); }
 
 function showToast(msg, type='success') {
   const t = document.getElementById('toast');
@@ -681,116 +359,91 @@ function showToast(msg, type='success') {
   setTimeout(() => t.classList.remove('show'), 2500);
 }
 
-// ========== JSONP ==========
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({ top: 0 });
+}
+
+// ========== JSONP / POST ==========
 function jsonp(params) {
   return new Promise((resolve, reject) => {
-    const cbName = 'cb_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
-    const timeout = setTimeout(() => {
-      delete window[cbName];
-      document.body.removeChild(script);
-      reject(new Error('Timeout'));
-    }, 15000);
-
-    window[cbName] = function(data) {
-      clearTimeout(timeout);
-      delete window[cbName];
-      document.body.removeChild(script);
-      resolve(data);
-    };
-
+    const cbName = 'cb_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
+    const timeout = setTimeout(() => { cleanup(); reject(new Error('Timeout')); }, 15000);
+    function cleanup() { clearTimeout(timeout); delete window[cbName]; if(script.parentNode) script.parentNode.removeChild(script); }
+    window[cbName] = function(data) { cleanup(); resolve(data); };
     const qs = new URLSearchParams({ ...params, callback: cbName }).toString();
     const script = document.createElement('script');
     script.src = APPS_SCRIPT_URL + '?' + qs;
-    script.onerror = () => {
-      clearTimeout(timeout);
-      delete window[cbName];
-      document.body.removeChild(script);
-      reject(new Error('Network error'));
-    };
+    script.onerror = () => { cleanup(); reject(new Error('Network error')); };
     document.body.appendChild(script);
   });
 }
 
 function postData(payload) {
   return fetch(APPS_SCRIPT_URL, {
-    method: 'POST',
-    mode: 'no-cors',
-    headers: { 'Content-Type': 'application/json' },
+    method:'POST', mode:'no-cors',
+    headers:{'Content-Type':'application/json'},
     body: JSON.stringify(payload)
   });
 }
 
 // ========== DATA LOADERS ==========
 async function loadModels() {
-  try {
-    const res = await jsonp({ action: 'getModels' });
-    if (res.success) models = res.data;
-  } catch(e) { console.error('모델 로딩 실패:', e); }
+  try { const r = await jsonp({action:'getModels'}); if(r.success) models = r.data; }
+  catch(e) { console.error('모델 로딩 실패:', e); }
 }
-
 async function loadColors() {
-  try {
-    const res = await jsonp({ action: 'getColors' });
-    if (res.success) colors = res.data;
-  } catch(e) { console.error('색상 로딩 실패:', e); }
+  try { const r = await jsonp({action:'getColors'}); if(r.success) colors = r.data; }
+  catch(e) { console.error('색상 로딩 실패:', e); }
 }
-
 async function loadTechnicians() {
   try {
-    const res = await jsonp({ action: 'getTechnicians' });
-    if (res.success) {
-      technicians = res.data;
-      const sel = document.getElementById('techSelect');
-      sel.innerHTML = '<option value="">선택하세요</option>';
-      technicians.forEach(t => {
-        sel.innerHTML += `<option value="${t}">${t}</option>`;
-      });
+    const r = await jsonp({action:'getTechnicians'});
+    if(r.success) {
+      technicians = r.data;
+      const grid = document.getElementById('techGrid');
+      if(technicians.length === 0) {
+        grid.innerHTML = '<p style="color:var(--text2);font-size:14px;">테크니션 탭에 담당자를 추가하세요.</p>';
+        return;
+      }
+      grid.innerHTML = technicians.map(t =>
+        `<button class="tech-btn" onclick="selectTech('${t}')">${t}</button>`
+      ).join('');
     }
   } catch(e) { console.error('테크니션 로딩 실패:', e); }
 }
 
-async function loadChecklist(modelName) {
-  try {
-    const res = await jsonp({ action: 'getChecklist', model: modelName });
-    if (res.success) {
-      checklist = res.data;
-      checkStates = new Array(checklist.length).fill(false);
-    }
-  } catch(e) { console.error('체크리스트 로딩 실패:', e); }
+// ========== TECHNICIAN ==========
+function selectTech(name) {
+  currentTech = name;
+  document.getElementById('techNameMain').textContent = name;
+  document.getElementById('techNameQC').textContent = name;
+  showPage('pageMain');
+  setTimeout(() => document.getElementById('slotInput0')?.focus(), 100);
 }
 
-async function loadHistory(serial) {
-  try {
-    const res = await jsonp({ action: 'getHistory', serial: serial });
-    if (res.success) {
-      history = res.data;
-    }
-  } catch(e) { console.error('이력 로딩 실패:', e); history = []; }
-}
+function changeTech() { showPage('pageLogin'); }
 
 // ========== SERIAL PARSING ==========
 function parseSerial(serial) {
   serial = serial.trim();
-  if (serial.length < 12) return null;
+  if(serial.length < 12) return null;
 
-  // 제조일: 첫 5자리 (YYDDD)
-  const yy = serial.substring(0, 2);
-  const ddd = serial.substring(2, 5);
+  const yy = serial.substring(0,2);
+  const ddd = serial.substring(2,5);
   const year = 2000 + parseInt(yy);
   const dayOfYear = parseInt(ddd);
   const date = new Date(year, 0);
   date.setDate(dayOfYear);
   const dateStr = `${year}년 ${date.getMonth()+1}월 ${date.getDate()}일`;
 
-  // 모델코드: 5번째부터 3글자
-  const modelCode = serial.substring(5, 8);
-
-  // 색상코드: 뒤에서 4번째,3번째 (끝에서 index -4, -3)
+  const modelCode = serial.substring(5,8);
   const colorCode = serial.substring(serial.length - 4, serial.length - 2);
 
   const modelMatch = models.find(m => m.code.trim().toUpperCase() === modelCode.toUpperCase());
-  const colorMatch = colors.find(c => 
-    c.modelCode.trim().toUpperCase() === modelCode.toUpperCase() && 
+  const colorMatch = colors.find(c =>
+    c.modelCode.trim().toUpperCase() === modelCode.toUpperCase() &&
     c.colorCode.trim().toUpperCase() === colorCode.toUpperCase()
   );
 
@@ -804,308 +457,293 @@ function parseSerial(serial) {
   };
 }
 
-// ========== SERIAL INPUT HANDLER ==========
-const serialInput = document.getElementById('serialInput');
-let parseTimer = null;
-
-serialInput.addEventListener('input', function() {
-  const val = this.value.trim();
-  document.getElementById('serialClear').style.display = val ? 'block' : 'none';
-
-  clearTimeout(parseTimer);
-  if (val.length >= 12) {
-    parseTimer = setTimeout(() => processSerial(val), 300);
-  } else {
-    hideModelInfo();
+// ========== SERIAL SLOTS ==========
+function renderSerialSlots() {
+  const wrap = document.getElementById('serialSlots');
+  wrap.innerHTML = '';
+  for(let i = 0; i < SLOT_COUNT; i++) {
+    wrap.innerHTML += `
+      <div class="serial-slot" id="slot${i}">
+        <div class="slot-num">${i+1}</div>
+        <input type="text" class="slot-input" id="slotInput${i}"
+          placeholder="시리얼 번호 입력" autocomplete="off"
+          oninput="onSlotInput(${i})"
+          onkeydown="onSlotKeydown(event,${i})">
+        <div class="slot-model" id="slotModel${i}"></div>
+        <button class="slot-clear" id="slotClear${i}" onclick="clearSlot(${i})">✕</button>
+      </div>
+    `;
   }
-});
-
-function clearSerial() {
-  serialInput.value = '';
-  document.getElementById('serialClear').style.display = 'none';
-  hideModelInfo();
-  serialInput.focus();
 }
 
-function hideModelInfo() {
-  document.getElementById('modelInfo').classList.remove('show');
-  document.getElementById('modelUnknown').classList.remove('show');
-  document.getElementById('historyBadge').classList.remove('show');
-  document.getElementById('btnToStep1').disabled = true;
-}
+function onSlotInput(idx) {
+  const input = document.getElementById('slotInput' + idx);
+  const val = input.value.trim();
+  const modelEl = document.getElementById('slotModel' + idx);
+  const clearEl = document.getElementById('slotClear' + idx);
 
-async function processSerial(serial) {
-  const info = parseSerial(serial);
-  if (!info) return;
+  clearEl.style.display = val ? 'block' : 'none';
 
-  if (!info.modelName) {
-    document.getElementById('modelInfo').classList.remove('show');
-    document.getElementById('modelUnknown').classList.add('show');
-    document.getElementById('btnToStep1').disabled = true;
-    return;
-  }
-
-  document.getElementById('modelUnknown').classList.remove('show');
-
-  currentSerial = serial.trim();
-  currentModelCode = info.modelCode;
-  currentModelName = info.modelName;
-  currentColorCode = info.colorCode;
-  currentColorName = info.colorName;
-  currentManufDate = info.dateStr;
-
-  document.getElementById('infoModel').textContent = info.modelName;
-  document.getElementById('infoCode').textContent = info.modelCode;
-  document.getElementById('infoColor').textContent = info.colorName + (info.fullColorName ? ` (${info.fullColorName})` : '');
-  document.getElementById('infoDate').textContent = info.dateStr;
-  document.getElementById('modelInfo').classList.add('show');
-
-  // 이력 확인
-  await loadHistory(currentSerial);
-  if (history.length > 0) {
-    const lastResult = history[history.length - 1].result;
-    const rounds = history.length;
-    
-    if (lastResult === 'PASS') {
-      document.getElementById('historyText').textContent = `이미 PASS 처리됨 (${rounds}차). 다시 검사하려면 진행하세요.`;
-      currentRound = rounds + 1;
-    } else if (rounds >= 3) {
-      document.getElementById('historyText').textContent = `⚠️ 3회 검사 완료 (최종 FAIL). 추가 검사 불가.`;
-      document.getElementById('historyBadge').classList.add('show');
-      document.getElementById('btnToStep1').disabled = true;
-      return;
+  if(val.length >= 12) {
+    const info = parseSerial(val);
+    if(info && info.modelName) {
+      modelEl.textContent = info.modelName + ' · ' + info.colorName;
+      modelEl.classList.remove('error');
+    } else if(info) {
+      modelEl.textContent = '미등록 모델';
+      modelEl.classList.add('error');
     } else {
-      currentRound = rounds + 1;
-      document.getElementById('historyText').textContent = `이전 ${rounds}차 FAIL. 이번은 ${currentRound}차 검사입니다.`;
+      modelEl.textContent = '';
     }
-    document.getElementById('historyBadge').classList.add('show');
   } else {
-    currentRound = 1;
-    document.getElementById('historyBadge').classList.remove('show');
+    modelEl.textContent = '';
   }
-
-  document.getElementById('btnToStep1').disabled = false;
+  checkStartReady();
 }
 
-// ========== STEPS ==========
-async function goToStep(step) {
-  if (step === 1) {
-    showLoading('체크리스트 로딩 중...');
-    await loadChecklist(currentModelName);
+function onSlotKeydown(e, idx) {
+  if(e.key === 'Enter' && idx < SLOT_COUNT - 1) {
+    document.getElementById('slotInput' + (idx + 1)).focus();
+  }
+}
+
+function clearSlot(idx) {
+  document.getElementById('slotInput' + idx).value = '';
+  document.getElementById('slotModel' + idx).textContent = '';
+  document.getElementById('slotClear' + idx).style.display = 'none';
+  checkStartReady();
+  document.getElementById('slotInput' + idx).focus();
+}
+
+function checkStartReady() {
+  let validCount = 0;
+  for(let i = 0; i < SLOT_COUNT; i++) {
+    const val = document.getElementById('slotInput' + i).value.trim();
+    if(val.length >= 12) {
+      const info = parseSerial(val);
+      if(info && info.modelName) validCount++;
+    }
+  }
+  document.getElementById('btnStartQC').disabled = (validCount === 0);
+  document.getElementById('btnStartQC').textContent =
+    validCount > 0 ? `QC 검사 시작 (${validCount}대) →` : 'QC 검사 시작 →';
+}
+
+// ========== START QC ==========
+async function startQC() {
+  showLoading('QC 데이터 준비 중...');
+
+  slots = [];
+  qcStates = [];
+
+  for(let i = 0; i < SLOT_COUNT; i++) {
+    const val = document.getElementById('slotInput' + i).value.trim();
+    if(val.length < 12) continue;
+    const info = parseSerial(val);
+    if(!info || !info.modelName) continue;
+
+    let hist = [];
+    let round = 1;
+    try {
+      const r = await jsonp({action:'getHistory', serial: val});
+      if(r.success) {
+        hist = r.data;
+        if(hist.length > 0) {
+          const lastResult = hist[hist.length-1].result;
+          if(hist.length >= 3 && lastResult !== 'PASS') {
+            continue; // 3회 초과 FAIL - 스킵
+          }
+          round = hist.length + 1;
+        }
+      }
+    } catch(e) {}
+
+    slots.push({
+      serial: val,
+      modelCode: info.modelCode,
+      modelName: info.modelName,
+      colorCode: info.colorCode,
+      colorName: info.colorName,
+      fullColorName: info.fullColorName,
+      manufDate: info.dateStr,
+      round: round,
+      history: hist
+    });
+  }
+
+  if(slots.length === 0) {
     hideLoading();
-    renderChecklist();
-    updateRoundBadge();
-  }
-
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.getElementById('step' + step).classList.add('active');
-
-  // Update step dots
-  for (let i = 0; i <= 3; i++) {
-    const dot = document.getElementById('dot' + i);
-    dot.className = 'step-dot';
-    if (i < step) dot.classList.add('done');
-    if (i === step) dot.classList.add('active');
-  }
-
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-function updateRoundBadge() {
-  const classes = ['round-1','round-2','round-3'];
-  const labels = ['🔵 1차 검사','🟡 2차 검사','🔴 3차 검사 (최종)'];
-  const idx = Math.min(currentRound, 3) - 1;
-
-  ['roundBadge','roundBadge2'].forEach(id => {
-    const el = document.getElementById(id);
-    el.className = 'round-badge ' + classes[idx];
-    el.textContent = labels[idx];
-  });
-}
-
-// ========== CHECKLIST ==========
-function renderChecklist() {
-  const area = document.getElementById('checklistArea');
-  document.getElementById('checklistModelName').textContent = currentModelName;
-
-  if (checklist.length === 0) {
-    area.innerHTML = '<li style="padding:20px;text-align:center;color:var(--text2);">등록된 체크리스트가 없습니다.<br><small>QC_체크리스트 시트에 항목을 추가하세요.</small></li>';
-    updateCheckProgress();
+    showToast('검사 가능한 머신이 없습니다.', 'error');
     return;
   }
 
-  area.innerHTML = checklist.map((item, i) => `
-    <li class="checklist-item" onclick="toggleCheck(${i})" id="chk_${i}">
-      <div class="chk-box" id="chkbox_${i}"></div>
-      <span class="chk-label">${item.item}</span>
-    </li>
-  `).join('');
-  updateCheckProgress();
+  // 체크리스트 로드
+  const modelNames = [...new Set(slots.map(s => s.modelName))];
+  const checklistMap = {};
+  for(const mn of modelNames) {
+    try {
+      const r = await jsonp({action:'getChecklist', model: mn});
+      if(r.success) checklistMap[mn] = r.data.sort((a,b) => a.order - b.order);
+      else checklistMap[mn] = [];
+    } catch(e) { checklistMap[mn] = []; }
+  }
+
+  qcStates = slots.map(s => ({
+    checklist: (checklistMap[s.modelName] || []).map(item => ({ item: item.item, checked: false })),
+    result: null,
+    note: ''
+  }));
+
+  hideLoading();
+  renderQCBoxes();
+  showPage('pageQC');
 }
 
-function toggleCheck(i) {
-  checkStates[i] = !checkStates[i];
-  const el = document.getElementById('chk_' + i);
-  const box = document.getElementById('chkbox_' + i);
-  if (checkStates[i]) {
+// ========== RENDER QC BOXES ==========
+function renderQCBoxes() {
+  const grid = document.getElementById('qcGrid');
+  grid.innerHTML = slots.map((s, idx) => {
+    const roundClass = s.round >= 3 ? 'round-3' : s.round === 2 ? 'round-2' : 'round-1';
+    const roundLabel = s.round >= 3 ? `${s.round}차 (최종)` : `${s.round}차`;
+    const cl = qcStates[idx].checklist;
+
+    return `
+      <div class="qc-box fade-up" style="animation-delay:${idx*0.08}s" id="qcBox${idx}">
+        <div class="qc-box-header">
+          <div class="qc-box-info">
+            <div class="qc-box-num ${BOX_COLORS[idx]}">${idx+1}</div>
+            <div>
+              <div class="qc-box-model">${s.modelName}</div>
+              <div class="qc-box-serial">${s.serial}</div>
+              <div class="qc-box-color">${s.colorName}${s.fullColorName ? ' · ' + s.fullColorName : ''}</div>
+            </div>
+          </div>
+          <span class="qc-box-round ${roundClass}">${roundLabel}</span>
+        </div>
+
+        <div class="qc-box-body">
+          <div class="mini-progress" id="prog${idx}">0 / ${cl.length}</div>
+          <ul class="mini-checklist" id="cl${idx}">
+            ${cl.length > 0 ? cl.map((c, ci) => `
+              <li class="mini-chk" onclick="toggleQCCheck(${idx},${ci})" id="mc${idx}_${ci}">
+                <div class="mini-chk-box"></div>
+                <span class="mini-chk-label">${c.item}</span>
+              </li>
+            `).join('') : '<li style="padding:10px;text-align:center;color:var(--text2);font-size:12px;">체크리스트 없음</li>'}
+          </ul>
+          <textarea class="mini-note" placeholder="비고 (선택)" oninput="qcStates[${idx}].note=this.value"></textarea>
+        </div>
+
+        <div class="qc-box-footer">
+          <button class="pf-btn pf-pass" onclick="setResult(${idx},'PASS')" id="passBtn${idx}">PASS</button>
+          <button class="pf-btn pf-fail" onclick="setResult(${idx},'FAIL')" id="failBtn${idx}">FAIL</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  updateSubmitStatus();
+}
+
+function toggleQCCheck(boxIdx, itemIdx) {
+  const st = qcStates[boxIdx];
+  st.checklist[itemIdx].checked = !st.checklist[itemIdx].checked;
+  const el = document.getElementById(`mc${boxIdx}_${itemIdx}`);
+  const box = el.querySelector('.mini-chk-box');
+  if(st.checklist[itemIdx].checked) {
     el.classList.add('checked');
     box.textContent = '✓';
   } else {
     el.classList.remove('checked');
     box.textContent = '';
   }
-  updateCheckProgress();
+  const checkedCount = st.checklist.filter(c => c.checked).length;
+  document.getElementById(`prog${boxIdx}`).textContent = `${checkedCount} / ${st.checklist.length}`;
 }
 
-function updateCheckProgress() {
-  const total = checkStates.length;
-  const done = checkStates.filter(Boolean).length;
-  document.getElementById('checkProgress').textContent = total > 0 ? `${done} / ${total}` : '';
+function setResult(boxIdx, result) {
+  qcStates[boxIdx].result = result;
+  document.getElementById('passBtn' + boxIdx).classList.toggle('selected', result === 'PASS');
+  document.getElementById('failBtn' + boxIdx).classList.toggle('selected', result === 'FAIL');
+  updateSubmitStatus();
 }
 
-// ========== SUBMIT RESULT ==========
-async function submitResult(result) {
-  const tech = document.getElementById('techSelect').value;
-  const note = document.getElementById('noteInput').value.trim();
+function updateSubmitStatus() {
+  const decided = qcStates.filter(s => s.result !== null).length;
+  const total = qcStates.length;
+  const statusEl = document.getElementById('submitStatus');
+  const btnEl = document.getElementById('btnSubmitAll');
 
-  const checklistResult = checklist.map((item, i) => ({
-    item: item.item,
-    checked: checkStates[i]
-  }));
+  if(decided === total) {
+    statusEl.textContent = `✅ ${total}대 모두 판정 완료`;
+    btnEl.disabled = false;
+  } else {
+    statusEl.textContent = `${decided} / ${total} 판정 완료 — 모두 선택해주세요`;
+    btnEl.disabled = true;
+  }
+}
 
-  const payload = {
-    action: 'saveQC',
-    serial: currentSerial,
-    modelCode: currentModelCode,
-    modelName: currentModelName,
-    colorCode: currentColorCode,
-    colorName: currentColorName,
-    round: currentRound,
-    checklist: checklistResult,
-    result: result,
-    note: note,
-    technician: tech
-  };
-
+// ========== SUBMIT ALL ==========
+async function submitAll() {
   showLoading('저장 중...');
   try {
-    await postData(payload);
-    // no-cors이므로 성공 가정
-    showToast('저장 완료!');
-    renderSummary(result, checklistResult, tech, note);
-    goToStep(3);
+    for(let i = 0; i < slots.length; i++) {
+      const s = slots[i];
+      const st = qcStates[i];
+      await postData({
+        action: 'saveQC',
+        serial: s.serial,
+        modelCode: s.modelCode,
+        modelName: s.modelName,
+        colorCode: s.colorCode,
+        colorName: s.colorName,
+        round: s.round,
+        checklist: st.checklist,
+        result: st.result,
+        note: st.note,
+        technician: currentTech
+      });
+    }
+    hideLoading();
+    const passCount = qcStates.filter(s => s.result === 'PASS').length;
+    const failCount = qcStates.filter(s => s.result === 'FAIL').length;
+    showToast(`저장 완료! PASS ${passCount} / FAIL ${failCount}`);
+
+    setTimeout(() => {
+      resetSerialInputs();
+      showPage('pageMain');
+      setTimeout(() => document.getElementById('slotInput0')?.focus(), 100);
+    }, 1200);
   } catch(e) {
+    hideLoading();
     showToast('저장 실패: ' + e.message, 'error');
   }
-  hideLoading();
 }
 
-// ========== SUMMARY ==========
-function renderSummary(result, checklistResult, tech, note) {
-  const box = document.getElementById('summaryResultBox');
-  const icon = document.getElementById('summaryIcon');
-  const label = document.getElementById('summaryLabel');
-
-  if (result === 'PASS') {
-    box.className = 'summary-result pass';
-    icon.textContent = '✅';
-    label.textContent = 'PASS';
-  } else {
-    box.className = 'summary-result fail';
-    icon.textContent = '❌';
-    label.textContent = 'FAIL';
+function resetSerialInputs() {
+  for(let i = 0; i < SLOT_COUNT; i++) {
+    document.getElementById('slotInput' + i).value = '';
+    document.getElementById('slotModel' + i).textContent = '';
+    document.getElementById('slotClear' + i).style.display = 'none';
   }
+  document.getElementById('btnStartQC').disabled = true;
+  document.getElementById('btnStartQC').textContent = 'QC 검사 시작 →';
+  slots = [];
+  qcStates = [];
+}
 
-  const checkedCount = checklistResult.filter(c => c.checked).length;
-
-  const grid = document.getElementById('summaryGrid');
-  grid.innerHTML = `
-    <div class="summary-row"><span class="lbl">시리얼 번호</span><span class="val">${currentSerial}</span></div>
-    <div class="summary-row"><span class="lbl">모델명</span><span class="val">${currentModelName}</span></div>
-    <div class="summary-row"><span class="lbl">색상</span><span class="val">${currentColorName}</span></div>
-    <div class="summary-row"><span class="lbl">제조일</span><span class="val">${currentManufDate}</span></div>
-    <div class="summary-row"><span class="lbl">검사 차수</span><span class="val">${currentRound}차</span></div>
-    <div class="summary-row"><span class="lbl">체크리스트</span><span class="val">${checkedCount} / ${checklistResult.length}</span></div>
-    <div class="summary-row"><span class="lbl">담당자</span><span class="val">${tech || '-'}</span></div>
-    ${note ? `<div class="summary-row"><span class="lbl">비고</span><span class="val">${note}</span></div>` : ''}
-  `;
-
-  // 재검사 버튼
-  const btnRetry = document.getElementById('btnRetry');
-  if (result === 'FAIL' && currentRound < 3) {
-    btnRetry.style.display = 'block';
-    btnRetry.textContent = `🔁 ${currentRound + 1}차 재검사`;
-  } else {
-    btnRetry.style.display = 'none';
+function backToMain() {
+  if(qcStates.some(s => s.result !== null)) {
+    if(!confirm('진행 중인 검사 데이터가 사라집니다. 돌아가시겠습니까?')) return;
   }
-
-  // 이력 테이블
-  renderHistoryTable(result, tech, note);
+  showPage('pageMain');
 }
 
-function renderHistoryTable(latestResult, latestTech, latestNote) {
-  const allRecords = [...history, {
-    date: new Date().toLocaleString('ko-KR'),
-    round: currentRound,
-    result: latestResult,
-    technician: latestTech
-  }];
-
-  if (allRecords.length > 0) {
-    document.getElementById('historyCard').style.display = 'block';
-    const tbody = document.getElementById('historyBody');
-    tbody.innerHTML = allRecords.map(r => `
-      <tr>
-        <td>${r.date || '-'}</td>
-        <td>${r.round}차</td>
-        <td><span class="${r.result === 'PASS' ? 'badge-pass' : 'badge-fail'}">${r.result}</span></td>
-        <td>${r.technician || '-'}</td>
-      </tr>
-    `).join('');
-  }
+function goHome() {
+  if(window.opener || document.referrer) window.history.back();
+  else window.location.href = 'index.html';
 }
 
-// ========== RETRY ==========
-function retryQC() {
-  currentRound++;
-  checkStates = new Array(checklist.length).fill(false);
-  document.getElementById('noteInput').value = '';
-  renderChecklist();
-  updateRoundBadge();
-  goToStep(1);
-}
-
-// ========== RESET ==========
-function resetAll() {
-  currentSerial = '';
-  currentModelCode = '';
-  currentModelName = '';
-  currentColorCode = '';
-  currentColorName = '';
-  currentManufDate = '';
-  currentRound = 1;
-  checklist = [];
-  checkStates = [];
-  history = [];
-
-  serialInput.value = '';
-  document.getElementById('serialClear').style.display = 'none';
-  document.getElementById('noteInput').value = '';
-  document.getElementById('techSelect').value = '';
-  hideModelInfo();
-  goToStep(0);
-}
-
-// ========== NAV ==========
-function goBack() {
-  if (window.opener || document.referrer) {
-    window.history.back();
-  } else {
-    window.location.href = 'index.html';
-  }
-}
-
-// ========== START ==========
 init();
 </script>
 </body>
