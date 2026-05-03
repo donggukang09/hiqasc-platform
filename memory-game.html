@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>🐱 기억력 카드 게임</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Press Start 2P', monospace;
+            background: #0a0e1a;
+            color: #eaeaea;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            user-select: none;
+        }
+
+        .hud {
+            width: 100%; max-width: 520px;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 16px;
+        }
+        .hud-item { font-size: 9px; color: #f7b731; display: flex; align-items: center; gap: 5px; }
+        .hud-value { font-size: 13px; color: #fff; }
+
+        .level-title {
+            font-size: 11px; color: #4a90e2; margin: 8px 0 12px;
+            text-align: center; letter-spacing: 2px;
+        }
+
+        .card-grid {
+            display: grid;
+            gap: 8px;
+            padding: 0 12px;
+            max-width: 520px;
+            width: 100%;
+        }
+
+        .card {
+            aspect-ratio: 1;
+            background: linear-gradient(135deg, #1a2040, #162030);
+            border: 2px solid #2a3a5a;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.15s, border-color 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover:not(.flipped):not(.matched) {
+            border-color: #4a90e2;
+            transform: scale(1.03);
+        }
+
+        .card.flipped {
+            border-color: #f7b731;
+            background: linear-gradient(135deg, #1a2a3a, #1a3040);
+        }
+
+        .card.matched {
+            border-color: #27ae60;
+            background: linear-gradient(135deg, #0a2a1a, #0a3020);
+            opacity: 0.7;
+        }
+
+        .card.wrong {
+            border-color: #e74c3c;
+            animation: cardShake 0.4s ease;
+        }
+
+        @keyframes cardShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .card canvas {
+            image-rendering: pixelated;
+        }
+
+        .card-back {
+            font-size: 1.6em;
+        }
+
+        /* 오버레이 */
+        .overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(5,8,16,0.92);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 100; gap: 14px;
+        }
+        .overlay.hidden { display: none; }
+        .overlay-title { font-size: 22px; color: #f7b731; text-shadow: 2px 2px 0 #e94560; text-align: center; line-height: 1.8; }
+        .overlay-sub { font-size: 12px; color: #8892a8; text-align: center; line-height: 2.4; max-width: 460px; }
+        .overlay-score { font-size: 26px; color: #f7b731; margin: 8px 0; }
+        .overlay-btn {
+            margin-top: 8px; padding: 14px 32px;
+            background: linear-gradient(135deg, #e94560, #c0392b);
+            border: none; color: #fff; font-family: 'Press Start 2P', monospace;
+            font-size: 10px; border-radius: 8px; cursor: pointer;
+        }
+        .overlay-btn:hover { transform: scale(1.05); }
+
+        .back-link {
+            position: fixed; top: 14px; left: 14px; padding: 6px 14px;
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 6px; color: #8892a8; text-decoration: none; font-size: 8px; z-index: 200;
+        }
+
+        /* 레벨 클리어 이펙트 */
+        .level-clear {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%);
+            font-size: 20px; color: #f7b731; text-shadow: 2px 2px 0 #e94560;
+            z-index: 50; pointer-events: none; opacity: 0;
+        }
+        .level-clear.show {
+            animation: levelClearAnim 1.5s ease forwards;
+        }
+        @keyframes levelClearAnim {
+            0% { opacity: 0; transform: translate(-50%,-50%) scale(0.5); }
+            30% { opacity: 1; transform: translate(-50%,-50%) scale(1.2); }
+            70% { opacity: 1; }
+            100% { opacity: 0; transform: translate(-50%,-50%) scale(1) translateY(-30px); }
+        }
+
+        .combo-text {
+            position: fixed; top: 40%; left: 50%; transform: translateX(-50%);
+            font-size: 14px; z-index: 50; pointer-events: none; opacity: 0;
+        }
+        .combo-text.show {
+            animation: comboAnim 0.8s ease forwards;
+        }
+        @keyframes comboAnim {
+            0% { opacity: 0; transform: translateX(-50%) scale(0.5); }
+            30% { opacity: 1; transform: translateX(-50%) scale(1.1); }
+            100% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+        }
+    </style>
+</head>
+<body>
+
+<a href="developer.html" class="back-link">← 돌아가기</a>
+
+<div class="hud">
+    <div class="hud-item">📏 LV.<span class="hud-value" id="hudLevel">1</span></div>
+    <div class="hud-item">⭐ <span class="hud-value" id="hudScore">0</span></div>
+    <div class="hud-item">🔄 <span class="hud-value" id="hudMoves">0</span></div>
+    <div class="hud-item">⏱️ <span class="hud-value" id="hudTime">0</span></div>
+</div>
+
+<div class="level-title" id="levelTitle">LEVEL 1 — 2쌍</div>
+<div class="card-grid" id="cardGrid"></div>
+
+<div class="level-clear" id="levelClear">🎉 LEVEL CLEAR!</div>
+<div class="combo-text" id="comboText"></div>
+
+<!-- 시작 -->
+<div class="overlay" id="startOverlay">
+    <div class="overlay-title">🐱 기억력 카드 게임</div>
+    <div class="overlay-sub">
+        같은 그림의 카드 짝을 찾아 뒤집으세요!<br>
+        레벨이 올라갈수록 카드가 늘어나요<br><br>
+        🐱 덴데 · 🐱 부우 · 🐟 츄르 · 🎣 낚싯대<br>
+        ⛺ 텐트 · 🔥 모닥불 · 🌙 달 · ⭐ 별<br>
+        🌿 캣닢 · ☕ 커피 · 👑 왕관 · 🎀 리본<br><br>
+        연속 매칭 시 콤보 보너스!
+    </div>
+    <button class="overlay-btn" onclick="startGame()">시작!</button>
+</div>
+
+<!-- 게임 오버 / 결과 -->
+<div class="overlay hidden" id="resultOverlay">
+    <div class="overlay-title" id="resultTitle"></div>
+    <div class="overlay-score" id="resultScore"></div>
+    <div class="overlay-sub" id="resultMsg"></div>
+    <button class="overlay-btn" onclick="startGame()">처음부터 다시!</button>
+</div>
+
+<script>
+// ============================================
+// 카드 그림 (도트 캐릭터들)
+// ============================================
+const CARD_TYPES = [
+    { id: 'dende', name: '덴데', draw: function(ctx, s) {
+        const p=(x,y,c)=>{ctx.fillStyle=c;ctx.fillRect(x*s,y*s,s,s)};
+        const d='#4a3728',m='#6b5240',l='#fff',eye='#4CAF50',ear='#d4a0a0',nose='#d4a0a0',pk='#1a1a1a';
+        p(3,0,d);p(4,0,d);p(8,0,d);p(9,0,d);
+        p(2,1,d);p(3,1,ear);p(4,1,d);p(8,1,d);p(9,1,ear);p(10,1,d);
+        p(2,2,d);p(3,2,m);p(4,2,m);p(5,2,m);p(6,2,d);p(7,2,m);p(8,2,d);p(9,2,d);p(10,2,d);
+        p(2,3,d);p(3,3,m);p(4,3,l);p(5,3,m);p(6,3,l);p(7,3,m);p(8,3,l);p(9,3,m);p(10,3,d);
+        p(2,4,m);p(3,4,l);p(4,4,eye);p(5,4,l);p(6,4,l);p(7,4,l);p(8,4,eye);p(9,4,l);p(10,4,m);
+        p(2,5,m);p(3,5,l);p(4,5,pk);p(5,5,l);p(6,5,nose);p(7,5,l);p(8,5,pk);p(9,5,l);p(10,5,m);
+        p(3,6,l);p(4,6,l);p(5,6,l);p(6,6,l);p(7,6,l);p(8,6,l);p(9,6,l);
+        p(2,7,d);p(3,7,m);p(4,7,l);p(5,7,l);p(6,7,l);p(7,7,l);p(8,7,l);p(9,7,m);p(10,7,d);
+        p(2,8,d);p(3,8,l);p(4,8,l);p(5,8,l);p(6,8,l);p(7,8,l);p(8,8,l);p(9,8,l);p(10,8,d);
+    }},
+    { id: 'boo', name: '부우', draw: function(ctx, s) {
+        const p=(x,y,c)=>{ctx.fillStyle=c;ctx.fillRect(x*s,y*s,s,s)};
+        const d='#e8913a',m='#f0a852',l='#fff',eye='#8BC34A',ear='#e8a0a0',nose='#e8a0a0',pk='#1a1a1a';
+        p(3,0,d);p(4,0,d);p(8,0,d);p(9,0,d);
+        p(2,1,d);p(3,1,ear);p(4,1,d);p(8,1,d);p(9,1,ear);p(10,1,d);
+        p(2,2,d);p(3,2,m);p(4,2,m);p(5,2,m);p(6,2,d);p(7,2,m);p(8,2,d);p(9,2,d);p(10,2,d);
+        p(2,3,d);p(3,3,m);p(4,3,l);p(5,3,m);p(6,3,l);p(7,3,m);p(8,3,l);p(9,3,m);p(10,3,d);
+        p(2,4,m);p(3,4,l);p(4,4,eye);p(5,4,l);p(6,4,l);p(7,4,l);p(8,4,eye);p(9,4,l);p(10,4,m);
+        p(2,5,m);p(3,5,l);p(4,5,pk);p(5,5,l);p(6,5,nose);p(7,5,l);p(8,5,pk);p(9,5,l);p(10,5,m);
+        p(3,6,l);p(4,6,l);p(5,6,l);p(6,6,l);p(7,6,l);p(8,6,l);p(9,6,l);
+        p(2,7,d);p(3,7,m);p(4,7,l);p(5,7,l);p(6,7,l);p(7,7,l);p(8,7,l);p(9,7,m);p(10,7,d);
+        p(2,8,d);p(3,8,l);p(4,8,l);p(5,8,l);p(6,8,l);p(7,8,l);p(8,8,l);p(9,8,l);p(10,8,d);
+    }},
+    { id: 'churu', name: '츄르', draw: function(ctx, s) {
+        const p=(x,y,c)=>{ctx.fillStyle=c;ctx.fillRect(x*s,y*s,s,s)};
+        p(5,0,'#bbb');p(6,0,'#bbb');
+        p(4,1,'#f5f5f5');p(5,1,'#FF5722');p(6,1,'#FF7043');p(7,1,'#f5f5f5');
+        p(3,2,'#f5f5f5');p(4,2,'#FF5722');p(5,2,'#FFCCBC');p(6,2,'#FF5722');p(7,2,'#FFCCBC');p(8,2,'#f5f5f5');
+        p(3,3,'#f5f5f5');p(4,3,'#FF7043');p(5,3,'#FF5722');p(6,3,'#FF7043');p(7,3,'#FF5722');p(8,3,'#f5f5f5');
+        p(3,4,'#f5f5f5');p(4,4,'#FF5722');p(5,4,'#FF7043');p(6,4,'#FF5722');p(7,4,'#FF7043');p(8,4,'#f5f5f5');
+        p(4,5,'#e0e0e0');p(5,5,'#e0e0e0');p(6,5,'#e0e0e0');p(7,5,'#e0e0e0');
+        p(3,7,'#FF5722');p(4,7,'#FF5722');p(5,7,'#ccc');p(6,7,'#FF5722');p(7,7,'#FF5722');p(8,7,'#ccc');
+    }},
+    { id: 'rod', name: '낚싯대', draw: function(ctx, s) {
+        const p=(x,y,c)=>{ctx.fillStyle=c;ctx.fillRect(x*s,y*s,s,s)};
+        p(9,0,'#B8956A');p(8,1,'#A0522D');p(7,2,'#8B7355');p(6,3,'#8B7355');p(5,4,'#8B7355');p(4,5,'#6B5340');p(3,6,'#5D4037');
+        p(9,1,'#8899aa');p(9,2,'#8899aa');p(9,3,'#8899aa');p(9,4,'#8899aa');p(9,5,'#8899aa');p(9,6,'#8899aa');p(9,7,'#8899aa');
+        p(8,4,'#e74c3c');p(9,8,'#c0c0c0');p(8,8,'#c0c0c0');
+    }},
+    { id: 'tent', name: '텐트', draw: function(ctx, s) {
+        const p=(x,y,c)=>{ctx.fillStyle=c;ctx.fillRect(x*s,y*s,s,s)};
+        const t='#e67e22',tl='#f39c12',td='#d35400';
+        p(5,1,tl);p(4,2,t);p(5,2,tl);p(6,2,t);
+        p(3,3,t);p(4,3,tl);p(5,3,tl);p(6,3,t);p(7,3,t);
+        p(2,4,t);p(3,4,tl);p(4,4,tl);p(5,4,t);p(6,4,t);p(7,4,t);p(8,4,t);
+        p(1,5,td);p(2,5,t);p(3,5,'#0a0e1a');p(4,5,'#0a0e1a');p(5,5,'#0a0e1a');p(6,5,t);p(7,5,t);p(8,5,td);p(9,5,td);
+        p(0,6,td);p(1,6,td);p(2,6,'#0a0e1a');p(3,6,'#0a0e1a');p(4,6,'#0a0e1a');p(5,6,'#0a0e1a');p(6,6,td);p(7,6,td);p(8,6,td);p(9,6,td);p(10,6,td);
+    }},
+    { id: 'fire', name: '모닥불', draw: function(ctx, s) {
+        const p=(x,y,c)=>{ctx.fillStyle=c;ctx.fillRect(x*s,y*s,s,s)};
+        p(5,1,'#FDD835');p(4,2,'#FF6F00');p(5,2,'#FFEB3B');p(6,2,'#FDD835');
+        p(3,3,'#FF6F00');p(4,3,'#FF9800');p(5,3,'#FFEB3B');p(6,3,'#FF9800');p(7,3,'#FF6F00');
+        p(3,4,'#FF5722');p(4,4,'#FF9800');p(5,4,'#FFEB3B');p(6,4,'#FF6F00');p(7,4,'#FF5722');
+        p(4,5,'#FF5722');p(5,5,'#FF9800');p(6,5,'#FF5722');
+        p(2,6,'#5D4037');p(3,6,'#5D4037');p(4,6,'#5D4037');p(5,6,'#5D4037');p(6,6,'#5D4037');p(7,6,'#5D4037');p(8,6,'#5D4037');
+        p(2,7,'#4E342E');p(3,7,'#5D4037');p(4,7,'#5D4037');p(5,7,'#5D4037');p(6,7,'#5D4037');p(7,7,'#5D4037');p(8,7,'#4E342E');
+    }},
+    { id: 'moon', name: '달', draw: function(ctx, s) {
+        const p=(x,y,c)=>{ctx.fillStyle=c;ctx.fillRect(x*s,y*s,s,s)};
+        p(4,1,'#ffeaa7');p(5,1,'#ffeaa7');p(6,1,'#ffeaa7');
+        p(3,2,'#ffeaa7');p(4,2,'#fdcb6e');p(5,2,'#ffeaa7');p(6,2,'#fdcb6e');p(7,2,'#ffeaa7');
+        p(3,3,'#fdcb6e');p(4,3,'#ffeaa7');p(5,3,'#fdcb6e');p(6,3,'#ffeaa7');p(7,3,'#fdcb6e');
+        p(3,4,'#ffeaa7');p(4,4,'#fdcb6e');p(5,4,'#ffeaa7');p(6,4,'#fdcb6e');p(7,4,'#ffeaa7');
+        p(3,5,'#fdcb6e');p(4,5,'#ffeaa7');p(5,5,'#fdcb6e');p(6,5,'#ffeaa7');p(7,5,'#fdcb6e');
+        p(4,6,'#ffeaa7');p(5,6,'#ffeaa7');p(6,6,'#ffeaa7');
+    }},
+    { id: 'star', name: '별', draw: function(ctx, s) {
+        const p=(x,y,c)=>{ctx.fillStyle=c;ctx.fillRect(x*s,y*s,s,s)};
+        p(5,0,'#f7b731');p(5,1,'#f7b731');
+        p(3,2,'#f7b731');p(4,2,'#ffeaa7');p(5,2,'#ffeaa7');p(6,2,'#ffeaa7');p(7,2,'#f7b731');
+        p(1,3,'#f7b731');p(2,3,'#ffeaa7');p(3,3,'#ffeaa7');p(4,3,'#ffeaa7');p(5,3,'#fff');p(6,3,'#ffeaa7');p(7,3,'#ffeaa7');p(8,3,'#ffeaa7');p(9,3,'#f7b731');
+        p(3,4,'#f7b731');p(4,4,'#ffeaa7');p(5,4,'#ffeaa7');p(6,4,'#ffeaa7');p(7,4,'#f7b731');
+        p(2,5,'#f7b731');p(3,5,'#ffeaa7');p(4,5,'#f7b731');p(6,5,'#f7b731');p(7,5,'#ffeaa7');p(8,5,'#f7b731');
+        p(1,6,'#f7b731');p(2,6,'#ffeaa7');p(8,6,'#ffeaa7');p(9,6,'#f7b731');
+    }},
+    { id: 'catnip', name: '캣닢', draw: function(ctx, s) {
+        const p=(x,y,c)=>{ctx.fillStyle=c;ctx.fillRect(x*s,y*s,s,s)};
+        p(5,7,'#33691E');p(5,6,'#33691E');p(5,5,'#558B2F');
+        p(2,4,'#4CAF50');p(3,3,'#66BB6A');p(3,4,'#81C784');p(4,2,'#81C784');p(4,3,'#A5D6A7');p(4,4,'#66BB6A');
+        p(6,2,'#81C784');p(6,3,'#A5D6A7');p(6,4,'#66BB6A');p(7,3,'#66BB6A');p(7,4,'#81C784');p(8,4,'#4CAF50');
+        p(5,2,'#C8E6C9');p(5,3,'#A5D6A7');p(5,4,'#81C784');
+    }},
+    { id: 'coffee', name: '커피', draw: function(ctx, s) {
+        const p=(x,y,c)=>{ctx.fillStyle=c;ctx.fillRect(x*s,y*s,s,s)};
+        p(3,1,'#8B6914');p(4,1,'#8B6914');p(5,1,'#8B6914');p(6,1,'#8B6914');p(7,1,'#8B6914');
+        p(3,2,'#6B5340');p(4,2,'#8B6914');p(5,2,'#A0522D');p(6,2,'#8B6914');p(7,2,'#6B5340');
+        p(3,3,'#6B5340');p(4,3,'#8B6914');p(5,3,'#8B6914');p(6,3,'#8B6914');p(7,3,'#6B5340');
+        p(3,4,'#5D4037');p(4,4,'#6B5340');p(5,4,'#6B5340');p(6,4,'#6B5340');p(7,4,'#5D4037');
+        p(4,5,'#5D4037');p(5,5,'#5D4037');p(6,5,'#5D4037');
+        p(8,2,'#5D4037');p(9,2,'#5D4037');p(9,3,'#5D4037');p(8,3,'#5D4037');
+        // 김
+        p(4,0,'#aaa');p(6,0,'#aaa');
+    }},
+    { id: 'crown', name: '왕관', draw: function(ctx, s) {
+        const p=(x,y,c)=>{ctx.fillStyle=c;ctx.fillRect(x*s,y*s,s,s)};
+        p(3,5,'#f1c40f');p(4,5,'#f1c40f');p(5,5,'#f1c40f');p(6,5,'#f1c40f');p(7,5,'#f1c40f');p(8,5,'#f1c40f');
+        p(3,4,'#f39c12');p(5,4,'#f39c12');p(7,4,'#f39c12');
+        p(3,3,'#f1c40f');p(5,3,'#f1c40f');p(7,3,'#f1c40f');
+        p(3,2,'#f7b731');p(5,2,'#f7b731');p(7,2,'#f7b731');
+        p(4,4,'#e74c3c');p(6,4,'#3498db');
+        p(3,6,'#d4ac0d');p(4,6,'#f1c40f');p(5,6,'#d4ac0d');p(6,6,'#f1c40f');p(7,6,'#d4ac0d');p(8,6,'#f1c40f');
+    }},
+    { id: 'ribbon', name: '리본', draw: function(ctx, s) {
+        const p=(x,y,c)=>{ctx.fillStyle=c;ctx.fillRect(x*s,y*s,s,s)};
+        p(5,3,'#ff69b4');p(6,3,'#ff1493');p(7,3,'#ff69b4');
+        p(4,2,'#ff69b4');p(5,2,'#ff1493');p(7,2,'#ff1493');p(8,2,'#ff69b4');
+        p(3,1,'#ff69b4');p(4,1,'#ff1493');p(8,1,'#ff1493');p(9,1,'#ff69b4');
+        p(2,0,'#ff69b4');p(3,0,'#ff69b4');p(9,0,'#ff69b4');p(10,0,'#ff69b4');
+        p(6,2,'#ffb6c1');
+        p(5,4,'#ff1493');p(6,4,'#ff1493');p(7,4,'#ff1493');
+        p(5,5,'#ff69b4');p(7,5,'#ff69b4');
+        p(4,6,'#ff69b4');p(8,6,'#ff69b4');
+    }},
+];
+
+// ============================================
+// 레벨 설정
+// ============================================
+const LEVELS = [
+    { pairs: 2, cols: 2, name: '워밍업', time: 30 },
+    { pairs: 3, cols: 3, name: '쉬운', time: 40 },
+    { pairs: 4, cols: 4, name: '보통', time: 50 },
+    { pairs: 6, cols: 4, name: '어려운', time: 60 },
+    { pairs: 8, cols: 4, name: '도전', time: 70 },
+    { pairs: 10, cols: 5, name: '고수', time: 80 },
+    { pairs: 12, cols: 4, name: '달인', time: 90 },
+];
+
+// ============================================
+// 게임 상태
+// ============================================
+let level, score, moves, combo, cards, flippedCards, matchedCount, locked, timer, timeLeft;
+
+function startGame() {
+    document.getElementById('startOverlay').classList.add('hidden');
+    document.getElementById('resultOverlay').classList.add('hidden');
+    level = 0; score = 0; moves = 0; combo = 0;
+    updateHUD();
+    loadLevel();
+}
+
+function loadLevel() {
+    if (level >= LEVELS.length) {
+        // 전부 클리어!
+        showResult('🏆 전 레벨 클리어!', score + '점', '모든 레벨을 클리어했습니다! 대단해요!');
+        return;
+    }
+
+    var lv = LEVELS[level];
+    var pairs = lv.pairs;
+    matchedCount = 0;
+    flippedCards = [];
+    locked = false;
+    combo = 0;
+
+    document.getElementById('hudLevel').textContent = level + 1;
+    document.getElementById('levelTitle').textContent = 'LEVEL ' + (level+1) + ' — ' + lv.name + ' (' + pairs + '쌍)';
+
+    // 사용할 카드 타입 선택 (랜덤)
+    var shuffledTypes = CARD_TYPES.slice().sort(function() { return Math.random() - 0.5; });
+    var selectedTypes = shuffledTypes.slice(0, pairs);
+
+    // 카드 배열 (짝으로)
+    cards = [];
+    selectedTypes.forEach(function(type) {
+        cards.push({ type: type, flipped: false, matched: false });
+        cards.push({ type: type, flipped: false, matched: false });
+    });
+
+    // 셔플
+    for (var i = cards.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var tmp = cards[i]; cards[i] = cards[j]; cards[j] = tmp;
+    }
+
+    // 그리드 생성
+    var grid = document.getElementById('cardGrid');
+    grid.innerHTML = '';
+    grid.style.gridTemplateColumns = 'repeat(' + lv.cols + ', 1fr)';
+
+    cards.forEach(function(card, idx) {
+        var div = document.createElement('div');
+        div.className = 'card';
+        div.innerHTML = '<div class="card-back">🐾</div>';
+        div.onclick = function() { flipCard(idx, div); };
+        card.el = div;
+
+        // 미리 캔버스 준비 (숨김)
+        var cvs = document.createElement('canvas');
+        var csize = lv.cols >= 5 ? 40 : lv.cols >= 4 ? 50 : 60;
+        cvs.width = csize; cvs.height = csize;
+        cvs.style.display = 'none';
+        cvs.style.imageRendering = 'pixelated';
+        var cctx = cvs.getContext('2d');
+        cctx.imageSmoothingEnabled = false;
+        var pxSize = Math.floor(csize / 12);
+        card.type.draw(cctx, pxSize);
+        card.canvas = cvs;
+        div.appendChild(cvs);
+
+        grid.appendChild(div);
+    });
+
+    // 잠깐 보여주기 (미리보기)
+    var previewTime = Math.max(1500, 3000 - level * 300);
+    cards.forEach(function(card) {
+        card.el.classList.add('flipped');
+        card.el.querySelector('.card-back').style.display = 'none';
+        card.canvas.style.display = 'block';
+    });
+    locked = true;
+    setTimeout(function() {
+        cards.forEach(function(card) {
+            card.el.classList.remove('flipped');
+            card.el.querySelector('.card-back').style.display = '';
+            card.canvas.style.display = 'none';
+        });
+        locked = false;
+    }, previewTime);
+
+    // 타이머
+    timeLeft = lv.time;
+    if (timer) clearInterval(timer);
+    document.getElementById('hudTime').textContent = timeLeft;
+    timer = setInterval(function() {
+        timeLeft--;
+        document.getElementById('hudTime').textContent = timeLeft;
+        if (timeLeft <= 0) {
+            clearInterval(timer);
+            showResult('⏰ 시간 초과!', score + '점', 'LEVEL ' + (level+1) + '에서 시간이 다 됐어요!');
+        }
+    }, 1000);
+
+    updateHUD();
+}
+
+function flipCard(idx, div) {
+    if (locked) return;
+    var card = cards[idx];
+    if (card.flipped || card.matched) return;
+
+    // 뒤집기
+    card.flipped = true;
+    div.classList.add('flipped');
+    div.querySelector('.card-back').style.display = 'none';
+    card.canvas.style.display = 'block';
+
+    flippedCards.push(idx);
+
+    if (flippedCards.length === 2) {
+        moves++;
+        document.getElementById('hudMoves').textContent = moves;
+        locked = true;
+
+        var c1 = cards[flippedCards[0]];
+        var c2 = cards[flippedCards[1]];
+
+        if (c1.type.id === c2.type.id) {
+            // 매칭 성공!
+            combo++;
+            var comboBonus = Math.min(combo, 5);
+            var points = 10 * comboBonus * (level + 1);
+            score += points;
+
+            setTimeout(function() {
+                c1.matched = true; c2.matched = true;
+                c1.el.classList.add('matched');
+                c2.el.classList.add('matched');
+                matchedCount += 2;
+                flippedCards = [];
+                locked = false;
+
+                // 콤보 표시
+                if (combo >= 2) {
+                    showCombo(combo, comboBonus);
+                }
+
+                // 레벨 클리어 체크
+                if (matchedCount >= cards.length) {
+                    clearInterval(timer);
+                    var timeBonus = timeLeft * 5;
+                    score += timeBonus;
+                    updateHUD();
+
+                    var el = document.getElementById('levelClear');
+                    el.textContent = '🎉 LEVEL ' + (level+1) + ' CLEAR! +' + timeBonus + ' 시간보너스';
+                    el.className = 'level-clear';
+                    void el.offsetWidth;
+                    el.className = 'level-clear show';
+
+                    setTimeout(function() {
+                        level++;
+                        loadLevel();
+                    }, 2000);
+                }
+            }, 300);
+        } else {
+            // 매칭 실패
+            combo = 0;
+            setTimeout(function() {
+                c1.el.classList.add('wrong');
+                c2.el.classList.add('wrong');
+                setTimeout(function() {
+                    c1.flipped = false; c2.flipped = false;
+                    c1.el.classList.remove('flipped', 'wrong');
+                    c2.el.classList.remove('flipped', 'wrong');
+                    c1.el.querySelector('.card-back').style.display = '';
+                    c2.el.querySelector('.card-back').style.display = '';
+                    c1.canvas.style.display = 'none';
+                    c2.canvas.style.display = 'none';
+                    flippedCards = [];
+                    locked = false;
+                }, 500);
+            }, 400);
+        }
+    }
+
+    updateHUD();
+}
+
+function showCombo(combo, bonus) {
+    var el = document.getElementById('comboText');
+    var colors = ['#f7b731', '#e74c3c', '#9b59b6', '#e74c3c', '#f7b731'];
+    el.textContent = '🔥 ' + combo + ' COMBO! x' + bonus;
+    el.style.color = colors[Math.min(combo-1, 4)];
+    el.className = 'combo-text';
+    void el.offsetWidth;
+    el.className = 'combo-text show';
+}
+
+function showResult(title, scoreText, msg) {
+    document.getElementById('resultTitle').textContent = title;
+    document.getElementById('resultScore').textContent = scoreText;
+    document.getElementById('resultMsg').textContent = msg;
+    document.getElementById('resultOverlay').classList.remove('hidden');
+    if (timer) clearInterval(timer);
+}
+
+function updateHUD() {
+    document.getElementById('hudScore').textContent = score;
+}
+</script>
+</body>
+</html>
