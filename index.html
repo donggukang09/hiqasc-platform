@@ -1072,6 +1072,11 @@
                         <div class="workspace-item-name">업무 플레이북</div>
                         <div class="workspace-item-desc">전사 업무 흐름<br>&amp; 온보딩 가이드</div>
                     </div>
+                    <div class="workspace-item" onclick="goTeam('quiz.html')">
+                        <div class="workspace-item-icon">📝</div>
+                        <div class="workspace-item-name">업무 퀴즈</div>
+                        <div class="workspace-item-desc">AS 업무 지식<br>퀴즈 &amp; 랭킹</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1182,11 +1187,6 @@
                         <div class="workspace-item-name">연차 신청</div>
                         <div class="workspace-item-desc">연차 신청 및<br>승인 관리</div>
                     </div>
-                    <div class="workspace-item" onclick="goTeam('qc.html')">
-                        <div class="workspace-item-icon">🔍</div>
-                        <div class="workspace-item-name">QC 품질검사</div>
-                        <div class="workspace-item-desc">수리 완료 머신<br>품질 검사 및 판정</div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -1253,6 +1253,7 @@
             { name: '조직도 & 담당', icon: '👥', desc: '조직 구성 및 업무 담당자', url: 'org-dashboard.html?v=' + Date.now(), team: '전사 공통', badge: 'common', iconClass: 'team-common', keywords: '조직도,담당,조직,구성,인원,org' },
             { name: 'HIQASC 팀 현황', icon: '📊', desc: '근무 현황, 연차, 당일 수리 현황', url: 'team-dashboard.html', team: '전사 공통', badge: 'common', iconClass: 'team-common', keywords: '팀현황,근무,연차,수리현황,team,dashboard' },
             { name: '업무 플레이북', icon: '📖', desc: '전사 업무 흐름 & 온보딩 가이드', url: 'daily-playbook.html', team: '전사 공통', badge: 'common', iconClass: 'team-common', keywords: '플레이북,온보딩,가이드,업무흐름,playbook' },
+            { name: '업무 퀴즈', icon: '📝', desc: 'AS 업무 지식 퀴즈 & 랭킹', url: 'quiz.html', team: '전사 공통', badge: 'common', iconClass: 'team-common', keywords: '퀴즈,시험,테스트,quiz,랭킹,문제' },
             // === index.html — 데이터 센터 ===
             { name: 'AS현황 대시보드', icon: '🖥️', desc: '머신 수량 현황 실시간 모니터링', url: 'machine-dashboard.html', team: '데이터 센터', badge: 'data', iconClass: 'team-data', keywords: '머신,수량,현황,대시보드,machine,tv' },
             { name: 'AS 로우 데이터', icon: '📊', desc: '입고·완료 현황 및 테크니션 실적 분석', url: 'weekly-closing-dashboard.html', team: '데이터 센터', badge: 'data', iconClass: 'team-data', keywords: '주간마감,마감,실적,입고,완료,weekly,closing,로우데이터,raw' },
@@ -1266,7 +1267,6 @@
             { name: '기안 & 결재', icon: '📝', desc: '기안서 제출 및 승인 워크플로우', url: 'approval-system.html', team: '업무 지원', badge: 'support', iconClass: 'team-support', keywords: '기안,결재,승인,approval' },
             { name: '일일 업무 보고', icon: '📅', desc: '매일 업무 종료 시 작성하는 보고서', url: 'daily-report.html', team: '업무 지원', badge: 'support', iconClass: 'team-support', keywords: '일일보고,업무보고,daily,report' },
             { name: '연차 신청', icon: '🌴', desc: '연차 신청 및 승인 관리', url: 'https://donggukang09.github.io/hiqasc-overtime/leave_request.html', team: '업무 지원', badge: 'support', iconClass: 'team-support', external: true, keywords: '연차,휴가,신청,leave' },
-            { name: 'QC 품질검사', icon: '🔍', desc: '수리 완료 머신 품질 검사 및 PASS/FAIL 판정', url: 'qc.html', team: '업무 지원', badge: 'support', iconClass: 'team-support', keywords: 'QC,품질,검사,테스트,quality,check,pass,fail' },
             // === as-team.html — 데이터 분석 ===
             { name: '백로그 대시보드', icon: '📈', desc: '일간/주간 수리 백로그 현황', url: 'as-team.html#sec-data', page: 'backlog-dashboard.html', team: 'AS Team', badge: 'as', iconClass: 'team-as', keywords: '백로그,잔여,backlog' },
             { name: '모델 성취도 대시보드', icon: '✅', desc: '테크니션별 모델 수리 가능 현황 매트릭스', url: 'model-achievement.html', team: 'AS Team', badge: 'as', iconClass: 'team-as', keywords: '모델,성취도,매트릭스,교육,achievement' },

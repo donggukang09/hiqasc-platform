@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📝 HIQASC 업무 퀴즈</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #1e1e1e; --bg2: #2a2a2a; --card: #333; --accent: #4a90e2;
+            --correct: #27ae60; --wrong: #e74c3c; --text: #e0e0e0; --text2: #888;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Manrope', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+        .page-wrap { max-width: 700px; margin: 0 auto; padding: 20px; }
+
+        /* 헤더 */
+        .quiz-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 16px 0; border-bottom: 1px solid #333; margin-bottom: 20px;
+        }
+        .quiz-title { font-family: 'Outfit', sans-serif; font-size: 1.3em; font-weight: 800; color: var(--accent); }
+        .quiz-back { color: var(--text2); text-decoration: none; font-size: 0.85em; padding: 6px 14px;
+            border: 1px solid #444; border-radius: 8px; transition: all 0.3s; }
+        .quiz-back:hover { border-color: var(--accent); color: var(--text); }
+
+        /* 시작 화면 */
+        .start-screen { text-align: center; padding: 60px 20px; }
+        .start-screen h2 { font-family: 'Outfit', sans-serif; font-size: 1.8em; font-weight: 800; margin-bottom: 12px; }
+        .start-screen p { color: var(--text2); margin-bottom: 30px; line-height: 1.8; }
+        .start-btn {
+            padding: 14px 40px; background: var(--accent); border: none; color: #fff;
+            font-family: 'Manrope', sans-serif; font-size: 1em; font-weight: 700;
+            border-radius: 10px; cursor: pointer; transition: all 0.3s;
+        }
+        .start-btn:hover { background: #357abd; transform: scale(1.02); }
+
+        .name-input {
+            display: block; width: 280px; margin: 0 auto 20px; padding: 12px 16px;
+            background: var(--bg2); border: 2px solid #444; border-radius: 10px;
+            color: var(--text); font-family: 'Manrope', sans-serif; font-size: 1em;
+            text-align: center; outline: none; transition: border-color 0.3s;
+        }
+        .name-input:focus { border-color: var(--accent); }
+
+        /* 퀴즈 화면 */
+        .quiz-screen { display: none; }
+
+        .progress-bar { height: 6px; background: #333; border-radius: 3px; margin-bottom: 16px; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--accent); transition: width 0.3s; border-radius: 3px; }
+
+        .quiz-info {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 16px; font-size: 0.85em; color: var(--text2);
+        }
+        .quiz-category {
+            display: inline-block; padding: 4px 12px; background: rgba(74,144,226,0.1);
+            border: 1px solid rgba(74,144,226,0.3); border-radius: 6px; color: var(--accent); font-weight: 600;
+        }
+
+        /* 타이머 */
+        .timer-wrap { position: relative; width: 60px; height: 60px; }
+        .timer-ring { transform: rotate(-90deg); }
+        .timer-bg { fill: none; stroke: #333; stroke-width: 4; }
+        .timer-fill { fill: none; stroke: var(--accent); stroke-width: 4; stroke-linecap: round;
+            stroke-dasharray: 163; stroke-dashoffset: 0; transition: stroke-dashoffset 0.3s, stroke 0.3s; }
+        .timer-fill.danger { stroke: var(--wrong); }
+        .timer-text {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+            font-family: 'Outfit', sans-serif; font-size: 1.2em; font-weight: 800;
+        }
+        .timer-text.danger { color: var(--wrong); }
+
+        /* 문제 */
+        .question-card {
+            background: var(--bg2); border: 1px solid #3a3a3a; border-radius: 14px;
+            padding: 28px 24px; margin-bottom: 20px;
+        }
+        .question-number { font-size: 0.8em; color: var(--accent); font-weight: 700; margin-bottom: 8px; }
+        .question-text { font-size: 1.15em; font-weight: 600; line-height: 1.6; }
+
+        /* 보기 */
+        .choices { display: flex; flex-direction: column; gap: 10px; }
+        .choice-btn {
+            padding: 16px 20px; background: var(--bg2); border: 2px solid #3a3a3a;
+            border-radius: 12px; color: var(--text); font-family: 'Manrope', sans-serif;
+            font-size: 0.95em; font-weight: 500; cursor: pointer; text-align: left;
+            transition: all 0.2s; display: flex; align-items: center; gap: 14px;
+        }
+        .choice-btn:hover:not(:disabled) { border-color: var(--accent); background: rgba(74,144,226,0.05); transform: translateX(4px); }
+        .choice-btn:disabled { cursor: default; }
+        .choice-num {
+            min-width: 32px; height: 32px; border-radius: 8px; background: #3a3a3a;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 0.85em; flex-shrink: 0;
+        }
+        .choice-btn.correct { border-color: var(--correct); background: rgba(39,174,96,0.1); }
+        .choice-btn.correct .choice-num { background: var(--correct); color: #fff; }
+        .choice-btn.wrong { border-color: var(--wrong); background: rgba(231,76,60,0.08); }
+        .choice-btn.wrong .choice-num { background: var(--wrong); color: #fff; }
+
+        /* 피드백 */
+        .feedback {
+            text-align: center; padding: 12px; margin-top: 12px; border-radius: 10px;
+            font-weight: 700; font-size: 0.95em; display: none;
+        }
+        .feedback.correct { display: block; background: rgba(39,174,96,0.1); color: var(--correct); border: 1px solid rgba(39,174,96,0.3); }
+        .feedback.wrong { display: block; background: rgba(231,76,60,0.08); color: var(--wrong); border: 1px solid rgba(231,76,60,0.3); }
+        .feedback.timeout { display: block; background: rgba(241,196,15,0.08); color: #f1c40f; border: 1px solid rgba(241,196,15,0.3); }
+
+        /* 결과 화면 */
+        .result-screen { display: none; text-align: center; padding: 40px 20px; }
+        .result-grade { font-size: 3em; margin-bottom: 10px; }
+        .result-title { font-family: 'Outfit', sans-serif; font-size: 1.6em; font-weight: 800; margin-bottom: 8px; }
+        .result-score { font-family: 'Outfit', sans-serif; font-size: 2.4em; font-weight: 800; color: var(--accent); margin: 16px 0; }
+        .result-stats { display: flex; justify-content: center; gap: 30px; margin: 20px 0; font-size: 0.9em; color: var(--text2); }
+        .result-stat-value { font-family: 'Outfit', sans-serif; font-size: 1.4em; font-weight: 700; color: var(--text); }
+
+        /* 랭킹 */
+        .ranking-section { margin-top: 30px; }
+        .ranking-title { font-family: 'Outfit', sans-serif; font-size: 1.1em; font-weight: 700; color: var(--accent);
+            margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid #333; }
+        .ranking-table { width: 100%; border-collapse: collapse; }
+        .ranking-table th { font-size: 0.75em; color: var(--text2); text-align: left; padding: 8px 10px;
+            border-bottom: 1px solid #333; font-weight: 600; }
+        .ranking-table td { padding: 10px; border-bottom: 1px solid #2a2a2a; font-size: 0.85em; }
+        .ranking-table tr:hover td { background: rgba(74,144,226,0.03); }
+        .rank-medal { font-size: 1.2em; }
+        .rank-me { background: rgba(74,144,226,0.05); }
+        .rank-me td { color: var(--accent); font-weight: 600; }
+
+        .loading-msg { text-align: center; color: var(--text2); padding: 40px; font-size: 0.9em; }
+
+        @media (max-width: 600px) {
+            .page-wrap { padding: 12px; }
+            .question-text { font-size: 1em; }
+            .choice-btn { padding: 12px 14px; font-size: 0.88em; }
+        }
+    </style>
+</head>
+<body>
+<div class="page-wrap">
+    <!-- 헤더 -->
+    <div class="quiz-header">
+        <div class="quiz-title">📝 HIQASC 업무 퀴즈</div>
+        <a href="index.html" class="quiz-back">🏠 메인으로</a>
+    </div>
+
+    <!-- 시작 화면 -->
+    <div class="start-screen" id="startScreen">
+        <h2>📝 HIQASC 업무 퀴즈</h2>
+        <p>
+            네스프레소 AS 업무 관련 퀴즈입니다<br>
+            4지선다 · 문제당 10초 제한<br>
+            도전해보세요! 🏆
+        </p>
+        <input class="name-input" id="playerName" placeholder="이름을 입력하세요" maxlength="10">
+        <br>
+        <button class="start-btn" onclick="startQuiz()">퀴즈 시작!</button>
+        <div class="ranking-section" id="startRanking">
+            <div class="ranking-title">🏆 TOP 10 랭킹</div>
+            <div id="startRankingList"><div class="loading-msg">랭킹 로딩 중...</div></div>
+        </div>
+    </div>
+
+    <!-- 퀴즈 화면 -->
+    <div class="quiz-screen" id="quizScreen">
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+        <div class="quiz-info">
+            <div>
+                <span id="questionCounter">1 / 10</span>
+                <span class="quiz-category" id="questionCategory">카테고리</span>
+            </div>
+            <div class="timer-wrap">
+                <svg class="timer-ring" width="60" height="60" viewBox="0 0 60 60">
+                    <circle class="timer-bg" cx="30" cy="30" r="26"/>
+                    <circle class="timer-fill" id="timerFill" cx="30" cy="30" r="26"/>
+                </svg>
+                <div class="timer-text" id="timerText">10</div>
+            </div>
+        </div>
+        <div class="question-card">
+            <div class="question-number" id="questionNumber">Q1</div>
+            <div class="question-text" id="questionText">문제가 표시됩니다</div>
+        </div>
+        <div class="choices" id="choices"></div>
+        <div class="feedback" id="feedback"></div>
+    </div>
+
+    <!-- 결과 화면 -->
+    <div class="result-screen" id="resultScreen">
+        <div class="result-grade" id="resultGrade">🏆</div>
+        <div class="result-title" id="resultTitle">수고하셨습니다!</div>
+        <div class="result-score" id="resultScoreText">0 / 0</div>
+        <div class="result-stats">
+            <div><div class="result-stat-value" id="resultCorrect">0</div>정답</div>
+            <div><div class="result-stat-value" id="resultWrong">0</div>오답</div>
+            <div><div class="result-stat-value" id="resultTime">0초</div>소요시간</div>
+        </div>
+        <button class="start-btn" onclick="startQuiz()" style="margin-top:16px">다시 도전!</button>
+        <button class="start-btn" onclick="goHome()" style="margin-top:10px;background:#555">메인으로</button>
+        <div class="ranking-section">
+            <div class="ranking-title">🏆 TOP 10 랭킹</div>
+            <div id="resultRankingList"><div class="loading-msg">랭킹 저장 중...</div></div>
+        </div>
+    </div>
+</div>
+
+<script>
+// ============================================
+// 설정
+// ============================================
+const QUIZ_SHEET_ID = '1Lq551ZVQjhSlDThkBG1pEllfNKegtYZSFClvVbuma6U';
+const QUIZ_TAB = '퀴즈';
+const RANKING_TAB = '랭킹';
+// Apps Script URL — 랭킹 저장용 (배포 후 여기에 붙여넣기)
+const RANKING_SCRIPT_URL = '';
+const TIME_LIMIT = 10; // 문제당 초
+const TIMER_CIRCUMFERENCE = 163; // 2 * PI * 26
+
+// ============================================
+// 상태
+// ============================================
+let questions = [];
+let currentQ = 0;
+let correctCount = 0;
+let totalTime = 0;
+let questionStartTime = 0;
+let timerInterval = null;
+let timeRemaining = TIME_LIMIT;
+let answered = false;
+let playerNameValue = '';
+
+// ============================================
+// 데이터 로드 (gviz)
+// ============================================
+function loadQuestions(callback) {
+    const url = `https://docs.google.com/spreadsheets/d/${QUIZ_SHEET_ID}/gviz/tq?tqx=out:json;responseHandler=quizCb&sheet=${encodeURIComponent(QUIZ_TAB)}&headers=1&tq=${encodeURIComponent('SELECT A,B,C,D,E,F,G,H')}&_=${Date.now()}`;
+    window.quizCb = function(r) {
+        questions = [];
+        if (r.table && r.table.rows) {
+            r.table.rows.forEach(function(row) {
+                if (!row.c || !row.c[2]) return;
+                questions.push({
+                    num: row.c[0] ? (row.c[0].f || row.c[0].v) : '',
+                    category: row.c[1] ? (row.c[1].f || row.c[1].v || '') : '',
+                    question: row.c[2] ? (row.c[2].f || row.c[2].v) : '',
+                    choices: [
+                        row.c[3] ? (row.c[3].f || String(row.c[3].v)) : '',
+                        row.c[4] ? (row.c[4].f || String(row.c[4].v)) : '',
+                        row.c[5] ? (row.c[5].f || String(row.c[5].v)) : '',
+                        row.c[6] ? (row.c[6].f || String(row.c[6].v)) : '',
+                    ],
+                    answer: row.c[7] ? parseInt(row.c[7].v || row.c[7].f) : 1
+                });
+            });
+        }
+        // 셔플
+        for (var i = questions.length - 1; i > 0; i--) {
+            var j = Math.floor(Math.random() * (i + 1));
+            var tmp = questions[i]; questions[i] = questions[j]; questions[j] = tmp;
+        }
+        delete window.quizCb;
+        if (callback) callback();
+    };
+    var s = document.createElement('script'); s.src = url; document.body.appendChild(s);
+}
+
+function loadRanking(targetEl) {
+    const url = `https://docs.google.com/spreadsheets/d/${QUIZ_SHEET_ID}/gviz/tq?tqx=out:json;responseHandler=rankCb&sheet=${encodeURIComponent(RANKING_TAB)}&headers=1&tq=${encodeURIComponent('SELECT A,B,C,D,E ORDER BY C DESC LIMIT 10')}&_=${Date.now()}`;
+    window.rankCb = function(r) {
+        var html = '<table class="ranking-table"><thead><tr><th>#</th><th>이름</th><th>점수</th><th>문제</th><th>시간</th><th>날짜</th></tr></thead><tbody>';
+        if (r.table && r.table.rows && r.table.rows.length > 0) {
+            r.table.rows.forEach(function(row, idx) {
+                var date = row.c[0] ? (row.c[0].f || String(row.c[0].v || '')) : '';
+                // gviz Date 파싱
+                if (date.indexOf('Date(') === 0) {
+                    var dm = date.match(/Date\((\d+),(\d+),(\d+)\)/);
+                    if (dm) date = (parseInt(dm[2])+1) + '/' + dm[3];
+                }
+                var name = row.c[1] ? (row.c[1].f || row.c[1].v || '') : '';
+                var score = row.c[2] ? (row.c[2].f || row.c[2].v || 0) : 0;
+                var total = row.c[3] ? (row.c[3].f || row.c[3].v || 0) : 0;
+                var time = row.c[4] ? (row.c[4].f || row.c[4].v || '') : '';
+                var medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : (idx + 1);
+                var isMe = (name === playerNameValue) ? ' class="rank-me"' : '';
+                html += '<tr' + isMe + '><td><span class="rank-medal">' + medal + '</span></td><td>' + name + '</td><td><strong>' + score + '</strong></td><td>' + total + '문제</td><td>' + time + '</td><td>' + date + '</td></tr>';
+            });
+        } else {
+            html += '<tr><td colspan="6" style="text-align:center;color:#666">아직 기록이 없습니다</td></tr>';
+        }
+        html += '</tbody></table>';
+        document.getElementById(targetEl).innerHTML = html;
+        delete window.rankCb;
+    };
+    var s = document.createElement('script'); s.src = url; document.body.appendChild(s);
+}
+
+// ============================================
+// 퀴즈 시작
+// ============================================
+function startQuiz() {
+    playerNameValue = document.getElementById('playerName').value.trim();
+    if (!playerNameValue) { alert('이름을 입력해주세요!'); return; }
+
+    document.getElementById('startScreen').style.display = 'none';
+    document.getElementById('resultScreen').style.display = 'none';
+    document.getElementById('quizScreen').style.display = 'block';
+
+    loadQuestions(function() {
+        if (questions.length === 0) {
+            alert('퀴즈 문제가 없습니다. 시트를 확인해주세요.');
+            goHome();
+            return;
+        }
+        currentQ = 0;
+        correctCount = 0;
+        totalTime = 0;
+        showQuestion();
+    });
+}
+
+// ============================================
+// 문제 표시
+// ============================================
+function showQuestion() {
+    if (currentQ >= questions.length) {
+        endQuiz();
+        return;
+    }
+
+    answered = false;
+    var q = questions[currentQ];
+
+    document.getElementById('questionCounter').textContent = (currentQ + 1) + ' / ' + questions.length;
+    document.getElementById('questionCategory').textContent = q.category || '일반';
+    document.getElementById('questionNumber').textContent = 'Q' + (currentQ + 1);
+    document.getElementById('questionText').textContent = q.question;
+    document.getElementById('progressFill').style.width = ((currentQ) / questions.length * 100) + '%';
+
+    // 보기
+    var choicesEl = document.getElementById('choices');
+    choicesEl.innerHTML = '';
+    var labels = ['①', '②', '③', '④'];
+    q.choices.forEach(function(choice, idx) {
+        var btn = document.createElement('button');
+        btn.className = 'choice-btn';
+        btn.innerHTML = '<span class="choice-num">' + labels[idx] + '</span><span>' + choice + '</span>';
+        btn.onclick = function() { selectAnswer(idx + 1, btn); };
+        choicesEl.appendChild(btn);
+    });
+
+    // 피드백 숨기기
+    var fb = document.getElementById('feedback');
+    fb.className = 'feedback';
+    fb.style.display = 'none';
+
+    // 타이머 시작
+    startTimer();
+    questionStartTime = Date.now();
+}
+
+// ============================================
+// 타이머
+// ============================================
+function startTimer() {
+    timeRemaining = TIME_LIMIT;
+    updateTimerDisplay();
+
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = setInterval(function() {
+        timeRemaining -= 0.1;
+        updateTimerDisplay();
+
+        if (timeRemaining <= 0) {
+            clearInterval(timerInterval);
+            timeoutAnswer();
+        }
+    }, 100);
+}
+
+function updateTimerDisplay() {
+    var sec = Math.max(0, Math.ceil(timeRemaining));
+    var pct = Math.max(0, timeRemaining / TIME_LIMIT);
+    var offset = TIMER_CIRCUMFERENCE * (1 - pct);
+
+    document.getElementById('timerText').textContent = sec;
+    document.getElementById('timerFill').style.strokeDashoffset = offset;
+
+    if (timeRemaining <= 3) {
+        document.getElementById('timerFill').classList.add('danger');
+        document.getElementById('timerText').classList.add('danger');
+    } else {
+        document.getElementById('timerFill').classList.remove('danger');
+        document.getElementById('timerText').classList.remove('danger');
+    }
+}
+
+// ============================================
+// 정답 선택
+// ============================================
+function selectAnswer(choiceNum, btnEl) {
+    if (answered) return;
+    answered = true;
+    clearInterval(timerInterval);
+
+    var elapsed = (Date.now() - questionStartTime) / 1000;
+    totalTime += elapsed;
+
+    var q = questions[currentQ];
+    var isCorrect = (choiceNum === q.answer);
+    var btns = document.querySelectorAll('.choice-btn');
+
+    // 모든 버튼 비활성화
+    btns.forEach(function(b) { b.disabled = true; });
+
+    // 정답 표시
+    btns[q.answer - 1].classList.add('correct');
+
+    if (isCorrect) {
+        correctCount++;
+        btnEl.classList.add('correct');
+        showFeedback('correct', '✅ 정답입니다! (' + elapsed.toFixed(1) + '초)');
+    } else {
+        btnEl.classList.add('wrong');
+        showFeedback('wrong', '❌ 오답! 정답: ' + q.choices[q.answer - 1]);
+    }
+
+    // 다음 문제 (1.5초 후)
+    setTimeout(function() { currentQ++; showQuestion(); }, 1500);
+}
+
+function timeoutAnswer() {
+    if (answered) return;
+    answered = true;
+    totalTime += TIME_LIMIT;
+
+    var q = questions[currentQ];
+    var btns = document.querySelectorAll('.choice-btn');
+    btns.forEach(function(b) { b.disabled = true; });
+    btns[q.answer - 1].classList.add('correct');
+
+    showFeedback('timeout', '⏰ 시간 초과! 정답: ' + q.choices[q.answer - 1]);
+
+    setTimeout(function() { currentQ++; showQuestion(); }, 1500);
+}
+
+function showFeedback(type, msg) {
+    var fb = document.getElementById('feedback');
+    fb.className = 'feedback ' + type;
+    fb.textContent = msg;
+    fb.style.display = 'block';
+}
+
+// ============================================
+// 퀴즈 종료
+// ============================================
+function endQuiz() {
+    document.getElementById('quizScreen').style.display = 'none';
+    document.getElementById('resultScreen').style.display = 'block';
+
+    var total = questions.length;
+    var wrong = total - correctCount;
+    var pct = Math.round((correctCount / total) * 100);
+    var timeStr = Math.round(totalTime) + '초';
+
+    // 등급
+    var grade, title;
+    if (pct === 100) { grade = '🏆'; title = '완벽합니다!'; }
+    else if (pct >= 80) { grade = '⭐'; title = '훌륭해요!'; }
+    else if (pct >= 60) { grade = '😊'; title = '잘했어요!'; }
+    else if (pct >= 40) { grade = '📚'; title = '더 공부해봐요!'; }
+    else { grade = '😅'; title = '분발이 필요해요!'; }
+
+    document.getElementById('resultGrade').textContent = grade;
+    document.getElementById('resultTitle').textContent = title;
+    document.getElementById('resultScoreText').textContent = correctCount + ' / ' + total + ' (' + pct + '%)';
+    document.getElementById('resultCorrect').textContent = correctCount;
+    document.getElementById('resultWrong').textContent = wrong;
+    document.getElementById('resultTime').textContent = timeStr;
+    document.getElementById('progressFill').style.width = '100%';
+
+    // 랭킹 저장
+    saveRanking(correctCount, total, timeStr);
+}
+
+function saveRanking(score, total, time) {
+    var now = new Date();
+    var dateStr = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
+    var record = {
+        date: dateStr,
+        name: playerNameValue,
+        score: score,
+        total: total,
+        time: time
+    };
+
+    if (RANKING_SCRIPT_URL) {
+        fetch(RANKING_SCRIPT_URL, {
+            method: 'POST', mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(record)
+        }).then(function() {
+            setTimeout(function() { loadRanking('resultRankingList'); }, 1500);
+        }).catch(function() {
+            loadRanking('resultRankingList');
+        });
+    } else {
+        // Apps Script 미설정 시 랭킹만 표시
+        loadRanking('resultRankingList');
+    }
+}
+
+function goHome() {
+    window.location.href = 'index.html';
+}
+
+// ============================================
+// 초기 로드
+// ============================================
+loadRanking('startRankingList');
+
+// 이전 이름 복원
+var savedName = localStorage.getItem('quiz_player_name');
+if (savedName) document.getElementById('playerName').value = savedName;
+
+// 이름 저장
+document.getElementById('playerName').addEventListener('change', function() {
+    localStorage.setItem('quiz_player_name', this.value);
+});
+</script>
+</body>
+</html>
