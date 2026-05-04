@@ -236,13 +236,38 @@ let playerNameValue = '';
 // ============================================
 // 데이터 로드 (gviz)
 // ============================================
+function loadGviz(sheetId, tabName, query, callbackName, timeout) {
+    return new Promise(function(resolve, reject) {
+        var cbName = callbackName + '_' + Date.now();
+        var timer = setTimeout(function() {
+            delete window[cbName];
+            reject('timeout');
+        }, timeout || 10000);
+
+        window[cbName] = function(response) {
+            clearTimeout(timer);
+            delete window[cbName];
+            resolve(response);
+        };
+
+        var url = 'https://docs.google.com/spreadsheets/d/' + sheetId
+            + '/gviz/tq?tqx=out:json;responseHandler:' + cbName
+            + '&sheet=' + encodeURIComponent(tabName)
+            + '&headers=1'
+            + '&tq=' + encodeURIComponent(query)
+            + '&_=' + Date.now();
+        var s = document.createElement('script');
+        s.src = url;
+        s.onerror = function() { clearTimeout(timer); delete window[cbName]; reject('error'); };
+        document.body.appendChild(s);
+    });
+}
+
 function loadQuestions(callback) {
-    const url = `https://docs.google.com/spreadsheets/d/${QUIZ_SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(QUIZ_TAB)}&headers=1&tq=${encodeURIComponent('SELECT A,B,C,D,E,F,G,H')}&_=${Date.now()}`;
-    fetch(url).then(function(r){return r.text();}).then(function(text) {
-        var json = JSON.parse(text.substring(47).slice(0,-2));
+    loadGviz(QUIZ_SHEET_ID, QUIZ_TAB, 'SELECT A,B,C,D,E,F,G,H', 'quizCb').then(function(r) {
         questions = [];
-        if (json.table && json.table.rows) {
-            json.table.rows.forEach(function(row) {
+        if (r.table && r.table.rows) {
+            r.table.rows.forEach(function(row) {
                 if (!row.c || !row.c[2]) return;
                 questions.push({
                     num: row.c[0] ? (row.c[0].f || row.c[0].v) : '',
@@ -258,7 +283,6 @@ function loadQuestions(callback) {
                 });
             });
         }
-        // 셔플
         for (var i = questions.length - 1; i > 0; i--) {
             var j = Math.floor(Math.random() * (i + 1));
             var tmp = questions[i]; questions[i] = questions[j]; questions[j] = tmp;
@@ -266,19 +290,17 @@ function loadQuestions(callback) {
         if (callback) callback();
     }).catch(function(e) {
         console.error('퀴즈 로드 실패:', e);
-        alert('퀴즈 데이터를 불러올 수 없습니다.');
+        alert('퀴즈 데이터를 불러올 수 없습니다. 시트 공유 설정을 확인해주세요.');
     });
 }
 
 function loadRanking(targetEl) {
-    const url = `https://docs.google.com/spreadsheets/d/${QUIZ_SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(RANKING_TAB)}&headers=1&tq=${encodeURIComponent('SELECT A,B,C,D,E ORDER BY C DESC LIMIT 10')}&_=${Date.now()}`;
-    fetch(url).then(function(r){return r.text();}).then(function(text) {
-        var r = JSON.parse(text.substring(47).slice(0,-2));
+    loadGviz(QUIZ_SHEET_ID, RANKING_TAB, 'SELECT A,B,C,D,E ORDER BY C DESC LIMIT 10', 'rankCb').then(function(r) {
         var html = '<table class="ranking-table"><thead><tr><th>#</th><th>이름</th><th>점수</th><th>문제</th><th>시간</th><th>날짜</th></tr></thead><tbody>';
         if (r.table && r.table.rows && r.table.rows.length > 0) {
             r.table.rows.forEach(function(row, idx) {
                 var date = row.c[0] ? (row.c[0].f || String(row.c[0].v || '')) : '';
-                if (date.indexOf('Date(') === 0) {
+                if (typeof date === 'string' && date.indexOf('Date(') === 0) {
                     var dm = date.match(/Date\((\d+),(\d+),(\d+)\)/);
                     if (dm) date = (parseInt(dm[2])+1) + '/' + dm[3];
                 }
