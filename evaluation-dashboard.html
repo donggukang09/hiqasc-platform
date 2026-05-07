@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HIQASC 업무 평가 대시보드</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<style>
+:root {
+  --bg: #1a1a2e;
+  --bg2: #16213e;
+  --bg3: #0f3460;
+  --card: #1e2a4a;
+  --card-hover: #243356;
+  --blue: #4a90e2;
+  --blue-light: #6ab0ff;
+  --green: #2ecc71;
+  --orange: #e8710a;
+  --red: #e74c3c;
+  --yellow: #f1c40f;
+  --purple: #9b59b6;
+  --pink: #e91e63;
+  --text: #e8e8e8;
+  --text-dim: #8899aa;
+  --text-muted: #556677;
+  --border: rgba(74,144,226,0.15);
+  --border-active: rgba(74,144,226,0.4);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.3);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Manrope', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* 배경 효과 */
+body::before {
+  content: '';
+  position: fixed;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(ellipse at 20% 50%, rgba(74,144,226,0.06) 0%, transparent 50%),
+              radial-gradient(ellipse at 80% 20%, rgba(155,89,182,0.04) 0%, transparent 50%);
+  z-index: -1;
+  animation: bgShift 20s ease-in-out infinite alternate;
+}
+@keyframes bgShift {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(-5%, 3%); }
+}
+
+/* 헤더 */
+.header {
+  background: linear-gradient(135deg, var(--bg2), var(--bg3));
+  border-bottom: 1px solid var(--border);
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(10px);
+}
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.header-left .back-btn {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+.header-left .back-btn:hover {
+  background: rgba(255,255,255,0.1);
+  color: var(--text);
+}
+.header h1 {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+.header h1 span { color: var(--blue); }
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.year-select {
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  outline: none;
+}
+.year-select:focus { border-color: var(--blue); }
+.refresh-btn {
+  background: var(--blue);
+  border: none;
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+.refresh-btn:hover { background: var(--blue-light); transform: translateY(-1px); }
+
+/* 로딩 */
+.loading-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(26,26,46,0.9);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  transition: opacity 0.4s;
+}
+.loading-overlay.hidden { opacity: 0; pointer-events: none; }
+.spinner {
+  width: 40px; height: 40px;
+  border: 3px solid var(--border);
+  border-top-color: var(--blue);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { margin-top: 16px; color: var(--text-dim); font-size: 14px; }
+
+/* 메인 컨텐츠 */
+.main { padding: 24px; max-width: 1400px; margin: 0 auto; }
+
+/* 탭 네비 */
+.tab-nav {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 24px;
+  background: var(--card);
+  padding: 4px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  overflow-x: auto;
+}
+.tab-btn {
+  padding: 10px 20px;
+  border: none;
+  background: transparent;
+  color: var(--text-dim);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.tab-btn:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+.tab-btn.active {
+  background: var(--blue);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(74,144,226,0.3);
+}
+.tab-content { display: none; }
+.tab-content.active { display: block; animation: fadeUp 0.3s ease; }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 통계 카드 그리드 */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.stat-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s;
+}
+.stat-card:hover {
+  border-color: var(--border-active);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+.stat-card .accent {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+}
+.stat-card .label {
+  font-size: 12px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+.stat-card .value {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -1px;
+  line-height: 1;
+}
+.stat-card .sub {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+
+/* 차트 영역 */
+.chart-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+@media (max-width: 900px) {
+  .chart-row { grid-template-columns: 1fr; }
+}
+.chart-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+}
+.chart-card h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-dim);
+  margin-bottom: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.chart-wrapper {
+  position: relative;
+  height: 280px;
+}
+
+/* 테이블 */
+.table-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 24px;
+  overflow-x: auto;
+}
+.table-card h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-dim);
+  margin-bottom: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.data-table th {
+  background: rgba(74,144,226,0.1);
+  color: var(--blue-light);
+  padding: 10px 12px;
+  text-align: left;
+  font-weight: 600;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.data-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  white-space: nowrap;
+}
+.data-table tbody tr:hover {
+  background: rgba(74,144,226,0.05);
+}
+.data-table .score {
+  font-weight: 700;
+  font-size: 14px;
+}
+.data-table .grade-badge {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 12px;
+  text-align: center;
+  min-width: 36px;
+}
+.grade-S { background: rgba(46,204,113,0.15); color: #2ecc71; }
+.grade-A { background: rgba(74,144,226,0.15); color: #6ab0ff; }
+.grade-B { background: rgba(241,196,15,0.15); color: #f1c40f; }
+.grade-C { background: rgba(232,113,10,0.15); color: #e8710a; }
+.grade-D { background: rgba(231,76,60,0.15); color: #e74c3c; }
+
+/* 등급 분포 바 */
+.grade-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.grade-bar-label {
+  min-width: 28px;
+  font-weight: 700;
+  font-size: 14px;
+}
+.grade-bar-track {
+  flex: 1;
+  height: 24px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.grade-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.9);
+  min-width: 0;
+}
+.grade-bar-count {
+  min-width: 30px;
+  text-align: right;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+/* 필터 */
+.filter-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.filter-select {
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  outline: none;
+}
+.filter-select:focus { border-color: var(--blue); }
+
+/* 빈 상태 */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-dim);
+}
+.empty-state .icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.3;
+}
+.empty-state h3 {
+  font-size: 16px;
+  margin-bottom: 8px;
+  color: var(--text-muted);
+}
+.empty-state p { font-size: 13px; }
+
+/* 크레딧 */
+.footer {
+  text-align: center;
+  padding: 24px;
+  color: var(--text-muted);
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+</style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div class="loading-text">데이터 불러오는 중...</div>
+</div>
+
+<div class="header">
+  <div class="header-left">
+    <a href="index.html" class="back-btn">🏠 메인으로</a>
+    <h1><span>HIQASC</span> 업무 평가 대시보드</h1>
+  </div>
+  <div class="header-right">
+    <select class="year-select" id="yearSelect" onchange="loadDashboard()">
+      <option value="2026">2026년</option>
+      <option value="2025">2025년</option>
+    </select>
+    <button class="refresh-btn" onclick="loadDashboard()">🔄 새로고침</button>
+  </div>
+</div>
+
+<div class="main">
+  <!-- 탭 -->
+  <div class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('overview')">📊 전체 현황</button>
+    <button class="tab-btn" onclick="switchTab('as-team')">🔧 AS팀</button>
+    <button class="tab-btn" onclick="switchTab('support-team')">📦 서포트팀</button>
+    <button class="tab-btn" onclick="switchTab('individual')">👤 개인별 조회</button>
+    <button class="tab-btn" onclick="switchTab('grade')">🏆 등급 분포</button>
+  </div>
+
+  <!-- 탭1: 전체 현황 -->
+  <div class="tab-content active" id="tab-overview">
+    <div class="stats-grid" id="overviewStats"></div>
+    <div class="chart-row">
+      <div class="chart-card">
+        <h3>📈 월별 팀 평균 추이</h3>
+        <div class="chart-wrapper"><canvas id="monthlyTrendChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h3>📊 팀별 항목 평균 비교</h3>
+        <div class="chart-wrapper"><canvas id="categoryChart"></canvas></div>
+      </div>
+    </div>
+    <div class="table-card">
+      <h3>📋 최근 월간 평가 요약</h3>
+      <div id="recentTable"></div>
+    </div>
+  </div>
+
+  <!-- 탭2: AS팀 -->
+  <div class="tab-content" id="tab-as-team">
+    <div class="stats-grid" id="asStats"></div>
+    <div class="filter-row">
+      <select class="filter-select" id="asMonthFilter" onchange="renderASTeam()">
+        <option value="">전체 월</option>
+      </select>
+    </div>
+    <div class="chart-row">
+      <div class="chart-card">
+        <h3>🔧 기술자별 월간 총점</h3>
+        <div class="chart-wrapper"><canvas id="asBarChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h3>📉 재수리율 추이</h3>
+        <div class="chart-wrapper"><canvas id="asRepairChart"></canvas></div>
+      </div>
+    </div>
+    <div class="table-card">
+      <h3>📋 AS팀 상세 평가</h3>
+      <div id="asDetailTable"></div>
+    </div>
+  </div>
+
+  <!-- 탭3: 서포트팀 -->
+  <div class="tab-content" id="tab-support-team">
+    <div class="stats-grid" id="supportStats"></div>
+    <div class="filter-row">
+      <select class="filter-select" id="spMonthFilter" onchange="renderSupportTeam()">
+        <option value="">전체 월</option>
+      </select>
+      <select class="filter-select" id="spPartFilter" onchange="renderSupportTeam()">
+        <option value="">전체 파트</option>
+        <option value="임대머신">임대머신</option>
+        <option value="부품">부품</option>
+        <option value="어시스트">어시스트</option>
+        <option value="입출고패킹">입출고&패킹</option>
+      </select>
+    </div>
+    <div class="chart-row">
+      <div class="chart-card">
+        <h3>📦 파트별 평균 점수</h3>
+        <div class="chart-wrapper"><canvas id="spPartChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h3>📊 공통 항목 비교</h3>
+        <div class="chart-wrapper"><canvas id="spCommonChart"></canvas></div>
+      </div>
+    </div>
+    <div class="table-card">
+      <h3>📋 서포트팀 상세 평가</h3>
+      <div id="spDetailTable"></div>
+    </div>
+  </div>
+
+  <!-- 탭4: 개인별 조회 -->
+  <div class="tab-content" id="tab-individual">
+    <div class="filter-row">
+      <select class="filter-select" id="indEmpSelect" onchange="renderIndividual()">
+        <option value="">직원 선택</option>
+      </select>
+    </div>
+    <div id="individualContent">
+      <div class="empty-state">
+        <div class="icon">👤</div>
+        <h3>직원을 선택해 주세요</h3>
+        <p>월별 평가 추이와 항목별 상세 점수를 확인할 수 있습니다</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 탭5: 등급 분포 -->
+  <div class="tab-content" id="tab-grade">
+    <div class="chart-row">
+      <div class="chart-card">
+        <h3>🏆 등급 기준</h3>
+        <div id="gradeConfigTable"></div>
+      </div>
+      <div class="chart-card">
+        <h3>📊 현재 등급 분포 (최근 월 기준)</h3>
+        <div id="gradeDistribution"></div>
+        <div class="chart-wrapper" style="height:200px;margin-top:16px;"><canvas id="gradePieChart"></canvas></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">DESIGNED & DEVELOPED BY DONGGU KANG</div>
+
+<script>
+// ──────────────────────────────────────
+// CONFIG
+// ──────────────────────────────────────
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby6vuLBAONhmyzzsBdRjjODUNoQUjkHGc8p-q7LkEGERiVIp0xU8BlL-u5HNY24HDnm/exec';
+
+let dashData = null;
+let charts = {};
+
+// ──────────────────────────────────────
+// JSONP 유틸
+// ──────────────────────────────────────
+function jsonpFetch(params) {
+  return new Promise((resolve, reject) => {
+    const cbName = 'cb_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+    const timeout = setTimeout(() => {
+      cleanup();
+      reject(new Error('요청 시간 초과'));
+    }, 15000);
+
+    function cleanup() {
+      clearTimeout(timeout);
+      delete window[cbName];
+      if (script.parentNode) script.parentNode.removeChild(script);
+    }
+
+    window[cbName] = function(data) {
+      cleanup();
+      resolve(data);
+    };
+
+    const qs = Object.entries(params).map(([k,v]) => `${k}=${encodeURIComponent(v)}`).join('&');
+    const script = document.createElement('script');
+    script.src = `${APPS_SCRIPT_URL}?${qs}&callback=${cbName}`;
+    script.onerror = () => { cleanup(); reject(new Error('네트워크 오류')); };
+    document.body.appendChild(script);
+  });
+}
+
+// ──────────────────────────────────────
+// 데이터 로드
+// ──────────────────────────────────────
+async function loadDashboard() {
+  const overlay = document.getElementById('loadingOverlay');
+  overlay.classList.remove('hidden');
+  
+  const year = document.getElementById('yearSelect').value;
+  
+  try {
+    dashData = await jsonpFetch({ action: 'getDashboard', year: year });
+    
+    if (!dashData.success) {
+      throw new Error(dashData.error || '데이터 로드 실패');
+    }
+    
+    renderOverview();
+    populateFilters();
+    renderASTeam();
+    renderSupportTeam();
+    renderGrade();
+    populateIndividualSelect();
+    
+  } catch(err) {
+    console.error('Load error:', err);
+    document.getElementById('overviewStats').innerHTML = `
+      <div class="empty-state" style="grid-column:1/-1;">
+        <div class="icon">⚠️</div>
+        <h3>데이터를 불러올 수 없습니다</h3>
+        <p>${err.message}</p>
+      </div>`;
+  } finally {
+    overlay.classList.add('hidden');
+  }
+}
+
+// ──────────────────────────────────────
+// 탭 전환
+// ──────────────────────────────────────
+function switchTab(tabId) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('tab-' + tabId).classList.add('active');
+}
+
+// ──────────────────────────────────────
+// 유틸
+// ──────────────────────────────────────
+function avg(arr) {
+  const nums = arr.filter(n => typeof n === 'number' && !isNaN(n));
+  return nums.length ? Math.round(nums.reduce((a,b) => a+b, 0) / nums.length * 10) / 10 : 0;
+}
+
+function getGrade(score, grades) {
+  if (!grades || !grades.length) return '-';
+  for (const g of grades) {
+    if (score >= g['하한점수'] && score <= g['상한점수']) return g['등급'];
+  }
+  return 'D';
+}
+
+function getMonths(records, field) {
+  const set = new Set();
+  records.forEach(r => {
+    const v = r[field || '평가년월'];
+    if (v) set.add(String(v).substring(0, 7));
+  });
+  return [...set].sort();
+}
+
+function destroyChart(key) {
+  if (charts[key]) { charts[key].destroy(); delete charts[key]; }
+}
+
+// ──────────────────────────────────────
+// 전체 현황 렌더링
+// ──────────────────────────────────────
+function renderOverview() {
+  const d = dashData.data;
+  const emps = d.employees;
+  const asRecs = d.asMonthly;
+  const spRecs = d.supportMonthly;
+  const allScores = [
+    ...asRecs.map(r => r['월간총점']).filter(s => typeof s === 'number'),
+    ...spRecs.map(r => r['월간총점']).filter(s => typeof s === 'number')
+  ];
+  
+  const asEmps = emps.filter(e => e['팀'] === 'AS').length;
+  const spEmps = emps.filter(e => e['팀'] === '서포트').length;
+  const asAvg = avg(asRecs.map(r => r['월간총점']));
+  const spAvg = avg(spRecs.map(r => r['월간총점']));
+  const totalAvg = avg(allScores);
+  const totalEvals = asRecs.length + spRecs.length;
+  
+  document.getElementById('overviewStats').innerHTML = `
+    <div class="stat-card"><div class="accent" style="background:var(--blue)"></div>
+      <div class="label">재직 인원</div>
+      <div class="value" style="color:var(--blue)">${emps.length}</div>
+      <div class="sub">AS ${asEmps}명 · 서포트 ${spEmps}명</div></div>
+    <div class="stat-card"><div class="accent" style="background:var(--green)"></div>
+      <div class="label">전체 평균</div>
+      <div class="value" style="color:var(--green)">${totalAvg || '-'}</div>
+      <div class="sub">${d.year}년 월간 평균</div></div>
+    <div class="stat-card"><div class="accent" style="background:var(--blue-light)"></div>
+      <div class="label">AS팀 평균</div>
+      <div class="value" style="color:var(--blue-light)">${asAvg || '-'}</div>
+      <div class="sub">${asRecs.length}건 평가</div></div>
+    <div class="stat-card"><div class="accent" style="background:var(--pink)"></div>
+      <div class="label">서포트팀 평균</div>
+      <div class="value" style="color:var(--pink)">${spAvg || '-'}</div>
+      <div class="sub">${spRecs.length}건 평가</div></div>
+    <div class="stat-card"><div class="accent" style="background:var(--orange)"></div>
+      <div class="label">총 평가 건수</div>
+      <div class="value" style="color:var(--orange)">${totalEvals}</div>
+      <div class="sub">${d.year}년 누적</div></div>
+  `;
+  
+  // 월별 추이 차트
+  renderMonthlyTrend(asRecs, spRecs);
+  
+  // 최근 평가 테이블
+  renderRecentTable(asRecs, spRecs);
+}
+
+function renderMonthlyTrend(asRecs, spRecs) {
+  const asMonths = getMonths(asRecs);
+  const spMonths = getMonths(spRecs);
+  const allMonths = [...new Set([...asMonths, ...spMonths])].sort();
+  
+  if (!allMonths.length) {
+    document.querySelector('#monthlyTrendChart').parentElement.innerHTML = 
+      '<div class="empty-state"><div class="icon">📈</div><h3>평가 데이터 없음</h3><p>월간 평가를 입력하면 추이가 표시됩니다</p></div>';
+    return;
+  }
+  
+  const asAvgs = allMonths.map(m => {
+    const recs = asRecs.filter(r => r['평가년월'] === m);
+    return avg(recs.map(r => r['월간총점']));
+  });
+  const spAvgs = allMonths.map(m => {
+    const recs = spRecs.filter(r => r['평가년월'] === m);
+    return avg(recs.map(r => r['월간총점']));
+  });
+  
+  destroyChart('monthlyTrend');
+  const ctx = document.getElementById('monthlyTrendChart').getContext('2d');
+  charts.monthlyTrend = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: allMonths.map(m => m.substring(5) + '월'),
+      datasets: [
+        { label: 'AS팀', data: asAvgs, borderColor: '#4a90e2', backgroundColor: 'rgba(74,144,226,0.1)', tension: 0.3, fill: true, pointRadius: 4, pointBackgroundColor: '#4a90e2' },
+        { label: '서포트팀', data: spAvgs, borderColor: '#e91e63', backgroundColor: 'rgba(233,30,99,0.1)', tension: 0.3, fill: true, pointRadius: 4, pointBackgroundColor: '#e91e63' }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: '#8899aa', font: { family: 'Manrope' } } }, datalabels: { display: false } },
+      scales: {
+        x: { ticks: { color: '#556677' }, grid: { color: 'rgba(255,255,255,0.03)' } },
+        y: { min: 0, max: 100, ticks: { color: '#556677' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+      }
+    }
+  });
+}
+
+function renderRecentTable(asRecs, spRecs) {
+  const all = [
+    ...asRecs.map(r => ({ ...r, 팀: 'AS' })),
+    ...spRecs.map(r => ({ ...r, 팀: '서포트' }))
+  ].sort((a, b) => String(b['평가년월']).localeCompare(String(a['평가년월'])));
+  
+  const recent = all.slice(0, 20);
+  
+  if (!recent.length) {
+    document.getElementById('recentTable').innerHTML = '<div class="empty-state"><div class="icon">📋</div><h3>평가 데이터 없음</h3></div>';
+    return;
+  }
+  
+  const grades = dashData.data.grades;
+  let html = `<table class="data-table"><thead><tr>
+    <th>월</th><th>팀</th><th>이름</th><th>총점</th><th>등급</th>
+  </tr></thead><tbody>`;
+  
+  recent.forEach(r => {
+    const score = typeof r['월간총점'] === 'number' ? r['월간총점'] : '-';
+    const grade = typeof score === 'number' ? getGrade(score, grades) : '-';
+    html += `<tr>
+      <td>${r['평가년월'] || '-'}</td>
+      <td>${r['팀']}</td>
+      <td>${r['이름'] || '-'}</td>
+      <td class="score">${score}</td>
+      <td><span class="grade-badge grade-${grade}">${grade}</span></td>
+    </tr>`;
+  });
+  
+  html += '</tbody></table>';
+  document.getElementById('recentTable').innerHTML = html;
+}
+
+// ──────────────────────────────────────
+// AS팀 렌더링
+// ──────────────────────────────────────
+function renderASTeam() {
+  if (!dashData) return;
+  const asRecs = dashData.data.asMonthly;
+  const month = document.getElementById('asMonthFilter').value;
+  const filtered = month ? asRecs.filter(r => r['평가년월'] === month) : asRecs;
+  
+  // 통계 카드
+  const scores = filtered.map(r => r['월간총점']).filter(s => typeof s === 'number');
+  const repairRates = filtered.map(r => r['재수리율(%)']).filter(s => typeof s === 'number');
+  const asAvg = avg(scores);
+  const maxScore = scores.length ? Math.max(...scores) : '-';
+  const minScore = scores.length ? Math.min(...scores) : '-';
+  const avgRepair = avg(repairRates);
+  
+  document.getElementById('asStats').innerHTML = `
+    <div class="stat-card"><div class="accent" style="background:var(--blue)"></div>
+      <div class="label">평균 점수</div><div class="value" style="color:var(--blue)">${asAvg || '-'}</div>
+      <div class="sub">${filtered.length}건</div></div>
+    <div class="stat-card"><div class="accent" style="background:var(--green)"></div>
+      <div class="label">최고점</div><div class="value" style="color:var(--green)">${maxScore}</div></div>
+    <div class="stat-card"><div class="accent" style="background:var(--red)"></div>
+      <div class="label">최저점</div><div class="value" style="color:var(--red)">${minScore}</div></div>
+    <div class="stat-card"><div class="accent" style="background:var(--orange)"></div>
+      <div class="label">평균 재수리율</div><div class="value" style="color:var(--orange)">${avgRepair ? avgRepair + '%' : '-'}</div></div>
+  `;
+  
+  // 바 차트 - 기술자별 점수
+  const byName = {};
+  filtered.forEach(r => {
+    const name = r['이름'];
+    if (!name) return;
+    if (!byName[name]) byName[name] = [];
+    if (typeof r['월간총점'] === 'number') byName[name].push(r['월간총점']);
+  });
+  
+  const names = Object.keys(byName);
+  const avgs = names.map(n => avg(byName[n]));
+  
+  destroyChart('asBar');
+  if (names.length) {
+    const ctx = document.getElementById('asBarChart').getContext('2d');
+    charts.asBar = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: names,
+        datasets: [{ label: '평균 총점', data: avgs,
+          backgroundColor: avgs.map(v => v >= 85 ? 'rgba(46,204,113,0.7)' : v >= 70 ? 'rgba(74,144,226,0.7)' : v >= 55 ? 'rgba(241,196,15,0.7)' : 'rgba(231,76,60,0.7)'),
+          borderRadius: 6, borderSkipped: false }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+        plugins: { legend: { display: false }, datalabels: { anchor: 'end', align: 'end', color: '#8899aa', font: { family: 'Manrope', weight: 600 } } },
+        scales: {
+          x: { min: 0, max: 100, ticks: { color: '#556677' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+          y: { ticks: { color: '#e8e8e8', font: { family: 'Manrope' } }, grid: { display: false } }
+        }
+      },
+      plugins: [ChartDataLabels]
+    });
+  }
+  
+  // 상세 테이블
+  const grades = dashData.data.grades;
+  let html = `<table class="data-table"><thead><tr>
+    <th>월</th><th>이름</th><th>수리량</th><th>재수리율</th><th>정량</th><th>업무수용도</th><th>정성</th><th>가감</th><th>총점</th><th>등급</th>
+  </tr></thead><tbody>`;
+  
+  filtered.forEach(r => {
+    const score = typeof r['월간총점'] === 'number' ? r['월간총점'] : '-';
+    const grade = typeof score === 'number' ? getGrade(score, grades) : '-';
+    html += `<tr>
+      <td>${r['평가년월'] || '-'}</td>
+      <td>${r['이름'] || '-'}</td>
+      <td>${r['수리량(실적)'] || '-'}</td>
+      <td>${typeof r['재수리율(%)'] === 'number' ? r['재수리율(%)'] + '%' : '-'}</td>
+      <td>${typeof r['정량소계'] === 'number' ? r['정량소계'] : '-'}</td>
+      <td>${r['업무수용도'] || '-'}</td>
+      <td>${typeof r['정성소계'] === 'number' ? r['정성소계'] : '-'}</td>
+      <td>${r['가감점'] || 0}</td>
+      <td class="score">${score}</td>
+      <td><span class="grade-badge grade-${grade}">${grade}</span></td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  document.getElementById('asDetailTable').innerHTML = html;
+}
+
+// ──────────────────────────────────────
+// 서포트팀 렌더링
+// ──────────────────────────────────────
+function renderSupportTeam() {
+  if (!dashData) return;
+  const spRecs = dashData.data.supportMonthly;
+  const month = document.getElementById('spMonthFilter').value;
+  const part = document.getElementById('spPartFilter').value;
+  
+  let filtered = spRecs;
+  if (month) filtered = filtered.filter(r => r['평가년월'] === month);
+  if (part) filtered = filtered.filter(r => r['파트'] === part);
+  
+  const scores = filtered.map(r => r['월간총점']).filter(s => typeof s === 'number');
+  const spAvg = avg(scores);
+  
+  document.getElementById('supportStats').innerHTML = `
+    <div class="stat-card"><div class="accent" style="background:var(--pink)"></div>
+      <div class="label">평균 점수</div><div class="value" style="color:var(--pink)">${spAvg || '-'}</div>
+      <div class="sub">${filtered.length}건</div></div>
+    <div class="stat-card"><div class="accent" style="background:var(--green)"></div>
+      <div class="label">최고점</div><div class="value" style="color:var(--green)">${scores.length ? Math.max(...scores) : '-'}</div></div>
+    <div class="stat-card"><div class="accent" style="background:var(--red)"></div>
+      <div class="label">최저점</div><div class="value" style="color:var(--red)">${scores.length ? Math.min(...scores) : '-'}</div></div>
+  `;
+  
+  // 파트별 평균 차트
+  const parts = ['임대머신', '부품', '어시스트', '입출고패킹'];
+  const partAvgs = parts.map(p => {
+    const recs = (month ? spRecs.filter(r => r['평가년월'] === month) : spRecs).filter(r => r['파트'] === p);
+    return avg(recs.map(r => r['월간총점']));
+  });
+  
+  destroyChart('spPart');
+  const ctx1 = document.getElementById('spPartChart').getContext('2d');
+  charts.spPart = new Chart(ctx1, {
+    type: 'bar',
+    data: {
+      labels: parts,
+      datasets: [{ label: '평균', data: partAvgs,
+        backgroundColor: ['rgba(233,30,99,0.7)', 'rgba(155,89,182,0.7)', 'rgba(74,144,226,0.7)', 'rgba(232,113,10,0.7)'],
+        borderRadius: 6, borderSkipped: false }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, datalabels: { anchor: 'end', align: 'top', color: '#8899aa', font: { family: 'Manrope', weight: 600 } } },
+      scales: {
+        x: { ticks: { color: '#e8e8e8', font: { family: 'Manrope', size: 11 } }, grid: { display: false } },
+        y: { min: 0, max: 100, ticks: { color: '#556677' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+      }
+    },
+    plugins: [ChartDataLabels]
+  });
+  
+  // 상세 테이블
+  const grades = dashData.data.grades;
+  let html = `<table class="data-table"><thead><tr>
+    <th>월</th><th>이름</th><th>파트</th><th>공통</th><th>파트별</th><th>가감</th><th>총점</th><th>등급</th>
+  </tr></thead><tbody>`;
+  
+  filtered.forEach(r => {
+    const score = typeof r['월간총점'] === 'number' ? r['월간총점'] : '-';
+    const grade = typeof score === 'number' ? getGrade(score, grades) : '-';
+    html += `<tr>
+      <td>${r['평가년월'] || '-'}</td>
+      <td>${r['이름'] || '-'}</td>
+      <td>${r['파트'] || '-'}</td>
+      <td>${typeof r['공통소계'] === 'number' ? r['공통소계'] : '-'}</td>
+      <td>${typeof r['파트별소계'] === 'number' ? r['파트별소계'] : '-'}</td>
+      <td>${r['가감점'] || 0}</td>
+      <td class="score">${score}</td>
+      <td><span class="grade-badge grade-${grade}">${grade}</span></td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  document.getElementById('spDetailTable').innerHTML = html;
+}
+
+// ──────────────────────────────────────
+// 개인별 조회
+// ──────────────────────────────────────
+function populateIndividualSelect() {
+  const sel = document.getElementById('indEmpSelect');
+  sel.innerHTML = '<option value="">직원 선택</option>';
+  dashData.data.employees.forEach(e => {
+    sel.innerHTML += `<option value="${e['사번']}">${e['이름']} (${e['팀']}/${e['파트']})</option>`;
+  });
+}
+
+function renderIndividual() {
+  const empId = document.getElementById('indEmpSelect').value;
+  const container = document.getElementById('individualContent');
+  if (!empId) {
+    container.innerHTML = '<div class="empty-state"><div class="icon">👤</div><h3>직원을 선택해 주세요</h3></div>';
+    return;
+  }
+  
+  const emp = dashData.data.employees.find(e => String(e['사번']) === empId);
+  const isAS = emp['팀'] === 'AS';
+  const recs = isAS 
+    ? dashData.data.asMonthly.filter(r => String(r['사번']) === empId)
+    : dashData.data.supportMonthly.filter(r => String(r['사번']) === empId);
+  
+  const scores = recs.map(r => r['월간총점']).filter(s => typeof s === 'number');
+  const avgScore = avg(scores);
+  const grades = dashData.data.grades;
+  const grade = scores.length ? getGrade(avgScore, grades) : '-';
+  
+  let html = `
+    <div class="stats-grid">
+      <div class="stat-card"><div class="accent" style="background:var(--blue)"></div>
+        <div class="label">이름</div><div class="value" style="font-size:22px;color:var(--blue)">${emp['이름']}</div>
+        <div class="sub">${emp['팀']} / ${emp['파트']} / ${emp['직급'] || '-'}</div></div>
+      <div class="stat-card"><div class="accent" style="background:var(--green)"></div>
+        <div class="label">연간 평균</div><div class="value" style="color:var(--green)">${avgScore || '-'}</div>
+        <div class="sub">${scores.length}개월 평가</div></div>
+      <div class="stat-card"><div class="accent" style="background:var(--yellow)"></div>
+        <div class="label">예상 등급</div><div class="value"><span class="grade-badge grade-${grade}" style="font-size:20px;padding:6px 20px;">${grade}</span></div></div>
+    </div>
+    <div class="chart-card" style="margin-top:16px;">
+      <h3>📈 ${emp['이름']} 월별 점수 추이</h3>
+      <div class="chart-wrapper"><canvas id="indChart"></canvas></div>
+    </div>
+  `;
+  
+  if (recs.length) {
+    html += `<div class="table-card" style="margin-top:16px;"><h3>📋 상세 이력</h3><table class="data-table"><thead><tr>
+      <th>월</th><th>총점</th><th>등급</th>${isAS ? '<th>수리량</th><th>재수리율</th>' : '<th>공통</th><th>파트별</th>'}<th>업무수용도</th><th>가감점</th>
+    </tr></thead><tbody>`;
+    recs.sort((a,b) => String(a['평가년월']).localeCompare(String(b['평가년월']))).forEach(r => {
+      const s = typeof r['월간총점'] === 'number' ? r['월간총점'] : '-';
+      const g = typeof s === 'number' ? getGrade(s, grades) : '-';
+      html += `<tr><td>${r['평가년월']}</td><td class="score">${s}</td><td><span class="grade-badge grade-${g}">${g}</span></td>`;
+      if (isAS) {
+        html += `<td>${r['수리량(실적)'] || '-'}</td><td>${typeof r['재수리율(%)'] === 'number' ? r['재수리율(%)'] + '%' : '-'}</td>`;
+      } else {
+        html += `<td>${typeof r['공통소계'] === 'number' ? r['공통소계'] : '-'}</td><td>${typeof r['파트별소계'] === 'number' ? r['파트별소계'] : '-'}</td>`;
+      }
+      html += `<td>${r['업무수용도'] || '-'}</td><td>${r['가감점'] || 0}</td></tr>`;
+    });
+    html += '</tbody></table></div>';
+  }
+  
+  container.innerHTML = html;
+  
+  // 개인 추이 차트
+  if (recs.length) {
+    const months = recs.sort((a,b) => String(a['평가년월']).localeCompare(String(b['평가년월']))).map(r => r['평가년월']);
+    const monthScores = recs.map(r => r['월간총점']);
+    
+    destroyChart('individual');
+    const ctx = document.getElementById('indChart').getContext('2d');
+    charts.individual = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: months.map(m => String(m).substring(5) + '월'),
+        datasets: [{
+          label: '총점', data: monthScores,
+          borderColor: '#4a90e2', backgroundColor: 'rgba(74,144,226,0.15)',
+          tension: 0.3, fill: true, pointRadius: 6, pointBackgroundColor: '#4a90e2',
+          pointBorderColor: '#fff', pointBorderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, datalabels: { anchor: 'end', align: 'top', color: '#e8e8e8', font: { family: 'Manrope', weight: 700, size: 13 } } },
+        scales: {
+          x: { ticks: { color: '#556677' }, grid: { color: 'rgba(255,255,255,0.03)' } },
+          y: { min: 0, max: 100, ticks: { color: '#556677' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+        }
+      },
+      plugins: [ChartDataLabels]
+    });
+  }
+}
+
+// ──────────────────────────────────────
+// 등급 분포
+// ──────────────────────────────────────
+function renderGrade() {
+  const grades = dashData.data.grades;
+  
+  // 등급 기준 테이블
+  let html = `<table class="data-table"><thead><tr><th>등급</th><th>하한</th><th>상한</th><th>비율</th><th>인사 반영</th></tr></thead><tbody>`;
+  grades.forEach(g => {
+    html += `<tr>
+      <td><span class="grade-badge grade-${g['등급']}" style="font-size:14px;">${g['등급']}</span></td>
+      <td>${g['하한점수']}</td><td>${g['상한점수']}</td>
+      <td>${g['권장비율']}</td><td>${g['인사반영기준']}</td></tr>`;
+  });
+  html += '</tbody></table>';
+  document.getElementById('gradeConfigTable').innerHTML = html;
+  
+  // 현재 등급 분포
+  const allRecs = [...dashData.data.asMonthly, ...dashData.data.supportMonthly];
+  
+  // 최근 월 기준
+  const months = getMonths(allRecs);
+  const lastMonth = months.length ? months[months.length - 1] : null;
+  
+  if (!lastMonth) {
+    document.getElementById('gradeDistribution').innerHTML = '<div class="empty-state"><p>평가 데이터가 없습니다</p></div>';
+    return;
+  }
+  
+  const lastRecs = allRecs.filter(r => r['평가년월'] === lastMonth);
+  const gradeCounts = { S: 0, A: 0, B: 0, C: 0, D: 0 };
+  lastRecs.forEach(r => {
+    if (typeof r['월간총점'] === 'number') {
+      const g = getGrade(r['월간총점'], grades);
+      if (gradeCounts[g] !== undefined) gradeCounts[g]++;
+    }
+  });
+  
+  const total = Object.values(gradeCounts).reduce((a,b) => a+b, 0);
+  const colors = { S: '#2ecc71', A: '#4a90e2', B: '#f1c40f', C: '#e8710a', D: '#e74c3c' };
+  
+  let barHtml = `<div style="margin-bottom:4px;font-size:12px;color:var(--text-muted);">${lastMonth} 기준 (${total}명)</div>`;
+  ['S', 'A', 'B', 'C', 'D'].forEach(g => {
+    const pct = total ? Math.round(gradeCounts[g] / total * 100) : 0;
+    barHtml += `<div class="grade-bar-row">
+      <div class="grade-bar-label" style="color:${colors[g]}">${g}</div>
+      <div class="grade-bar-track">
+        <div class="grade-bar-fill" style="width:${pct}%;background:${colors[g]}">${pct > 10 ? pct + '%' : ''}</div>
+      </div>
+      <div class="grade-bar-count">${gradeCounts[g]}명</div>
+    </div>`;
+  });
+  document.getElementById('gradeDistribution').innerHTML = barHtml;
+  
+  // 파이 차트
+  destroyChart('gradePie');
+  if (total > 0) {
+    const ctx = document.getElementById('gradePieChart').getContext('2d');
+    charts.gradePie = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: ['S', 'A', 'B', 'C', 'D'],
+        datasets: [{ data: Object.values(gradeCounts),
+          backgroundColor: Object.values(colors).map(c => c + 'cc'),
+          borderColor: 'transparent', borderWidth: 2 }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        cutout: '60%',
+        plugins: {
+          legend: { position: 'right', labels: { color: '#8899aa', font: { family: 'Manrope' }, padding: 12 } },
+          datalabels: { color: '#fff', font: { family: 'Manrope', weight: 700 }, formatter: (v) => v > 0 ? v + '명' : '' }
+        }
+      },
+      plugins: [ChartDataLabels]
+    });
+  }
+}
+
+// ──────────────────────────────────────
+// 필터 세팅
+// ──────────────────────────────────────
+function populateFilters() {
+  const asMonths = getMonths(dashData.data.asMonthly);
+  const spMonths = getMonths(dashData.data.supportMonthly);
+  
+  const asFilter = document.getElementById('asMonthFilter');
+  asFilter.innerHTML = '<option value="">전체 월</option>';
+  asMonths.forEach(m => asFilter.innerHTML += `<option value="${m}">${m}</option>`);
+  
+  const spFilter = document.getElementById('spMonthFilter');
+  spFilter.innerHTML = '<option value="">전체 월</option>';
+  spMonths.forEach(m => spFilter.innerHTML += `<option value="${m}">${m}</option>`);
+}
+
+// ──────────────────────────────────────
+// 초기화
+// ──────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  loadDashboard();
+});
+</script>
+</body>
+</html>
