@@ -607,6 +607,15 @@ async function loadDashboard() {
       throw new Error(dashData.error || '데이터 로드 실패');
     }
     
+    // 디버그 로그
+    console.log('직원:', dashData.data.employees.length, '명');
+    console.log('AS평가:', dashData.data.asMonthly.length, '건');
+    if (dashData.data.asMonthly.length > 0) {
+      console.log('AS 첫 레코드 키:', Object.keys(dashData.data.asMonthly[0]));
+      console.log('AS 첫 레코드:', dashData.data.asMonthly[0]);
+    }
+    console.log('서포트평가:', dashData.data.supportMonthly.length, '건');
+    
     renderOverview();
     populateFilters();
     renderASTeam();
@@ -737,7 +746,9 @@ function renderMonthlyTrend(asRecs, spRecs) {
   });
   
   destroyChart('monthlyTrend');
-  const ctx = document.getElementById('monthlyTrendChart').getContext('2d');
+  const el = document.getElementById('monthlyTrendChart');
+  if (!el) return;
+  const ctx = el.getContext('2d');
   charts.monthlyTrend = new Chart(ctx, {
     type: 'line',
     data: {
@@ -835,8 +846,9 @@ function renderASTeam() {
   
   destroyChart('asBar');
   if (names.length) {
-    const ctx = document.getElementById('asBarChart').getContext('2d');
-    charts.asBar = new Chart(ctx, {
+    const ctx = document.getElementById('asBarChart');
+    if (!ctx) return;
+    charts.asBar = new Chart(ctx.getContext('2d'), {
       type: 'bar',
       data: {
         labels: names,
@@ -916,8 +928,9 @@ function renderSupportTeam() {
   });
   
   destroyChart('spPart');
-  const ctx1 = document.getElementById('spPartChart').getContext('2d');
-  charts.spPart = new Chart(ctx1, {
+  const ctx1 = document.getElementById('spPartChart');
+  if (!ctx1) return;
+  charts.spPart = new Chart(ctx1.getContext('2d'), {
     type: 'bar',
     data: {
       labels: parts,
@@ -1033,8 +1046,9 @@ function renderIndividual() {
     const monthScores = recs.map(r => r['월간총점']);
     
     destroyChart('individual');
-    const ctx = document.getElementById('indChart').getContext('2d');
-    charts.individual = new Chart(ctx, {
+    const ctx = document.getElementById('indChart');
+    if (!ctx) return;
+    charts.individual = new Chart(ctx.getContext('2d'), {
       type: 'line',
       data: {
         labels: months.map(m => String(m).substring(5) + '월'),
@@ -1115,8 +1129,9 @@ function renderGrade() {
   // 파이 차트
   destroyChart('gradePie');
   if (total > 0) {
-    const ctx = document.getElementById('gradePieChart').getContext('2d');
-    charts.gradePie = new Chart(ctx, {
+    const ctx = document.getElementById('gradePieChart');
+    if (!ctx) return;
+    charts.gradePie = new Chart(ctx.getContext('2d'), {
       type: 'doughnut',
       data: {
         labels: ['S', 'A', 'B', 'C', 'D'],
