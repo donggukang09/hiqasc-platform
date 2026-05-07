@@ -841,8 +841,15 @@ function renderASTeam() {
     if (typeof r['월간총점'] === 'number') byName[name].push(r['월간총점']);
   });
   
-  const names = Object.keys(byName);
-  const avgs = names.map(n => avg(byName[n]));
+  // 점수순 정렬 (내림차순)
+  const sorted = Object.keys(byName)
+    .map(n => ({ name: n, score: avg(byName[n]) }))
+    .sort((a, b) => b.score - a.score);
+  const names = sorted.map(s => s.name);
+  const avgs = sorted.map(s => s.score);
+  const gradeColors = { S: 'rgba(46,204,113,0.8)', A: 'rgba(74,144,226,0.8)', B: 'rgba(241,196,15,0.7)', C: 'rgba(232,113,10,0.7)', D: 'rgba(231,76,60,0.7)' };
+  const gradeTextColors = { S: '#2ecc71', A: '#6ab0ff', B: '#f1c40f', C: '#e8710a', D: '#e74c3c' };
+  const barGrades = avgs.map(v => getGrade(v, dashData.data.grades));
   
   destroyChart('asBar');
   if (names.length) {
@@ -853,12 +860,19 @@ function renderASTeam() {
       data: {
         labels: names,
         datasets: [{ label: '평균 총점', data: avgs,
-          backgroundColor: avgs.map(v => v >= 85 ? 'rgba(46,204,113,0.7)' : v >= 70 ? 'rgba(74,144,226,0.7)' : v >= 55 ? 'rgba(241,196,15,0.7)' : 'rgba(231,76,60,0.7)'),
+          backgroundColor: barGrades.map(g => gradeColors[g] || 'rgba(74,144,226,0.7)'),
           borderRadius: 6, borderSkipped: false }]
       },
       options: {
         responsive: true, maintainAspectRatio: false, indexAxis: 'y',
-        plugins: { legend: { display: false }, datalabels: { anchor: 'end', align: 'end', color: '#8899aa', font: { family: 'Manrope', weight: 600 } } },
+        plugins: { legend: { display: false }, datalabels: {
+          anchor: 'end', align: 'end',
+          font: { family: 'Manrope', weight: 700, size: 12 },
+          color: function(ctx) { return gradeTextColors[barGrades[ctx.dataIndex]] || '#8899aa'; },
+          formatter: function(value, ctx) {
+            return value + '  ' + barGrades[ctx.dataIndex];
+          }
+        }},
         scales: {
           x: { min: 0, max: 100, ticks: { color: '#556677' }, grid: { color: 'rgba(255,255,255,0.05)' } },
           y: { ticks: { color: '#e8e8e8', font: { family: 'Manrope' } }, grid: { display: false } }
