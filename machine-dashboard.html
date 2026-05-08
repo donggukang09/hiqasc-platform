@@ -4,417 +4,244 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>머신 수량 현황 대시보드</title>
+    <!-- v2.0 | 팀현황 + 수량 + 테크니션 바그래프 통합 | Developer: DONGGU KANG -->
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
             background: #1e1e1e;
             color: #e0e0e0;
             min-height: 100vh;
+            overflow: hidden;
         }
 
-        /* 헤더 */
+        /* 헤더 - 컴팩트 */
         .header {
             background: #2a2a2a;
             border-bottom: 1px solid #3a3a3a;
-            padding: 20px 30px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
+            padding: 10px 24px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
         }
-
         .header-container {
-            max-width: 1800px;
+            max-width: 1920px;
             margin: 0 auto;
             display: flex;
             align-items: center;
             justify-content: space-between;
         }
-
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
+        .header-left { display: flex; align-items: center; gap: 12px; }
         .header-icon {
-            width: 45px;
-            height: 45px;
-            background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            font-weight: 700;
-            color: #ffffff;
+            width: 36px; height: 36px;
+            background: linear-gradient(135deg, #4a90e2, #357abd);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; font-weight: 700; color: #fff;
         }
-
-        .header-info h1 {
-            font-size: 1.8em;
-            color: #ffffff;
-            margin-bottom: 5px;
-        }
-
-        .header-info p {
-            color: #808080;
-            font-size: 0.9em;
-        }
-
-        .update-info {
-            text-align: right;
-            font-size: 0.85em;
-            color: #808080;
-        }
-
-        .update-time {
-            color: #4a90e2;
-            font-weight: 600;
-        }
-
+        .header-info h1 { font-size: 1.3em; color: #fff; }
+        .header-info p { color: #808080; font-size: 0.75em; }
+        .header-right { display: flex; align-items: center; gap: 12px; }
+        .update-info { text-align: right; font-size: 0.75em; color: #808080; }
+        .update-time { color: #4a90e2; font-weight: 600; }
         .back-link {
-            color: #4a90e2;
-            text-decoration: none;
-            padding: 8px 16px;
-            border: 1px solid #4a90e2;
-            border-radius: 6px;
-            transition: all 0.2s;
-            font-size: 0.9em;
+            color: #4a90e2; text-decoration: none;
+            padding: 6px 12px; border: 1px solid #4a90e2;
+            border-radius: 6px; font-size: 0.8em; transition: all 0.2s;
         }
-
-        .back-link:hover {
-            background: #4a90e2;
-            color: #ffffff;
-        }
-
-        /* 메인 컨테이너 */
-        .main-container {
-            max-width: 1800px;
-            margin: 0 auto;
-            padding: 30px;
-        }
+        .back-link:hover { background: #4a90e2; color: #fff; }
 
         /* 로딩 */
-        .loading {
-            text-align: center;
-            padding: 100px 20px;
-        }
-
+        .loading { text-align: center; padding: 100px 20px; }
         .loading-spinner {
-            width: 60px;
-            height: 60px;
-            margin: 0 auto 20px;
-            border: 4px solid #3a3a3a;
-            border-top: 4px solid #4a90e2;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
+            width: 50px; height: 50px; margin: 0 auto 16px;
+            border: 3px solid #3a3a3a; border-top: 3px solid #4a90e2;
+            border-radius: 50%; animation: spin 0.8s linear infinite;
         }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-text { color: #808080; font-size: 1em; }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        /* 메인 */
+        .main-container {
+            max-width: 1920px; margin: 0 auto;
+            padding: 12px 24px;
+            height: calc(100vh - 60px);
+            display: flex; flex-direction: column;
         }
+        .dashboard { display: none; height: 100%; }
+        .dashboard.active { display: flex; flex-direction: column; height: 100%; }
 
-        .loading-text {
-            color: #808080;
-            font-size: 1.1em;
+        /* ===== 1. 팀 현황 바 ===== */
+        .team-status-bar {
+            display: flex; gap: 12px; margin-bottom: 12px; flex-shrink: 0;
         }
-
-        /* 대시보드 */
-        .dashboard {
-            display: none;
+        .team-stat-card {
+            flex: 1;
+            background: #2a2a2a; border: 1px solid #3a3a3a;
+            border-radius: 10px; padding: 12px 16px;
+            display: flex; align-items: center; gap: 12px;
+            transition: all 0.3s;
         }
-
-        .dashboard.active {
-            display: block;
+        .team-stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
+        .team-stat-icon {
+            width: 40px; height: 40px; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; flex-shrink: 0;
         }
+        .team-stat-card.total .team-stat-icon { background: rgba(74,144,226,0.15); }
+        .team-stat-card.working .team-stat-icon { background: rgba(40,167,69,0.15); }
+        .team-stat-card.leave .team-stat-icon { background: rgba(230,126,34,0.15); }
+        .team-stat-card.overtime .team-stat-icon { background: rgba(155,89,182,0.15); }
+        .team-stat-value { font-size: 1.8em; font-weight: 800; line-height: 1; }
+        .team-stat-card.total .team-stat-value { color: #4a90e2; }
+        .team-stat-card.working .team-stat-value { color: #28a745; }
+        .team-stat-card.leave .team-stat-value { color: #e67e22; }
+        .team-stat-card.overtime .team-stat-value { color: #9b59b6; }
+        .team-stat-label { font-size: 0.75em; color: #808080; font-weight: 600; }
+        .team-stat-detail { font-size: 0.7em; color: #606060; margin-top: 2px; }
 
-        .split-container {
+        /* ===== 2. 메인 콘텐츠 그리드 ===== */
+        .content-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 30px;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+            flex: 1;
+            min-height: 0;
         }
 
+        /* 완료/잔여 패널 */
         .panel {
-            background: #2a2a2a;
-            border: 1px solid #3a3a3a;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            background: #2a2a2a; border: 1px solid #3a3a3a;
+            border-radius: 10px; padding: 14px;
+            overflow-y: auto; display: flex; flex-direction: column;
         }
-
-        .panel-header {
-            text-align: center;
-            margin-bottom: 15px;
-        }
-
-        .panel-title {
-            font-size: 2.8em;
-            font-weight: bold;
-            color: white;
-            margin-bottom: 5px;
-        }
-
-        .panel.complete .panel-title {
-            color: #2ecc71;
-        }
-
-        .panel.remaining .panel-title {
-            color: #e74c3c;
-        }
+        .panel-header { text-align: center; margin-bottom: 8px; }
+        .panel-title { font-size: 1.6em; font-weight: bold; }
+        .panel.complete .panel-title { color: #2ecc71; }
+        .panel.remaining .panel-title { color: #e74c3c; }
 
         .total-count {
-            padding: 18px;
-            border-radius: 10px;
-            text-align: center;
-            margin-bottom: 15px;
+            padding: 10px; border-radius: 8px;
+            text-align: center; margin-bottom: 10px;
         }
-
-        .panel.complete .total-count {
-            background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
-        }
-
-        .panel.remaining .total-count {
-            background: linear-gradient(135deg, #c0392b 0%, #a93226 100%);
-        }
-
-        .total-count h2 {
-            font-size: 1.3em;
-            margin-bottom: 5px;
-            font-weight: 600;
-            color: rgba(255, 255, 255, 0.9);
-        }
-
-        .total-count .count {
-            font-size: 5em;
-            font-weight: bold;
-            color: white;
-        }
+        .panel.complete .total-count { background: linear-gradient(135deg, #27ae60, #229954); }
+        .panel.remaining .total-count { background: linear-gradient(135deg, #c0392b, #a93226); }
+        .total-count h2 { font-size: 0.85em; margin-bottom: 2px; color: rgba(255,255,255,0.9); }
+        .total-count .count { font-size: 3em; font-weight: bold; color: white; line-height: 1.1; }
 
         .section {
-            background: #34495e;
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 15px;
+            background: #34495e; border-radius: 8px;
+            padding: 10px; margin-bottom: 8px;
         }
-
         .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #4a5f7f;
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 8px; padding-bottom: 6px; border-bottom: 2px solid #4a5f7f;
         }
-
-        .section-title {
-            font-size: 1.4em;
-            font-weight: bold;
-        }
-
-        .section.original .section-title {
-            color: #3498db;
-        }
-
-        .section.vertuo .section-title {
-            color: #9b59b6;
-        }
-
-        .section.other .section-title {
-            color: #e67e22;
-        }
-
+        .section-title { font-size: 1em; font-weight: bold; }
+        .section.original .section-title { color: #3498db; }
+        .section.vertuo .section-title { color: #9b59b6; }
+        .section.other .section-title { color: #e67e22; }
         .section-count {
-            font-size: 1.1em;
-            font-weight: bold;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 6px 14px;
-            border-radius: 15px;
-            color: white;
+            font-size: 0.85em; font-weight: bold;
+            background: rgba(255,255,255,0.1);
+            padding: 4px 10px; border-radius: 12px; color: white;
         }
 
         .models-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 10px;
+            grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+            gap: 6px;
         }
-
         .model-card {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 12px;
-            border-radius: 8px;
-            text-align: center;
-            transition: all 0.3s;
-            border: 2px solid transparent;
+            background: rgba(255,255,255,0.05);
+            padding: 8px 4px; border-radius: 6px; text-align: center;
+            border: 1px solid transparent; transition: all 0.2s;
         }
+        .model-card:hover { background: rgba(255,255,255,0.1); border-color: #4a90e2; }
+        .model-name { font-size: 0.7em; color: #b0b0b0; margin-bottom: 3px; }
+        .model-count { font-size: 1.1em; font-weight: bold; color: #4a90e2; }
+        .hidden { display: none; }
 
-        .model-card:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        /* ===== 3. 테크니션 바그래프 패널 ===== */
+        .tech-panel {
+            background: #2a2a2a; border: 1px solid #3a3a3a;
+            border-radius: 10px; padding: 14px;
+            display: flex; flex-direction: column; overflow-y: auto;
         }
-
-        .model-name {
-            font-size: 0.9em;
-            color: #b0b0b0;
-            margin-bottom: 6px;
+        .tech-panel-title {
+            font-size: 1.1em; font-weight: 700; color: #fff;
+            text-align: center; margin-bottom: 12px;
         }
+        .tech-bar-list { flex: 1; display: flex; flex-direction: column; gap: 6px; }
 
-        .model-count {
-            font-size: 1.3em;
-            font-weight: bold;
-            color: #4a90e2;
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        /* 테크니션 섹션 */
-        .technician-section {
-            margin-top: 30px;
-        }
-
-        .technician-section h2 {
-            font-size: 1.6em;
-            color: #ffffff;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .technician-grid {
+        .tech-bar-item {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
+            grid-template-columns: 56px 1fr 44px;
+            align-items: center; gap: 8px;
+        }
+        .tech-bar-name {
+            font-size: 0.85em; font-weight: 600; color: #e0e0e0;
+            text-align: right; white-space: nowrap;
+        }
+        .tech-bar-name.on-leave { color: #e67e22; text-decoration: line-through; opacity: 0.6; }
+        .tech-bar-wrap {
+            height: 22px; background: #34495e;
+            border-radius: 4px; position: relative; overflow: hidden;
+        }
+        .tech-bar-fill {
+            height: 100%; border-radius: 4px;
+            background: linear-gradient(90deg, #4a90e2, #5ba3f5);
+            transition: width 0.6s ease;
+            display: flex; align-items: center; justify-content: flex-end; padding-right: 6px;
+        }
+        .tech-bar-fill.high {
+            background: linear-gradient(90deg, #28a745, #2ecc71);
+        }
+        .tech-bar-fill.leave-bar {
+            background: repeating-linear-gradient(
+                45deg, #e67e22, #e67e22 4px, #d35400 4px, #d35400 8px
+            );
+            width: 100% !important;
+            justify-content: center;
+        }
+        .tech-bar-fill .bar-label {
+            font-size: 0.7em; font-weight: 700; color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+        }
+        .tech-bar-count {
+            font-size: 0.9em; font-weight: 700;
+            color: #4a90e2; text-align: left;
+        }
+        .tech-bar-count.on-leave { color: #e67e22; font-size: 0.75em; }
+        .tech-bar-count.overtime-mark { position: relative; }
+        .overtime-badge {
+            display: inline-block; font-size: 0.6em;
+            color: #9b59b6; margin-left: 2px; vertical-align: super;
         }
 
-        .technician-card {
-            background: #2a2a2a;
-            border: 1px solid #3a3a3a;
-            border-radius: 10px;
-            padding: 18px;
-            transition: all 0.3s;
+        /* 범례 */
+        .tech-legend {
+            display: flex; gap: 14px; justify-content: center;
+            margin-top: 8px; padding-top: 8px; border-top: 1px solid #3a3a3a;
         }
-
-        .technician-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(74, 144, 226, 0.2);
-            border-color: #4a90e2;
+        .tech-legend-item { display: flex; align-items: center; gap: 4px; font-size: 0.7em; color: #808080; }
+        .legend-dot { width: 10px; height: 10px; border-radius: 2px; }
+        .legend-dot.normal { background: #4a90e2; }
+        .legend-dot.high { background: #28a745; }
+        .legend-dot.leave {
+            background: repeating-linear-gradient(45deg, #e67e22, #e67e22 2px, #d35400 2px, #d35400 4px);
         }
-
-        .technician-name {
-            font-size: 1.3em;
-            font-weight: bold;
-            color: #4a90e2;
-            margin-bottom: 12px;
-            text-align: center;
-        }
-
-        .tech-total {
-            text-align: center;
-            margin-bottom: 15px;
-        }
-
-        .tech-total-label {
-            font-size: 0.9em;
-            color: #808080;
-            margin-bottom: 4px;
-        }
-
-        .tech-total-count {
-            font-size: 1.8em;
-            font-weight: bold;
-            color: #2ecc71;
-        }
-
-        .tech-breakdown {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .tech-line {
-            background: #34495e;
-            padding: 10px;
-            border-radius: 6px;
-            text-align: center;
-        }
-
-        .tech-line-label {
-            font-size: 0.85em;
-            margin-bottom: 4px;
-        }
-
-        .tech-line.original .tech-line-label {
-            color: #3498db;
-        }
-
-        .tech-line.vertuo .tech-line-label {
-            color: #9b59b6;
-        }
-
-        .tech-line-count {
-            font-size: 1.3em;
-            font-weight: bold;
-            color: white;
-        }
-
-        .tech-models {
-            background: #34495e;
-            border-radius: 6px;
-            padding: 10px;
-            max-height: 200px;
-            overflow-y: auto;
-        }
-
-        .tech-model-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 6px 8px;
-            margin-bottom: 4px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 4px;
-        }
-
-        .tech-model-name {
-            font-size: 0.85em;
-            color: #b0b0b0;
-        }
-
-        .tech-model-count {
-            font-size: 0.85em;
-            font-weight: bold;
-            color: #4a90e2;
-        }
+        .legend-dot.overtime { background: #9b59b6; }
 
         /* 반응형 */
         @media (max-width: 1200px) {
-            .split-container {
-                grid-template-columns: 1fr;
-            }
+            .content-grid { grid-template-columns: 1fr 1fr; }
+            .tech-panel { grid-column: 1 / -1; }
+            body { overflow: auto; }
         }
-
         @media (max-width: 768px) {
-            .main-container {
-                padding: 20px 15px;
-            }
-
-            .header-container {
-                flex-direction: column;
-                gap: 15px;
-            }
-
-            .models-grid {
-                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            }
+            .content-grid { grid-template-columns: 1fr; }
+            .team-status-bar { flex-wrap: wrap; }
+            .team-stat-card { flex: 1 1 45%; }
+            body { overflow: auto; }
         }
     </style>
     <script src="config.js"></script>
@@ -430,11 +257,13 @@
                     <p>Machine Quantity Dashboard</p>
                 </div>
             </div>
-            <div class="update-info">
-                <div>마지막 업데이트</div>
-                <div class="update-time" id="updateTime">-</div>
+            <div class="header-right">
+                <div class="update-info">
+                    <div>마지막 업데이트</div>
+                    <div class="update-time" id="updateTime">-</div>
+                </div>
+                <a href="https://donggukang09.github.io/hiqasc-platform/" class="back-link">← 메인으로</a>
             </div>
-            <a href="https://donggukang09.github.io/hiqasc-platform/" class="back-link">← 메인으로</a>
         </div>
     </div>
 
@@ -447,8 +276,43 @@
     <!-- 메인 컨테이너 -->
     <div class="main-container">
         <div class="dashboard" id="dashboard">
-            <!-- 완료/잔여 패널 -->
-            <div class="split-container">
+
+            <!-- 1. 팀 현황 바 -->
+            <div class="team-status-bar">
+                <div class="team-stat-card total">
+                    <div class="team-stat-icon">👥</div>
+                    <div>
+                        <div class="team-stat-value" id="teamTotal">-</div>
+                        <div class="team-stat-label">총인원</div>
+                    </div>
+                </div>
+                <div class="team-stat-card working">
+                    <div class="team-stat-icon">✅</div>
+                    <div>
+                        <div class="team-stat-value" id="teamWorking">-</div>
+                        <div class="team-stat-label">출근</div>
+                    </div>
+                </div>
+                <div class="team-stat-card leave">
+                    <div class="team-stat-icon">🏖️</div>
+                    <div>
+                        <div class="team-stat-value" id="teamLeave">-</div>
+                        <div class="team-stat-label">연차</div>
+                        <div class="team-stat-detail" id="teamLeaveNames"></div>
+                    </div>
+                </div>
+                <div class="team-stat-card overtime">
+                    <div class="team-stat-icon">🌙</div>
+                    <div>
+                        <div class="team-stat-value" id="teamOvertime">-</div>
+                        <div class="team-stat-label">추가근로</div>
+                        <div class="team-stat-detail" id="teamOvertimeNames"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2+3. 수량 패널 + 테크니션 바그래프 -->
+            <div class="content-grid">
                 <!-- 완료 패널 -->
                 <div class="panel complete">
                     <div class="panel-header">
@@ -458,8 +322,6 @@
                         <h2>총 완료 수량</h2>
                         <div class="count" id="completeTotalCount">0</div>
                     </div>
-
-                    <!-- ORIGINAL 라인 -->
                     <div class="section original">
                         <div class="section-header">
                             <h3 class="section-title">ORIGINAL</h3>
@@ -467,8 +329,6 @@
                         </div>
                         <div class="models-grid" id="completeOriginalModels"></div>
                     </div>
-
-                    <!-- VERTUO 라인 -->
                     <div class="section vertuo">
                         <div class="section-header">
                             <h3 class="section-title">VERTUO</h3>
@@ -476,8 +336,6 @@
                         </div>
                         <div class="models-grid" id="completeVertuoModels"></div>
                     </div>
-
-                    <!-- OTHER -->
                     <div class="section other" id="completeOtherSection">
                         <div class="section-header">
                             <h3 class="section-title">OTHER</h3>
@@ -496,8 +354,6 @@
                         <h2>총 잔여 수량</h2>
                         <div class="count" id="remainingTotalCount">0</div>
                     </div>
-
-                    <!-- ORIGINAL 라인 -->
                     <div class="section original">
                         <div class="section-header">
                             <h3 class="section-title">ORIGINAL</h3>
@@ -505,8 +361,6 @@
                         </div>
                         <div class="models-grid" id="remainingOriginalModels"></div>
                     </div>
-
-                    <!-- VERTUO 라인 -->
                     <div class="section vertuo">
                         <div class="section-header">
                             <h3 class="section-title">VERTUO</h3>
@@ -514,8 +368,6 @@
                         </div>
                         <div class="models-grid" id="remainingVertuoModels"></div>
                     </div>
-
-                    <!-- OTHER -->
                     <div class="section other" id="remainingOtherSection">
                         <div class="section-header">
                             <h3 class="section-title">OTHER</h3>
@@ -524,34 +376,107 @@
                         <div class="models-grid" id="remainingOtherModels"></div>
                     </div>
                 </div>
-            </div>
 
-            <!-- 테크니션 통계 -->
-            <div class="technician-section">
-                <h2>👨‍🔧 테크니션별 완료 현황</h2>
-                <div class="technician-grid" id="technicianGrid"></div>
+                <!-- 테크니션 바그래프 패널 -->
+                <div class="tech-panel">
+                    <div class="tech-panel-title">👨‍🔧 테크니션별 완료 현황</div>
+                    <div class="tech-bar-list" id="techBarList"></div>
+                    <div class="tech-legend">
+                        <div class="tech-legend-item"><div class="legend-dot normal"></div>수리 완료</div>
+                        <div class="tech-legend-item"><div class="legend-dot high"></div>목표 달성</div>
+                        <div class="tech-legend-item"><div class="legend-dot leave"></div>연차</div>
+                        <div class="tech-legend-item"><div class="legend-dot overtime"></div>추가근로</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
         // ============================================
-        // Google Sheets 설정
+        // 설정
         // ============================================
         const SHEET_ID = SHEETS_CONFIG.machineQuantity;
         const COMPLETE_SHEET_NAME = '완료';
         const REMAINING_SHEET_NAME = '잔여';
-        const MODEL_SHEET_NAME = 'model'; // 모델 리스트 시트
+        const MODEL_SHEET_NAME = 'model';
 
-        // ============================================
-        // MODEL DATABASE (수정하지 마세요)
-        // ============================================
-        let MODEL_DATABASE = []; // Google Sheets에서 로드됨
+        // 팀 현황용 시트
+        const TEAM_SHEET_IDS = {
+            main: '111K9l8gt-14roqvynNFEJrT2aLsTYjU8gQBsKNiyFmI',
+            leave: '1cmMEbIkmEL629RT04hpUUgXddnSVLGo1YwRzBwfyzCY',
+            overtime: '12U0BzTsjxPfK3AZqQyY479ozC0g1T3Cxutj6XmN75-k'
+        };
 
+        const DAILY_TARGET = 15;
+        const cache = Date.now();
+
+        let MODEL_DATABASE = [];
         const EXCLUDED_MODELS = ['Vertuo Creatista'];
 
+        // 팀 데이터
+        let teamMembers = [];
+        let leaveData = [];
+        let overtimeData = [];
+
+        const today = new Date();
+        const todayStr = formatDateStr(today);
+
+        function formatDateStr(d) {
+            return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        }
+
+        function normalizeDate(val) {
+            if (!val) return '';
+            let str = String(val).trim();
+            const gvizMatch = str.match(/Date\((\d+),\s*(\d+),\s*(\d+)/);
+            if (gvizMatch) return `${gvizMatch[1]}-${String(parseInt(gvizMatch[2])+1).padStart(2,'0')}-${String(gvizMatch[3]).padStart(2,'0')}`;
+            const dotMatch = str.match(/(\d{4})\.\s*(\d{1,2})\.\s*(\d{1,2})/);
+            if (dotMatch) return `${dotMatch[1]}-${String(dotMatch[2]).padStart(2,'0')}-${String(dotMatch[3]).padStart(2,'0')}`;
+            const dashMatch = str.match(/(\d{4})-(\d{1,2})-(\d{1,2})/);
+            if (dashMatch) return `${dashMatch[1]}-${String(dashMatch[2]).padStart(2,'0')}-${String(dashMatch[3]).padStart(2,'0')}`;
+            return str;
+        }
+
         // ============================================
-        // 데이터 로드 및 처리
+        // gviz 로더 (JSONP)
+        // ============================================
+        function loadGviz(sheetId, tabName, query, callbackName) {
+            return new Promise((resolve) => {
+                const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json;responseHandler:${callbackName}&sheet=${encodeURIComponent(tabName)}&tq=${encodeURIComponent(query)}&_=${cache}`;
+                window[callbackName] = function(response) {
+                    try {
+                        if (response.status === 'error') { resolve({ rows: [], cols: [] }); return; }
+                        resolve({ rows: response.table.rows || [], cols: response.table.cols || [] });
+                    } catch(e) { resolve({ rows: [], cols: [] }); }
+                    delete window[callbackName];
+                    const el = document.getElementById('script_' + callbackName);
+                    if (el) el.remove();
+                };
+                const script = document.createElement('script');
+                script.id = 'script_' + callbackName;
+                script.src = url;
+                script.onerror = () => resolve({ rows: [], cols: [] });
+                document.body.appendChild(script);
+            });
+        }
+
+        function getCellValue(row, i) {
+            if (!row.c || !row.c[i]) return '';
+            const c = row.c[i];
+            if (c.f) return c.f;
+            if (c.v !== null && c.v !== undefined) return String(c.v);
+            return '';
+        }
+
+        function getRawValue(row, i) {
+            if (!row.c || !row.c[i]) return '';
+            const c = row.c[i];
+            return (c.v !== null && c.v !== undefined) ? String(c.v) : '';
+        }
+
+        // ============================================
+        // 머신 수량 데이터 (기존 로직 유지)
         // ============================================
         async function loadData() {
             try {
@@ -569,20 +494,15 @@
                 const remainingText = await remainingResponse.text();
                 const modelText = await modelResponse.text();
 
-                // 모델 데이터 먼저 로드
-                MODEL_DATABASE = parseGoogleSheetsData(modelText, true); // model 시트용 파싱
-                console.log('✅ 모델 데이터 로드 완료:', MODEL_DATABASE.length, '개');
-
+                MODEL_DATABASE = parseGoogleSheetsData(modelText, true);
                 const completeData = parseGoogleSheetsData(completeText);
                 const remainingData = parseGoogleSheetsData(remainingText);
 
                 processAllData(completeData, remainingData);
-                
-                // 업데이트 시간 표시
+
                 const now = new Date();
                 document.getElementById('updateTime').textContent = now.toLocaleString('ko-KR');
 
-                // 로딩 숨기고 대시보드 표시
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('dashboard').classList.add('active');
             } catch (error) {
@@ -591,7 +511,6 @@
                     <div style="color: #e74c3c;">
                         <h3>데이터 로드 실패</h3>
                         <p>Google Sheets에 접근할 수 없습니다.</p>
-                        <p style="font-size: 0.9em; margin-top: 10px;">시트가 "링크가 있는 모든 사용자"로 공유되어 있는지 확인하세요.</p>
                     </div>
                 `;
             }
@@ -600,20 +519,15 @@
         function parseGoogleSheetsData(text, isModelSheet = false) {
             const json = JSON.parse(text.substring(47).slice(0, -2));
             const rows = json.table.rows;
-            
             let cols;
             let dataStartRow = 0;
-            
             if (isModelSheet) {
-                // model 시트는 헤더를 강제 지정
                 cols = ['International Machine ID', 'model line', 'model'];
-                dataStartRow = 1; // 첫 행은 헤더이므로 스킵
+                dataStartRow = 1;
             } else {
-                // 다른 시트는 기존 방식
                 cols = json.table.cols.map(col => col.label);
                 dataStartRow = 0;
             }
-
             return rows.slice(dataStartRow).map(row => {
                 const obj = {};
                 row.c.forEach((cell, idx) => {
@@ -629,9 +543,7 @@
             if (modelInfo) {
                 const modelName = modelInfo['model'];
                 const line = modelInfo['model line'];
-                if (EXCLUDED_MODELS.includes(modelName)) {
-                    return { line: 'OTHER', model: searchId };
-                }
+                if (EXCLUDED_MODELS.includes(modelName)) return { line: 'OTHER', model: searchId };
                 return { line: line, model: modelName };
             }
             return { line: 'OTHER', model: searchId };
@@ -640,7 +552,6 @@
         function processData(data) {
             const stats = { ORIGINAL: {}, VERTUO: {}, OTHER: {} };
             let totalCount = 0;
-            
             data.forEach((row) => {
                 const machineId = row['International Machine ID'];
                 if (!machineId) {
@@ -648,11 +559,9 @@
                     stats.OTHER[key] = (stats.OTHER[key] || 0) + 1;
                     return;
                 }
-                
                 const modelInfo = getModelInfo(machineId);
                 const line = modelInfo.line;
                 const modelName = modelInfo.model;
-                
                 if (line === 'ORIGINAL' || line === 'VERTUO') {
                     stats[line][modelName] = (stats[line][modelName] || 0) + 1;
                     totalCount += 1;
@@ -660,41 +569,27 @@
                     stats.OTHER[machineId] = (stats.OTHER[machineId] || 0) + 1;
                 }
             });
-            
             return { stats, totalCount };
         }
 
         function processTechnicianData(completeData) {
             const techStats = {};
-            
             completeData.forEach((row) => {
                 const techName = row['담당자'];
                 const machineId = row['International Machine ID'];
-                
                 if (!techName || !machineId) return;
-                
                 if (!techStats[techName]) {
                     techStats[techName] = { total: 0, original: 0, vertuo: 0, models: {} };
                 }
-                
                 const modelInfo = getModelInfo(machineId);
                 const line = modelInfo.line;
                 const modelName = modelInfo.model;
-                
                 techStats[techName].total++;
-                
-                if (line === 'ORIGINAL') {
-                    techStats[techName].original++;
-                } else if (line === 'VERTUO') {
-                    techStats[techName].vertuo++;
-                }
-                
-                if (!techStats[techName].models[modelName]) {
-                    techStats[techName].models[modelName] = 0;
-                }
+                if (line === 'ORIGINAL') techStats[techName].original++;
+                else if (line === 'VERTUO') techStats[techName].vertuo++;
+                if (!techStats[techName].models[modelName]) techStats[techName].models[modelName] = 0;
                 techStats[techName].models[modelName]++;
             });
-            
             return techStats;
         }
 
@@ -702,102 +597,201 @@
             const completeResult = processData(completeData);
             const remainingResult = processData(remainingData);
             const technicianStats = processTechnicianData(completeData);
-            
+
             displayPanel('complete', completeResult.stats, completeResult.totalCount);
             displayPanel('remaining', remainingResult.stats, remainingResult.totalCount);
-            displayTechnicianStats(technicianStats);
+            displayTechBarChart(technicianStats);
         }
 
         function displayPanel(prefix, stats, totalCount) {
             document.getElementById(`${prefix}TotalCount`).textContent = totalCount.toLocaleString();
-            
             const originalCount = Object.values(stats.ORIGINAL).reduce((a, b) => a + b, 0);
             document.getElementById(`${prefix}OriginalCount`).textContent = `${originalCount.toLocaleString()}대`;
             displayModels(`${prefix}OriginalModels`, stats.ORIGINAL);
-            
             const vertuoCount = Object.values(stats.VERTUO).reduce((a, b) => a + b, 0);
             document.getElementById(`${prefix}VertuoCount`).textContent = `${vertuoCount.toLocaleString()}대`;
             displayModels(`${prefix}VertuoModels`, stats.VERTUO);
-            
             const otherCount = Object.values(stats.OTHER).reduce((a, b) => a + b, 0);
             document.getElementById(`${prefix}OtherCount`).textContent = `${otherCount.toLocaleString()}대`;
             displayModels(`${prefix}OtherModels`, stats.OTHER);
-            
             const otherSection = document.getElementById(`${prefix}OtherSection`);
-            if (otherCount === 0) {
-                otherSection.classList.add('hidden');
-            } else {
-                otherSection.classList.remove('hidden');
-            }
+            if (otherCount === 0) otherSection.classList.add('hidden');
+            else otherSection.classList.remove('hidden');
         }
 
         function displayModels(containerId, models) {
             const container = document.getElementById(containerId);
             container.innerHTML = '';
-            
             const sortedModels = Object.entries(models).sort((a, b) => a[0].localeCompare(b[0]));
-            
             sortedModels.forEach(([model, count]) => {
                 const card = document.createElement('div');
                 card.className = 'model-card';
-                card.innerHTML = `
-                    <div class="model-name">${model}</div>
-                    <div class="model-count">${count.toLocaleString()}</div>
-                `;
+                card.innerHTML = `<div class="model-name">${model}</div><div class="model-count">${count.toLocaleString()}</div>`;
                 container.appendChild(card);
             });
-            
             if (sortedModels.length === 0) {
-                container.innerHTML = '<div style="padding: 15px; text-align: center; color: #606060; font-size: 0.9em;">데이터 없음</div>';
+                container.innerHTML = '<div style="padding:10px;text-align:center;color:#606060;font-size:0.8em;">데이터 없음</div>';
             }
         }
 
-        function displayTechnicianStats(techStats) {
-            const container = document.getElementById('technicianGrid');
-            container.innerHTML = '';
-            
-            const sortedTechs = Object.entries(techStats).sort((a, b) => b[1].total - a[1].total);
-            
-            sortedTechs.forEach(([techName, stats]) => {
-                const card = document.createElement('div');
-                card.className = 'technician-card';
-                
-                const modelsList = Object.entries(stats.models)
-                    .sort((a, b) => b[1] - a[1])
-                    .map(([model, count]) => `
-                        <div class="tech-model-item">
-                            <span class="tech-model-name">${model}</span>
-                            <span class="tech-model-count">${count}</span>
-                        </div>
-                    `).join('');
-                
-                card.innerHTML = `
-                    <div class="technician-name">${techName}</div>
-                    <div class="tech-total">
-                        <div class="tech-total-label">총 완료</div>
-                        <div class="tech-total-count">${stats.total}대</div>
-                    </div>
-                    <div class="tech-breakdown">
-                        <div class="tech-line original">
-                            <div class="tech-line-label">ORIGINAL</div>
-                            <div class="tech-line-count">${stats.original}</div>
-                        </div>
-                        <div class="tech-line vertuo">
-                            <div class="tech-line-label">VERTUO</div>
-                            <div class="tech-line-count">${stats.vertuo}</div>
-                        </div>
-                    </div>
-                    <div class="tech-models">${modelsList}</div>
-                `;
-                container.appendChild(card);
+        // ============================================
+        // 테크니션 바그래프 (연차/추가근로 표시)
+        // ============================================
+        function displayTechBarChart(techStats) {
+            const container = document.getElementById('techBarList');
+
+            // 연차자/추가근로자 판별
+            const onLeaveToday = new Set();
+            leaveData.forEach(item => {
+                if (item.startDate <= todayStr && item.endDate >= todayStr) onLeaveToday.add(item.name);
             });
+            const onOvertimeToday = {};
+            overtimeData.forEach(item => {
+                if (item.date === todayStr) onOvertimeToday[item.name] = item.type || '추가근로';
+            });
+
+            // 팀 멤버 기준으로 리스트 생성 (수리 기록 없는 멤버도 포함)
+            const allNames = new Set([...teamMembers.map(m => m.name), ...Object.keys(techStats)]);
+            const combined = [];
+            allNames.forEach(name => {
+                combined.push({
+                    name,
+                    total: techStats[name] ? techStats[name].total : 0,
+                    isLeave: onLeaveToday.has(name),
+                    isOvertime: !!onOvertimeToday[name],
+                    overtimeType: onOvertimeToday[name] || ''
+                });
+            });
+
+            // 정렬: 출근자(수량 내림차순) → 연차자
+            combined.sort((a, b) => {
+                if (a.isLeave !== b.isLeave) return a.isLeave ? 1 : -1;
+                return b.total - a.total;
+            });
+
+            const maxCount = Math.max(...combined.map(c => c.total), DAILY_TARGET);
+
+            let html = '';
+            combined.forEach(item => {
+                const nameClass = item.isLeave ? 'tech-bar-name on-leave' : 'tech-bar-name';
+                const pct = maxCount > 0 ? Math.min((item.total / maxCount) * 100, 100) : 0;
+                const isHigh = item.total >= DAILY_TARGET;
+
+                let barHtml, countHtml;
+
+                if (item.isLeave) {
+                    barHtml = `<div class="tech-bar-fill leave-bar"><span class="bar-label">연차</span></div>`;
+                    countHtml = `<span class="tech-bar-count on-leave">🏖️</span>`;
+                } else {
+                    barHtml = `<div class="tech-bar-fill${isHigh ? ' high' : ''}" style="width:${pct}%">
+                        ${item.total > 0 ? `<span class="bar-label">${item.total}</span>` : ''}
+                    </div>`;
+                    const overtimeMark = item.isOvertime ? `<span class="overtime-badge">🌙</span>` : '';
+                    countHtml = `<span class="tech-bar-count">${item.total}대${overtimeMark}</span>`;
+                }
+
+                html += `
+                    <div class="tech-bar-item">
+                        <span class="${nameClass}">${item.name}</span>
+                        <div class="tech-bar-wrap">${barHtml}</div>
+                        ${countHtml}
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
         }
 
-        // 페이지 로드 시 데이터 로드
-        loadData();
+        // ============================================
+        // 팀 현황 데이터 로드
+        // ============================================
+        async function loadTeamData() {
+            // 테크니션 정보
+            const techResult = await loadGviz(TEAM_SHEET_IDS.leave, '테크니션정보', 'SELECT A, B, C, D, E', 'cb_tech_m');
+            teamMembers = [];
+            if (techResult.rows) {
+                techResult.rows.forEach(row => {
+                    const name = getCellValue(row, 0);
+                    if (!name) return;
+                    teamMembers.push({ name, role: getCellValue(row, 1) });
+                });
+            }
+
+            // 연차 데이터
+            const leaveResult = await loadGviz(TEAM_SHEET_IDS.leave, '연차신청', "SELECT B, E, F, I WHERE I = '승인'", 'cb_leave_m');
+            leaveData = [];
+            if (leaveResult.rows) {
+                leaveResult.rows.forEach(row => {
+                    const name = getCellValue(row, 0);
+                    const startDate = normalizeDate(row.c && row.c[1] ? (row.c[1].f || getRawValue(row, 1)) : '');
+                    const endDate = normalizeDate(row.c && row.c[2] ? (row.c[2].f || getRawValue(row, 2)) : '');
+                    if (name && startDate && endDate) leaveData.push({ name, startDate, endDate });
+                });
+            }
+
+            // 추가근로 데이터
+            const otResult = await loadGviz(TEAM_SHEET_IDS.overtime, '시트1', "SELECT B, C, D, I WHERE I = '승인'", 'cb_ot_m');
+            overtimeData = [];
+            if (otResult.rows) {
+                otResult.rows.forEach(row => {
+                    const name = getCellValue(row, 0);
+                    const date = normalizeDate(row.c && row.c[1] ? (row.c[1].f || getRawValue(row, 1)) : '');
+                    const type = getCellValue(row, 2);
+                    if (name && date) overtimeData.push({ name, date, type });
+                });
+            }
+
+            renderTeamStatus();
+        }
+
+        function renderTeamStatus() {
+            const onLeaveToday = new Set();
+            const leaveNames = [];
+            leaveData.forEach(item => {
+                if (item.startDate <= todayStr && item.endDate >= todayStr) {
+                    onLeaveToday.add(item.name);
+                    leaveNames.push(item.name);
+                }
+            });
+
+            const onOvertimeToday = [];
+            overtimeData.forEach(item => {
+                if (item.date === todayStr) onOvertimeToday.push(item.name);
+            });
+
+            const total = teamMembers.length;
+            const leaveCount = teamMembers.filter(m => onLeaveToday.has(m.name)).length;
+            const workingCount = total - leaveCount;
+            const overtimeCount = onOvertimeToday.length;
+
+            document.getElementById('teamTotal').textContent = total;
+            document.getElementById('teamWorking').textContent = workingCount;
+            document.getElementById('teamLeave').textContent = leaveCount;
+            document.getElementById('teamOvertime').textContent = overtimeCount;
+
+            // 연차자/추가근로자 이름 표시
+            if (leaveNames.length > 0) {
+                document.getElementById('teamLeaveNames').textContent = leaveNames.join(', ');
+            }
+            if (onOvertimeToday.length > 0) {
+                document.getElementById('teamOvertimeNames').textContent = onOvertimeToday.join(', ');
+            }
+        }
+
+        // ============================================
+        // 초기화
+        // ============================================
+        async function init() {
+            // 팀 데이터 먼저 로드 (연차/추가근로 정보 필요)
+            await loadTeamData();
+            // 그 다음 머신 수량 데이터 로드
+            await loadData();
+        }
+
+        init();
 
         // 5분마다 자동 새로고침
-        setInterval(loadData, 5 * 60 * 1000);
+        setInterval(init, 5 * 60 * 1000);
     </script>
     <script src="hiq-notification.js?v=2"></script>
 </body>
