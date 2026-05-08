@@ -110,39 +110,39 @@
         /* 완료/잔여 패널 */
         .panel {
             background: #2a2a2a; border: 1px solid #3a3a3a;
-            border-radius: 10px; padding: 14px;
+            border-radius: 10px; padding: 16px;
             overflow-y: auto; display: flex; flex-direction: column;
         }
-        .panel-header { text-align: center; margin-bottom: 8px; }
-        .panel-title { font-size: 1.6em; font-weight: bold; }
+        .panel-header { text-align: center; margin-bottom: 10px; }
+        .panel-title { font-size: 2.2em; font-weight: bold; }
         .panel.complete .panel-title { color: #2ecc71; }
         .panel.remaining .panel-title { color: #e74c3c; }
 
         .total-count {
-            padding: 10px; border-radius: 8px;
-            text-align: center; margin-bottom: 10px;
+            padding: 16px 10px; border-radius: 10px;
+            text-align: center; margin-bottom: 12px;
         }
         .panel.complete .total-count { background: linear-gradient(135deg, #27ae60, #229954); }
         .panel.remaining .total-count { background: linear-gradient(135deg, #c0392b, #a93226); }
-        .total-count h2 { font-size: 0.85em; margin-bottom: 2px; color: rgba(255,255,255,0.9); }
-        .total-count .count { font-size: 3em; font-weight: bold; color: white; line-height: 1.1; }
+        .total-count h2 { font-size: 1.1em; margin-bottom: 4px; color: rgba(255,255,255,0.9); font-weight: 600; }
+        .total-count .count { font-size: 5em; font-weight: 800; color: white; line-height: 1.1; }
 
         .section {
             background: #34495e; border-radius: 8px;
-            padding: 10px; margin-bottom: 8px;
+            padding: 12px; margin-bottom: 10px;
         }
         .section-header {
             display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 8px; padding-bottom: 6px; border-bottom: 2px solid #4a5f7f;
+            margin-bottom: 10px; padding-bottom: 8px; border-bottom: 2px solid #4a5f7f;
         }
-        .section-title { font-size: 1em; font-weight: bold; }
+        .section-title { font-size: 1.2em; font-weight: bold; }
         .section.original .section-title { color: #3498db; }
         .section.vertuo .section-title { color: #9b59b6; }
         .section.other .section-title { color: #e67e22; }
         .section-count {
-            font-size: 0.85em; font-weight: bold;
+            font-size: 1em; font-weight: bold;
             background: rgba(255,255,255,0.1);
-            padding: 4px 10px; border-radius: 12px; color: white;
+            padding: 5px 12px; border-radius: 12px; color: white;
         }
 
         .models-grid {
@@ -156,8 +156,8 @@
             border: 1px solid transparent; transition: all 0.2s;
         }
         .model-card:hover { background: rgba(255,255,255,0.1); border-color: #4a90e2; }
-        .model-name { font-size: 0.7em; color: #b0b0b0; margin-bottom: 3px; }
-        .model-count { font-size: 1.1em; font-weight: bold; color: #4a90e2; }
+        .model-name { font-size: 0.85em; color: #b0b0b0; margin-bottom: 4px; }
+        .model-count { font-size: 1.4em; font-weight: bold; color: #4a90e2; }
         .hidden { display: none; }
 
         /* ===== 3. 테크니션 바그래프 패널 ===== */
@@ -230,6 +230,45 @@
             background: repeating-linear-gradient(45deg, #e67e22, #e67e22 2px, #d35400 2px, #d35400 4px);
         }
         .legend-dot.overtime { background: #9b59b6; }
+
+        /* 테크니션 바 툴팁 */
+        .tech-bar-tooltip {
+            display: none;
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1a1a2e;
+            border: 1px solid #4a90e2;
+            border-radius: 8px;
+            padding: 10px 14px;
+            min-width: 180px;
+            max-width: 260px;
+            z-index: 100;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+            pointer-events: none;
+        }
+        .tech-bar-tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: #1a1a2e;
+        }
+        .tech-bar-wrap:hover .tech-bar-tooltip { display: block; }
+        .tech-bar-wrap { position: relative; }
+        .tooltip-title {
+            font-size: 0.8em; font-weight: 700; color: #4a90e2;
+            margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid #3a3a3a;
+        }
+        .tooltip-model-list { display: flex; flex-direction: column; gap: 3px; }
+        .tooltip-model-row {
+            display: flex; justify-content: space-between;
+            font-size: 0.75em; color: #e0e0e0;
+        }
+        .tooltip-model-row .t-count { font-weight: 700; color: #4a90e2; }
 
         /* 반응형 */
         @media (max-width: 1200px) {
@@ -413,6 +452,9 @@
 
         let MODEL_DATABASE = [];
         const EXCLUDED_MODELS = ['Vertuo Creatista'];
+
+        // 테크니션 바그래프에서 제외할 인원
+        const EXCLUDED_TECHS = ['이선제', '김태정', '김찬우', '노경호', '홍성균', '임성산', '박학림', '노세진'];
 
         // 팀 데이터
         let teamMembers = [];
@@ -650,13 +692,15 @@
                 if (item.date === todayStr) onOvertimeToday[item.name] = item.type || '추가근로';
             });
 
-            // 팀 멤버 기준으로 리스트 생성 (수리 기록 없는 멤버도 포함)
+            // 팀 멤버 기준으로 리스트 생성 (수리 기록 없는 멤버도 포함, 제외 인원 필터)
             const allNames = new Set([...teamMembers.map(m => m.name), ...Object.keys(techStats)]);
             const combined = [];
             allNames.forEach(name => {
+                if (EXCLUDED_TECHS.includes(name)) return;
                 combined.push({
                     name,
                     total: techStats[name] ? techStats[name].total : 0,
+                    models: techStats[name] ? techStats[name].models : {},
                     isLeave: onLeaveToday.has(name),
                     isOvertime: !!onOvertimeToday[name],
                     overtimeType: onOvertimeToday[name] || ''
@@ -683,9 +727,22 @@
                     barHtml = `<div class="tech-bar-fill leave-bar"><span class="bar-label">연차</span></div>`;
                     countHtml = `<span class="tech-bar-count on-leave">🏖️</span>`;
                 } else {
+                    // 모델별 툴팁 생성
+                    let tooltipHtml = '';
+                    const modelEntries = Object.entries(item.models).sort((a,b) => b[1] - a[1]);
+                    if (modelEntries.length > 0) {
+                        const modelRows = modelEntries.map(([m, c]) =>
+                            `<div class="tooltip-model-row"><span>${m}</span><span class="t-count">${c}대</span></div>`
+                        ).join('');
+                        tooltipHtml = `<div class="tech-bar-tooltip">
+                            <div class="tooltip-title">${item.name} (${item.total}대)</div>
+                            <div class="tooltip-model-list">${modelRows}</div>
+                        </div>`;
+                    }
+
                     barHtml = `<div class="tech-bar-fill${isHigh ? ' high' : ''}" style="width:${pct}%">
                         ${item.total > 0 ? `<span class="bar-label">${item.total}</span>` : ''}
-                    </div>`;
+                    </div>${tooltipHtml}`;
                     const overtimeMark = item.isOvertime ? `<span class="overtime-badge">🌙</span>` : '';
                     countHtml = `<span class="tech-bar-count">${item.total}대${overtimeMark}</span>`;
                 }
