@@ -94,7 +94,7 @@
         .team-stat-card.leave .team-stat-value { color: #e67e22; }
         .team-stat-card.overtime .team-stat-value { color: #9b59b6; }
         .team-stat-label { font-size: 0.75em; color: #808080; font-weight: 600; }
-        .team-stat-detail { font-size: 0.7em; color: #606060; margin-top: 2px; }
+        .team-stat-detail { font-size: 0.75em; color: #b0b0b0; margin-top: 3px; font-weight: 500; }
 
         /* ===== 2. 메인 콘텐츠 그리드 ===== */
         .content-grid {
@@ -118,6 +118,8 @@
         .total-count {
             padding: 16px 10px; border-radius: 10px;
             text-align: center; margin-bottom: 12px;
+            min-height: 110px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
         .panel.complete .total-count { background: linear-gradient(135deg, #27ae60, #229954); }
         .panel.remaining .total-count { background: linear-gradient(135deg, #c0392b, #a93226); }
