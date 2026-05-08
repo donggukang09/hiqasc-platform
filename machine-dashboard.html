@@ -12,7 +12,7 @@
             background: #1e1e1e;
             color: #e0e0e0;
             min-height: 100vh;
-            overflow: hidden;
+            overflow-y: auto;
         }
 
         /* 헤더 - 컴팩트 */
@@ -63,11 +63,9 @@
         .main-container {
             max-width: 1920px; margin: 0 auto;
             padding: 12px 24px;
-            height: calc(100vh - 60px);
-            display: flex; flex-direction: column;
         }
-        .dashboard { display: none; height: 100%; }
-        .dashboard.active { display: flex; flex-direction: column; height: 100%; }
+        .dashboard { display: none; }
+        .dashboard.active { display: block; }
 
         /* ===== 1. 팀 현황 바 ===== */
         .team-status-bar {
@@ -103,9 +101,7 @@
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
             gap: 12px;
-            flex: 1;
-            min-height: 0;
-            overflow: visible;
+            align-items: stretch;
         }
 
         /* 완료/잔여 패널 */
@@ -523,9 +519,9 @@
         // ============================================
         async function loadData() {
             try {
-                const completeUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${COMPLETE_SHEET_NAME}`;
-                const remainingUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${REMAINING_SHEET_NAME}`;
-                const modelUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${MODEL_SHEET_NAME}`;
+                const completeUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${COMPLETE_SHEET_NAME}&_=${cache}`;
+                const remainingUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${REMAINING_SHEET_NAME}&_=${cache}`;
+                const modelUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${MODEL_SHEET_NAME}&_=${cache}`;
 
                 const [completeResponse, remainingResponse, modelResponse] = await Promise.all([
                     fetch(completeUrl),
