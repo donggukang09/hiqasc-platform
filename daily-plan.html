@@ -367,12 +367,12 @@
             <div class="time-axis" id="timeAxis"></div>
             <div class="bar-track" id="planBar"></div>
             <div class="legend-row">
-                <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(135deg,#3b82f6,#60a5fa)"></div>오전 (09~12) : 55대</div>
-                <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(135deg,#2563eb,#3b82f6)"></div>13~14 : 80대</div>
-                <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(135deg,#1d4ed8,#2563eb)"></div>14~15 : 110대</div>
+                <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(135deg,#3b82f6,#60a5fa)"></div>오전 (09~12) : 50대</div>
+                <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(135deg,#2563eb,#3b82f6)"></div>13~14 : 75대</div>
+                <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(135deg,#1d4ed8,#2563eb)"></div>14~15 : 100대</div>
                 <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(135deg,#1e40af,#1d4ed8)"></div>15~16 : 130대</div>
-                <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(135deg,#1e3a8a,#1e40af)"></div>16~17 : 160대</div>
-                <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(135deg,#172554,#1e3a8a)"></div>마감 : 190대</div>
+                <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(135deg,#1e3a8a,#1e40af)"></div>16~17 : 155대</div>
+                <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(135deg,#172554,#1e3a8a)"></div>마감 : 180대</div>
             </div>
         </div>
     </div>
@@ -511,9 +511,9 @@
 const APPS_SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
 const START_HOUR = 9, END_HOUR = 18, TOTAL_HOURS = 9;
 const PLAN_CHECKPOINTS = [
-    { hour:9, cumulative:0 }, { hour:12, cumulative:55 }, { hour:13, cumulative:55 },
-    { hour:14, cumulative:80 }, { hour:15, cumulative:110 }, { hour:16, cumulative:130 },
-    { hour:17, cumulative:160 }, { hour:18, cumulative:190 }
+    { hour:9, cumulative:0 }, { hour:12, cumulative:50 }, { hour:13, cumulative:50 },
+    { hour:14, cumulative:75 }, { hour:15, cumulative:100 }, { hour:16, cumulative:130 },
+    { hour:17, cumulative:155 }, { hour:18, cumulative:180 }
 ];
 
 let selectedDate = new Date(), calYear, calMonth;
@@ -692,17 +692,17 @@ function clearAllData(){
 function buildTimeAxis(id){const ax=document.getElementById(id);ax.innerHTML='';for(let h=START_HOUR;h<=END_HOUR;h++){const p=((h-START_HOUR)/TOTAL_HOURS)*100;const l=document.createElement('span');l.className='time-label';l.style.left=p+'%';l.textContent=String(h).padStart(2,'0')+':00';ax.appendChild(l);const t=document.createElement('div');t.className='time-tick';t.style.left=p+'%';ax.appendChild(t);}}
 function buildPlanBar(){
     const bar=document.getElementById('planBar');bar.innerHTML='';
-    [{s:9,e:12,to:55,c:'seg-morning',l:'오전'},{s:12,e:13,to:null,c:'seg-lunch',l:'점심'},
-     {s:13,e:14,to:80,c:'seg-pm13',l:''},{s:14,e:15,to:110,c:'seg-pm14',l:''},
-     {s:15,e:16,to:130,c:'seg-pm15',l:''},{s:16,e:17,to:160,c:'seg-pm16',l:''},
-     {s:17,e:18,to:190,c:'seg-pm17',l:'마감'}
+    [{s:9,e:12,to:50,c:'seg-morning',l:'오전'},{s:12,e:13,to:null,c:'seg-lunch',l:'점심'},
+     {s:13,e:14,to:75,c:'seg-pm13',l:''},{s:14,e:15,to:100,c:'seg-pm14',l:''},
+     {s:15,e:16,to:130,c:'seg-pm15',l:''},{s:16,e:17,to:155,c:'seg-pm16',l:''},
+     {s:17,e:18,to:180,c:'seg-pm17',l:'마감'}
     ].forEach(sg=>{const left=((sg.s-START_HOUR)/TOTAL_HOURS)*100,w=((sg.e-sg.s)/TOTAL_HOURS)*100;
     const d=document.createElement('div');d.className='bar-segment '+sg.c;d.style.left=left+'%';d.style.width=w+'%';
     d.innerHTML=sg.c==='seg-lunch'?'<span class="lunch-label">🍚 점심</span>':`<span class="seg-count">${sg.to}대</span>${sg.e-sg.s>=2?'<span class="seg-label">'+sg.l+' (~'+sg.e+'시)</span>':''}`;
     bar.appendChild(d);});
 }
 
-function getHourForQty(q){if(q<=0)return START_HOUR;if(q>=190)return END_HOUR;for(let i=1;i<PLAN_CHECKPOINTS.length;i++){const p=PLAN_CHECKPOINTS[i-1],c=PLAN_CHECKPOINTS[i];if(q<=c.cumulative){if(c.cumulative===p.cumulative)return c.hour;return p.hour+(q-p.cumulative)/(c.cumulative-p.cumulative)*(c.hour-p.hour);}}return END_HOUR;}
+function getHourForQty(q){if(q<=0)return START_HOUR;if(q>=180)return END_HOUR;for(let i=1;i<PLAN_CHECKPOINTS.length;i++){const p=PLAN_CHECKPOINTS[i-1],c=PLAN_CHECKPOINTS[i];if(q<=c.cumulative){if(c.cumulative===p.cumulative)return c.hour;return p.hour+(q-p.cumulative)/(c.cumulative-p.cumulative)*(c.hour-p.hour);}}return END_HOUR;}
 function formatHour(h){return `${String(Math.floor(h)).padStart(2,'0')}:${String(Math.round((h-Math.floor(h))*60)).padStart(2,'0')}`;}
 
 function applyPlan(){
