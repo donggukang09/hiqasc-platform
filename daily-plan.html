@@ -637,14 +637,19 @@ async function loadIntakeData() {
         });
     }
 
-    // 모델 매칭 (대소문자 무시)
+    // 전체 평균 계산 (데이터 있는 모델들의 평균)
+    const allAvgs = Object.values(modelAvgMap);
+    const globalAvgSec = allAvgs.length > 0 ? allAvgs.reduce((a,b)=>a+b,0) / allAvgs.length : 0;
+
+    // 모델 매칭 (대소문자 무시) — 데이터 없으면 전체 평균 적용
     intakeModels = Object.entries(countMap).map(([model, count]) => {
         const key = model.toLowerCase().replace(/\s+/g,' ');
         const avgSec = modelAvgMap[key] || null;
         return {
             model, count,
-            avgSec,
-            totalSec: avgSec ? avgSec * count : null
+            avgSec: avgSec || (globalAvgSec > 0 ? globalAvgSec : null),
+            totalSec: (avgSec || globalAvgSec) ? (avgSec || globalAvgSec) * count : null,
+            isGlobalAvg: !avgSec && globalAvgSec > 0
         };
     }).sort((a, b) => (b.totalSec || 0) - (a.totalSec || 0));
 
@@ -697,7 +702,11 @@ function renderModelBreakdown() {
             const avgMin = Math.floor(m.avgSec / 60);
             const avgS = Math.round(m.avgSec % 60);
             const totMin = Math.floor(m.totalSec / 60);
-            html += `<tr><td class="mt-model">${m.model}</td><td class="mt-count">${m.count}대</td><td class="mt-avg">${avgMin}분 ${avgS}초</td><td class="mt-total">${totMin}분</td></tr>`;
+            if (m.isGlobalAvg) {
+                html += `<tr><td class="mt-model">${m.model} <span style="font-size:10px;color:#ea580c;">*</span></td><td class="mt-count">${m.count}대</td><td class="mt-avg" style="color:#ea580c;">${avgMin}분 ${avgS}초 <span style="font-size:9px;">(전체평균)</span></td><td class="mt-total">${totMin}분</td></tr>`;
+            } else {
+                html += `<tr><td class="mt-model">${m.model}</td><td class="mt-count">${m.count}대</td><td class="mt-avg">${avgMin}분 ${avgS}초</td><td class="mt-total">${totMin}분</td></tr>`;
+            }
         } else {
             noDataCount += m.count;
             html += `<tr><td class="mt-model">${m.model}</td><td class="mt-count">${m.count}대</td><td class="mt-nodata">데이터 없음</td><td class="mt-nodata">-</td></tr>`;
@@ -713,7 +722,9 @@ function renderModelBreakdown() {
     const overheadMin = parseInt(document.getElementById('inputOverhead').value) || 0;
 
     html += `</tbody><tfoot><tr><td>합계</td><td class="mt-count">${totalQty}대</td><td style="text-align:center;font-size:11px;color:#64748b;">+${overheadMin}분/대</td><td class="mt-total">${totalStr}</td></tr></tfoot></table>`;
-    if (noDataCount > 0) html += `<div style="margin-top:8px;font-size:12px;color:#dc2626;font-weight:600;">⚠️ ${noDataCount}대는 수리타이머 데이터 없음 (평균시간 계산에서 제외)</div>`;
+    const globalAvgApplied = intakeModels.filter(m => m.isGlobalAvg).reduce((s,m)=>s+m.count, 0);
+    if (noDataCount > 0) html += `<div style="margin-top:8px;font-size:12px;color:#dc2626;font-weight:600;">⚠️ ${noDataCount}대는 수리타이머 데이터 없음 (계산에서 제외)</div>`;
+    if (globalAvgApplied > 0) html += `<div style="margin-top:4px;font-size:12px;color:#ea580c;font-weight:600;">* ${globalAvgApplied}대는 개별 데이터 없어 전체 평균시간 적용</div>`;
 
     container.innerHTML = html;
 
