@@ -29,6 +29,22 @@
 
         .container { max-width: 1200px; margin: 24px auto; padding: 0 24px; }
 
+        /* 모델 브레이크다운 */
+        .model-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .model-table th { background: #f1f5f9; padding: 8px 12px; font-weight: 700; color: #475569; text-align: left; border-bottom: 2px solid #e2e8f0; }
+        .model-table td { padding: 8px 12px; border-bottom: 1px solid #f1f5f9; }
+        .model-table tr:hover { background: #f8fafc; }
+        .model-table .mt-model { font-weight: 700; color: #1e3a5f; }
+        .model-table .mt-count { font-weight: 800; color: #2563eb; text-align: center; }
+        .model-table .mt-avg { font-weight: 700; color: #0d9488; text-align: center; }
+        .model-table .mt-total { font-weight: 800; color: #1e293b; text-align: center; }
+        .model-table .mt-nodata { color: #dc2626; font-weight: 600; font-style: italic; }
+        .model-table tfoot td { font-weight: 800; background: #f0f9ff; border-top: 2px solid #3b82f6; }
+        .model-summary { background: #f0f9ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 12px 18px; }
+        .ms-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .ms-label { font-size: 13px; font-weight: 600; color: #64748b; }
+        .ms-value { font-size: 16px; font-weight: 800; color: #1e3a5f; }
+
         /* ═══ 달력 ═══ */
         .calendar-section { background: #fff; border-radius: 16px; padding: 20px 24px; margin-bottom: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
         .calendar-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
@@ -349,40 +365,35 @@
             <span class="status-badge new" id="statusBadge">새 플랜</span>
         </div>
         <div class="control-group">
+            <button class="apply-btn" onclick="loadIntakeData()" style="background:linear-gradient(135deg,#0d9488,#14b8a6);border-color:#0d9488;gap:6px;">📥 데이터 불러오기</button>
             <div class="input-group">
                 <label>입고 수량</label>
-                <input type="number" id="inputQty" placeholder="0" min="0" max="500">
+                <input type="number" id="inputQty" placeholder="자동" min="0" max="500" readonly style="background:#f1f5f9;">
                 <span class="unit">대</span>
             </div>
-            <button class="apply-btn" onclick="applyPlan()">적용</button>
             <button class="save-btn" onclick="saveToSheets()">💾 시트 저장</button>
             <button class="reset-btn" onclick="resetDay()">초기화</button>
         </div>
     </div>
 
-    <!-- 1. PLAN 바 -->
-    <div class="plan-section">
-        <div class="section-title"><span class="badge badge-blue">PLAN</span> 시간대별 수리 계획</div>
-        <div class="timeline-wrapper">
-            <div class="time-axis" id="timeAxis"></div>
-            <div class="bar-track" id="planBar"></div>
-            <div class="legend-row">
-                <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(135deg,#3b82f6,#60a5fa)"></div>오전 (09~12) : 50대</div>
-                <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(135deg,#2563eb,#3b82f6)"></div>13~14 : 75대</div>
-                <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(135deg,#1d4ed8,#2563eb)"></div>14~15 : 100대</div>
-                <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(135deg,#1e40af,#1d4ed8)"></div>15~16 : 130대</div>
-                <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(135deg,#1e3a8a,#1e40af)"></div>16~17 : 155대</div>
-                <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(135deg,#172554,#1e3a8a)"></div>마감 : 180대</div>
+    <!-- 모델별 입고 현황 -->
+    <div class="plan-section" id="modelSection" style="display:none;">
+        <div class="section-title"><span class="badge badge-blue">입고 분석</span> 모델별 입고 현황 &amp; 예상 수리시간</div>
+        <div id="modelBreakdown"></div>
+        <div class="model-summary" id="modelSummary" style="display:none;margin-top:14px;">
+            <div class="ms-row">
+                <span class="ms-label">총 입고 수량</span><span class="ms-value" id="msTotalQty">0대</span>
+                <span class="ms-label" style="margin-left:20px;">총 예상 수리시간</span><span class="ms-value" id="msTotalTime">-</span>
             </div>
         </div>
     </div>
 
     <!-- 2. PREDICT 바 -->
     <div class="plan-section">
-        <div class="section-title"><span class="badge badge-green">PREDICT</span> 입고 수량 기반 수리 완료 예측</div>
+        <div class="section-title"><span class="badge badge-green">PREDICT</span> 수리 완료 예측 (모델별 평균시간 기반)</div>
         <div class="timeline-wrapper">
             <div class="time-axis" id="timeAxis2"></div>
-            <div class="bar-track" id="predictBar" style="overflow:visible;"><div style="display:flex;align-items:center;justify-content:center;height:100%;color:#94a3b8;font-size:14px;font-weight:600;">입고 수량을 입력하세요</div></div>
+            <div class="bar-track" id="predictBar" style="overflow:visible;"><div style="display:flex;align-items:center;justify-content:center;height:100%;color:#94a3b8;font-size:14px;font-weight:600;">📥 데이터 불러오기를 클릭하세요</div></div>
         </div>
         <div class="summary-row" id="summaryRow" style="display:none;">
             <div class="summary-card"><div class="sc-label">입고 수량</div><div class="sc-value blue" id="sumQty">-</div></div>
@@ -509,24 +520,182 @@
 // 설정
 // ═══════════════════════════════════════
 const APPS_SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
+const SHEET_ID = '111K9l8gt-14roqvynNFEJrT2aLsTYjU8gQBsKNiyFmI';
 const START_HOUR = 9, END_HOUR = 18, TOTAL_HOURS = 9;
-const PLAN_CHECKPOINTS = [
-    { hour:9, cumulative:0 }, { hour:12, cumulative:50 }, { hour:13, cumulative:50 },
-    { hour:14, cumulative:75 }, { hour:15, cumulative:100 }, { hour:16, cumulative:130 },
-    { hour:17, cumulative:155 }, { hour:18, cumulative:180 }
-];
+const LUNCH_S = 12, LUNCH_E = 13;
 
 let selectedDate = new Date(), calYear, calMonth;
 let currentQty = 0, predictedHour = null, activities = {}, currentSlotHour = null;
 let calendarCache = {}, isDirty = false, isFromSheets = false;
 let techRows = [], jsonpCounter = 0;
+let modelAvgMap = {}; // { model: avgSeconds }
+let intakeModels = []; // [{ model, count }]
+let totalRepairHours = 0;
+
+// ═══ gviz 로더 ═══
+function loadGviz(tabName, query, cbName) {
+    return new Promise(resolve => {
+        const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json;responseHandler:${cbName}&sheet=${encodeURIComponent(tabName)}&headers=1&tq=${encodeURIComponent(query)}&_=${Date.now()}`;
+        window[cbName] = function(resp) {
+            try {
+                if (resp.status === 'error') { resolve({ rows: [], cols: [] }); return; }
+                resolve({ rows: resp.table.rows || [], cols: resp.table.cols || [] });
+            } catch(e) { resolve({ rows: [], cols: [] }); }
+            delete window[cbName];
+            const el = document.getElementById('gvs_' + cbName); if (el) el.remove();
+        };
+        const s = document.createElement('script'); s.id = 'gvs_' + cbName; s.src = url;
+        s.onerror = () => { resolve({ rows: [], cols: [] }); delete window[cbName]; };
+        document.body.appendChild(s);
+    });
+}
+
+function gvizVal(row, idx) {
+    if (!row || !row.c || !row.c[idx]) return '';
+    const cell = row.c[idx];
+    if (cell.f) return cell.f;
+    if (cell.v !== null && cell.v !== undefined) return String(cell.v);
+    return '';
+}
+
+function gvizNum(row, idx) {
+    if (!row || !row.c || !row.c[idx] || row.c[idx].v === null) return 0;
+    return parseFloat(row.c[idx].v) || 0;
+}
+
+function parseGvizDate(row, idx) {
+    if (!row || !row.c || !row.c[idx]) return null;
+    const cell = row.c[idx];
+    if (!cell.v) return null;
+    const v = String(cell.v);
+    // "Date(2026,3,7)" → month is 0-indexed
+    const m = v.match(/Date\((\d+),(\d+),(\d+)/);
+    if (m) return `${m[1]}-${String(parseInt(m[2])+1).padStart(2,'0')}-${m[3].padStart(2,'0')}`;
+    // "2026-04-07" format
+    if (/^\d{4}-\d{2}-\d{2}/.test(v)) return v.substring(0, 10);
+    // serial number
+    const num = parseFloat(v);
+    if (num > 40000 && num < 60000) {
+        const d = new Date((num - 25569) * 86400000);
+        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    }
+    return null;
+}
+
+// ═══ 데이터 불러오기 ═══
+async function loadIntakeData() {
+    showLoading('모델 평균시간 로딩...');
+
+    // 1. 수리타이머 → 모델별 평균 (C=모델, F=초)
+    const timerResult = await loadGviz('수리타이머', 'SELECT C, F', 'cb_timer');
+    modelAvgMap = {};
+    if (timerResult.rows) {
+        const tempMap = {};
+        timerResult.rows.forEach(row => {
+            const model = gvizVal(row, 0).trim();
+            const secs = gvizNum(row, 1);
+            if (model && secs > 0) {
+                if (!tempMap[model]) tempMap[model] = [];
+                tempMap[model].push(secs);
+            }
+        });
+        Object.entries(tempMap).forEach(([model, arr]) => {
+            modelAvgMap[model] = arr.reduce((a, b) => a + b, 0) / arr.length;
+        });
+    }
+
+    // 2. 주간입고 → 해당일 입고 모델 (X=Machine(24th=col W in gviz 0-index), AW=수리입고일(49th=col AV))
+    showLoading('입고 데이터 로딩...');
+    const dateStr = fmtDate(selectedDate);
+    // gviz에서 X열=col index 23 (A=0), AW열=col index 48
+    // SELECT로 직접 사용: X, AW
+    const intakeResult = await loadGviz('주간입고', 'SELECT X, AW', 'cb_intake');
+
+    intakeModels = [];
+    const countMap = {};
+    if (intakeResult.rows) {
+        intakeResult.rows.forEach(row => {
+            const intakeDate = parseGvizDate(row, 1);
+            if (intakeDate === dateStr) {
+                const model = gvizVal(row, 0).trim();
+                if (model) {
+                    countMap[model] = (countMap[model] || 0) + 1;
+                }
+            }
+        });
+    }
+
+    intakeModels = Object.entries(countMap).map(([model, count]) => ({
+        model, count,
+        avgSec: modelAvgMap[model] || null,
+        totalSec: modelAvgMap[model] ? modelAvgMap[model] * count : null
+    })).sort((a, b) => (b.totalSec || 0) - (a.totalSec || 0));
+
+    // 총 수량 & 시간 계산
+    currentQty = intakeModels.reduce((s, m) => s + m.count, 0);
+    const totalSec = intakeModels.reduce((s, m) => s + (m.totalSec || 0), 0);
+    totalRepairHours = totalSec / 3600;
+
+    document.getElementById('inputQty').value = currentQty;
+
+    // 모델 테이블 렌더
+    renderModelBreakdown();
+
+    // PREDICT 계산
+    applyPlan();
+
+    hideLoading();
+    showToast(currentQty + '대 입고 데이터 로드 완료', 'success');
+    markDirty();
+}
+
+function renderModelBreakdown() {
+    document.getElementById('modelSection').style.display = 'block';
+    const container = document.getElementById('modelBreakdown');
+
+    if (intakeModels.length === 0) {
+        container.innerHTML = '<div style="text-align:center;padding:16px;color:#94a3b8;font-size:14px;font-weight:600;">해당 날짜에 입고 데이터가 없습니다.</div>';
+        document.getElementById('modelSummary').style.display = 'none';
+        return;
+    }
+
+    let totalQty = 0, totalSec = 0, noDataCount = 0;
+    let html = '<table class="model-table"><thead><tr><th>모델명</th><th style="text-align:center">수량</th><th style="text-align:center">평균 수리시간</th><th style="text-align:center">소요시간 합계</th></tr></thead><tbody>';
+
+    intakeModels.forEach(m => {
+        totalQty += m.count;
+        if (m.avgSec) {
+            totalSec += m.totalSec;
+            const avgMin = Math.floor(m.avgSec / 60);
+            const avgS = Math.round(m.avgSec % 60);
+            const totMin = Math.floor(m.totalSec / 60);
+            html += `<tr><td class="mt-model">${m.model}</td><td class="mt-count">${m.count}대</td><td class="mt-avg">${avgMin}분 ${avgS}초</td><td class="mt-total">${totMin}분</td></tr>`;
+        } else {
+            noDataCount += m.count;
+            html += `<tr><td class="mt-model">${m.model}</td><td class="mt-count">${m.count}대</td><td class="mt-nodata">데이터 없음</td><td class="mt-nodata">-</td></tr>`;
+        }
+    });
+
+    const totalHr = Math.floor(totalSec / 3600);
+    const totalMin = Math.round((totalSec % 3600) / 60);
+    const totalStr = totalHr > 0 ? `${totalHr}시간 ${totalMin}분` : `${totalMin}분`;
+
+    html += `</tbody><tfoot><tr><td>합계</td><td class="mt-count">${totalQty}대</td><td></td><td class="mt-total">${totalStr}</td></tr></tfoot></table>`;
+    if (noDataCount > 0) html += `<div style="margin-top:8px;font-size:12px;color:#dc2626;font-weight:600;">⚠️ ${noDataCount}대는 수리타이머 데이터 없음 (평균시간 계산에서 제외)</div>`;
+
+    container.innerHTML = html;
+
+    document.getElementById('modelSummary').style.display = 'block';
+    document.getElementById('msTotalQty').textContent = totalQty + '대';
+    document.getElementById('msTotalTime').textContent = totalStr;
+}
 
 // ═══ 초기화 ═══
 function init() {
     const now = new Date();
     calYear = now.getFullYear(); calMonth = now.getMonth();
     selectedDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    buildTimeAxis('timeAxis'); buildTimeAxis('timeAxis2');
+    buildTimeAxis('timeAxis2');
     buildPlanBar(); buildActivitySlots(); renderDetailCards();
     addTechRow(); addTechRow(); addTechRow();
     updateDateDisplay(); renderCalendar();
@@ -613,7 +782,9 @@ function loadFromSheets(dateStr){
         if(r.success){
             if(r.qty>0||r.activities.length>0){
                 currentQty=r.qty;document.getElementById('inputQty').value=r.qty||'';
-                predictedHour=getHourForQty(currentQty);
+                totalRepairHours=r.totalRepairHours||0;
+                if(totalRepairHours>0) predictedHour=getHourForRepairTime(totalRepairHours);
+                else predictedHour=null;
                 activities={};r.activities.forEach(a=>{activities[a.hour]={title:a.title,detail:a.detail,participants:a.participants};});
                 buildPredictBar();updateSummary();buildActivitySlots();renderDetailCards();renderExecActivityCards();
                 isFromSheets=true;isDirty=false;updateStatus('saved');
@@ -663,7 +834,7 @@ function saveToSheets(){
     if(APPS_SCRIPT_URL==='YOUR_APPS_SCRIPT_URL_HERE'){showToast('Apps Script URL을 설정해주세요.','error');return;}
     const dateStr=fmtDate(selectedDate);
     const actList=[];Object.keys(activities).forEach(h=>{const a=activities[h];actList.push({hour:parseInt(h),title:a.title,detail:a.detail||'',participants:a.participants||''});});
-    const payload={action:'saveAll',date:dateStr,qty:currentQty,activities:actList,execData:getExecData()};
+    const payload={action:'saveAll',date:dateStr,qty:currentQty,totalRepairHours:totalRepairHours,activities:actList,execData:getExecData()};
     showLoading('저장 중...');
     fetch(APPS_SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
     .then(()=>{hideLoading();isDirty=false;isFromSheets=true;updateStatus('saved');showToast('저장되었습니다!','success');
@@ -675,9 +846,13 @@ function saveToSheets(){
 // ═══ 데이터 초기화 ═══
 function clearAllData(){
     currentQty=0;predictedHour=null;activities={};isDirty=false;isFromSheets=false;
+    totalRepairHours=0;intakeModels=[];modelAvgMap={};
     document.getElementById('inputQty').value='';
-    document.getElementById('predictBar').innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#94a3b8;font-size:14px;font-weight:600;">입고 수량을 입력하세요</div>';
+    document.getElementById('predictBar').innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#94a3b8;font-size:14px;font-weight:600;">📥 데이터 불러오기를 클릭하세요</div>';
     document.getElementById('summaryRow').style.display='none';
+    document.getElementById('modelSection').style.display='none';
+    document.getElementById('modelBreakdown').innerHTML='';
+    document.getElementById('modelSummary').style.display='none';
     // 실행 보고 초기화
     document.getElementById('execTotalQty').value='';
     document.getElementById('techTableBody').innerHTML='';techRows=[];addTechRow();addTechRow();addTechRow();
@@ -690,32 +865,61 @@ function clearAllData(){
 
 // ═══ 타임라인 ═══
 function buildTimeAxis(id){const ax=document.getElementById(id);ax.innerHTML='';for(let h=START_HOUR;h<=END_HOUR;h++){const p=((h-START_HOUR)/TOTAL_HOURS)*100;const l=document.createElement('span');l.className='time-label';l.style.left=p+'%';l.textContent=String(h).padStart(2,'0')+':00';ax.appendChild(l);const t=document.createElement('div');t.className='time-tick';t.style.left=p+'%';ax.appendChild(t);}}
-function buildPlanBar(){
-    const bar=document.getElementById('planBar');bar.innerHTML='';
-    [{s:9,e:12,to:50,c:'seg-morning',l:'오전'},{s:12,e:13,to:null,c:'seg-lunch',l:'점심'},
-     {s:13,e:14,to:75,c:'seg-pm13',l:''},{s:14,e:15,to:100,c:'seg-pm14',l:''},
-     {s:15,e:16,to:130,c:'seg-pm15',l:''},{s:16,e:17,to:155,c:'seg-pm16',l:''},
-     {s:17,e:18,to:180,c:'seg-pm17',l:'마감'}
-    ].forEach(sg=>{const left=((sg.s-START_HOUR)/TOTAL_HOURS)*100,w=((sg.e-sg.s)/TOTAL_HOURS)*100;
-    const d=document.createElement('div');d.className='bar-segment '+sg.c;d.style.left=left+'%';d.style.width=w+'%';
-    d.innerHTML=sg.c==='seg-lunch'?'<span class="lunch-label">🍚 점심</span>':`<span class="seg-count">${sg.to}대</span>${sg.e-sg.s>=2?'<span class="seg-label">'+sg.l+' (~'+sg.e+'시)</span>':''}`;
-    bar.appendChild(d);});
-}
+function buildPlanBar(){}
 
-function getHourForQty(q){if(q<=0)return START_HOUR;if(q>=180)return END_HOUR;for(let i=1;i<PLAN_CHECKPOINTS.length;i++){const p=PLAN_CHECKPOINTS[i-1],c=PLAN_CHECKPOINTS[i];if(q<=c.cumulative){if(c.cumulative===p.cumulative)return c.hour;return p.hour+(q-p.cumulative)/(c.cumulative-p.cumulative)*(c.hour-p.hour);}}return END_HOUR;}
+function getHourForRepairTime(hours){
+    if(hours<=0) return START_HOUR;
+    let t=START_HOUR, rem=hours;
+    while(rem>0.01 && t<END_HOUR+2){
+        if(t>=LUNCH_S && t<LUNCH_E){t=LUNCH_E;continue;}
+        let nb=END_HOUR+2;
+        if(t<LUNCH_S) nb=Math.min(nb,LUNCH_S);
+        const avail=nb-t; if(rem<=avail) return t+rem;
+        rem-=avail; t=nb;
+    }
+    return t;
+}
+function getHourForQty(q){return getHourForRepairTime(totalRepairHours);}
 function formatHour(h){return `${String(Math.floor(h)).padStart(2,'0')}:${String(Math.round((h-Math.floor(h))*60)).padStart(2,'0')}`;}
+function fmtDur(h){const hr=Math.floor(h),mn=Math.round((h-hr)*60);if(hr===0)return mn+'분';if(mn===0)return hr+'시간';return hr+'시간 '+mn+'분';}
 
 function applyPlan(){
-    const v=parseInt(document.getElementById('inputQty').value);if(isNaN(v)||v<0){alert('입고 수량을 올바르게 입력하세요.');return;}
-    currentQty=v;predictedHour=getHourForQty(v);buildPredictBar();updateSummary();buildActivitySlots();renderDetailCards();renderExecActivityCards();markDirty();
+    currentQty=parseInt(document.getElementById('inputQty').value)||0;
+    if(totalRepairHours>0){
+        predictedHour=getHourForRepairTime(totalRepairHours);
+    } else {
+        predictedHour=null;
+    }
+    buildPredictBar();updateSummary();buildActivitySlots();renderDetailCards();renderExecActivityCards();markDirty();
 }
 
 function buildPredictBar(){
     const bar=document.getElementById('predictBar');bar.innerHTML='';
-    if(currentQty<=0){bar.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#94a3b8;font-size:14px;font-weight:600;">입고 수량을 입력하세요</div>';return;}
-    const ep=((predictedHour-START_HOUR)/TOTAL_HOURS)*100;const sg=document.createElement('div');sg.className='bar-segment predict-bar';sg.style.left='0%';sg.style.width=Math.min(ep,100)+'%';
-    sg.innerHTML=`<span class="seg-count">${currentQty}대</span><span class="seg-label">수리 진행 → ${formatHour(predictedHour)} 완료 예상</span>`;bar.appendChild(sg);
-    if(ep<100){const m=document.createElement('div');m.className='predict-marker';m.style.left=ep+'%';m.setAttribute('data-label','완료 '+formatHour(predictedHour));bar.appendChild(m);}
+    if(!predictedHour||currentQty<=0){bar.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#94a3b8;font-size:14px;font-weight:600;">📥 데이터 불러오기를 클릭하세요</div>';return;}
+    // 수리 진행 세그먼트 (점심 건너뛰기)
+    let t=START_HOUR, rem=totalRepairHours, first=true;
+    while(rem>0.01 && t<END_HOUR+2){
+        if(t>=LUNCH_S && t<LUNCH_E){t=LUNCH_E;continue;}
+        let nb=END_HOUR+2;
+        if(t<LUNCH_S) nb=Math.min(nb,LUNCH_S);
+        const used=Math.min(rem, nb-t);
+        const left=((t-START_HOUR)/TOTAL_HOURS)*100;
+        const w=(used/TOTAL_HOURS)*100;
+        const sg=document.createElement('div');sg.className='bar-segment predict-bar';
+        sg.style.left=Math.min(left,100)+'%';sg.style.width=Math.min(w,100-Math.min(left,100))+'%';
+        if(first){sg.innerHTML=`<span class="seg-count">${currentQty}대</span><span class="seg-label">→ ${formatHour(predictedHour)}</span>`;first=false;}
+        bar.appendChild(sg);
+        t+=used;rem-=used;
+    }
+    // 점심 블록
+    const lL=((LUNCH_S-START_HOUR)/TOTAL_HOURS)*100, lW=(1/TOTAL_HOURS)*100;
+    const lch=document.createElement('div');lch.className='bar-segment seg-lunch';lch.style.left=lL+'%';lch.style.width=lW+'%';
+    lch.innerHTML='<span class="lunch-label">🍚</span>';bar.appendChild(lch);
+    // 완료 마커
+    if(predictedHour<END_HOUR){
+        const mp=((predictedHour-START_HOUR)/TOTAL_HOURS)*100;
+        const mk=document.createElement('div');mk.className='predict-marker';mk.style.left=mp+'%';mk.setAttribute('data-label','완료 '+formatHour(predictedHour));bar.appendChild(mk);
+    }
 }
 
 function updateSummary(){
