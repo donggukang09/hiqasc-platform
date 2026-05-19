@@ -372,6 +372,11 @@
                 <span class="unit">명</span>
             </div>
             <div class="input-group">
+                <label>부대시간</label>
+                <input type="number" id="inputOverhead" placeholder="0" min="0" max="30" value="5" onchange="recalcWithHeadcount()">
+                <span class="unit">분/대</span>
+            </div>
+            <div class="input-group">
                 <label>입고 수량</label>
                 <input type="number" id="inputQty" placeholder="자동" min="0" max="500" readonly style="background:#f1f5f9;">
                 <span class="unit">대</span>
@@ -643,9 +648,10 @@ async function loadIntakeData() {
         };
     }).sort((a, b) => (b.totalSec || 0) - (a.totalSec || 0));
 
-    // 총 수량 & 시간 계산
+    // 총 수량 & 시간 계산 (부대시간 포함)
     currentQty = intakeModels.reduce((s, m) => s + m.count, 0);
-    const totalSec = intakeModels.reduce((s, m) => s + (m.totalSec || 0), 0);
+    const overheadSec = (parseInt(document.getElementById('inputOverhead').value) || 0) * 60;
+    const totalSec = intakeModels.reduce((s, m) => s + (m.avgSec ? (m.avgSec + overheadSec) * m.count : 0), 0);
     const headcount = parseInt(document.getElementById('inputHeadcount').value) || 1;
     totalRepairHours = (totalSec / 3600) / headcount;
 
@@ -661,7 +667,8 @@ async function loadIntakeData() {
 
 function recalcWithHeadcount() {
     if (intakeModels.length === 0) return;
-    const totalSec = intakeModels.reduce((s, m) => s + (m.totalSec || 0), 0);
+    const overheadSec = (parseInt(document.getElementById('inputOverhead').value) || 0) * 60;
+    const totalSec = intakeModels.reduce((s, m) => s + (m.avgSec ? (m.avgSec + overheadSec) * m.count : 0), 0);
     const headcount = parseInt(document.getElementById('inputHeadcount').value) || 1;
     totalRepairHours = (totalSec / 3600) / headcount;
     renderModelBreakdown();
@@ -697,12 +704,15 @@ function renderModelBreakdown() {
         }
     });
 
-    const totalHr = Math.floor(totalSec / 3600);
-    const totalMin = Math.round((totalSec % 3600) / 60);
+    const overheadSec = (parseInt(document.getElementById('inputOverhead').value) || 0) * 60;
+    const totalWithOverhead = intakeModels.reduce((s, m) => s + (m.avgSec ? (m.avgSec + overheadSec) * m.count : 0), 0);
+    const totalHr = Math.floor(totalWithOverhead / 3600);
+    const totalMin = Math.round((totalWithOverhead % 3600) / 60);
     const totalStr = totalHr > 0 ? `${totalHr}시간 ${totalMin}분` : `${totalMin}분`;
     const perPersonStr = fmtDur(totalRepairHours);
+    const overheadMin = parseInt(document.getElementById('inputOverhead').value) || 0;
 
-    html += `</tbody><tfoot><tr><td>합계</td><td class="mt-count">${totalQty}대</td><td></td><td class="mt-total">${totalStr}</td></tr></tfoot></table>`;
+    html += `</tbody><tfoot><tr><td>합계</td><td class="mt-count">${totalQty}대</td><td style="text-align:center;font-size:11px;color:#64748b;">+${overheadMin}분/대</td><td class="mt-total">${totalStr}</td></tr></tfoot></table>`;
     if (noDataCount > 0) html += `<div style="margin-top:8px;font-size:12px;color:#dc2626;font-weight:600;">⚠️ ${noDataCount}대는 수리타이머 데이터 없음 (평균시간 계산에서 제외)</div>`;
 
     container.innerHTML = html;
