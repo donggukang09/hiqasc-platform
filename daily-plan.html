@@ -367,6 +367,11 @@
         <div class="control-group">
             <button class="apply-btn" onclick="loadIntakeData()" style="background:linear-gradient(135deg,#0d9488,#14b8a6);border-color:#0d9488;gap:6px;">📥 데이터 불러오기</button>
             <div class="input-group">
+                <label>근무 인원</label>
+                <input type="number" id="inputHeadcount" placeholder="0" min="1" max="30" value="5" onchange="recalcWithHeadcount()">
+                <span class="unit">명</span>
+            </div>
+            <div class="input-group">
                 <label>입고 수량</label>
                 <input type="number" id="inputQty" placeholder="자동" min="0" max="500" readonly style="background:#f1f5f9;">
                 <span class="unit">대</span>
@@ -382,8 +387,10 @@
         <div id="modelBreakdown"></div>
         <div class="model-summary" id="modelSummary" style="display:none;margin-top:14px;">
             <div class="ms-row">
-                <span class="ms-label">총 입고 수량</span><span class="ms-value" id="msTotalQty">0대</span>
-                <span class="ms-label" style="margin-left:20px;">총 예상 수리시간</span><span class="ms-value" id="msTotalTime">-</span>
+                <span class="ms-label">총 입고</span><span class="ms-value" id="msTotalQty">0대</span>
+                <span class="ms-label" style="margin-left:16px;">총 수리시간</span><span class="ms-value" id="msTotalTime">-</span>
+                <span class="ms-label" style="margin-left:16px;">÷</span><span class="ms-value" id="msHeadcount">5명</span>
+                <span class="ms-label" style="margin-left:16px;">=</span><span class="ms-value" style="color:#dc2626;" id="msPerPerson">-</span>
             </div>
         </div>
     </div>
@@ -397,7 +404,8 @@
         </div>
         <div class="summary-row" id="summaryRow" style="display:none;">
             <div class="summary-card"><div class="sc-label">입고 수량</div><div class="sc-value blue" id="sumQty">-</div></div>
-            <div class="summary-card"><div class="sc-label">예상 완료 시간</div><div class="sc-value green" id="sumTime">-</div></div>
+            <div class="summary-card"><div class="sc-label">1인당 수리시간</div><div class="sc-value" style="color:#dc2626" id="sumPerPerson">-</div></div>
+            <div class="summary-card"><div class="sc-label">예상 완료</div><div class="sc-value green" id="sumTime">-</div></div>
             <div class="summary-card"><div class="sc-label">잔여 시간</div><div class="sc-value orange" id="sumRemain">-</div></div>
         </div>
     </div>
@@ -595,20 +603,19 @@ async function loadIntakeData() {
             const model = gvizVal(row, 0).trim();
             const secs = gvizNum(row, 1);
             if (model && secs > 0) {
-                if (!tempMap[model]) tempMap[model] = [];
-                tempMap[model].push(secs);
+                const key = model.toLowerCase().replace(/\s+/g,' ');
+                if (!tempMap[key]) tempMap[key] = { name: model, times: [] };
+                tempMap[key].times.push(secs);
             }
         });
-        Object.entries(tempMap).forEach(([model, arr]) => {
-            modelAvgMap[model] = arr.reduce((a, b) => a + b, 0) / arr.length;
+        Object.entries(tempMap).forEach(([key, data]) => {
+            modelAvgMap[key] = data.times.reduce((a, b) => a + b, 0) / data.times.length;
         });
     }
 
-    // 2. 주간입고 → 해당일 입고 모델 (X=Machine(24th=col W in gviz 0-index), AW=수리입고일(49th=col AV))
+    // 2. 주간입고 → 해당일 입고 모델
     showLoading('입고 데이터 로딩...');
     const dateStr = fmtDate(selectedDate);
-    // gviz에서 X열=col index 23 (A=0), AW열=col index 48
-    // SELECT로 직접 사용: X, AW
     const intakeResult = await loadGviz('주간입고', 'SELECT X, AW', 'cb_intake');
 
     intakeModels = [];
@@ -625,23 +632,26 @@ async function loadIntakeData() {
         });
     }
 
-    intakeModels = Object.entries(countMap).map(([model, count]) => ({
-        model, count,
-        avgSec: modelAvgMap[model] || null,
-        totalSec: modelAvgMap[model] ? modelAvgMap[model] * count : null
-    })).sort((a, b) => (b.totalSec || 0) - (a.totalSec || 0));
+    // 모델 매칭 (대소문자 무시)
+    intakeModels = Object.entries(countMap).map(([model, count]) => {
+        const key = model.toLowerCase().replace(/\s+/g,' ');
+        const avgSec = modelAvgMap[key] || null;
+        return {
+            model, count,
+            avgSec,
+            totalSec: avgSec ? avgSec * count : null
+        };
+    }).sort((a, b) => (b.totalSec || 0) - (a.totalSec || 0));
 
     // 총 수량 & 시간 계산
     currentQty = intakeModels.reduce((s, m) => s + m.count, 0);
     const totalSec = intakeModels.reduce((s, m) => s + (m.totalSec || 0), 0);
-    totalRepairHours = totalSec / 3600;
+    const headcount = parseInt(document.getElementById('inputHeadcount').value) || 1;
+    totalRepairHours = (totalSec / 3600) / headcount;
 
     document.getElementById('inputQty').value = currentQty;
 
-    // 모델 테이블 렌더
     renderModelBreakdown();
-
-    // PREDICT 계산
     applyPlan();
 
     hideLoading();
@@ -649,9 +659,20 @@ async function loadIntakeData() {
     markDirty();
 }
 
+function recalcWithHeadcount() {
+    if (intakeModels.length === 0) return;
+    const totalSec = intakeModels.reduce((s, m) => s + (m.totalSec || 0), 0);
+    const headcount = parseInt(document.getElementById('inputHeadcount').value) || 1;
+    totalRepairHours = (totalSec / 3600) / headcount;
+    renderModelBreakdown();
+    applyPlan();
+    markDirty();
+}
+
 function renderModelBreakdown() {
     document.getElementById('modelSection').style.display = 'block';
     const container = document.getElementById('modelBreakdown');
+    const headcount = parseInt(document.getElementById('inputHeadcount').value) || 1;
 
     if (intakeModels.length === 0) {
         container.innerHTML = '<div style="text-align:center;padding:16px;color:#94a3b8;font-size:14px;font-weight:600;">해당 날짜에 입고 데이터가 없습니다.</div>';
@@ -679,6 +700,7 @@ function renderModelBreakdown() {
     const totalHr = Math.floor(totalSec / 3600);
     const totalMin = Math.round((totalSec % 3600) / 60);
     const totalStr = totalHr > 0 ? `${totalHr}시간 ${totalMin}분` : `${totalMin}분`;
+    const perPersonStr = fmtDur(totalRepairHours);
 
     html += `</tbody><tfoot><tr><td>합계</td><td class="mt-count">${totalQty}대</td><td></td><td class="mt-total">${totalStr}</td></tr></tfoot></table>`;
     if (noDataCount > 0) html += `<div style="margin-top:8px;font-size:12px;color:#dc2626;font-weight:600;">⚠️ ${noDataCount}대는 수리타이머 데이터 없음 (평균시간 계산에서 제외)</div>`;
@@ -688,6 +710,8 @@ function renderModelBreakdown() {
     document.getElementById('modelSummary').style.display = 'block';
     document.getElementById('msTotalQty').textContent = totalQty + '대';
     document.getElementById('msTotalTime').textContent = totalStr;
+    document.getElementById('msHeadcount').textContent = headcount + '명';
+    document.getElementById('msPerPerson').textContent = '1인당 ' + perPersonStr;
 }
 
 // ═══ 초기화 ═══
@@ -923,8 +947,10 @@ function buildPredictBar(){
 }
 
 function updateSummary(){
-    const r=document.getElementById('summaryRow');if(currentQty<=0){r.style.display='none';return;}r.style.display='flex';
-    document.getElementById('sumQty').textContent=currentQty+'대';document.getElementById('sumTime').textContent=formatHour(predictedHour);
+    const r=document.getElementById('summaryRow');if(currentQty<=0||!predictedHour){r.style.display='none';return;}r.style.display='flex';
+    document.getElementById('sumQty').textContent=currentQty+'대';
+    document.getElementById('sumPerPerson').textContent=fmtDur(totalRepairHours);
+    document.getElementById('sumTime').textContent=formatHour(predictedHour);
     const rm=END_HOUR-predictedHour;if(rm<=0){document.getElementById('sumRemain').textContent='없음';document.getElementById('sumRemain').style.color='#dc2626';}
     else{const rh=Math.floor(rm),rmin=Math.round((rm-rh)*60);document.getElementById('sumRemain').textContent=rh+'시간'+(rmin>0?' '+rmin+'분':'');document.getElementById('sumRemain').style.color='#ea580c';}
 }
