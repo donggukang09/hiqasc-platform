@@ -72,7 +72,7 @@
             border: 1px solid #3a3a3a;
             border-radius: 12px;
             padding: 20px 30px;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             display: flex;
             gap: 15px;
             align-items: center;
@@ -144,6 +144,72 @@
         .sheet-link-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(155, 89, 182, 0.4);
+        }
+
+        /* 카테고리 필터 */
+        .category-bar {
+            background: #1e1e1e;
+            border: 1px solid #3a3a3a;
+            border-radius: 12px;
+            padding: 16px 24px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .category-label {
+            color: #808080;
+            font-size: 13px;
+            font-weight: 600;
+            margin-right: 4px;
+            white-space: nowrap;
+        }
+
+        .category-tabs {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .category-tab {
+            padding: 8px 18px;
+            background: #2a2a2a;
+            border: 1px solid #3a3a3a;
+            border-radius: 20px;
+            color: #b0b0b0;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s;
+            white-space: nowrap;
+        }
+
+        .category-tab:hover {
+            background: #353535;
+            border-color: #4a90e2;
+            color: #e0e0e0;
+        }
+
+        .category-tab.active {
+            background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+            border-color: #4a90e2;
+            color: #ffffff;
+            box-shadow: 0 2px 8px rgba(74, 144, 226, 0.35);
+        }
+
+        .category-count {
+            display: inline-block;
+            margin-left: 5px;
+            padding: 1px 7px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 10px;
+            font-size: 11px;
+        }
+
+        .category-tab.active .category-count {
+            background: rgba(255,255,255,0.25);
         }
 
         /* 통계 */
@@ -220,6 +286,23 @@
             padding: 15px;
             color: #f0f0f0;
             font-size: 14px;
+        }
+
+        /* 카테고리 셀 */
+        .category-cell {
+            font-weight: 600;
+            color: #4a90e2;
+            font-size: 13px;
+        }
+
+        /* 카테고리 그룹 헤더 (테이블 내) */
+        .category-group-row td {
+            background: #2d2d2d;
+            padding: 12px 15px;
+            font-weight: 700;
+            font-size: 15px;
+            color: #4a90e2;
+            border-bottom: 2px solid #4a90e2;
         }
 
         /* 상태 배지 */
@@ -328,6 +411,11 @@
                 gap: 15px;
             }
 
+            .category-bar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
             table {
                 font-size: 12px;
             }
@@ -364,6 +452,12 @@
                target="_blank">
                📊 시트 열기
             </a>
+        </div>
+
+        <!-- 카테고리 필터 -->
+        <div class="category-bar" id="categoryBar" style="display: none;">
+            <span class="category-label">📂 카테고리</span>
+            <div class="category-tabs" id="categoryTabs"></div>
         </div>
 
         <!-- 통계 -->
@@ -409,6 +503,7 @@
             <table>
                 <thead>
                     <tr>
+                        <th>카테고리</th>
                         <th>품목명</th>
                         <th>규격</th>
                         <th>전 달 수량</th>
@@ -438,6 +533,7 @@
         const SHEET_NAME = '소모품재고';
         
         let allData = [];
+        let currentCategory = '전체';
         let searchTimeout;
 
         // 페이지 로드 시 데이터 가져오기
@@ -449,7 +545,7 @@
         document.getElementById('searchInput').addEventListener('input', function(e) {
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => {
-                filterData(e.target.value);
+                applyFilters();
             }, 300);
         });
 
@@ -458,10 +554,12 @@
             const loading = document.getElementById('loading');
             const tableContainer = document.getElementById('tableContainer');
             const noData = document.getElementById('noData');
+            const categoryBar = document.getElementById('categoryBar');
             
             loading.style.display = 'block';
             tableContainer.style.display = 'none';
             noData.style.display = 'none';
+            categoryBar.style.display = 'none';
 
             try {
                 const url = `https://docs.google.com/spreadsheets/d/${INVENTORY_SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}`;
@@ -474,24 +572,25 @@
                 
                 console.log('응답 데이터:', json);
 
-                // 데이터 변환
+                // 시트 칼럼: 카테고리(0) / 품목명(1) / 규격(2) / 전 달 수량(3) / 현재수량(4) / 변동(5) / 단위(6) / 안전재고(7) / 비고(8) / 위치(9)
                 allData = [];
                 for (let i = 0; i < json.table.rows.length; i++) {
                     const row = json.table.rows[i];
                     
-                    // 빈 행 건너뛰기
-                    if (!row.c || !row.c[0]?.v) continue;
+                    // 빈 행 건너뛰기 (품목명 기준)
+                    if (!row.c || !row.c[1]?.v) continue;
                     
                     const item = {
-                        name: row.c[0]?.v || '',
-                        spec: row.c[1]?.v || '',
-                        prevQuantity: parseFloat(row.c[2]?.v) || 0,
-                        quantity: parseFloat(row.c[3]?.v) || 0,
-                        change: row.c[4]?.v ?? '',
-                        unit: row.c[5]?.v || '',
-                        safetyStock: parseFloat(row.c[6]?.v) || 0,
-                        note: row.c[7]?.v || '',
-                        location: row.c[8]?.v || ''
+                        category: (row.c[0]?.v || '미분류').toString().trim(),
+                        name: row.c[1]?.v || '',
+                        spec: row.c[2]?.v || '',
+                        prevQuantity: parseFloat(row.c[3]?.v) || 0,
+                        quantity: parseFloat(row.c[4]?.v) || 0,
+                        change: row.c[5]?.v ?? '',
+                        unit: row.c[6]?.v || '',
+                        safetyStock: parseFloat(row.c[7]?.v) || 0,
+                        note: row.c[8]?.v || '',
+                        location: row.c[9]?.v || ''
                     };
                     
                     allData.push(item);
@@ -504,9 +603,10 @@
                 if (allData.length === 0) {
                     noData.style.display = 'block';
                 } else {
+                    categoryBar.style.display = 'flex';
                     tableContainer.style.display = 'block';
-                    displayData(allData);
-                    updateStats(allData);
+                    buildCategoryTabs();
+                    applyFilters();
                 }
 
             } catch (error) {
@@ -516,18 +616,89 @@
             }
         }
 
+        // 카테고리 탭 동적 생성
+        function buildCategoryTabs() {
+            const tabsContainer = document.getElementById('categoryTabs');
+            tabsContainer.innerHTML = '';
+
+            // 카테고리 목록 추출 (시트 순서 유지, 중복 제거)
+            const seen = new Set();
+            const categories = [];
+            allData.forEach(item => {
+                if (!seen.has(item.category)) {
+                    seen.add(item.category);
+                    categories.push(item.category);
+                }
+            });
+
+            // 카테고리별 개수
+            const countMap = {};
+            allData.forEach(item => {
+                countMap[item.category] = (countMap[item.category] || 0) + 1;
+            });
+
+            // "전체" 탭
+            const allTab = document.createElement('div');
+            allTab.className = 'category-tab active';
+            allTab.innerHTML = `전체 <span class="category-count">${allData.length}</span>`;
+            allTab.onclick = () => selectCategory('전체', allTab);
+            tabsContainer.appendChild(allTab);
+
+            // 개별 카테고리 탭
+            categories.forEach(cat => {
+                const tab = document.createElement('div');
+                tab.className = 'category-tab';
+                tab.innerHTML = `${cat} <span class="category-count">${countMap[cat]}</span>`;
+                tab.onclick = () => selectCategory(cat, tab);
+                tabsContainer.appendChild(tab);
+            });
+        }
+
+        // 카테고리 선택
+        function selectCategory(category, tabElement) {
+            currentCategory = category;
+
+            // 활성 탭 변경
+            document.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
+            tabElement.classList.add('active');
+
+            applyFilters();
+        }
+
+        // 카테고리 + 검색 필터 동시 적용
+        function applyFilters() {
+            const query = document.getElementById('searchInput').value.trim().toLowerCase();
+
+            let filtered = allData;
+
+            // 카테고리 필터
+            if (currentCategory !== '전체') {
+                filtered = filtered.filter(item => item.category === currentCategory);
+            }
+
+            // 검색어 필터
+            if (query) {
+                filtered = filtered.filter(item =>
+                    item.name.toLowerCase().includes(query) ||
+                    item.spec.toLowerCase().includes(query) ||
+                    item.category.toLowerCase().includes(query)
+                );
+            }
+
+            displayData(filtered);
+            updateStats(filtered);
+        }
+
         // gviz 날짜 파싱 (Date(y,m,d) → m은 0-based)
         function parseGvizDate(cell) {
             if (!cell) return '';
-            // f(포맷된 문자열)가 있으면 우선 사용
             if (cell.f) return cell.f;
             const v = cell.v;
             if (!v) return '';
-            // "Date(2026,3,22)" 형태 파싱
             const m = String(v).match(/Date\((\d+),(\d+),(\d+)\)/);
             if (m) {
                 const year = parseInt(m[1]);
-                const month = parseInt(m[2]) + 1; // 0-based → 1-based
+                const month = parseInt(m[2]) + 1;
                 const day = parseInt(m[3]);
                 return `${year}. ${month}. ${day}`;
             }
@@ -553,14 +724,13 @@
             return `${num}`;
         }
 
-        // 상태 판정 (통일 함수)
+        // 상태 판정
         function getItemStatus(item) {
             if (item.quantity <= 0) {
                 return { statusClass: 'status-critical', statusText: '재고없음', quantityClass: 'quantity-critical', isNormal: false };
             } else if (item.quantity < item.safetyStock) {
                 return { statusClass: 'status-low', statusText: '부족', quantityClass: 'quantity-low', isNormal: false };
             } else {
-                // 수량이 안전재고 이상이어도, 시트에서 부족/재고없음으로 지정했으면 그대로 반영
                 const sheetStatus = (item.status || '').trim();
                 if (sheetStatus === '부족') {
                     return { statusClass: 'status-low', statusText: '부족', quantityClass: 'quantity-low', isNormal: false };
@@ -576,24 +746,46 @@
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
 
-            data.forEach(item => {
-                const row = document.createElement('tr');
-                const s = getItemStatus(item);
-                
-                row.innerHTML = `
-                    <td><strong>${item.name}</strong></td>
-                    <td>${item.spec || '-'}</td>
-                    <td>${item.prevQuantity.toLocaleString()}</td>
-                    <td class="quantity-cell ${s.quantityClass}">${item.quantity.toLocaleString()}</td>
-                    <td style="font-weight:600; color:${getChangeRateColor(item.change)}">${formatChangeRate(item.change)}</td>
-                    <td>${item.unit}</td>
-                    <td>${item.safetyStock.toLocaleString()}</td>
-                    <td style="color: #808080;">${item.note || '-'}</td>
-                    <td style="color: #b0b0b0;">${item.location || '-'}</td>
-                `;
-                
-                tbody.appendChild(row);
-            });
+            // "전체" 보기 → 카테고리별 그룹 헤더 삽입
+            if (currentCategory === '전체' && data.length > 0) {
+                const seen = new Set();
+                data.forEach(item => {
+                    if (!seen.has(item.category)) {
+                        seen.add(item.category);
+                        const headerRow = document.createElement('tr');
+                        headerRow.className = 'category-group-row';
+                        headerRow.innerHTML = `<td colspan="10">📂 ${item.category}</td>`;
+                        tbody.appendChild(headerRow);
+                    }
+                    tbody.appendChild(createItemRow(item, false));
+                });
+            } else {
+                // 특정 카테고리 선택 시 카테고리 칼럼에 값 표시
+                data.forEach(item => {
+                    tbody.appendChild(createItemRow(item, true));
+                });
+            }
+        }
+
+        // 아이템 행 생성
+        function createItemRow(item, showCategory) {
+            const row = document.createElement('tr');
+            const s = getItemStatus(item);
+            
+            row.innerHTML = `
+                <td class="category-cell">${showCategory ? item.category : ''}</td>
+                <td><strong>${item.name}</strong></td>
+                <td>${item.spec || '-'}</td>
+                <td>${item.prevQuantity.toLocaleString()}</td>
+                <td class="quantity-cell ${s.quantityClass}">${item.quantity.toLocaleString()}</td>
+                <td style="font-weight:600; color:${getChangeRateColor(item.change)}">${formatChangeRate(item.change)}</td>
+                <td>${item.unit}</td>
+                <td>${item.safetyStock.toLocaleString()}</td>
+                <td style="color: #808080;">${item.note || '-'}</td>
+                <td style="color: #b0b0b0;">${item.location || '-'}</td>
+            `;
+            
+            return row;
         }
 
         // 통계 업데이트
@@ -614,24 +806,6 @@
             document.getElementById('totalItems').textContent = total;
             document.getElementById('normalItems').textContent = normal;
             document.getElementById('lowItems').textContent = low;
-        }
-
-        // 검색 필터
-        function filterData(query) {
-            if (!query.trim()) {
-                displayData(allData);
-                updateStats(allData);
-                return;
-            }
-
-            const queryLower = query.toLowerCase();
-            const filtered = allData.filter(item => 
-                item.name.toLowerCase().includes(queryLower) ||
-                item.spec.toLowerCase().includes(queryLower)
-            );
-
-            displayData(filtered);
-            updateStats(filtered);
         }
     </script>
 </body>
