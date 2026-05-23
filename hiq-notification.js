@@ -206,8 +206,15 @@
                     var active = row.c[4] ? row.c[4].v : false;
                     if (active === true || active === 'TRUE' || active === 'true') {
                         if (seen.indexOf(id) === -1) {
-                            showToast(title, message, type);
-                            markAsSeen(id);
+                            // 브리핑 타입: 확인 팝업
+                            if (type === 'briefing') {
+                                if (location.pathname.indexOf('daily-briefing') === -1) {
+                                    showBriefingPopup(id);
+                                }
+                            } else {
+                                showToast(title, message, type);
+                                markAsSeen(id);
+                            }
                         }
                     }
                 }
@@ -222,4 +229,73 @@
 
     window.hiqShowToast = showToast;
     window.hiqPlayDingDong = playDingDong;
+
+    // ===== 브리핑 팝업 =====
+    var briefingCss = '' +
+    '.hiq-briefing-overlay {' +
+        'position:fixed;top:0;left:0;width:100%;height:100%;z-index:999999;' +
+        'background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);' +
+        'display:flex;align-items:center;justify-content:center;' +
+        'animation:hiq-brief-fade 0.3s ease;' +
+    '}' +
+    '@keyframes hiq-brief-fade{from{opacity:0}to{opacity:1}}' +
+    '.hiq-briefing-box {' +
+        'background:#16161f;border:1px solid #2e2e44;border-radius:20px;' +
+        'padding:40px;text-align:center;max-width:420px;width:90%;' +
+        'box-shadow:0 30px 80px rgba(0,0,0,0.5),0 0 60px rgba(74,144,226,0.1);' +
+        'animation:hiq-brief-pop 0.4s cubic-bezier(0.16,1,0.3,1);' +
+        'position:relative;overflow:hidden;' +
+    '}' +
+    '@keyframes hiq-brief-pop{from{opacity:0;transform:scale(0.85) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}' +
+    '.hiq-briefing-box::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#4a90e2,#a78bfa,#22d3ee);}' +
+    '.hiq-brief-icon{font-size:48px;margin-bottom:16px;animation:hiq-brief-bounce 1s ease infinite;}' +
+    '@keyframes hiq-brief-bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}' +
+    '.hiq-brief-title{font-family:"Orbitron",sans-serif;font-size:18px;font-weight:800;color:#4a90e2;letter-spacing:3px;margin-bottom:10px;}' +
+    '.hiq-brief-msg{font-size:15px;color:#a0a0b8;margin-bottom:28px;line-height:1.6;}' +
+    '.hiq-brief-btns{display:flex;gap:10px;justify-content:center;}' +
+    '.hiq-brief-btn{font-family:"Manrope",sans-serif;font-size:14px;font-weight:700;padding:12px 28px;border-radius:10px;cursor:pointer;border:none;transition:all 0.2s;}' +
+    '.hiq-brief-btn.yes{background:linear-gradient(135deg,#4a90e2,#3574d0);color:#fff;box-shadow:0 4px 20px rgba(74,144,226,0.3);}' +
+    '.hiq-brief-btn.yes:hover{transform:translateY(-2px);box-shadow:0 6px 28px rgba(74,144,226,0.4);}' +
+    '.hiq-brief-btn.no{background:rgba(255,255,255,0.05);color:#7a7a95;border:1px solid #2e2e44;}' +
+    '.hiq-brief-btn.no:hover{background:rgba(255,255,255,0.08);color:#a0a0b8;}';
+
+    var briefStyleEl = document.createElement('style');
+    briefStyleEl.textContent = briefingCss;
+    document.head.appendChild(briefStyleEl);
+
+    function showBriefingPopup(alertId) {
+        // 이미 떠있으면 무시
+        if (document.querySelector('.hiq-briefing-overlay')) return;
+        // 10분 쿨다운 (나중에 누른 경우)
+        var lastDismiss = parseInt(sessionStorage.getItem('hiq_brief_dismiss') || '0');
+        if (Date.now() - lastDismiss < 10 * 60 * 1000) return;
+
+        playDingDong();
+        setTimeout(function() { playDingDong(); }, 300);
+
+        var overlay = document.createElement('div');
+        overlay.className = 'hiq-briefing-overlay';
+        overlay.innerHTML =
+            '<div class="hiq-briefing-box">' +
+                '<div class="hiq-brief-icon">📋</div>' +
+                '<div class="hiq-brief-title">DAILY BRIEFING</div>' +
+                '<div class="hiq-brief-msg">금일의 브리핑이 등록되었습니다.<br>지금 확인하시겠습니까?</div>' +
+                '<div class="hiq-brief-btns">' +
+                    '<button class="hiq-brief-btn no" id="hiqBriefNo">나중에</button>' +
+                    '<button class="hiq-brief-btn yes" id="hiqBriefYes">확인하기</button>' +
+                '</div>' +
+            '</div>';
+        document.body.appendChild(overlay);
+
+        document.getElementById('hiqBriefYes').onclick = function() {
+            markAsSeen(alertId);
+            location.href = 'daily-briefing.html';
+        };
+        document.getElementById('hiqBriefNo').onclick = function() {
+            overlay.style.animation = 'hiq-brief-fade 0.3s ease reverse forwards';
+            setTimeout(function() { overlay.remove(); }, 300);
+            // 10분 후 다시 표시 (세션 내)
+            sessionStorage.setItem('hiq_brief_dismiss', Date.now());
+        };
+    }
 })();

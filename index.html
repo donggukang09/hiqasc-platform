@@ -968,6 +968,62 @@
                 width: calc((100% - 14px) / 2);
             }
         }
+
+        /* ===== BRIEFING BANNER ===== */
+        .briefing-banner {
+            margin: 0 auto 24px;
+            width: 100%; max-width: 1200px;
+            background: #353535;
+            border: 1px solid #4a4a4a;
+            border-radius: 16px;
+            padding: 20px 28px;
+            display: flex; align-items: center; gap: 18px;
+            cursor: pointer; transition: all 0.3s ease;
+            position: relative; overflow: hidden;
+        }
+        .briefing-banner::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, #4a90e2, #64b5f6, #4a90e2);
+            background-size: 200% 100%;
+            animation: briefing-shimmer 3s infinite;
+        }
+        @keyframes briefing-shimmer { 0%{background-position:0% 50%} 100%{background-position:200% 50%} }
+        .briefing-banner:hover {
+            border-color: #4a90e2;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(74, 144, 226, 0.2);
+        }
+        .briefing-icon-wrap {
+            width: 52px; height: 52px;
+            background: rgba(74, 144, 226, 0.12); border: 2px solid rgba(74, 144, 226, 0.25);
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px; flex-shrink: 0;
+        }
+        .briefing-text { flex: 1; }
+        .briefing-text h3 {
+            font-size: 15px; font-weight: 800;
+            color: #4a90e2; margin-bottom: 4px;
+        }
+        .briefing-text p { font-size: 14px; color: #aaa; margin: 0; }
+        .briefing-new {
+            background: linear-gradient(135deg, #ef4444, #f97316);
+            color: #fff; font-size: 11px; font-weight: 800; letter-spacing: 1px;
+            padding: 5px 14px; border-radius: 20px; flex-shrink: 0;
+            animation: briefing-pulse 1.5s ease-in-out infinite;
+        }
+        @keyframes briefing-pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+            50% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+        }
+        .briefing-arrow {
+            font-size: 20px; color: #4a90e2; flex-shrink: 0; transition: transform 0.3s;
+        }
+        .briefing-banner:hover .briefing-arrow { transform: translateX(4px); }
+        .briefing-banner.seen .briefing-new { display: none; }
+        .briefing-banner.seen .briefing-text p::after {
+            content: ' ✓ 확인완료'; color: #27ae60; font-weight: 700; font-size: 12px;
+        }
     </style>
     <script>
     // 즉시 실행 — 인증 상태면 로그인 화면 깜빡임 방지
@@ -1034,6 +1090,19 @@
             <div class="search-dropdown" id="searchDropdown"></div>
         </div>
         <div class="search-overlay" id="searchOverlay"></div>
+
+        <!-- ============================================ -->
+        <!-- DAILY BRIEFING BANNER -->
+        <!-- ============================================ -->
+        <div class="briefing-banner" id="briefingBanner" onclick="goTeam('daily-briefing.html')">
+            <div class="briefing-icon-wrap">📋</div>
+            <div class="briefing-text">
+                <h3>📌 DAILY BRIEFING</h3>
+                <p>금일의 브리핑을 확인하세요!</p>
+            </div>
+            <div class="briefing-new" id="briefingNew">NEW</div>
+            <div class="briefing-arrow">→</div>
+        </div>
 
         <!-- ============================================ -->
         <!-- HIQ ASC -->
@@ -1738,7 +1807,16 @@
             setTimeout(showEasterCat, 30000 + Math.random() * 30000);
         });
     </script>
-    <script src="hiq-notification.js?v=2"></script>
+    <script src="hiq-notification.js?v=3"></script>
     <script src="hiq-widget.js?v=1"></script>
+    <script>
+    (function() {
+        var today = new Date().toISOString().slice(0, 10);
+        var banner = document.getElementById('briefingBanner');
+        if (banner && localStorage.getItem('hiq_briefing_seen') === today) {
+            banner.classList.add('seen');
+        }
+    })();
+    </script>
 </body>
 </html>
