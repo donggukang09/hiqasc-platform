@@ -326,7 +326,6 @@
                     <p class="card-description">
                         시스템 환경설정 및 사용자 관리를 처리합니다.
                     </p>
-
                     <span class="card-badge coming">준비중</span>
                 </div>
 
@@ -342,10 +341,9 @@
 
     <script>
         // ============================================
-        // 📋 브리핑 관리 (Apps Script 연동)
+        // 📋 브리핑 관리 (기존 알림 엔드포인트 활용)
         // ============================================
-        const NOTI_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwCbHRrz79LdOGppCzNE4tJBdRaFLsfIj1HZA6rgXqQGUmVtroRWLndpl9hKXbIg1gbxg/exec';
-        const BRIEFING_APPS_SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
+        const NOTI_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwFsEvAkXNUNCggf-29k5PW1oVZhe6PFSft6sTmc20qVP2jZd1hjGsu0RP6GaJdamlndw/exec';
 
         function todayStr() {
             const d = new Date();
@@ -355,7 +353,7 @@
         async function launchBriefing() {
             const btn = document.getElementById('briefSendBtn');
             const status = document.getElementById('briefStatus');
-            const remain = parseInt(document.getElementById('briefRemain').value) || 0;
+            const remain = document.getElementById('briefRemain').value.trim();
             const schedule = document.getElementById('briefSchedule').value.trim();
             const notice = document.getElementById('briefNotice').value.trim();
 
@@ -364,21 +362,25 @@
             status.className = 'noti-status';
             status.style.display = 'none';
 
-            try {
-                // 1. 브리핑 데이터 저장 (브리핑 탭)
-                if (BRIEFING_APPS_SCRIPT_URL && BRIEFING_APPS_SCRIPT_URL !== 'YOUR_APPS_SCRIPT_URL_HERE') {
-                    await fetch(BRIEFING_APPS_SCRIPT_URL, {
-                        method: 'POST', mode: 'no-cors',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ date: todayStr(), remain, schedule, notice })
-                    });
-                }
+            // 브리핑 데이터를 message에 JSON으로 인코딩
+            const briefData = JSON.stringify({
+                remain: remain || '0',
+                schedule: schedule || '',
+                notice: notice || '',
+                date: todayStr()
+            });
 
-                // 2. 알림 탭에 브리핑 알림 추가 (기존 엔드포인트 재활용)
+            try {
                 await fetch(NOTI_APPS_SCRIPT_URL, {
-                    method: 'POST', mode: 'no-cors',
+                    method: 'POST',
+                    mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'add', title: '데일리 브리핑', message: '', type: 'briefing' })
+                    body: JSON.stringify({
+                        action: 'add',
+                        title: '데일리 브리핑',
+                        message: briefData,
+                        type: 'briefing'
+                    })
                 });
 
                 status.className = 'noti-status ok';
@@ -397,7 +399,8 @@
             if (!confirm('브리핑 알림을 비활성화하시겠습니까?')) return;
             try {
                 await fetch(NOTI_APPS_SCRIPT_URL, {
-                    method: 'POST', mode: 'no-cors',
+                    method: 'POST',
+                    mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ action: 'deactivateAll' })
                 });
