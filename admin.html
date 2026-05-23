@@ -362,13 +362,8 @@
             status.className = 'noti-status';
             status.style.display = 'none';
 
-            // 브리핑 데이터를 message에 JSON으로 인코딩
-            const briefData = JSON.stringify({
-                remain: remain || '0',
-                schedule: schedule || '',
-                notice: notice || '',
-                date: todayStr()
-            });
+            // 브리핑 데이터를 message에 구분자(§)로 인코딩
+            const briefMsg = [remain || '0', schedule || '-', notice || '-'].join('§');
 
             try {
                 await fetch(NOTI_APPS_SCRIPT_URL, {
@@ -378,7 +373,7 @@
                     body: JSON.stringify({
                         action: 'add',
                         title: '데일리 브리핑',
-                        message: briefData,
+                        message: briefMsg,
                         type: 'briefing'
                     })
                 });

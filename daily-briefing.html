@@ -244,22 +244,17 @@ async function fetchLeave(){
     brief.leaveNames=[...onLeave];
 }
 
-// 알림 시트에서 브리핑 데이터 읽기 (message 컬럼에 JSON 저장)
+// 알림 시트에서 브리핑 데이터 읽기 (message에 §로 구분 저장)
 async function fetchBriefingData(){
     const rows=await loadGviz(SHEET_IDS.main,'알림',"SELECT C WHERE D = 'briefing' AND E = true",'cb_brief');
-    // 마지막(최신) 브리핑 데이터 사용
     if(rows.length>0){
         const lastRow=rows[rows.length-1];
         const msg=getCellVal(lastRow,0);
         if(msg){
-            try{
-                const d=JSON.parse(msg);
-                brief.remain=parseInt(d.remain)||0;
-                brief.schedule=d.schedule||'';
-                brief.notice=d.notice||'';
-            }catch(e){
-                console.log('브리핑 데이터 파싱 실패:',e);
-            }
+            const parts=msg.split('§');
+            brief.remain=parseInt(parts[0])||0;
+            brief.schedule=(parts[1]&&parts[1]!=='-')?parts[1]:'';
+            brief.notice=(parts[2]&&parts[2]!=='-')?parts[2]:'';
         }
     }
 }
