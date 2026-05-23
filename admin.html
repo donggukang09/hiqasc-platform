@@ -111,7 +111,7 @@
         }
         .footer .developer-tag { margin-top: 6px; font-weight: 600; color: #e67e22; }
 
-        /* ── 알림 관리 패널 ── */
+        /* ── 브리핑 관리 패널 ── */
         .noti-panel {
             background: #353535;
             border: 1px solid #4a4a4a;
@@ -195,30 +195,29 @@
 
     <div class="content">
 
-        <!-- 🔔 알림 관리 -->
+        <!-- 📋 브리핑 관리 -->
         <div class="section">
-            <h2 class="section-title">🔔 알림 관리</h2>
+            <h2 class="section-title">📋 데일리 브리핑</h2>
             <div class="cards-grid">
                 <div class="noti-panel" style="grid-column: 1 / -1;">
                     <div class="noti-form-group">
-                        <label>알림 유형</label>
-                        <div class="noti-type-selector">
-                            <button class="noti-type-btn sel-info" data-type="info" onclick="selectNotiType(this)">ℹ️ 일반</button>
-                            <button class="noti-type-btn" data-type="success" onclick="selectNotiType(this)">✅ 완료</button>
-                            <button class="noti-type-btn" data-type="warning" onclick="selectNotiType(this)">⚠️ 주의</button>
-                        </div>
+                        <label>전일 잔여 수량 (대)</label>
+                        <input type="number" id="briefRemain" placeholder="어제 미수리 잔여 대수" min="0">
                     </div>
                     <div class="noti-form-group">
-                        <label>제목</label>
-                        <input type="text" id="notiTitle" placeholder="알림 제목을 입력하세요">
+                        <label>📅 업무 종료 후 일정</label>
+                        <textarea id="briefSchedule" placeholder="예: 17:30 전체 회의 / 18:00 회식"></textarea>
                     </div>
                     <div class="noti-form-group">
-                        <label>내용</label>
-                        <textarea id="notiMessage" placeholder="알림 내용을 입력하세요"></textarea>
+                        <label>📌 전달사항</label>
+                        <textarea id="briefNotice" placeholder="중요 공지사항을 입력하세요"></textarea>
                     </div>
-                    <button class="noti-send-btn" id="notiSendBtn" onclick="sendNotification()">🔔 알림 보내기</button>
-                    <div class="noti-status" id="notiStatus"></div>
-                    <button class="noti-deactivate-btn" onclick="deactivateAllNotifications()">🗑 모든 알림 비활성화</button>
+                    <button class="noti-send-btn" id="briefSendBtn" onclick="launchBriefing()" style="background:linear-gradient(135deg,#4a90e2,#357abd);">🚀 브리핑 발송</button>
+                    <div class="noti-status" id="briefStatus"></div>
+                    <div style="display:flex;gap:8px;margin-top:10px;">
+                        <button class="noti-deactivate-btn" style="flex:1;" onclick="window.open('daily-briefing.html','_blank')">👁️ 브리핑 미리보기</button>
+                        <button class="noti-deactivate-btn" style="flex:1;" onclick="deactivateBriefing()">🗑 브리핑 알림 비활성화</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -342,72 +341,68 @@
 
     <script>
         // ============================================
-        // 🔔 알림 보내기 (Apps Script 연동)
+        // 📋 브리핑 관리 (Apps Script 연동)
         // ============================================
-        const NOTI_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwFsEvAkXNUNCggf-29k5PW1oVZhe6PFSft6sTmc20qVP2jZd1hjGsu0RP6GaJdamlndw/exec';
-        let selectedNotiType = 'info';
+        const NOTI_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw2g4tmE7OfTkLmOHhyjZpc7zXktU5Y3mew8ajxESArRDC8XmTMtquZ3NBOyd-eH8oTGw/exec';
+        const BRIEFING_APPS_SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
 
-        function selectNotiType(btn) {
-            document.querySelectorAll('.noti-type-btn').forEach(b => b.className = 'noti-type-btn');
-            selectedNotiType = btn.dataset.type;
-            btn.classList.add('sel-' + selectedNotiType);
+        function todayStr() {
+            const d = new Date();
+            return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
         }
 
-        async function sendNotification() {
-            const title = document.getElementById('notiTitle').value.trim();
-            const message = document.getElementById('notiMessage').value.trim();
-            const status = document.getElementById('notiStatus');
-            const btn = document.getElementById('notiSendBtn');
-
-            if (!title && !message) {
-                status.className = 'noti-status err';
-                status.textContent = '제목 또는 내용을 입력해주세요.';
-                return;
-            }
+        async function launchBriefing() {
+            const btn = document.getElementById('briefSendBtn');
+            const status = document.getElementById('briefStatus');
+            const remain = parseInt(document.getElementById('briefRemain').value) || 0;
+            const schedule = document.getElementById('briefSchedule').value.trim();
+            const notice = document.getElementById('briefNotice').value.trim();
 
             btn.disabled = true;
-            btn.textContent = '⏳ 전송 중...';
+            btn.textContent = '⏳ 발송 중...';
             status.className = 'noti-status';
             status.style.display = 'none';
 
             try {
+                // 1. 브리핑 데이터 저장 (브리핑 탭)
+                if (BRIEFING_APPS_SCRIPT_URL && BRIEFING_APPS_SCRIPT_URL !== 'YOUR_APPS_SCRIPT_URL_HERE') {
+                    await fetch(BRIEFING_APPS_SCRIPT_URL, {
+                        method: 'POST', mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ date: todayStr(), remain, schedule, notice })
+                    });
+                }
+
+                // 2. 알림 탭에 브리핑 알림 추가 (기존 엔드포인트 재활용)
                 await fetch(NOTI_APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
+                    method: 'POST', mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'add',
-                        title: title,
-                        message: message,
-                        type: selectedNotiType
-                    })
+                    body: JSON.stringify({ action: 'add', title: '데일리 브리핑', message: '', type: 'briefing' })
                 });
 
                 status.className = 'noti-status ok';
-                status.textContent = '✅ 알림이 전송되었습니다! 약 1분 내에 모든 접속자에게 표시됩니다.';
-                document.getElementById('notiTitle').value = '';
-                document.getElementById('notiMessage').value = '';
+                status.textContent = '✅ 브리핑 발송 완료! 약 1분 내에 전 직원에게 알림이 표시됩니다.';
+                localStorage.setItem('hiq_briefing_seen', todayStr());
             } catch (err) {
                 status.className = 'noti-status err';
-                status.textContent = '❌ 전송 실패: ' + err.message;
+                status.textContent = '❌ 발송 실패: ' + err.message;
             }
 
             btn.disabled = false;
-            btn.textContent = '🔔 알림 보내기';
+            btn.textContent = '🚀 브리핑 발송';
         }
 
-        async function deactivateAllNotifications() {
-            if (!confirm('모든 알림을 비활성화하시겠습니까?\n비활성화하면 더 이상 팝업이 뜨지 않습니다.')) return;
+        async function deactivateBriefing() {
+            if (!confirm('브리핑 알림을 비활성화하시겠습니까?')) return;
             try {
                 await fetch(NOTI_APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
+                    method: 'POST', mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ action: 'deactivateAll' })
                 });
-                const status = document.getElementById('notiStatus');
+                const status = document.getElementById('briefStatus');
                 status.className = 'noti-status ok';
-                status.textContent = '✅ 모든 알림이 비활성화되었습니다.';
+                status.textContent = '✅ 브리핑 알림이 비활성화되었습니다.';
             } catch (err) {
                 alert('비활성화 실패: ' + err.message);
             }
