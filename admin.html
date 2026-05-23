@@ -366,6 +366,17 @@
             const briefMsg = [remain || '0', schedule || '-', notice || '-'].join('§');
 
             try {
+                // 1. 기존 알림 모두 비활성화 (전일 브리핑 포함)
+                await fetch(NOTI_APPS_SCRIPT_URL, {
+                    method: 'POST', mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'deactivateAll' })
+                });
+
+                // 잠시 대기 후 새 브리핑 추가
+                await new Promise(r => setTimeout(r, 1500));
+
+                // 2. 새 브리핑 발송
                 await fetch(NOTI_APPS_SCRIPT_URL, {
                     method: 'POST',
                     mode: 'no-cors',
