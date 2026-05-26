@@ -204,6 +204,20 @@
                         <label>전일 잔여 수량 (대)</label>
                         <input type="number" id="briefRemain" placeholder="어제 미수리 잔여 대수" min="0">
                     </div>
+
+                    <div class="noti-form-group">
+                        <label>👍 전일 잘된 점</label>
+                        <textarea id="briefGood" placeholder="예: 목표 달성, 신규 기사 적응 등"></textarea>
+                    </div>
+                    <div class="noti-form-group">
+                        <label>⚠️ 전일 부족한 점</label>
+                        <textarea id="briefBad" placeholder="예: 부품 부족, 협업 이슈 등"></textarea>
+                    </div>
+                    <div class="noti-form-group">
+                        <label>🎯 오늘 신경써야 할 점</label>
+                        <textarea id="briefFocus" placeholder="예: 우선 처리 모델, 안전 사항 등"></textarea>
+                    </div>
+
                     <div class="noti-form-group">
                         <label>📅 데일리 플랜</label>
                         <textarea id="briefSchedule" placeholder="예: 09:00 부두미팅 / 13:00 신입교육 / 17:30 전체회의"></textarea>
@@ -354,6 +368,9 @@
             const btn = document.getElementById('briefSendBtn');
             const status = document.getElementById('briefStatus');
             const remain = document.getElementById('briefRemain').value.trim();
+            const good = document.getElementById('briefGood').value.trim();
+            const bad = document.getElementById('briefBad').value.trim();
+            const focus = document.getElementById('briefFocus').value.trim();
             const schedule = document.getElementById('briefSchedule').value.trim();
             const notice = document.getElementById('briefNotice').value.trim();
 
@@ -363,7 +380,15 @@
             status.style.display = 'none';
 
             // 브리핑 데이터를 message에 구분자(§)로 인코딩
-            const briefMsg = [remain || '0', schedule || '-', notice || '-'].join('§');
+            // 순서: remain § schedule § notice § good § bad § focus
+            const briefMsg = [
+                remain || '0',
+                schedule || '-',
+                notice || '-',
+                good || '-',
+                bad || '-',
+                focus || '-'
+            ].join('§');
 
             try {
                 // 1. 기존 알림 모두 비활성화 (전일 브리핑 포함)
