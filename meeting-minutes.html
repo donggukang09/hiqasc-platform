@@ -59,6 +59,45 @@
   .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #4a90e2; color: white; padding: 12px 24px; border-radius: 6px; font-weight: 600; box-shadow: 0 4px 16px rgba(0,0,0,0.4); z-index: 2000; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
   .toast.show { opacity: 1; }
   .toast.error { background: #d9534f; }
+
+  /* 뷰 토글 */
+  .view-toggle { display: inline-flex; background: #353535; border: 1px solid #4a4a4a; border-radius: 6px; overflow: hidden; }
+  .view-toggle button { padding: 9px 16px; background: transparent; border: none; color: #aaa; cursor: pointer; font-weight: 600; font-size: 13px; font-family: 'Manrope', sans-serif; }
+  .view-toggle button.active { background: #4a90e2; color: white; }
+
+  /* 캘린더 */
+  .calendar-wrapper { background: #353535; border: 1px solid #4a4a4a; border-radius: 8px; padding: 20px; }
+  .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .calendar-title { font-size: 20px; font-weight: 700; }
+  .calendar-nav { display: flex; gap: 6px; align-items: center; }
+  .calendar-nav button { padding: 6px 14px; background: #4a4a4a; border: none; border-radius: 6px; color: #e0e0e0; cursor: pointer; font-weight: 600; font-size: 14px; font-family: 'Manrope', sans-serif; }
+  .calendar-nav button:hover { background: #5a5a5a; }
+  .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+  .calendar-dow { text-align: center; padding: 8px 0; font-size: 12px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.6px; }
+  .calendar-dow.sun { color: #e57373; }
+  .calendar-dow.sat { color: #64b5f6; }
+  .calendar-day { background: #2a2a2a; border: 1px solid #404040; border-radius: 6px; min-height: 92px; padding: 6px 8px; cursor: pointer; transition: all 0.12s; display: flex; flex-direction: column; gap: 3px; }
+  .calendar-day:hover { border-color: #4a90e2; background: #303030; }
+  .calendar-day.empty { background: transparent; border: none; cursor: default; }
+  .calendar-day.empty:hover { background: transparent; }
+  .calendar-day.today { border-color: #4a90e2; box-shadow: inset 0 0 0 1px #4a90e2; }
+  .calendar-day.other-month { opacity: 0.35; }
+  .calendar-day-num { font-size: 13px; font-weight: 700; color: #ccc; margin-bottom: 2px; }
+  .calendar-day.today .calendar-day-num { color: #4a90e2; }
+  .calendar-day-num.sun { color: #e57373; }
+  .calendar-day-num.sat { color: #64b5f6; }
+  .calendar-event { background: #4a90e2; color: white; font-size: 11px; padding: 2px 6px; border-radius: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+  .calendar-event:hover { background: #357abd; }
+  .calendar-more { font-size: 10px; color: #888; padding-left: 4px; }
+
+  /* 날짜별 회의 리스트 모달 */
+  .day-meetings-list .meeting-card { margin-bottom: 10px; }
+
+  @media (max-width: 768px) {
+    .calendar-day { min-height: 64px; padding: 4px; }
+    .calendar-day-num { font-size: 11px; }
+    .calendar-event { font-size: 9px; padding: 1px 4px; }
+  }
   @media (max-width: 768px) {
     .form-row { grid-template-columns: 1fr; }
     .meeting-card-header { flex-direction: column; gap: 4px; }
@@ -82,12 +121,30 @@
   </div>
 
   <div class="toolbar">
+    <div class="view-toggle">
+      <button id="viewListBtn" class="active" onclick="switchView('list')">📋 목록</button>
+      <button id="viewCalBtn" onclick="switchView('calendar')">📅 캘린더</button>
+    </div>
     <input type="text" id="searchInput" class="search-input" placeholder="제목 · 참석자 · 내용 · 작성자 검색..." oninput="filterMeetings()">
     <button class="btn btn-secondary" onclick="loadMeetings()">🔄 새로고침</button>
   </div>
 
   <div id="meetingList">
     <div class="loading">불러오는 중...</div>
+  </div>
+
+  <div id="calendarView" style="display:none;">
+    <div class="calendar-wrapper">
+      <div class="calendar-header">
+        <div class="calendar-title" id="calendarTitle"></div>
+        <div class="calendar-nav">
+          <button onclick="navMonth(-1)">◀</button>
+          <button onclick="goToday()">오늘</button>
+          <button onclick="navMonth(1)">▶</button>
+        </div>
+      </div>
+      <div class="calendar-grid" id="calendarGrid"></div>
+    </div>
   </div>
 </div>
 
@@ -167,14 +224,28 @@
   </div>
 </div>
 
+<!-- 날짜별 회의 목록 모달 (여러 건일 때) -->
+<div class="modal-overlay" id="dayListModal">
+  <div class="modal" style="max-width: 600px;">
+    <div class="modal-header">
+      <div class="modal-title" id="dayListTitle"></div>
+      <button class="close-btn" onclick="closeModal('dayListModal')">×</button>
+    </div>
+    <div class="day-meetings-list" id="dayListBody"></div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
   // ⚠️ 회의록 전용 Apps Script URL (별도 프로젝트로 배포 후 입력)
-  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwlNepe0O_tnyNR7YEXNvrHV4I5N5R2ySaEKmATeGTHagvGgutvlTijgVmCTK5HXTI8/exec';
+  const APPS_SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
 
   let allMeetings = [];
   let currentDetailMeeting = null;
+  let currentView = 'list';
+  let calCursor = new Date();
+  calCursor.setDate(1);
 
   window.addEventListener('DOMContentLoaded', () => {
     loadMeetings();
@@ -236,16 +307,19 @@
 
   function filterMeetings() {
     const q = document.getElementById('searchInput').value.trim().toLowerCase();
-    if (!q) { renderMeetings(allMeetings); return; }
-    const filtered = allMeetings.filter(m =>
-      (m.title || '').toLowerCase().includes(q) ||
-      (m.attendees || '').toLowerCase().includes(q) ||
-      (m.content || '').toLowerCase().includes(q) ||
-      (m.author || '').toLowerCase().includes(q) ||
-      (m.agenda || '').toLowerCase().includes(q) ||
-      (m.decisions || '').toLowerCase().includes(q)
-    );
+    let filtered = allMeetings;
+    if (q) {
+      filtered = allMeetings.filter(m =>
+        (m.title || '').toLowerCase().includes(q) ||
+        (m.attendees || '').toLowerCase().includes(q) ||
+        (m.content || '').toLowerCase().includes(q) ||
+        (m.author || '').toLowerCase().includes(q) ||
+        (m.agenda || '').toLowerCase().includes(q) ||
+        (m.decisions || '').toLowerCase().includes(q)
+      );
+    }
     renderMeetings(filtered);
+    renderCalendar();
   }
 
   function openCreateModal() {
@@ -369,6 +443,134 @@
     t.textContent = msg;
     t.className = 'toast show' + (isError ? ' error' : '');
     setTimeout(() => { t.className = 'toast'; }, 2500);
+  }
+
+  // ===== 캘린더 =====
+  function switchView(v) {
+    currentView = v;
+    document.getElementById('viewListBtn').classList.toggle('active', v === 'list');
+    document.getElementById('viewCalBtn').classList.toggle('active', v === 'calendar');
+    document.getElementById('meetingList').style.display = v === 'list' ? '' : 'none';
+    document.getElementById('calendarView').style.display = v === 'calendar' ? '' : 'none';
+    if (v === 'calendar') renderCalendar();
+  }
+
+  function navMonth(delta) {
+    calCursor.setMonth(calCursor.getMonth() + delta);
+    renderCalendar();
+  }
+
+  function goToday() {
+    calCursor = new Date();
+    calCursor.setDate(1);
+    renderCalendar();
+  }
+
+  function renderCalendar() {
+    const titleEl = document.getElementById('calendarTitle');
+    const gridEl = document.getElementById('calendarGrid');
+    if (!titleEl || !gridEl) return;
+
+    const year = calCursor.getFullYear();
+    const month = calCursor.getMonth();
+    titleEl.textContent = `${year}년 ${month + 1}월`;
+
+    // 검색 필터 반영
+    const q = document.getElementById('searchInput').value.trim().toLowerCase();
+    const source = q ? allMeetings.filter(m =>
+      (m.title || '').toLowerCase().includes(q) ||
+      (m.attendees || '').toLowerCase().includes(q) ||
+      (m.content || '').toLowerCase().includes(q) ||
+      (m.author || '').toLowerCase().includes(q) ||
+      (m.agenda || '').toLowerCase().includes(q) ||
+      (m.decisions || '').toLowerCase().includes(q)
+    ) : allMeetings;
+
+    // 날짜별 그룹핑 (YYYY-MM-DD 키)
+    const byDate = {};
+    source.forEach(m => {
+      if (!m.date) return;
+      const key = String(m.date).slice(0, 10);
+      if (!byDate[key]) byDate[key] = [];
+      byDate[key].push(m);
+    });
+    // 각 날짜 내에서 시간순 정렬
+    Object.keys(byDate).forEach(k => byDate[k].sort((a, b) => (a.date || '').localeCompare(b.date || '')));
+
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const startDow = firstDay.getDay();
+    const totalDays = lastDay.getDate();
+    const today = new Date();
+    const todayKey = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
+
+    const dows = ['일', '월', '화', '수', '목', '금', '토'];
+    let html = dows.map((d, i) => {
+      const cls = i === 0 ? ' sun' : (i === 6 ? ' sat' : '');
+      return `<div class="calendar-dow${cls}">${d}</div>`;
+    }).join('');
+
+    // 앞쪽 빈 칸
+    for (let i = 0; i < startDow; i++) html += '<div class="calendar-day empty"></div>';
+
+    // 날짜 칸
+    for (let d = 1; d <= totalDays; d++) {
+      const key = `${year}-${pad(month + 1)}-${pad(d)}`;
+      const dayMeetings = byDate[key] || [];
+      const dow = (startDow + d - 1) % 7;
+      const numCls = dow === 0 ? ' sun' : (dow === 6 ? ' sat' : '');
+      const isToday = key === todayKey;
+
+      const eventsHtml = dayMeetings.slice(0, 3).map(m => {
+        const time = (m.date || '').slice(11, 16);
+        return `<div class="calendar-event" title="${escapeAttr(m.title)}">${time ? time + ' ' : ''}${escapeHtml(m.title)}</div>`;
+      }).join('');
+      const moreHtml = dayMeetings.length > 3 ? `<div class="calendar-more">+${dayMeetings.length - 3}건 더</div>` : '';
+
+      html += `<div class="calendar-day${isToday ? ' today' : ''}" onclick="onDayClick('${key}')">
+        <div class="calendar-day-num${numCls}">${d}</div>
+        ${eventsHtml}${moreHtml}
+      </div>`;
+    }
+
+    gridEl.innerHTML = html;
+  }
+
+  function onDayClick(dateKey) {
+    const dayMeetings = allMeetings.filter(m => String(m.date || '').slice(0, 10) === dateKey);
+    if (dayMeetings.length === 0) {
+      // 빈 날짜 → 그 날짜로 새 회의록 작성
+      openCreateModal();
+      document.getElementById('meetingDate').value = dateKey + 'T09:00';
+      return;
+    }
+    if (dayMeetings.length === 1) {
+      openDetail(dayMeetings[0].id);
+      return;
+    }
+    // 여러 건 → 목록 모달
+    dayMeetings.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+    document.getElementById('dayListTitle').textContent = formatDateOnly(dateKey) + ' 회의록 (' + dayMeetings.length + '건)';
+    document.getElementById('dayListBody').innerHTML = dayMeetings.map(m => `
+      <div class="meeting-card" onclick="closeModal('dayListModal'); openDetail('${escapeAttr(m.id)}')">
+        <div class="meeting-card-header">
+          <div class="meeting-title">${escapeHtml(m.title)}</div>
+          <div class="meeting-date">${(m.date || '').slice(11, 16)}</div>
+        </div>
+        <div class="meeting-meta">
+          ${m.location ? `<span>📍 ${escapeHtml(m.location)}</span>` : ''}
+          ${m.author ? `<span>✍ ${escapeHtml(m.author)}</span>` : ''}
+        </div>
+      </div>
+    `).join('');
+    document.getElementById('dayListModal').classList.add('active');
+  }
+
+  function pad(n) { return String(n).padStart(2, '0'); }
+  function formatDateOnly(d) {
+    const date = new Date(d);
+    if (isNaN(date)) return d;
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
   }
 
   function escapeHtml(s) {
