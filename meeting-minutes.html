@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>회의록 시스템 | HIQASC</title>
+<script>
+  if (sessionStorage.getItem('hiqasc_authenticated') !== 'true') {
+    document.documentElement.style.display = 'none';
+    window.location.href = 'index.html';
+  }
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Manrope', sans-serif; }
+  body { background: #2a2a2a; color: #e0e0e0; min-height: 100vh; padding: 20px; }
+  .container { max-width: 1400px; margin: 0 auto; }
+  .header { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; margin-bottom: 20px; border-bottom: 1px solid #4a4a4a; gap: 16px; }
+  .header h1 { font-size: 26px; font-weight: 800; }
+  .header .subtitle { color: #999; font-size: 13px; margin-top: 4px; }
+  .header-actions { display: flex; gap: 10px; }
+  .btn { padding: 10px 18px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.15s; font-family: 'Manrope', sans-serif; white-space: nowrap; }
+  .btn-primary { background: #4a90e2; color: white; }
+  .btn-primary:hover { background: #357abd; }
+  .btn-secondary { background: #4a4a4a; color: #e0e0e0; }
+  .btn-secondary:hover { background: #5a5a5a; }
+  .btn-danger { background: #d9534f; color: white; }
+  .btn-danger:hover { background: #c9302c; }
+  .toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 20px; }
+  .search-input { flex: 1; min-width: 200px; padding: 10px 14px; background: #353535; border: 1px solid #4a4a4a; border-radius: 6px; color: #e0e0e0; font-size: 14px; font-family: 'Manrope', sans-serif; }
+  .search-input::placeholder { color: #888; }
+  .search-input:focus { outline: none; border-color: #4a90e2; }
+  .meeting-card { background: #353535; border: 1px solid #4a4a4a; border-radius: 8px; padding: 18px 22px; margin-bottom: 12px; cursor: pointer; transition: all 0.15s; }
+  .meeting-card:hover { background: #3d3d3d; border-color: #4a90e2; transform: translateY(-1px); }
+  .meeting-card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 8px; }
+  .meeting-title { font-size: 17px; font-weight: 700; color: #e0e0e0; }
+  .meeting-date { color: #4a90e2; font-size: 13px; white-space: nowrap; font-weight: 600; }
+  .meeting-meta { display: flex; gap: 18px; flex-wrap: wrap; font-size: 13px; color: #aaa; }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); display: none; align-items: flex-start; justify-content: center; z-index: 1000; padding: 40px 20px; overflow-y: auto; }
+  .modal-overlay.active { display: flex; }
+  .modal { background: #353535; border: 1px solid #4a4a4a; border-radius: 12px; width: 100%; max-width: 880px; padding: 28px; }
+  .modal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 22px; padding-bottom: 14px; border-bottom: 1px solid #4a4a4a; gap: 16px; }
+  .modal-title { font-size: 20px; font-weight: 700; }
+  .close-btn { background: none; border: none; color: #999; font-size: 28px; cursor: pointer; line-height: 1; padding: 0 4px; }
+  .close-btn:hover { color: #e0e0e0; }
+  .form-group { margin-bottom: 16px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .form-label { display: block; font-size: 13px; font-weight: 600; color: #bbb; margin-bottom: 6px; }
+  .form-input, .form-textarea { width: 100%; padding: 10px 12px; background: #2a2a2a; border: 1px solid #4a4a4a; border-radius: 6px; color: #e0e0e0; font-size: 14px; font-family: 'Manrope', sans-serif; }
+  .form-textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
+  .form-input:focus, .form-textarea:focus { outline: none; border-color: #4a90e2; }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 22px; padding-top: 14px; border-top: 1px solid #4a4a4a; }
+  .empty-state { text-align: center; padding: 60px 20px; color: #888; }
+  .empty-state h3 { font-size: 18px; margin-bottom: 8px; color: #aaa; font-weight: 700; }
+  .loading { text-align: center; padding: 40px; color: #888; }
+  .detail-section { margin-bottom: 18px; }
+  .detail-section h4 { font-size: 12px; font-weight: 700; color: #4a90e2; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.6px; }
+  .detail-section .detail-content { background: #2a2a2a; padding: 14px 16px; border-radius: 6px; line-height: 1.7; white-space: pre-wrap; word-break: break-word; min-height: 20px; color: #e0e0e0; border: 1px solid #404040; }
+  .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #4a90e2; color: white; padding: 12px 24px; border-radius: 6px; font-weight: 600; box-shadow: 0 4px 16px rgba(0,0,0,0.4); z-index: 2000; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+  .toast.show { opacity: 1; }
+  .toast.error { background: #d9534f; }
+  @media (max-width: 768px) {
+    .form-row { grid-template-columns: 1fr; }
+    .meeting-card-header { flex-direction: column; gap: 4px; }
+    .header { flex-direction: column; align-items: flex-start; }
+    .header-actions { width: 100%; }
+    .header-actions .btn { flex: 1; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div>
+      <h1>📝 회의록 시스템</h1>
+      <div class="subtitle">회의 내용을 기록하고 공유합니다</div>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-primary" onclick="openCreateModal()">＋ 새 회의록</button>
+      <button class="btn btn-secondary" onclick="location.href='index.html'">← 홈으로</button>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <input type="text" id="searchInput" class="search-input" placeholder="제목 · 참석자 · 내용 · 작성자 검색..." oninput="filterMeetings()">
+    <button class="btn btn-secondary" onclick="loadMeetings()">🔄 새로고침</button>
+  </div>
+
+  <div id="meetingList">
+    <div class="loading">불러오는 중...</div>
+  </div>
+</div>
+
+<!-- 작성/수정 모달 -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">새 회의록 작성</div>
+      <button class="close-btn" onclick="closeModal('editModal')">×</button>
+    </div>
+    <form id="meetingForm" onsubmit="return false;">
+      <input type="hidden" id="meetingId">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">회의 일시 *</label>
+          <input type="datetime-local" id="meetingDate" class="form-input" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">작성자 *</label>
+          <input type="text" id="meetingAuthor" class="form-input" placeholder="이름 입력" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">회의 제목 *</label>
+        <input type="text" id="meetingTitle" class="form-input" placeholder="예: 9월 정기 운영 회의" required>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">장소</label>
+          <input type="text" id="meetingLocation" class="form-input" placeholder="예: 본사 회의실 A">
+        </div>
+        <div class="form-group">
+          <label class="form-label">참석자</label>
+          <input type="text" id="meetingAttendees" class="form-input" placeholder="이름들을 쉼표로 구분">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">안건</label>
+        <textarea id="meetingAgenda" class="form-textarea" placeholder="다룰 안건들을 입력하세요"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">회의 내용 *</label>
+        <textarea id="meetingContent" class="form-textarea" style="min-height: 200px;" placeholder="논의 내용을 자세히 기록하세요" required></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">결정 사항</label>
+        <textarea id="meetingDecisions" class="form-textarea" placeholder="회의를 통해 결정된 사항들"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">액션 아이템</label>
+        <textarea id="meetingActions" class="form-textarea" placeholder="누가 · 무엇을 · 언제까지"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('editModal')">취소</button>
+        <button type="button" class="btn btn-primary" id="saveBtn" onclick="saveMeeting()">저장</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- 상세 모달 -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div style="flex:1;">
+        <div class="modal-title" id="detailTitle"></div>
+        <div style="color: #999; font-size: 13px; margin-top: 6px;" id="detailMeta"></div>
+      </div>
+      <button class="close-btn" onclick="closeModal('detailModal')">×</button>
+    </div>
+    <div id="detailBody"></div>
+    <div class="modal-actions">
+      <button class="btn btn-danger" onclick="deleteMeeting()">삭제</button>
+      <button class="btn btn-secondary" onclick="closeModal('detailModal')">닫기</button>
+      <button class="btn btn-primary" onclick="editMeeting()">수정</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // ⚠️ 회의록 전용 Apps Script URL (별도 프로젝트로 배포 후 입력)
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwlNepe0O_tnyNR7YEXNvrHV4I5N5R2ySaEKmATeGTHagvGgutvlTijgVmCTK5HXTI8/exec';
+
+  let allMeetings = [];
+  let currentDetailMeeting = null;
+
+  window.addEventListener('DOMContentLoaded', () => {
+    loadMeetings();
+  });
+
+  // 목록 불러오기 (JSONP)
+  function loadMeetings() {
+    const listEl = document.getElementById('meetingList');
+    listEl.innerHTML = '<div class="loading">불러오는 중...</div>';
+
+    if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE') {
+      listEl.innerHTML = '<div class="empty-state"><h3>Apps Script URL이 설정되지 않았습니다</h3><p>코드 상단의 APPS_SCRIPT_URL을 입력해주세요.</p></div>';
+      return;
+    }
+
+    const cbName = 'cb_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
+    const script = document.createElement('script');
+
+    window[cbName] = function(data) {
+      delete window[cbName];
+      if (script.parentNode) script.parentNode.removeChild(script);
+      if (data && data.success) {
+        allMeetings = data.meetings || [];
+        filterMeetings();
+      } else {
+        listEl.innerHTML = '<div class="empty-state"><h3>불러오기 실패</h3><p>' + escapeHtml((data && data.error) || '') + '</p></div>';
+      }
+    };
+
+    script.src = APPS_SCRIPT_URL + '?action=list&callback=' + cbName + '&t=' + Date.now();
+    script.onerror = function() {
+      delete window[cbName];
+      if (script.parentNode) script.parentNode.removeChild(script);
+      listEl.innerHTML = '<div class="empty-state"><h3>네트워크 오류</h3><p>Apps Script URL을 확인해주세요.</p></div>';
+    };
+    document.body.appendChild(script);
+  }
+
+  function renderMeetings(meetings) {
+    const listEl = document.getElementById('meetingList');
+    if (!meetings.length) {
+      listEl.innerHTML = '<div class="empty-state"><h3>등록된 회의록이 없습니다</h3><p>＋ 새 회의록 버튼을 눌러 작성해보세요</p></div>';
+      return;
+    }
+    listEl.innerHTML = meetings.map(m => `
+      <div class="meeting-card" onclick="openDetail('${escapeAttr(m.id)}')">
+        <div class="meeting-card-header">
+          <div class="meeting-title">${escapeHtml(m.title)}</div>
+          <div class="meeting-date">${formatDate(m.date)}</div>
+        </div>
+        <div class="meeting-meta">
+          ${m.location ? `<span>📍 ${escapeHtml(m.location)}</span>` : ''}
+          ${m.attendees ? `<span>👥 ${escapeHtml(m.attendees)}</span>` : ''}
+          ${m.author ? `<span>✍ ${escapeHtml(m.author)}</span>` : ''}
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function filterMeetings() {
+    const q = document.getElementById('searchInput').value.trim().toLowerCase();
+    if (!q) { renderMeetings(allMeetings); return; }
+    const filtered = allMeetings.filter(m =>
+      (m.title || '').toLowerCase().includes(q) ||
+      (m.attendees || '').toLowerCase().includes(q) ||
+      (m.content || '').toLowerCase().includes(q) ||
+      (m.author || '').toLowerCase().includes(q) ||
+      (m.agenda || '').toLowerCase().includes(q) ||
+      (m.decisions || '').toLowerCase().includes(q)
+    );
+    renderMeetings(filtered);
+  }
+
+  function openCreateModal() {
+    document.getElementById('modalTitle').textContent = '새 회의록 작성';
+    document.getElementById('meetingId').value = '';
+    document.getElementById('meetingForm').reset();
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    document.getElementById('meetingDate').value = now.toISOString().slice(0, 16);
+    document.getElementById('editModal').classList.add('active');
+  }
+
+  function openDetail(id) {
+    const m = allMeetings.find(x => x.id === id);
+    if (!m) return;
+    currentDetailMeeting = m;
+    document.getElementById('detailTitle').textContent = m.title;
+    const metaParts = [formatDate(m.date)];
+    if (m.location) metaParts.push('📍 ' + m.location);
+    if (m.author) metaParts.push('✍ ' + m.author);
+    document.getElementById('detailMeta').textContent = metaParts.join('  ·  ');
+
+    document.getElementById('detailBody').innerHTML = `
+      ${m.attendees ? `<div class="detail-section"><h4>참석자</h4><div class="detail-content">${escapeHtml(m.attendees)}</div></div>` : ''}
+      ${m.agenda ? `<div class="detail-section"><h4>안건</h4><div class="detail-content">${escapeHtml(m.agenda)}</div></div>` : ''}
+      <div class="detail-section"><h4>회의 내용</h4><div class="detail-content">${escapeHtml(m.content || '')}</div></div>
+      ${m.decisions ? `<div class="detail-section"><h4>결정 사항</h4><div class="detail-content">${escapeHtml(m.decisions)}</div></div>` : ''}
+      ${m.actions ? `<div class="detail-section"><h4>액션 아이템</h4><div class="detail-content">${escapeHtml(m.actions)}</div></div>` : ''}
+    `;
+    document.getElementById('detailModal').classList.add('active');
+  }
+
+  function editMeeting() {
+    if (!currentDetailMeeting) return;
+    const m = currentDetailMeeting;
+    closeModal('detailModal');
+    document.getElementById('modalTitle').textContent = '회의록 수정';
+    document.getElementById('meetingId').value = m.id;
+    document.getElementById('meetingDate').value = (m.date || '').slice(0, 16);
+    document.getElementById('meetingAuthor').value = m.author || '';
+    document.getElementById('meetingTitle').value = m.title || '';
+    document.getElementById('meetingLocation').value = m.location || '';
+    document.getElementById('meetingAttendees').value = m.attendees || '';
+    document.getElementById('meetingAgenda').value = m.agenda || '';
+    document.getElementById('meetingContent').value = m.content || '';
+    document.getElementById('meetingDecisions').value = m.decisions || '';
+    document.getElementById('meetingActions').value = m.actions || '';
+    document.getElementById('editModal').classList.add('active');
+  }
+
+  function saveMeeting() {
+    const id = document.getElementById('meetingId').value;
+    const data = {
+      action: id ? 'update' : 'create',
+      id: id || 'M' + Date.now(),
+      date: document.getElementById('meetingDate').value,
+      author: document.getElementById('meetingAuthor').value.trim(),
+      title: document.getElementById('meetingTitle').value.trim(),
+      location: document.getElementById('meetingLocation').value.trim(),
+      attendees: document.getElementById('meetingAttendees').value.trim(),
+      agenda: document.getElementById('meetingAgenda').value.trim(),
+      content: document.getElementById('meetingContent').value.trim(),
+      decisions: document.getElementById('meetingDecisions').value.trim(),
+      actions: document.getElementById('meetingActions').value.trim()
+    };
+
+    if (!data.date || !data.author || !data.title || !data.content) {
+      showToast('필수 항목(*)을 모두 입력해주세요', true);
+      return;
+    }
+    if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE') {
+      showToast('Apps Script URL이 설정되지 않았습니다', true);
+      return;
+    }
+
+    const btn = document.getElementById('saveBtn');
+    btn.disabled = true;
+    btn.textContent = '저장 중...';
+
+    fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(data)
+    }).then(() => {
+      showToast(id ? '회의록이 수정되었습니다' : '회의록이 저장되었습니다');
+      closeModal('editModal');
+      setTimeout(loadMeetings, 1000);
+    }).catch(() => {
+      showToast('저장에 실패했습니다', true);
+    }).finally(() => {
+      btn.disabled = false;
+      btn.textContent = '저장';
+    });
+  }
+
+  function deleteMeeting() {
+    if (!currentDetailMeeting) return;
+    if (!confirm('정말 이 회의록을 삭제하시겠습니까?\n삭제된 회의록은 복구할 수 없습니다.')) return;
+
+    fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'delete', id: currentDetailMeeting.id })
+    }).then(() => {
+      showToast('회의록이 삭제되었습니다');
+      closeModal('detailModal');
+      setTimeout(loadMeetings, 1000);
+    }).catch(() => {
+      showToast('삭제에 실패했습니다', true);
+    });
+  }
+
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('active');
+  }
+
+  function showToast(msg, isError) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show' + (isError ? ' error' : '');
+    setTimeout(() => { t.className = 'toast'; }, 2500);
+  }
+
+  function escapeHtml(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function escapeAttr(s) {
+    return String(s == null ? '' : s).replace(/'/g, "\\'");
+  }
+
+  function formatDate(d) {
+    if (!d) return '';
+    const date = new Date(d);
+    if (isNaN(date)) return d;
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const h = String(date.getHours()).padStart(2, '0');
+    const mi = String(date.getMinutes()).padStart(2, '0');
+    return `${y}-${m}-${day} ${h}:${mi}`;
+  }
+
+  document.querySelectorAll('.modal-overlay').forEach(o => {
+    o.addEventListener('click', e => {
+      if (e.target === o) o.classList.remove('active');
+    });
+  });
+</script>
+</body>
+</html>
