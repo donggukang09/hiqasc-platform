@@ -171,7 +171,7 @@
 
 <script>
   // ⚠️ 회의록 전용 Apps Script URL (별도 프로젝트로 배포 후 입력)
-  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwlNepe0O_tnyNR7YEXNvrHV4I5N5R2ySaEKmATeGTHagvGgutvlTijgVmCTK5HXTI8/exec';
+  const APPS_SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
 
   let allMeetings = [];
   let currentDetailMeeting = null;
@@ -390,11 +390,7 @@
     return `${y}-${m}-${day} ${h}:${mi}`;
   }
 
-  document.querySelectorAll('.modal-overlay').forEach(o => {
-    o.addEventListener('click', e => {
-      if (e.target === o) o.classList.remove('active');
-    });
-  });
+
 </script>
 </body>
 </html>
