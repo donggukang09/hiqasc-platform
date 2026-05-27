@@ -60,43 +60,68 @@
   .toast.show { opacity: 1; }
   .toast.error { background: #d9534f; }
 
-  /* 뷰 토글 */
-  .view-toggle { display: inline-flex; background: #353535; border: 1px solid #4a4a4a; border-radius: 6px; overflow: hidden; }
-  .view-toggle button { padding: 9px 16px; background: transparent; border: none; color: #aaa; cursor: pointer; font-weight: 600; font-size: 13px; font-family: 'Manrope', sans-serif; }
-  .view-toggle button.active { background: #4a90e2; color: white; }
+  /* 메인 2단 레이아웃 */
+  .main-grid { display: grid; grid-template-columns: 1fr 360px; gap: 20px; align-items: start; }
+  .calendar-side { position: sticky; top: 20px; }
 
-  /* 캘린더 */
-  .calendar-wrapper { background: #353535; border: 1px solid #4a4a4a; border-radius: 8px; padding: 20px; }
-  .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-  .calendar-title { font-size: 20px; font-weight: 700; }
-  .calendar-nav { display: flex; gap: 6px; align-items: center; }
-  .calendar-nav button { padding: 6px 14px; background: #4a4a4a; border: none; border-radius: 6px; color: #e0e0e0; cursor: pointer; font-weight: 600; font-size: 14px; font-family: 'Manrope', sans-serif; }
+  /* 팀 뱃지 */
+  .team-badge { display: inline-block; padding: 3px 10px; border-radius: 4px; font-size: 11px; font-weight: 700; color: white; letter-spacing: 0.4px; }
+  .team-ADMIN { background: #f0a830; }
+  .team-AS { background: #4a90e2; }
+  .team-SUPPORT { background: #5cb85c; }
+  .team-B2B { background: #9c5cb5; }
+
+  /* 팀 필터 */
+  .team-filter { display: flex; gap: 6px; flex-wrap: wrap; }
+  .team-filter button { padding: 6px 12px; background: #353535; border: 1px solid #4a4a4a; border-radius: 4px; color: #aaa; cursor: pointer; font-size: 12px; font-weight: 600; font-family: 'Manrope', sans-serif; }
+  .team-filter button.active { color: white; border-color: transparent; }
+  .team-filter button.active[data-team="ALL"] { background: #4a90e2; }
+  .team-filter button.active[data-team="ADMIN"] { background: #f0a830; }
+  .team-filter button.active[data-team="AS"] { background: #4a90e2; }
+  .team-filter button.active[data-team="SUPPORT"] { background: #5cb85c; }
+  .team-filter button.active[data-team="B2B"] { background: #9c5cb5; }
+
+  /* 캘린더 (사이드용 - 작게) */
+  .calendar-wrapper { background: #353535; border: 1px solid #4a4a4a; border-radius: 8px; padding: 16px; }
+  .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .calendar-title { font-size: 16px; font-weight: 700; }
+  .calendar-nav { display: flex; gap: 4px; align-items: center; }
+  .calendar-nav button { padding: 4px 10px; background: #4a4a4a; border: none; border-radius: 4px; color: #e0e0e0; cursor: pointer; font-weight: 600; font-size: 12px; font-family: 'Manrope', sans-serif; }
   .calendar-nav button:hover { background: #5a5a5a; }
-  .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
-  .calendar-dow { text-align: center; padding: 8px 0; font-size: 12px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.6px; }
+  .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+  .calendar-dow { text-align: center; padding: 6px 0; font-size: 10px; font-weight: 700; color: #888; }
   .calendar-dow.sun { color: #e57373; }
   .calendar-dow.sat { color: #64b5f6; }
-  .calendar-day { background: #2a2a2a; border: 1px solid #404040; border-radius: 6px; min-height: 92px; padding: 6px 8px; cursor: pointer; transition: all 0.12s; display: flex; flex-direction: column; gap: 3px; }
+  .calendar-day { background: #2a2a2a; border: 1px solid #404040; border-radius: 4px; min-height: 54px; padding: 4px; cursor: pointer; transition: all 0.12s; display: flex; flex-direction: column; gap: 3px; align-items: center; }
   .calendar-day:hover { border-color: #4a90e2; background: #303030; }
   .calendar-day.empty { background: transparent; border: none; cursor: default; }
   .calendar-day.empty:hover { background: transparent; }
   .calendar-day.today { border-color: #4a90e2; box-shadow: inset 0 0 0 1px #4a90e2; }
-  .calendar-day.other-month { opacity: 0.35; }
-  .calendar-day-num { font-size: 13px; font-weight: 700; color: #ccc; margin-bottom: 2px; }
+  .calendar-day-num { font-size: 12px; font-weight: 700; color: #ccc; }
   .calendar-day.today .calendar-day-num { color: #4a90e2; }
   .calendar-day-num.sun { color: #e57373; }
   .calendar-day-num.sat { color: #64b5f6; }
-  .calendar-event { background: #4a90e2; color: white; font-size: 11px; padding: 2px 6px; border-radius: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
-  .calendar-event:hover { background: #357abd; }
-  .calendar-more { font-size: 10px; color: #888; padding-left: 4px; }
+  .calendar-day-dots { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px; max-width: 100%; }
+  .calendar-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .calendar-dot.ADMIN { background: #f0a830; }
+  .calendar-dot.AS { background: #4a90e2; }
+  .calendar-dot.SUPPORT { background: #5cb85c; }
+  .calendar-dot.B2B { background: #9c5cb5; }
+  .calendar-more { font-size: 9px; color: #888; }
 
-  /* 날짜별 회의 리스트 모달 */
+  /* 캘린더 범례 */
+  .cal-legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid #4a4a4a; font-size: 11px; }
+  .cal-legend-item { display: flex; align-items: center; gap: 5px; color: #aaa; }
+  .cal-legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+
   .day-meetings-list .meeting-card { margin-bottom: 10px; }
 
-  @media (max-width: 768px) {
-    .calendar-day { min-height: 64px; padding: 4px; }
-    .calendar-day-num { font-size: 11px; }
-    .calendar-event { font-size: 9px; padding: 1px 4px; }
+  .form-select { width: 100%; padding: 10px 12px; background: #2a2a2a; border: 1px solid #4a4a4a; border-radius: 6px; color: #e0e0e0; font-size: 14px; font-family: 'Manrope', sans-serif; cursor: pointer; }
+  .form-select:focus { outline: none; border-color: #4a90e2; }
+
+  @media (max-width: 1024px) {
+    .main-grid { grid-template-columns: 1fr; }
+    .calendar-side { position: static; }
   }
   @media (max-width: 768px) {
     .form-row { grid-template-columns: 1fr; }
@@ -121,29 +146,43 @@
   </div>
 
   <div class="toolbar">
-    <div class="view-toggle">
-      <button id="viewListBtn" class="active" onclick="switchView('list')">📋 목록</button>
-      <button id="viewCalBtn" onclick="switchView('calendar')">📅 캘린더</button>
-    </div>
     <input type="text" id="searchInput" class="search-input" placeholder="제목 · 참석자 · 내용 · 작성자 검색..." oninput="filterMeetings()">
     <button class="btn btn-secondary" onclick="loadMeetings()">🔄 새로고침</button>
   </div>
 
-  <div id="meetingList">
-    <div class="loading">불러오는 중...</div>
+  <div class="toolbar">
+    <div class="team-filter" id="teamFilter">
+      <button data-team="ALL" class="active" onclick="setTeamFilter('ALL')">전체</button>
+      <button data-team="ADMIN" onclick="setTeamFilter('ADMIN')">ADMIN</button>
+      <button data-team="AS" onclick="setTeamFilter('AS')">AS TEAM</button>
+      <button data-team="SUPPORT" onclick="setTeamFilter('SUPPORT')">SUPPORT TEAM</button>
+      <button data-team="B2B" onclick="setTeamFilter('B2B')">B2B TEAM</button>
+    </div>
   </div>
 
-  <div id="calendarView" style="display:none;">
-    <div class="calendar-wrapper">
-      <div class="calendar-header">
-        <div class="calendar-title" id="calendarTitle"></div>
-        <div class="calendar-nav">
-          <button onclick="navMonth(-1)">◀</button>
-          <button onclick="goToday()">오늘</button>
-          <button onclick="navMonth(1)">▶</button>
+  <div class="main-grid">
+    <div id="meetingList">
+      <div class="loading">불러오는 중...</div>
+    </div>
+
+    <div class="calendar-side">
+      <div class="calendar-wrapper">
+        <div class="calendar-header">
+          <div class="calendar-title" id="calendarTitle"></div>
+          <div class="calendar-nav">
+            <button onclick="navMonth(-1)">◀</button>
+            <button onclick="goToday()">오늘</button>
+            <button onclick="navMonth(1)">▶</button>
+          </div>
+        </div>
+        <div class="calendar-grid" id="calendarGrid"></div>
+        <div class="cal-legend">
+          <div class="cal-legend-item"><span class="cal-legend-dot" style="background:#f0a830"></span>ADMIN</div>
+          <div class="cal-legend-item"><span class="cal-legend-dot" style="background:#4a90e2"></span>AS</div>
+          <div class="cal-legend-item"><span class="cal-legend-dot" style="background:#5cb85c"></span>SUPPORT</div>
+          <div class="cal-legend-item"><span class="cal-legend-dot" style="background:#9c5cb5"></span>B2B</div>
         </div>
       </div>
-      <div class="calendar-grid" id="calendarGrid"></div>
     </div>
   </div>
 </div>
@@ -159,27 +198,36 @@
       <input type="hidden" id="meetingId">
       <div class="form-row">
         <div class="form-group">
+          <label class="form-label">팀 *</label>
+          <select id="meetingTeam" class="form-select" required>
+            <option value="ADMIN">ADMIN</option>
+            <option value="AS">AS TEAM</option>
+            <option value="SUPPORT">SUPPORT TEAM</option>
+            <option value="B2B">B2B TEAM</option>
+          </select>
+        </div>
+        <div class="form-group">
           <label class="form-label">회의 일시 *</label>
           <input type="datetime-local" id="meetingDate" class="form-input" required>
         </div>
+      </div>
+      <div class="form-row">
         <div class="form-group">
           <label class="form-label">작성자 *</label>
           <input type="text" id="meetingAuthor" class="form-input" placeholder="이름 입력" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">장소</label>
+          <input type="text" id="meetingLocation" class="form-input" placeholder="예: 본사 회의실 A">
         </div>
       </div>
       <div class="form-group">
         <label class="form-label">회의 제목 *</label>
         <input type="text" id="meetingTitle" class="form-input" placeholder="예: 9월 정기 운영 회의" required>
       </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">장소</label>
-          <input type="text" id="meetingLocation" class="form-input" placeholder="예: 본사 회의실 A">
-        </div>
-        <div class="form-group">
-          <label class="form-label">참석자</label>
-          <input type="text" id="meetingAttendees" class="form-input" placeholder="이름들을 쉼표로 구분">
-        </div>
+      <div class="form-group">
+        <label class="form-label">참석자</label>
+        <input type="text" id="meetingAttendees" class="form-input" placeholder="이름들을 쉼표로 구분">
       </div>
       <div class="form-group">
         <label class="form-label">안건</label>
@@ -241,13 +289,21 @@
   // ⚠️ 회의록 전용 Apps Script URL (별도 프로젝트로 배포 후 입력)
   const APPS_SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
 
+  const TEAM_LABEL = {
+    'ADMIN': 'ADMIN',
+    'AS': 'AS TEAM',
+    'SUPPORT': 'SUPPORT TEAM',
+    'B2B': 'B2B TEAM'
+  };
+
   let allMeetings = [];
   let currentDetailMeeting = null;
-  let currentView = 'list';
+  let currentTeamFilter = 'ALL';
   let calCursor = new Date();
   calCursor.setDate(1);
 
   window.addEventListener('DOMContentLoaded', () => {
+    renderCalendar();
     loadMeetings();
   });
 
@@ -290,10 +346,15 @@
       listEl.innerHTML = '<div class="empty-state"><h3>등록된 회의록이 없습니다</h3><p>＋ 새 회의록 버튼을 눌러 작성해보세요</p></div>';
       return;
     }
-    listEl.innerHTML = meetings.map(m => `
+    listEl.innerHTML = meetings.map(m => {
+      const team = m.team || 'ADMIN';
+      return `
       <div class="meeting-card" onclick="openDetail('${escapeAttr(m.id)}')">
         <div class="meeting-card-header">
-          <div class="meeting-title">${escapeHtml(m.title)}</div>
+          <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+            <span class="team-badge team-${team}">${escapeHtml(TEAM_LABEL[team] || team)}</span>
+            <div class="meeting-title">${escapeHtml(m.title)}</div>
+          </div>
           <div class="meeting-date">${formatDate(m.date)}</div>
         </div>
         <div class="meeting-meta">
@@ -302,14 +363,25 @@
           ${m.author ? `<span>✍ ${escapeHtml(m.author)}</span>` : ''}
         </div>
       </div>
-    `).join('');
+    `;}).join('');
+  }
+
+  function setTeamFilter(team) {
+    currentTeamFilter = team;
+    document.querySelectorAll('#teamFilter button').forEach(b => {
+      b.classList.toggle('active', b.dataset.team === team);
+    });
+    filterMeetings();
   }
 
   function filterMeetings() {
     const q = document.getElementById('searchInput').value.trim().toLowerCase();
     let filtered = allMeetings;
+    if (currentTeamFilter !== 'ALL') {
+      filtered = filtered.filter(m => (m.team || 'ADMIN') === currentTeamFilter);
+    }
     if (q) {
-      filtered = allMeetings.filter(m =>
+      filtered = filtered.filter(m =>
         (m.title || '').toLowerCase().includes(q) ||
         (m.attendees || '').toLowerCase().includes(q) ||
         (m.content || '').toLowerCase().includes(q) ||
@@ -326,6 +398,7 @@
     document.getElementById('modalTitle').textContent = '새 회의록 작성';
     document.getElementById('meetingId').value = '';
     document.getElementById('meetingForm').reset();
+    document.getElementById('meetingTeam').value = currentTeamFilter !== 'ALL' ? currentTeamFilter : 'ADMIN';
     const now = new Date();
     now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
     document.getElementById('meetingDate').value = now.toISOString().slice(0, 16);
@@ -336,7 +409,8 @@
     const m = allMeetings.find(x => x.id === id);
     if (!m) return;
     currentDetailMeeting = m;
-    document.getElementById('detailTitle').textContent = m.title;
+    const team = m.team || 'ADMIN';
+    document.getElementById('detailTitle').innerHTML = `<span class="team-badge team-${team}" style="margin-right:10px; vertical-align:middle;">${escapeHtml(TEAM_LABEL[team] || team)}</span>${escapeHtml(m.title)}`;
     const metaParts = [formatDate(m.date)];
     if (m.location) metaParts.push('📍 ' + m.location);
     if (m.author) metaParts.push('✍ ' + m.author);
@@ -358,6 +432,7 @@
     closeModal('detailModal');
     document.getElementById('modalTitle').textContent = '회의록 수정';
     document.getElementById('meetingId').value = m.id;
+    document.getElementById('meetingTeam').value = m.team || 'ADMIN';
     document.getElementById('meetingDate').value = (m.date || '').slice(0, 16);
     document.getElementById('meetingAuthor').value = m.author || '';
     document.getElementById('meetingTitle').value = m.title || '';
@@ -375,6 +450,7 @@
     const data = {
       action: id ? 'update' : 'create',
       id: id || 'M' + Date.now(),
+      team: document.getElementById('meetingTeam').value,
       date: document.getElementById('meetingDate').value,
       author: document.getElementById('meetingAuthor').value.trim(),
       title: document.getElementById('meetingTitle').value.trim(),
@@ -386,7 +462,7 @@
       actions: document.getElementById('meetingActions').value.trim()
     };
 
-    if (!data.date || !data.author || !data.title || !data.content) {
+    if (!data.date || !data.author || !data.title || !data.content || !data.team) {
       showToast('필수 항목(*)을 모두 입력해주세요', true);
       return;
     }
@@ -446,15 +522,6 @@
   }
 
   // ===== 캘린더 =====
-  function switchView(v) {
-    currentView = v;
-    document.getElementById('viewListBtn').classList.toggle('active', v === 'list');
-    document.getElementById('viewCalBtn').classList.toggle('active', v === 'calendar');
-    document.getElementById('meetingList').style.display = v === 'list' ? '' : 'none';
-    document.getElementById('calendarView').style.display = v === 'calendar' ? '' : 'none';
-    if (v === 'calendar') renderCalendar();
-  }
-
   function navMonth(delta) {
     calCursor.setMonth(calCursor.getMonth() + delta);
     renderCalendar();
@@ -473,20 +540,26 @@
 
     const year = calCursor.getFullYear();
     const month = calCursor.getMonth();
-    titleEl.textContent = `${year}년 ${month + 1}월`;
+    titleEl.textContent = `${year}.${pad(month + 1)}`;
 
-    // 검색 필터 반영
+    // 검색 + 팀 필터 반영
     const q = document.getElementById('searchInput').value.trim().toLowerCase();
-    const source = q ? allMeetings.filter(m =>
-      (m.title || '').toLowerCase().includes(q) ||
-      (m.attendees || '').toLowerCase().includes(q) ||
-      (m.content || '').toLowerCase().includes(q) ||
-      (m.author || '').toLowerCase().includes(q) ||
-      (m.agenda || '').toLowerCase().includes(q) ||
-      (m.decisions || '').toLowerCase().includes(q)
-    ) : allMeetings;
+    let source = allMeetings;
+    if (currentTeamFilter !== 'ALL') {
+      source = source.filter(m => (m.team || 'ADMIN') === currentTeamFilter);
+    }
+    if (q) {
+      source = source.filter(m =>
+        (m.title || '').toLowerCase().includes(q) ||
+        (m.attendees || '').toLowerCase().includes(q) ||
+        (m.content || '').toLowerCase().includes(q) ||
+        (m.author || '').toLowerCase().includes(q) ||
+        (m.agenda || '').toLowerCase().includes(q) ||
+        (m.decisions || '').toLowerCase().includes(q)
+      );
+    }
 
-    // 날짜별 그룹핑 (YYYY-MM-DD 키)
+    // 날짜별 그룹핑
     const byDate = {};
     source.forEach(m => {
       if (!m.date) return;
@@ -494,7 +567,6 @@
       if (!byDate[key]) byDate[key] = [];
       byDate[key].push(m);
     });
-    // 각 날짜 내에서 시간순 정렬
     Object.keys(byDate).forEach(k => byDate[k].sort((a, b) => (a.date || '').localeCompare(b.date || '')));
 
     const firstDay = new Date(year, month, 1);
@@ -510,10 +582,8 @@
       return `<div class="calendar-dow${cls}">${d}</div>`;
     }).join('');
 
-    // 앞쪽 빈 칸
     for (let i = 0; i < startDow; i++) html += '<div class="calendar-day empty"></div>';
 
-    // 날짜 칸
     for (let d = 1; d <= totalDays; d++) {
       const key = `${year}-${pad(month + 1)}-${pad(d)}`;
       const dayMeetings = byDate[key] || [];
@@ -521,15 +591,17 @@
       const numCls = dow === 0 ? ' sun' : (dow === 6 ? ' sat' : '');
       const isToday = key === todayKey;
 
-      const eventsHtml = dayMeetings.slice(0, 3).map(m => {
-        const time = (m.date || '').slice(11, 16);
-        return `<div class="calendar-event" title="${escapeAttr(m.title)}">${time ? time + ' ' : ''}${escapeHtml(m.title)}</div>`;
+      const maxDots = 5;
+      const dotsHtml = dayMeetings.slice(0, maxDots).map(m => {
+        const t = m.team || 'ADMIN';
+        return `<span class="calendar-dot ${t}" title="${escapeAttr((TEAM_LABEL[t]||t) + ' · ' + m.title)}"></span>`;
       }).join('');
-      const moreHtml = dayMeetings.length > 3 ? `<div class="calendar-more">+${dayMeetings.length - 3}건 더</div>` : '';
+      const moreHtml = dayMeetings.length > maxDots ? `<div class="calendar-more">+${dayMeetings.length - maxDots}</div>` : '';
 
       html += `<div class="calendar-day${isToday ? ' today' : ''}" onclick="onDayClick('${key}')">
         <div class="calendar-day-num${numCls}">${d}</div>
-        ${eventsHtml}${moreHtml}
+        <div class="calendar-day-dots">${dotsHtml}</div>
+        ${moreHtml}
       </div>`;
     }
 
@@ -537,9 +609,11 @@
   }
 
   function onDayClick(dateKey) {
-    const dayMeetings = allMeetings.filter(m => String(m.date || '').slice(0, 10) === dateKey);
+    const dayMeetings = allMeetings.filter(m => {
+      if (currentTeamFilter !== 'ALL' && (m.team || 'ADMIN') !== currentTeamFilter) return false;
+      return String(m.date || '').slice(0, 10) === dateKey;
+    });
     if (dayMeetings.length === 0) {
-      // 빈 날짜 → 그 날짜로 새 회의록 작성
       openCreateModal();
       document.getElementById('meetingDate').value = dateKey + 'T09:00';
       return;
@@ -548,13 +622,17 @@
       openDetail(dayMeetings[0].id);
       return;
     }
-    // 여러 건 → 목록 모달
     dayMeetings.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
     document.getElementById('dayListTitle').textContent = formatDateOnly(dateKey) + ' 회의록 (' + dayMeetings.length + '건)';
-    document.getElementById('dayListBody').innerHTML = dayMeetings.map(m => `
+    document.getElementById('dayListBody').innerHTML = dayMeetings.map(m => {
+      const team = m.team || 'ADMIN';
+      return `
       <div class="meeting-card" onclick="closeModal('dayListModal'); openDetail('${escapeAttr(m.id)}')">
         <div class="meeting-card-header">
-          <div class="meeting-title">${escapeHtml(m.title)}</div>
+          <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+            <span class="team-badge team-${team}">${escapeHtml(TEAM_LABEL[team] || team)}</span>
+            <div class="meeting-title">${escapeHtml(m.title)}</div>
+          </div>
           <div class="meeting-date">${(m.date || '').slice(11, 16)}</div>
         </div>
         <div class="meeting-meta">
@@ -562,7 +640,7 @@
           ${m.author ? `<span>✍ ${escapeHtml(m.author)}</span>` : ''}
         </div>
       </div>
-    `).join('');
+    `;}).join('');
     document.getElementById('dayListModal').classList.add('active');
   }
 
