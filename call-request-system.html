@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>통화요청 자동화 | HIQASC</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
     <style>
         * {
             margin: 0;
@@ -647,15 +647,95 @@
                         // 배열을 시트로 변환
                         const resultSheet = XLSX.utils.aoa_to_sheet(newSheetData);
                         
+                        // 전체 셀에 스타일 적용
+                        const range = XLSX.utils.decode_range(resultSheet['!ref'] || 'A1');
+                        
+                        // 1행 스타일 (ASC 입력 - 병합, 18pt, 행높이 26.25)
+                        for (let c = range.s.c; c <= Math.min(range.e.c, 21); c++) { // A~V (21)
+                            const cellRef = XLSX.utils.encode_cell({ r: 0, c: c });
+                            if (resultSheet[cellRef]) {
+                                resultSheet[cellRef].s = {
+                                    font: { name: '맑은 고딕', sz: 18, bold: true },
+                                    alignment: { horizontal: 'center', vertical: 'center' }
+                                };
+                            }
+                        }
+                        
+                        // W1, X1 스타일 (CRC입력 - 병합, 18pt)
+                        const w1Ref = XLSX.utils.encode_cell({ r: 0, c: 22 }); // W = 22
+                        const x1Ref = XLSX.utils.encode_cell({ r: 0, c: 23 }); // X = 23
+                        resultSheet[w1Ref] = {
+                            v: 'CRC입력',
+                            t: 's',
+                            s: {
+                                font: { name: '맑은 고딕', sz: 18, bold: true },
+                                alignment: { horizontal: 'center', vertical: 'center' }
+                            }
+                        };
+                        resultSheet[x1Ref] = {
+                            v: '',
+                            t: 's',
+                            s: {
+                                font: { name: '맑은 고딕', sz: 18, bold: true },
+                                alignment: { horizontal: 'center', vertical: 'center' }
+                            }
+                        };
+                        
+                        // 병합 설정: A1:V1 + W1:X1
+                        resultSheet['!merges'] = [
+                            { s: { r: 0, c: 0 }, e: { r: 0, c: 21 } },   // A1:V1 (ASC 입력)
+                            { s: { r: 0, c: 22 }, e: { r: 0, c: 23 } }   // W1:X1 (CRC입력)
+                        ];
+                        
+                        // 날짜 컬럼 인덱스: B=1, M=12, U=20, V=21
+                        const dateColumns = [1, 12, 20, 21];
+                        
+                        // 2행 이하 스타일 (본문 - 맑은 고딕 9pt)
+                        for (let r = 1; r <= range.e.r; r++) {
+                            for (let c = range.s.c; c <= Math.max(range.e.c, 23); c++) {
+                                const cellRef = XLSX.utils.encode_cell({ r: r, c: c });
+                                if (resultSheet[cellRef]) {
+                                    // 날짜 컬럼인 경우 (3행부터 = 인덱스 2부터)
+                                    if (dateColumns.includes(c) && r >= 2) {
+                                        const cellValue = resultSheet[cellRef].v;
+                                        // 엑셀 날짜 숫자인 경우 (보통 1~60000 사이)
+                                        if (typeof cellValue === 'number' && cellValue > 1 && cellValue < 100000) {
+                                            resultSheet[cellRef].t = 'n';
+                                            resultSheet[cellRef].z = 'yyyy-mm-dd';
+                                            resultSheet[cellRef].s = {
+                                                font: { name: '맑은 고딕', sz: 9 },
+                                                alignment: { vertical: 'center' },
+                                                numFmt: 'yyyy-mm-dd'
+                                            };
+                                        } else {
+                                            resultSheet[cellRef].s = {
+                                                font: { name: '맑은 고딕', sz: 9 },
+                                                alignment: { vertical: 'center' }
+                                            };
+                                        }
+                                    } else {
+                                        resultSheet[cellRef].s = {
+                                            font: { name: '맑은 고딕', sz: 9 },
+                                            alignment: { vertical: 'center' }
+                                        };
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // 행 높이 설정
+                        resultSheet['!rows'] = [{ hpt: 26.25 }]; // 1행
+                        for (let i = 1; i <= range.e.r; i++) {
+                            resultSheet['!rows'].push({ hpt: 11.25 }); // 본문 행
+                        }
+                        
                         // 원본 시트의 열 너비 복사
                         if (originalSheet['!cols']) {
                             resultSheet['!cols'] = originalSheet['!cols'];
                         }
                         
-                        // 원본 시트의 행 높이 복사
-                        if (originalSheet['!rows']) {
-                            resultSheet['!rows'] = originalSheet['!rows'];
-                        }
+                        // 틀 고정 (A~F열 = 6개, 2행까지)
+                        resultSheet['!freeze'] = { xSplit: 6, ySplit: 2 };
                         
                         // 워크북에 시트 추가
                         XLSX.utils.book_append_sheet(resultWorkbook, resultSheet, sheetName);
