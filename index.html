@@ -1701,7 +1701,17 @@
             const cb = 'emp_' + Date.now();
             window[cb] = function (resp) {
                 try {
-                    const cols = resp.table.cols.map(c => (c.label || '').trim());
+                    const table = resp.table;
+                    let cols = table.cols.map(c => (c.label || '').trim());
+                    let rows = table.rows;
+                    // 첫 행(헤더) 고정이 안 돼 데이터로 흡수된 경우 자동 보정
+                    if (cols.indexOf(AUTH_CONFIG.COL_NAME) < 0 && rows.length > 0) {
+                        const head = rows[0].c.map(c => c ? String(c.v).trim() : '');
+                        if (head.indexOf(AUTH_CONFIG.COL_NAME) >= 0) {
+                            cols = head;
+                            rows = rows.slice(1);
+                        }
+                    }
                     const ci = {
                         name: cols.indexOf(AUTH_CONFIG.COL_NAME),
                         id:   cols.indexOf(AUTH_CONFIG.COL_ID),
@@ -1711,7 +1721,7 @@
                         console.warn('테크니션정보 헤더(이름/PIN) 확인 필요:', cols);
                         return;
                     }
-                    EMP_LIST = resp.table.rows.map(r => ({
+                    EMP_LIST = rows.map(r => ({
                         name: r.c[ci.name] ? String(r.c[ci.name].v).trim() : '',
                         id:   (ci.id >= 0 && r.c[ci.id]) ? String(r.c[ci.id].v).trim() : '',
                         pin:  r.c[ci.pin] ? String(r.c[ci.pin].v).trim() : '',

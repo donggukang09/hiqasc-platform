@@ -304,21 +304,30 @@ function loadTechs(){
   window[cb] = function(resp){
     try {
       const table = resp.table;
-      const cols = table.cols.map(c => (c.label||'').trim());
-      // gviz가 첫 행을 헤더로 흡수했는지 확인 (cols[0].label이 비어있지 않으면 정상)
+      let cols = table.cols.map(c => (c.label||'').trim());
+      let rows = table.rows;
+      // 첫 행(헤더) 고정이 안 돼 데이터로 흡수된 경우 자동 보정
+      if (cols.indexOf(CONFIG.COL_NAME) < 0 && rows.length > 0){
+        const head = rows[0].c.map(c => c ? String(c.v).trim() : '');
+        if (head.indexOf(CONFIG.COL_NAME) >= 0){
+          cols = head;
+          rows = rows.slice(1);
+        }
+      }
       const ci = {
         name: cols.indexOf(CONFIG.COL_NAME),
         id:   cols.indexOf(CONFIG.COL_ID),
         pin:  cols.indexOf(CONFIG.COL_PIN),
       };
-      if (ci.name < 0 || ci.id < 0 || ci.pin < 0){
-        toast('시트 헤더(이름/사번/PIN) 확인 필요', 'err');
+      // 사번(id)은 없어도 됨 — 이름과 PIN만 필수
+      if (ci.name < 0 || ci.pin < 0){
+        toast('시트 헤더(이름/PIN) 확인 필요', 'err');
         console.warn('컬럼 라벨:', cols);
         return;
       }
-      TECHS = table.rows.map(r => ({
+      TECHS = rows.map(r => ({
         name: r.c[ci.name] ? String(r.c[ci.name].v).trim() : '',
-        id:   r.c[ci.id]   ? String(r.c[ci.id].v).trim()   : '',
+        id:   (ci.id >= 0 && r.c[ci.id]) ? String(r.c[ci.id].v).trim() : '',
         pin:  r.c[ci.pin]  ? String(r.c[ci.pin].v).trim()  : '',
       })).filter(t => t.name);
 
