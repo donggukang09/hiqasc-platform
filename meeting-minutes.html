@@ -123,6 +123,69 @@
     .main-grid { grid-template-columns: 1fr; }
     .calendar-side { position: static; }
   }
+
+  /* 메모 모드 */
+  .memo-mode-toggle {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: #2a2a2a;
+    border: 1px solid #4a4a4a;
+    border-radius: 8px;
+    margin-bottom: 16px;
+  }
+  .memo-mode-toggle .switch-label { flex: 1; }
+  .memo-mode-toggle .switch-label .t1 { font-size: 13px; font-weight: 700; color: #e0e0e0; }
+  .memo-mode-toggle .switch-label .t2 { font-size: 11px; color: #888; margin-top: 3px; }
+  .toggle-switch { position: relative; width: 44px; height: 24px; background: #555; border-radius: 12px; cursor: pointer; transition: background 0.2s; flex-shrink: 0; }
+  .toggle-switch.on { background: #4a90e2; }
+  .toggle-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; background: white; border-radius: 50%; transition: left 0.2s; }
+  .toggle-switch.on::after { left: 22px; }
+
+  .memo-area { display: none; }
+  .memo-area.active { display: block; }
+  .fields-area.hidden { display: none; }
+
+  .memo-textarea {
+    width: 100%;
+    min-height: 360px;
+    padding: 16px;
+    background: #2a2a2a;
+    border: 1px solid #4a4a4a;
+    border-radius: 6px;
+    color: #e0e0e0;
+    font-size: 14px;
+    font-family: 'Manrope', sans-serif;
+    line-height: 1.85;
+    resize: vertical;
+  }
+  .memo-textarea:focus { outline: none; border-color: #6a4c9c; }
+
+  .memo-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .btn-ai {
+    background: linear-gradient(135deg, #6a4c9c, #4a90e2);
+    color: white;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 14px;
+    font-family: 'Manrope', sans-serif;
+  }
+  .btn-ai:hover { opacity: 0.92; }
+  .btn-ai:disabled { opacity: 0.5; cursor: not-allowed; }
+  .memo-hint { font-size: 11px; color: #888; margin-left: auto; }
   @media (max-width: 768px) {
     .form-row { grid-template-columns: 1fr; }
     .meeting-card-header { flex-direction: column; gap: 4px; }
@@ -196,6 +259,39 @@
     </div>
     <form id="meetingForm" onsubmit="return false;">
       <input type="hidden" id="meetingId">
+
+      <!-- 메모 모드 -->
+      <div class="memo-mode-toggle">
+        <span style="font-size: 22px;">🗒</span>
+        <div class="switch-label">
+          <div class="t1">메모 모드</div>
+          <div class="t2">회의 중 빠르게 메모하고, 끝나면 AI로 자동 정리</div>
+        </div>
+        <div class="toggle-switch" id="memoToggle" onclick="toggleMemoMode()"></div>
+      </div>
+
+      <div class="memo-area" id="memoArea">
+        <textarea id="memoText" class="memo-textarea" placeholder="회의 중 자유롭게 적으세요.
+
+단축키:
+  • Ctrl + T : 현재 시각 삽입
+  • Ctrl + Enter : AI 자동 정리
+
+예시 ──────────────────────
+[14:00] 시작, 참석: 강동구 홍길동 박지민
+Q2 실적 - 작년 대비 12% 증가
+박지민: 회로보드 부족, 6월 발주 필요
+결정: B2B 7월부터 시작, 기술자 추가 채용
+홍길동이 채용공고 작성 → 6/15까지
+강동구가 회의일정 공지 → 5/30까지
+[15:30] 종료"></textarea>
+        <div class="memo-actions">
+          <button type="button" class="btn-ai" id="aiOrganizeBtn" onclick="aiOrganize()">✨ AI로 정리</button>
+          <span class="memo-hint">Ctrl+T 시각 삽입 · Ctrl+Enter AI 정리</span>
+        </div>
+      </div>
+
+      <div class="fields-area" id="fieldsArea">
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">팀 *</label>
@@ -245,6 +341,7 @@
         <label class="form-label">액션 아이템</label>
         <textarea id="meetingActions" class="form-textarea" placeholder="누가 · 무엇을 · 언제까지"></textarea>
       </div>
+      </div>
       <div class="modal-actions">
         <button type="button" class="btn btn-secondary" onclick="closeModal('editModal')">취소</button>
         <button type="button" class="btn btn-primary" id="saveBtn" onclick="saveMeeting()">저장</button>
@@ -287,7 +384,7 @@
 
 <script>
   // ⚠️ 회의록 전용 Apps Script URL (별도 프로젝트로 배포 후 입력)
-  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwlNepe0O_tnyNR7YEXNvrHV4I5N5R2ySaEKmATeGTHagvGgutvlTijgVmCTK5HXTI8/exec';
+  const APPS_SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
 
   const TEAM_LABEL = {
     'ADMIN': 'ADMIN',
@@ -398,6 +495,7 @@
     document.getElementById('modalTitle').textContent = '새 회의록 작성';
     document.getElementById('meetingId').value = '';
     document.getElementById('meetingForm').reset();
+    resetMemoMode();
     document.getElementById('meetingTeam').value = currentTeamFilter !== 'ALL' ? currentTeamFilter : 'ADMIN';
     const now = new Date();
     now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
@@ -432,6 +530,8 @@
     closeModal('detailModal');
     document.getElementById('modalTitle').textContent = '회의록 수정';
     document.getElementById('meetingId').value = m.id;
+    resetMemoMode();
+    document.getElementById('memoText').value = m.memo || '';
     document.getElementById('meetingTeam').value = m.team || 'ADMIN';
     document.getElementById('meetingDate').value = (m.date || '').slice(0, 16);
     document.getElementById('meetingAuthor').value = m.author || '';
@@ -443,6 +543,114 @@
     document.getElementById('meetingDecisions').value = m.decisions || '';
     document.getElementById('meetingActions').value = m.actions || '';
     document.getElementById('editModal').classList.add('active');
+  }
+
+  // ===== 메모 모드 =====
+  let memoMode = false;
+
+  function toggleMemoMode() {
+    memoMode = !memoMode;
+    document.getElementById('memoToggle').classList.toggle('on', memoMode);
+    document.getElementById('memoArea').classList.toggle('active', memoMode);
+    document.getElementById('fieldsArea').classList.toggle('hidden', memoMode);
+    if (memoMode) {
+      setTimeout(() => document.getElementById('memoText').focus(), 50);
+    }
+  }
+
+  function resetMemoMode() {
+    memoMode = false;
+    document.getElementById('memoToggle').classList.remove('on');
+    document.getElementById('memoArea').classList.remove('active');
+    document.getElementById('fieldsArea').classList.remove('hidden');
+    document.getElementById('memoText').value = '';
+  }
+
+  // 메모 단축키
+  document.addEventListener('keydown', function(e) {
+    if (e.target.id !== 'memoText') return;
+    if (e.ctrlKey && (e.key === 't' || e.key === 'T')) {
+      e.preventDefault();
+      insertTime();
+    } else if (e.ctrlKey && e.key === 'Enter') {
+      e.preventDefault();
+      aiOrganize();
+    }
+  });
+
+  function insertTime() {
+    const ta = document.getElementById('memoText');
+    const now = new Date();
+    const time = `[${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}] `;
+    const pos = ta.selectionStart;
+    ta.value = ta.value.slice(0, pos) + time + ta.value.slice(pos);
+    ta.selectionStart = ta.selectionEnd = pos + time.length;
+    ta.focus();
+  }
+
+  function aiOrganize() {
+    const memo = document.getElementById('memoText').value.trim();
+    if (!memo) { showToast('메모를 먼저 작성해주세요', true); return; }
+    if (memo.length > 7000) {
+      showToast('메모가 너무 깁니다 (7000자 이내)', true);
+      return;
+    }
+    if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE') {
+      showToast('Apps Script URL이 설정되지 않았습니다', true);
+      return;
+    }
+
+    const btn = document.getElementById('aiOrganizeBtn');
+    btn.disabled = true;
+    btn.textContent = '✨ 정리 중... (10~20초)';
+
+    const cbName = 'ai_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
+    const script = document.createElement('script');
+
+    // 30초 타임아웃
+    const timeoutId = setTimeout(() => {
+      if (window[cbName]) {
+        delete window[cbName];
+        if (script.parentNode) script.parentNode.removeChild(script);
+        btn.disabled = false;
+        btn.textContent = '✨ AI로 정리';
+        showToast('응답 시간 초과. 다시 시도해주세요', true);
+      }
+    }, 30000);
+
+    window[cbName] = function(data) {
+      clearTimeout(timeoutId);
+      delete window[cbName];
+      if (script.parentNode) script.parentNode.removeChild(script);
+      btn.disabled = false;
+      btn.textContent = '✨ AI로 정리';
+
+      if (data && data.success && data.organized) {
+        const o = data.organized;
+        if (o.title && !document.getElementById('meetingTitle').value) document.getElementById('meetingTitle').value = o.title;
+        if (o.attendees && !document.getElementById('meetingAttendees').value) document.getElementById('meetingAttendees').value = o.attendees;
+        if (o.agenda) document.getElementById('meetingAgenda').value = o.agenda;
+        if (o.content) document.getElementById('meetingContent').value = o.content;
+        if (o.decisions) document.getElementById('meetingDecisions').value = o.decisions;
+        if (o.actions) document.getElementById('meetingActions').value = o.actions;
+        // 일반 모드로 전환
+        toggleMemoMode();
+        showToast('AI 정리 완료! 검토 후 저장하세요');
+      } else {
+        showToast('정리 실패: ' + ((data && data.error) || '알 수 없는 오류'), true);
+      }
+    };
+
+    script.src = APPS_SCRIPT_URL + '?action=aiOrganize&callback=' + cbName + '&memo=' + encodeURIComponent(memo) + '&t=' + Date.now();
+    script.onerror = function() {
+      clearTimeout(timeoutId);
+      delete window[cbName];
+      if (script.parentNode) script.parentNode.removeChild(script);
+      btn.disabled = false;
+      btn.textContent = '✨ AI로 정리';
+      showToast('네트워크 오류', true);
+    };
+    document.body.appendChild(script);
   }
 
   function saveMeeting() {
@@ -459,7 +667,8 @@
       agenda: document.getElementById('meetingAgenda').value.trim(),
       content: document.getElementById('meetingContent').value.trim(),
       decisions: document.getElementById('meetingDecisions').value.trim(),
-      actions: document.getElementById('meetingActions').value.trim()
+      actions: document.getElementById('meetingActions').value.trim(),
+      memo: document.getElementById('memoText').value.trim()
     };
 
     if (!data.date || !data.author || !data.title || !data.content || !data.team) {
