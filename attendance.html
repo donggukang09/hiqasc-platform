@@ -7,11 +7,9 @@
 <!-- 인증 가드: 플랫폼 공용 로그인 통과 여부 확인 (기존 패턴 유지) -->
 <script>
   (function () {
-    // 기존 플랫폼과 동일한 sessionStorage 키를 확인합니다.
-    // ※ 실제 키 이름이 다르면 아래 'auth' 부분만 기존 로그인 파일의 키로 바꿔주세요.
-    if (sessionStorage.getItem('auth') !== 'true') {
-      // 로그인 안 된 상태 → 메인으로 보냄 (경로는 실제 구조에 맞게 조정)
-      // location.href = 'index.html';
+    // 플랫폼 공용 로그인(개인 로그인 포함) 통과 여부 확인
+    if (sessionStorage.getItem('hiqasc_authenticated') !== 'true') {
+      location.href = 'index.html';
     }
   })();
 </script>
@@ -263,7 +261,7 @@
    ==================================================================== */
 const CONFIG = {
   // [1] 근태 기록/조회용 Apps Script 배포 URL (새 프로젝트로 별도 배포)
-  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbznn7_yaNAWFOeVxFt9o4IbFlKnNM-0nTyedjLAsNgaQNEmfwtaDW1rJBNEwuLxYpwUig/exec',
+  APPS_SCRIPT_URL: 'YOUR_APPS_SCRIPT_URL_HERE',
 
   // [2] 테크니션정보 시트 (이름/사번/PIN 읽기용, gviz)
   TECH_SHEET_ID: '1cmMEbIkmEL629RT04hpUUgXddnSVLGo1YwRzBwfyzCY',
