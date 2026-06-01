@@ -384,7 +384,8 @@ function fetchStatus(){
   const cb = 'st_' + Date.now();
   window[cb] = function(res){ applyStatus(res); };
   const url = `${CONFIG.APPS_SCRIPT_URL}?action=status`
-    + `&id=${encodeURIComponent(currentUser.id)}&callback=${cb}`;
+    + `&id=${encodeURIComponent(currentUser.id || '')}`
+    + `&name=${encodeURIComponent(currentUser.name)}&callback=${cb}`;
   const s = document.createElement('script');
   s.src = url; s.onerror = ()=>toast('상태 조회 실패', 'err');
   document.body.appendChild(s);
@@ -460,15 +461,16 @@ function punch(action){
 
 /* ---------- 초기화 ---------- */
 (function init(){
-  // 개인 로그인(1번)이 완성되면 sessionStorage에 본인 정보가 들어옵니다.
-  // 그 경우 본인 확인 단계를 건너뜁니다.
+  // 로그인 시 sessionStorage에 담긴 본인 정보로 자동 진입합니다.
+  // 이름만 있으면 본인 확인 단계를 건너뜁니다. (사번은 있으면 함께 사용)
   const sName = sessionStorage.getItem('userName');
-  const sId   = sessionStorage.getItem('userId');
-  if (sName && sId){
+  const sId   = sessionStorage.getItem('userId') || '';
+  if (sName){
     document.getElementById('verifyCard').style.display = 'none';
     setUser({ name: sName, id: sId });
+    return;   // 로그인 정보로 진입했으므로 명단 로드 불필요
   }
-  loadTechs();
+  loadTechs();  // 로그인 정보가 없을 때만 수동 본인확인
 })();
 </script>
 </body>
