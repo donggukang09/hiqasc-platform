@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>근태 기록 | HIQASC</title>
+<!-- 인증 가드: 플랫폼 공용 로그인 통과 여부 확인 (기존 패턴 유지) -->
+<script>
+  (function () {
+    // 기존 플랫폼과 동일한 sessionStorage 키를 확인합니다.
+    // ※ 실제 키 이름이 다르면 아래 'auth' 부분만 기존 로그인 파일의 키로 바꿔주세요.
+    if (sessionStorage.getItem('auth') !== 'true') {
+      // 로그인 안 된 상태 → 메인으로 보냄 (경로는 실제 구조에 맞게 조정)
+      // location.href = 'index.html';
+    }
+  })();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #2a2a2a;
+    --card: #353535;
+    --card-2: #3d3d3d;
+    --border: #4a4a4a;
+    --text: #e0e0e0;
+    --text-dim: #9a9a9a;
+    --accent: #4a90e2;
+    --accent-dim: #3a72b5;
+    --green: #4caf50;
+    --green-dim: #3d9140;
+    --red: #e26a6a;
+    --red-dim: #b85454;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Manrope', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 28px 16px 48px;
+  }
+  .wrap { width: 100%; max-width: 460px; }
+
+  /* 헤더 / 시계 */
+  .clock-card {
+    background: linear-gradient(160deg, #3a3a3a 0%, #2f2f2f 100%);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 26px 24px;
+    text-align: center;
+    margin-bottom: 18px;
+    opacity: 0; transform: translateY(8px);
+    animation: rise .5s ease forwards;
+  }
+  .date-line { font-size: 14px; color: var(--text-dim); font-weight: 500; letter-spacing: .3px; }
+  .clock-time { font-size: 46px; font-weight: 800; letter-spacing: 1px; margin-top: 4px; font-variant-numeric: tabular-nums; }
+  .clock-time .sec { font-size: 24px; color: var(--accent); font-weight: 700; }
+
+  /* 카드 공통 */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 16px;
+    opacity: 0; transform: translateY(8px);
+    animation: rise .5s ease forwards;
+  }
+  .card:nth-of-type(2) { animation-delay: .08s; }
+  .card:nth-of-type(3) { animation-delay: .16s; }
+  @keyframes rise { to { opacity: 1; transform: translateY(0); } }
+
+  .card-label { font-size: 13px; color: var(--text-dim); font-weight: 600; margin-bottom: 12px; letter-spacing: .3px; }
+
+  /* 본인 확인 */
+  .field { margin-bottom: 12px; }
+  .field label { display: block; font-size: 12px; color: var(--text-dim); margin-bottom: 6px; }
+  select, input[type="password"], input[type="text"] {
+    width: 100%;
+    background: var(--card-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 15px;
+    padding: 12px 14px;
+    outline: none;
+    transition: border-color .15s;
+  }
+  select:focus, input:focus { border-color: var(--accent); }
+  select option { background: #2f2f2f; }
+
+  .verify-btn {
+    width: 100%;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 700;
+    padding: 13px;
+    cursor: pointer;
+    margin-top: 4px;
+    transition: background .15s;
+  }
+  .verify-btn:hover { background: var(--accent-dim); }
+  .verify-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+  /* 확인된 사용자 표시 */
+  .who {
+    display: none;
+    align-items: center;
+    gap: 12px;
+    background: var(--card-2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+  }
+  .who .avatar {
+    width: 42px; height: 42px; border-radius: 50%;
+    background: var(--accent); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 17px; flex-shrink: 0;
+  }
+  .who .name { font-size: 16px; font-weight: 700; }
+  .who .meta { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+  .who .switch { margin-left: auto; font-size: 12px; color: var(--accent); background: none; border: none; cursor: pointer; font-family: inherit; }
+
+  /* 출퇴근 버튼 */
+  .punch-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .punch-btn {
+    border: none;
+    border-radius: 14px;
+    padding: 22px 12px;
+    font-family: inherit;
+    font-size: 17px;
+    font-weight: 800;
+    cursor: pointer;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    transition: transform .1s, background .15s, opacity .15s;
+  }
+  .punch-btn .ico { font-size: 26px; }
+  .punch-btn:active { transform: scale(.97); }
+  .punch-in { background: var(--green); }
+  .punch-in:hover { background: var(--green-dim); }
+  .punch-out { background: var(--red); }
+  .punch-out:hover { background: var(--red-dim); }
+  .punch-btn:disabled { opacity: .4; cursor: not-allowed; }
+  .punch-btn:disabled:active { transform: none; }
+
+  /* 오늘 기록 */
+  .today-row { display: flex; justify-content: space-between; padding: 11px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+  .today-row:last-child { border-bottom: none; }
+  .today-row .k { color: var(--text-dim); }
+  .today-row .v { font-weight: 700; font-variant-numeric: tabular-nums; }
+  .v.empty { color: var(--text-dim); font-weight: 500; }
+
+  .status-pill {
+    display: inline-block; font-size: 12px; font-weight: 700;
+    padding: 3px 10px; border-radius: 20px;
+  }
+  .pill-none { background: #444; color: var(--text-dim); }
+  .pill-in { background: rgba(76,175,80,.18); color: #7fd683; }
+  .pill-out { background: rgba(226,106,106,.18); color: #f0a0a0; }
+
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: #1f1f1f; border: 1px solid var(--border); color: var(--text);
+    padding: 13px 22px; border-radius: 12px; font-size: 14px; font-weight: 600;
+    opacity: 0; pointer-events: none; transition: all .25s; z-index: 100;
+    box-shadow: 0 8px 24px rgba(0,0,0,.4);
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.ok { border-color: var(--green); }
+  .toast.err { border-color: var(--red); }
+
+  .hint { font-size: 11px; color: var(--text-dim); text-align: center; margin-top: 4px; line-height: 1.5; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- 실시간 시계 -->
+  <div class="clock-card">
+    <div class="date-line" id="dateLine">—</div>
+    <div class="clock-time" id="clockTime">--:--<span class="sec">--</span></div>
+  </div>
+
+  <!-- 본인 확인 -->
+  <div class="card" id="verifyCard">
+    <div class="card-label">본인 확인</div>
+
+    <div id="verifyForm">
+      <div class="field">
+        <label>이름</label>
+        <select id="nameSelect"><option value="">불러오는 중…</option></select>
+      </div>
+      <div class="field">
+        <label>PIN</label>
+        <input type="password" id="pinInput" inputmode="numeric" placeholder="개인 PIN 입력" autocomplete="off">
+      </div>
+      <button class="verify-btn" id="verifyBtn" onclick="verify()">확인</button>
+    </div>
+
+    <div class="who" id="whoBox">
+      <div class="avatar" id="avatar">—</div>
+      <div>
+        <div class="name" id="whoName">—</div>
+        <div class="meta" id="whoMeta">—</div>
+      </div>
+      <button class="switch" onclick="resetUser()">변경</button>
+    </div>
+  </div>
+
+  <!-- 출퇴근 -->
+  <div class="card">
+    <div class="card-label">출퇴근</div>
+    <div class="punch-grid">
+      <button class="punch-btn punch-in" id="btnIn" onclick="punch('clockIn')" disabled>
+        <span class="ico">→</span>출근
+      </button>
+      <button class="punch-btn punch-out" id="btnOut" onclick="punch('clockOut')" disabled>
+        <span class="ico">←</span>퇴근
+      </button>
+    </div>
+    <div class="hint" id="punchHint">본인 확인 후 이용할 수 있습니다.</div>
+  </div>
+
+  <!-- 오늘 기록 -->
+  <div class="card">
+    <div class="card-label">오늘 기록</div>
+    <div class="today-row">
+      <span class="k">상태</span>
+      <span class="v"><span class="status-pill pill-none" id="statusPill">미출근</span></span>
+    </div>
+    <div class="today-row">
+      <span class="k">출근</span>
+      <span class="v empty" id="inTime">—</span>
+    </div>
+    <div class="today-row">
+      <span class="k">퇴근</span>
+      <span class="v empty" id="outTime">—</span>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ====================================================================
+   설정 — 아래 값만 실제 환경에 맞게 채워주세요.
+   ==================================================================== */
+const CONFIG = {
+  // [1] 근태 기록/조회용 Apps Script 배포 URL (새 프로젝트로 별도 배포)
+  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbznn7_yaNAWFOeVxFt9o4IbFlKnNM-0nTyedjLAsNgaQNEmfwtaDW1rJBNEwuLxYpwUig/exec',
+
+  // [2] 테크니션정보 시트 (이름/사번/PIN 읽기용, gviz)
+  TECH_SHEET_ID: '1cmMEbIkmEL629RT04hpUUgXddnSVLGo1YwRzBwfyzCY',
+  TECH_TAB: '테크니션정보',
+  // 테크니션정보 시트의 헤더(첫 행) 이름과 정확히 일치시켜 주세요.
+  COL_NAME: '이름',
+  COL_ID:   '사번',
+  COL_PIN:  'PIN',   // ← 이 컬럼은 시트에 새로 추가해야 합니다.
+};
+/* ==================================================================== */
+
+let TECHS = [];          // [{name, id, pin}]
+let currentUser = null;  // {name, id}
+
+/* ---------- 시계 ---------- */
+function pad(n){ return String(n).padStart(2,'0'); }
+function tick(){
+  const d = new Date();
+  const days = ['일','월','화','수','목','금','토'];
+  document.getElementById('dateLine').textContent =
+    `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일 (${days[d.getDay()]})`;
+  document.getElementById('clockTime').innerHTML =
+    `${pad(d.getHours())}:${pad(d.getMinutes())}<span class="sec">${pad(d.getSeconds())}</span>`;
+}
+setInterval(tick, 1000); tick();
+
+/* ---------- 토스트 ---------- */
+let toastTimer;
+function toast(msg, type){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + (type||'');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>{ t.className = 'toast'; }, 2600);
+}
+
+/* ---------- 테크니션정보 로드 (gviz) ---------- */
+function loadTechs(){
+  const cb = 'gviz_' + Date.now();
+  window[cb] = function(resp){
+    try {
+      const table = resp.table;
+      const cols = table.cols.map(c => (c.label||'').trim());
+      // gviz가 첫 행을 헤더로 흡수했는지 확인 (cols[0].label이 비어있지 않으면 정상)
+      const ci = {
+        name: cols.indexOf(CONFIG.COL_NAME),
+        id:   cols.indexOf(CONFIG.COL_ID),
+        pin:  cols.indexOf(CONFIG.COL_PIN),
+      };
+      if (ci.name < 0 || ci.id < 0 || ci.pin < 0){
+        toast('시트 헤더(이름/사번/PIN) 확인 필요', 'err');
+        console.warn('컬럼 라벨:', cols);
+        return;
+      }
+      TECHS = table.rows.map(r => ({
+        name: r.c[ci.name] ? String(r.c[ci.name].v).trim() : '',
+        id:   r.c[ci.id]   ? String(r.c[ci.id].v).trim()   : '',
+        pin:  r.c[ci.pin]  ? String(r.c[ci.pin].v).trim()  : '',
+      })).filter(t => t.name);
+
+      const sel = document.getElementById('nameSelect');
+      sel.innerHTML = '<option value="">선택하세요</option>' +
+        TECHS.map((t,i)=>`<option value="${i}">${t.name}</option>`).join('');
+    } catch(e){
+      console.error(e);
+      toast('명단을 불러오지 못했습니다', 'err');
+    }
+  };
+  const q = encodeURIComponent('select *');
+  const url = `https://docs.google.com/spreadsheets/d/${CONFIG.TECH_SHEET_ID}/gviz/tq`
+    + `?sheet=${encodeURIComponent(CONFIG.TECH_TAB)}&headers=1`
+    + `&tqx=out:json;responseHandler:${cb}&tq=${q}`;
+  const s = document.createElement('script');
+  s.src = url; s.onerror = ()=>toast('명단 로드 실패', 'err');
+  document.body.appendChild(s);
+}
+
+/* ---------- 본인 확인 ---------- */
+function verify(){
+  const idx = document.getElementById('nameSelect').value;
+  const pin = document.getElementById('pinInput').value.trim();
+  if (idx === ''){ toast('이름을 선택하세요', 'err'); return; }
+  if (!pin){ toast('PIN을 입력하세요', 'err'); return; }
+  const t = TECHS[Number(idx)];
+  if (String(t.pin) !== pin){ toast('PIN이 일치하지 않습니다', 'err'); return; }
+  setUser({ name: t.name, id: t.id });
+}
+
+function setUser(u){
+  currentUser = u;
+  document.getElementById('verifyForm').style.display = 'none';
+  const box = document.getElementById('whoBox');
+  box.style.display = 'flex';
+  document.getElementById('avatar').textContent = u.name.slice(-2);
+  document.getElementById('whoName').textContent = u.name;
+  document.getElementById('whoMeta').textContent = '사번 ' + (u.id || '—');
+  document.getElementById('pinInput').value = '';
+  fetchStatus();
+}
+
+function resetUser(){
+  currentUser = null;
+  document.getElementById('verifyForm').style.display = 'block';
+  document.getElementById('whoBox').style.display = 'none';
+  document.getElementById('btnIn').disabled = true;
+  document.getElementById('btnOut').disabled = true;
+  resetTodayUI();
+}
+
+/* ---------- 오늘 상태 조회 (Apps Script doGet / JSONP) ---------- */
+function fetchStatus(){
+  if (!CONFIG.APPS_SCRIPT_URL || CONFIG.APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE'){
+    document.getElementById('punchHint').textContent =
+      'Apps Script URL 미설정 — 기록은 동작하지 않습니다.';
+    // URL이 없어도 버튼은 눌러볼 수 있게 활성화(테스트용)
+    document.getElementById('btnIn').disabled = false;
+    document.getElementById('btnOut').disabled = false;
+    return;
+  }
+  const cb = 'st_' + Date.now();
+  window[cb] = function(res){ applyStatus(res); };
+  const url = `${CONFIG.APPS_SCRIPT_URL}?action=status`
+    + `&id=${encodeURIComponent(currentUser.id)}&callback=${cb}`;
+  const s = document.createElement('script');
+  s.src = url; s.onerror = ()=>toast('상태 조회 실패', 'err');
+  document.body.appendChild(s);
+}
+
+function applyStatus(res){
+  // res = { in: "09:02", out: "" } 형태 가정
+  const inT = res && res.in ? res.in : '';
+  const outT = res && res.out ? res.out : '';
+  const pill = document.getElementById('statusPill');
+  const inEl = document.getElementById('inTime');
+  const outEl = document.getElementById('outTime');
+  const btnIn = document.getElementById('btnIn');
+  const btnOut = document.getElementById('btnOut');
+
+  if (!inT){
+    pill.className = 'status-pill pill-none'; pill.textContent = '미출근';
+    inEl.textContent = '—'; inEl.className = 'v empty';
+    outEl.textContent = '—'; outEl.className = 'v empty';
+    btnIn.disabled = false; btnOut.disabled = true;
+  } else if (inT && !outT){
+    pill.className = 'status-pill pill-in'; pill.textContent = '근무 중';
+    inEl.textContent = inT; inEl.className = 'v';
+    outEl.textContent = '—'; outEl.className = 'v empty';
+    btnIn.disabled = true; btnOut.disabled = false;
+  } else {
+    pill.className = 'status-pill pill-out'; pill.textContent = '퇴근 완료';
+    inEl.textContent = inT; inEl.className = 'v';
+    outEl.textContent = outT; outEl.className = 'v';
+    btnIn.disabled = true; btnOut.disabled = true;
+  }
+  document.getElementById('punchHint').textContent = '';
+}
+
+function resetTodayUI(){
+  document.getElementById('statusPill').className = 'status-pill pill-none';
+  document.getElementById('statusPill').textContent = '미출근';
+  document.getElementById('inTime').textContent = '—';
+  document.getElementById('inTime').className = 'v empty';
+  document.getElementById('outTime').textContent = '—';
+  document.getElementById('outTime').className = 'v empty';
+}
+
+/* ---------- 출/퇴근 기록 (Apps Script doPost / no-cors) ---------- */
+function punch(action){
+  if (!currentUser){ toast('먼저 본인 확인을 해주세요', 'err'); return; }
+  const now = new Date();
+  const time = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+
+  if (!CONFIG.APPS_SCRIPT_URL || CONFIG.APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE'){
+    toast(`(테스트) ${action==='clockIn'?'출근':'퇴근'} ${time}`, 'ok');
+    return;
+  }
+
+  fetch(CONFIG.APPS_SCRIPT_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({
+      action: action,
+      id: currentUser.id,
+      name: currentUser.name,
+      time: time,
+    }),
+  }).then(()=>{
+    toast(`${action==='clockIn'?'출근':'퇴근'} 기록됨 · ${time}`, 'ok');
+    // no-cors라 응답을 못 읽으므로 잠시 뒤 상태 재조회
+    setTimeout(fetchStatus, 1200);
+  }).catch(()=>{
+    toast('기록 전송 실패', 'err');
+  });
+}
+
+/* ---------- 초기화 ---------- */
+(function init(){
+  // 개인 로그인(1번)이 완성되면 sessionStorage에 본인 정보가 들어옵니다.
+  // 그 경우 본인 확인 단계를 건너뜁니다.
+  const sName = sessionStorage.getItem('userName');
+  const sId   = sessionStorage.getItem('userId');
+  if (sName && sId){
+    document.getElementById('verifyCard').style.display = 'none';
+    setUser({ name: sName, id: sId });
+  }
+  loadTechs();
+})();
+</script>
+</body>
+</html>
