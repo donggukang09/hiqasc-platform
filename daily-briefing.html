@@ -303,7 +303,10 @@ function runSlamSequence(){
         document.getElementById('loadingOverlay').classList.add('hide');
         buildDashboard();
         runSlamSequence();
-        localStorage.setItem('hiq_briefing_seen',todayStr);
+        // 사용자별로 브리핑 확인 기록
+        const user=sessionStorage.getItem('userName')||(sessionStorage.getItem('hiqasc_isAdmin')==='true'?'admin':'');
+        const key=user?'hiq_briefing_seen_'+user:'hiq_briefing_seen';
+        localStorage.setItem(key,todayStr);
     },400);
 })();
 

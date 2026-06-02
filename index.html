@@ -2017,13 +2017,16 @@
             setTimeout(showEasterCat, 30000 + Math.random() * 30000);
         });
     </script>
-    <script src="hiq-notification.js?v=3"></script>
+    <script src="hiq-notification.js?v=4"></script>
     <script src="hiq-widget.js?v=1"></script>
     <script>
     (function() {
         var today = new Date().toISOString().slice(0, 10);
         var banner = document.getElementById('briefingBanner');
-        if (banner && localStorage.getItem('hiq_briefing_seen') === today) {
+        if (!banner) return;
+        var user = sessionStorage.getItem('userName') || (sessionStorage.getItem('hiqasc_isAdmin') === 'true' ? 'admin' : '');
+        var key = user ? 'hiq_briefing_seen_' + user : 'hiq_briefing_seen';
+        if (localStorage.getItem(key) === today) {
             banner.classList.add('seen');
         }
     })();

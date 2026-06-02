@@ -7,8 +7,19 @@
     var NOTIFICATION_SHEET_ID = '111K9l8gt-14roqvynNFEJrT2aLsTYjU8gQBsKNiyFmI';
     var NOTIFICATION_TAB_NAME = '알림';
     var POLL_INTERVAL = 60 * 1000;
-    var SEEN_KEY = 'hiq_seen_alerts';
     var TOAST_DURATION = 15000;
+
+    // 사용자별 SEEN_KEY 생성
+    function getCurrentUser() {
+        return sessionStorage.getItem('userName') || sessionStorage.getItem('hiqasc_isAdmin') === 'true' ? 'admin' : '';
+    }
+    function getSeenKey() {
+        var user = sessionStorage.getItem('userName') || (sessionStorage.getItem('hiqasc_isAdmin') === 'true' ? 'admin' : '');
+        return user ? 'hiq_seen_alerts_' + user : 'hiq_seen_alerts';
+    }
+    function isAuthenticated() {
+        return sessionStorage.getItem('hiqasc_authenticated') === 'true';
+    }
 
     var css = '' +
     '.hiq-notification-overlay {' +
@@ -101,14 +112,14 @@
     }
 
     function getSeenAlerts() {
-        try { return JSON.parse(localStorage.getItem(SEEN_KEY) || '[]'); }
+        try { return JSON.parse(localStorage.getItem(getSeenKey()) || '[]'); }
         catch(e) { return []; }
     }
     function markAsSeen(id) {
         var seen = getSeenAlerts();
         if (seen.indexOf(id) === -1) {
             seen.push(id);
-            localStorage.setItem(SEEN_KEY, JSON.stringify(seen));
+            localStorage.setItem(getSeenKey(), JSON.stringify(seen));
         }
     }
 
@@ -182,6 +193,9 @@
     }
 
     function checkNotifications() {
+        // 로그인하지 않은 사용자에게는 알림/팝업 표시 안 함
+        if (!isAuthenticated()) return;
+
         var url = 'https://docs.google.com/spreadsheets/d/' + NOTIFICATION_SHEET_ID +
                   '/gviz/tq?tqx=out:json&sheet=' + encodeURIComponent(NOTIFICATION_TAB_NAME);
 
