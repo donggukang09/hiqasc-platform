@@ -171,6 +171,30 @@
   .pill-in { background: rgba(76,175,80,.18); color: #7fd683; }
   .pill-out { background: rgba(226,106,106,.18); color: #f0a0a0; }
 
+  /* 관리자 현황 */
+  .admin-summary {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px;
+  }
+  .sum-box {
+    background: var(--card-2); border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px 8px; text-align: center;
+  }
+  .sum-box .num { font-size: 24px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .sum-box .lbl { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+  .sum-box.s-in .num { color: #7fd683; }
+  .sum-box.s-out .num { color: #f0a0a0; }
+  .sum-box.s-none .num { color: var(--text-dim); }
+
+  .admin-list { display: flex; flex-direction: column; }
+  .emp-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 11px 0; border-bottom: 1px solid var(--border);
+  }
+  .emp-row:last-child { border-bottom: none; }
+  .emp-row .ename { font-weight: 700; font-size: 14px; min-width: 70px; }
+  .emp-row .etime { font-size: 13px; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+  .emp-row .epill { margin-left: auto; }
+
   .toast {
     position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
     background: #1f1f1f; border: 1px solid var(--border); color: var(--text);
@@ -183,10 +207,28 @@
   .toast.err { border-color: var(--red); }
 
   .hint { font-size: 11px; color: var(--text-dim); text-align: center; margin-top: 4px; line-height: 1.5; }
+
+  .back-btn {
+    display: inline-block;
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 14px;
+    margin-bottom: 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--card);
+    transition: color .15s, border-color .15s;
+  }
+  .back-btn:hover { color: var(--text); border-color: var(--accent); }
 </style>
 </head>
 <body>
 <div class="wrap">
+
+  <!-- 메인으로 -->
+  <a class="back-btn" href="index.html">← 메인으로</a>
 
   <!-- 실시간 시계 -->
   <div class="clock-card">
@@ -221,7 +263,7 @@
   </div>
 
   <!-- 출퇴근 -->
-  <div class="card">
+  <div class="card" id="punchCard">
     <div class="card-label">출퇴근</div>
     <div class="punch-grid">
       <button class="punch-btn punch-in" id="btnIn" onclick="punch('clockIn')" disabled>
@@ -235,7 +277,7 @@
   </div>
 
   <!-- 오늘 기록 -->
-  <div class="card">
+  <div class="card" id="todayCard">
     <div class="card-label">오늘 기록</div>
     <div class="today-row">
       <span class="k">상태</span>
@@ -251,6 +293,13 @@
     </div>
   </div>
 
+  <!-- 관리자: 오늘 전 직원 현황 -->
+  <div class="card" id="adminCard" style="display:none;">
+    <div class="card-label">오늘 전 직원 현황 <span id="adminDate" style="color:var(--text-dim);font-weight:500;"></span></div>
+    <div class="admin-summary" id="adminSummary"></div>
+    <div id="adminList" class="admin-list">불러오는 중…</div>
+  </div>
+
 </div>
 
 <div class="toast" id="toast"></div>
@@ -261,7 +310,7 @@
    ==================================================================== */
 const CONFIG = {
   // [1] 근태 기록/조회용 Apps Script 배포 URL (새 프로젝트로 별도 배포)
-  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbznn7_yaNAWFOeVxFt9o4IbFlKnNM-0nTyedjLAsNgaQNEmfwtaDW1rJBNEwuLxYpwUig/exec',
+  APPS_SCRIPT_URL: 'YOUR_APPS_SCRIPT_URL_HERE',
 
   // [2] 테크니션정보 시트 (이름/사번/PIN 읽기용, gviz)
   TECH_SHEET_ID: '1cmMEbIkmEL629RT04hpUUgXddnSVLGo1YwRzBwfyzCY',
@@ -270,6 +319,9 @@ const CONFIG = {
   COL_NAME: '이름',
   COL_ID:   '사번',
   COL_PIN:  'PIN',   // ← 이 컬럼은 시트에 새로 추가해야 합니다.
+
+  // [3] 근태기록 탭 (관리자 현황 조회용, gviz) — 연차 시트와 동일
+  ATT_TAB: '근태기록',
 };
 /* ==================================================================== */
 
@@ -468,16 +520,123 @@ function punch(action){
   });
 }
 
+/* ---------- 관리자: 오늘 전 직원 현황 ---------- */
+function todayStr(){
+  const d = new Date();
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+}
+
+// gviz 날짜 셀을 yyyy-MM-dd로 정규화 (Date(y,m,d) / 텍스트 모두 대응)
+function normDate(cell){
+  if (!cell) return '';
+  const v = cell.v;
+  if (typeof v === 'string'){
+    const m = v.match(/Date\((\d+),(\d+),(\d+)/);
+    if (m) return `${m[1]}-${pad(+m[2]+1)}-${pad(+m[3])}`;
+    return v.trim();
+  }
+  return cell.f ? String(cell.f).trim() : '';
+}
+function cellText(cell){ return cell ? String(cell.f || cell.v || '').trim() : ''; }
+
+function gvizLoad(tab, handler){
+  const cb = 'gv_' + Math.random().toString(36).slice(2);
+  window[cb] = handler;
+  const url = `https://docs.google.com/spreadsheets/d/${CONFIG.TECH_SHEET_ID}/gviz/tq`
+    + `?sheet=${encodeURIComponent(tab)}&headers=1`
+    + `&tqx=out:json;responseHandler:${cb}`;
+  const s = document.createElement('script');
+  s.src = url; s.onerror = ()=>toast('데이터 로드 실패', 'err');
+  document.body.appendChild(s);
+}
+
+let ADMIN_NAMES = null;   // 직원 이름 목록 (1회 로드 후 캐시)
+
+function loadAdminDashboard(){
+  document.getElementById('adminDate').textContent = '(' + todayStr() + ')';
+  // 1) 직원 명단 (최초 1회) → 2) 오늘 근태 → 3) 병합 렌더
+  if (ADMIN_NAMES){ loadTodayAtt(); return; }
+  gvizLoad(CONFIG.TECH_TAB, function(resp){
+    try {
+      const table = resp.table;
+      let cols = table.cols.map(c => (c.label||'').trim());
+      let rows = table.rows;
+      if (cols.indexOf(CONFIG.COL_NAME) < 0 && rows.length > 0){
+        const head = rows[0].c.map(c => c ? String(c.v).trim() : '');
+        if (head.indexOf(CONFIG.COL_NAME) >= 0){ cols = head; rows = rows.slice(1); }
+      }
+      const ni = cols.indexOf(CONFIG.COL_NAME);
+      if (ni < 0){ toast('명단 헤더(이름) 확인 필요', 'err'); return; }
+      ADMIN_NAMES = rows.map(r => r.c[ni] ? String(r.c[ni].v).trim() : '').filter(Boolean);
+      loadTodayAtt();
+    } catch(e){ console.error(e); toast('명단 로드 실패', 'err'); }
+  });
+}
+
+function loadTodayAtt(){
+  const today = todayStr();
+  gvizLoad(CONFIG.ATT_TAB, function(resp){
+    try {
+      const rows = (resp.table && resp.table.rows) ? resp.table.rows : [];
+      const map = {};   // 이름 -> {in, out}
+      rows.forEach(r => {
+        const c = r.c || [];
+        if (normDate(c[0]) !== today) return;
+        const name = c[2] ? String(c[2].v).trim() : '';
+        if (!name) return;
+        map[name] = { in: cellText(c[3]), out: cellText(c[4]) };
+      });
+      renderAdmin(map);
+    } catch(e){ console.error(e); document.getElementById('adminList').textContent = '근태 데이터를 불러오지 못했습니다.'; }
+  });
+}
+
+function renderAdmin(attMap){
+  const names = ADMIN_NAMES || [];
+  let nIn = 0, nOut = 0, nNone = 0;
+  const rowsHtml = names.map(name => {
+    const a = attMap[name];
+    let pill, cls, timeTxt;
+    if (!a || !a.in){
+      pill = '미출근'; cls = 'pill-none'; timeTxt = '—'; nNone++;
+    } else if (a.in && !a.out){
+      pill = '근무 중'; cls = 'pill-in'; timeTxt = a.in + ' ~'; nIn++;
+    } else {
+      pill = '퇴근'; cls = 'pill-out'; timeTxt = a.in + ' ~ ' + a.out; nOut++;
+    }
+    return `<div class="emp-row">
+      <span class="ename">${name}</span>
+      <span class="etime">${timeTxt}</span>
+      <span class="status-pill ${cls} epill">${pill}</span>
+    </div>`;
+  }).join('');
+
+  document.getElementById('adminSummary').innerHTML = `
+    <div class="sum-box s-in"><div class="num">${nIn}</div><div class="lbl">근무 중</div></div>
+    <div class="sum-box s-out"><div class="num">${nOut}</div><div class="lbl">퇴근</div></div>
+    <div class="sum-box s-none"><div class="num">${nNone}</div><div class="lbl">미출근</div></div>`;
+  document.getElementById('adminList').innerHTML = rowsHtml || '명단이 비어 있습니다.';
+}
+
 /* ---------- 초기화 ---------- */
 (function init(){
-  // 로그인 시 sessionStorage에 담긴 본인 정보로 자동 진입합니다.
-  // 이름만 있으면 본인 확인 단계를 건너뜁니다. (사번은 있으면 함께 사용)
+  // 관리자 로그인 → 출퇴근 대신 전 직원 현황 화면
+  if (sessionStorage.getItem('hiqasc_isAdmin') === 'true'){
+    document.getElementById('verifyCard').style.display = 'none';
+    document.getElementById('punchCard').style.display = 'none';
+    document.getElementById('todayCard').style.display = 'none';
+    document.getElementById('adminCard').style.display = 'block';
+    loadAdminDashboard();
+    setInterval(loadAdminDashboard, 60000);   // 60초마다 갱신
+    return;
+  }
+  // 직원: 로그인 정보로 자동 진입 (이름만 있으면 본인확인 생략)
   const sName = sessionStorage.getItem('userName');
   const sId   = sessionStorage.getItem('userId') || '';
   if (sName){
     document.getElementById('verifyCard').style.display = 'none';
     setUser({ name: sName, id: sId });
-    return;   // 로그인 정보로 진입했으므로 명단 로드 불필요
+    return;
   }
   loadTechs();  // 로그인 정보가 없을 때만 수동 본인확인
 })();
