@@ -222,6 +222,47 @@
     transition: color .15s, border-color .15s;
   }
   .back-btn:hover { color: var(--text); border-color: var(--accent); }
+
+  /* 출퇴근 + 누적 가로 레이아웃 */
+  .punch-row { display: flex; gap: 18px; align-items: stretch; }
+  .punch-col { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .punch-col .punch-grid { flex: 1; }
+  .accum-col { width: 150px; flex-shrink: 0; display: flex; flex-direction: column; }
+  .accum-box {
+    background: var(--card-2); border: 1px solid var(--border); border-radius: 12px;
+    padding: 12px 14px; margin-bottom: 10px; flex: 1;
+    display: flex; flex-direction: column; justify-content: center;
+  }
+  .accum-box:last-child { margin-bottom: 0; }
+  .accum-lbl { font-size: 12px; color: var(--text-dim); margin-bottom: 4px; }
+  .accum-val { font-size: 22px; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
+
+  /* 일별 근무 내역 */
+  .history-list { display: flex; flex-direction: column; }
+  .hist-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 2px; border-bottom: 1px solid var(--border);
+  }
+  .hist-row:last-child { border-bottom: none; }
+  .hist-date { width: 78px; flex-shrink: 0; font-size: 13px; font-weight: 700; }
+  .hist-date .dow { font-size: 11px; color: var(--text-dim); margin-left: 4px; font-weight: 500; }
+  .hist-date.sat { color: #6fa8e0; }
+  .hist-date.sun { color: #e08a8a; }
+  .hist-time { flex: 1; font-size: 13px; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+  .hist-dur { font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; flex-shrink: 0; }
+  .hist-row.leave .hist-time { color: #c9a96a; }
+  .hist-tag {
+    font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 12px; flex-shrink: 0;
+    background: rgba(201,169,106,.18); color: #d8bd86;
+  }
+  .hist-row.holiday { opacity: .55; }
+  .hist-row.holiday .hist-time { color: var(--text-dim); }
+
+  @media (max-width: 520px) {
+    .punch-row { flex-direction: column; }
+    .accum-col { width: 100%; flex-direction: row; }
+    .accum-box { margin-bottom: 0; }
+  }
 </style>
 </head>
 <body>
@@ -262,18 +303,33 @@
     </div>
   </div>
 
-  <!-- 출퇴근 -->
+  <!-- 출퇴근 + 누적 -->
   <div class="card" id="punchCard">
-    <div class="card-label">출퇴근</div>
-    <div class="punch-grid">
-      <button class="punch-btn punch-in" id="btnIn" onclick="punch('clockIn')" disabled>
-        <span class="ico">→</span>출근
-      </button>
-      <button class="punch-btn punch-out" id="btnOut" onclick="punch('clockOut')" disabled>
-        <span class="ico">←</span>퇴근
-      </button>
+    <div class="punch-row">
+      <div class="punch-col">
+        <div class="card-label">출퇴근</div>
+        <div class="punch-grid">
+          <button class="punch-btn punch-in" id="btnIn" onclick="punch('clockIn')" disabled>
+            <span class="ico">→</span>출근
+          </button>
+          <button class="punch-btn punch-out" id="btnOut" onclick="punch('clockOut')" disabled>
+            <span class="ico">←</span>퇴근
+          </button>
+        </div>
+        <div class="hint" id="punchHint">본인 확인 후 이용할 수 있습니다.</div>
+      </div>
+      <div class="accum-col">
+        <div class="card-label">누적 근무</div>
+        <div class="accum-box">
+          <div class="accum-lbl">이번 주</div>
+          <div class="accum-val" id="weekTotal">—</div>
+        </div>
+        <div class="accum-box">
+          <div class="accum-lbl">이번 달</div>
+          <div class="accum-val" id="monthTotal">—</div>
+        </div>
+      </div>
     </div>
-    <div class="hint" id="punchHint">본인 확인 후 이용할 수 있습니다.</div>
   </div>
 
   <!-- 오늘 기록 -->
@@ -291,6 +347,12 @@
       <span class="k">퇴근</span>
       <span class="v empty" id="outTime">—</span>
     </div>
+  </div>
+
+  <!-- 일별 근무 내역 -->
+  <div class="card" id="historyCard">
+    <div class="card-label">일별 근무 내역 <span id="historyMonth" style="color:var(--text-dim);font-weight:500;"></span></div>
+    <div id="historyList" class="history-list">불러오는 중…</div>
   </div>
 
   <!-- 관리자: 오늘 전 직원 현황 -->
@@ -421,6 +483,7 @@ function setUser(u){
   document.getElementById('whoMeta').textContent = '사번 ' + (u.id || '—');
   document.getElementById('pinInput').value = '';
   fetchStatus();
+  loadMyHistory();   // 누적 + 일별 내역
 }
 
 function resetUser(){
@@ -514,10 +577,117 @@ function punch(action){
   }).then(()=>{
     toast(`${action==='clockIn'?'출근':'퇴근'} 기록됨 · ${time}`, 'ok');
     // no-cors라 응답을 못 읽으므로 잠시 뒤 상태 재조회
-    setTimeout(fetchStatus, 1200);
+    setTimeout(()=>{ fetchStatus(); loadMyHistory(); }, 1200);
   }).catch(()=>{
     toast('기록 전송 실패', 'err');
   });
+}
+
+/* ---------- 본인: 누적 + 일별 근무 내역 ---------- */
+// "HH:mm" → 분
+function toMin(t){
+  if (!t) return null;
+  const m = String(t).match(/(\d{1,2}):(\d{2})/);
+  if (!m) return null;
+  return (+m[1])*60 + (+m[2]);
+}
+function fmtDur(min){
+  if (min == null || min <= 0) return '—';
+  return Math.floor(min/60) + '시간 ' + (min%60) + '분';
+}
+
+function loadMyHistory(){
+  if (!currentUser) return;
+  const now = new Date();
+  const y = now.getFullYear(), mo = now.getMonth();   // 이번 달
+  document.getElementById('historyMonth').textContent = `(${y}년 ${mo+1}월)`;
+
+  // 이번 주 월요일 (월~일 기준)
+  const day = now.getDay();                 // 0=일
+  const offsetToMon = (day === 0) ? 6 : day - 1;
+  const monday = new Date(y, now.getMonth(), now.getDate() - offsetToMon);
+  const mondayStr = `${monday.getFullYear()}-${pad(monday.getMonth()+1)}-${pad(monday.getDate())}`;
+
+  gvizLoad(CONFIG.ATT_TAB, function(resp){
+    try {
+      const rows = (resp.table && resp.table.rows) ? resp.table.rows : [];
+      const me = String(currentUser.name).trim();
+      const recs = [];   // {date, in, out, min}
+      rows.forEach(r => {
+        const c = r.c || [];
+        const name = c[2] ? String(c[2].v).trim() : '';
+        if (name !== me) return;
+        const date = normDate(c[0]);
+        if (!date) return;
+        const inT = cellText(c[3]);
+        const outT = cellText(c[4]);
+        const im = toMin(inT), om = toMin(outT);
+        let min = (im!=null && om!=null) ? (om - im) : null;
+        if (min != null && min < 0) min += 1440;
+        recs.push({ date, in: inT, out: outT, min });
+      });
+
+      // 누적 계산
+      let weekMin = 0, monthMin = 0;
+      recs.forEach(rec => {
+        if (rec.min == null) return;
+        const ym = rec.date.slice(0,7);
+        if (ym === `${y}-${pad(mo+1)}`) monthMin += rec.min;
+        if (rec.date >= mondayStr && rec.date <= todayStr()) weekMin += rec.min;
+      });
+      document.getElementById('weekTotal').textContent = weekMin>0 ? fmtDur(weekMin) : '0시간';
+      document.getElementById('monthTotal').textContent = monthMin>0 ? fmtDur(monthMin) : '0시간';
+
+      renderHistory(recs, y, mo);
+    } catch(e){
+      console.error(e);
+      document.getElementById('historyList').textContent = '내역을 불러오지 못했습니다.';
+    }
+  });
+}
+
+const DOW = ['일','월','화','수','목','금','토'];
+function renderHistory(recs, y, mo){
+  // 이번 달 기록만, 날짜 내림차순
+  const map = {};
+  recs.forEach(r => { if (r.date.slice(0,7) === `${y}-${pad(mo+1)}`) map[r.date] = r; });
+
+  // 연차 데이터 (있으면 합침) — LEAVE_MAP: { 'yyyy-MM-dd': '연차' | '오전반차' ... }
+  const leave = (typeof LEAVE_MAP !== 'undefined') ? LEAVE_MAP : {};
+
+  // 1일 ~ 오늘까지 표시 (미래 제외)
+  const today = new Date();
+  const lastDay = (y === today.getFullYear() && mo === today.getMonth()) ? today.getDate()
+                  : new Date(y, mo+1, 0).getDate();
+  const rowsHtml = [];
+  for (let d = lastDay; d >= 1; d--){
+    const dateStr = `${y}-${pad(mo+1)}-${pad(d)}`;
+    const dt = new Date(y, mo, d);
+    const dow = dt.getDay();
+    const dowCls = dow===0 ? 'sun' : (dow===6 ? 'sat' : '');
+    const rec = map[dateStr];
+    const lv = leave[dateStr];
+
+    let timeHtml, durHtml, rowCls = '';
+    if (lv){
+      rowCls = 'leave';
+      timeHtml = `<span class="hist-time">${lv}</span>`;
+      durHtml = `<span class="hist-tag">연차</span>`;
+    } else if (rec && rec.in){
+      timeHtml = `<span class="hist-time">${rec.in} ~ ${rec.out || '근무중'}</span>`;
+      durHtml = `<span class="hist-dur">${rec.min!=null ? fmtDur(rec.min) : '—'}</span>`;
+    } else {
+      // 주말은 흐리게, 평일 미기록은 '-'
+      rowCls = (dow===0 || dow===6) ? 'holiday' : '';
+      timeHtml = `<span class="hist-time">-</span>`;
+      durHtml = `<span class="hist-dur">—</span>`;
+    }
+    rowsHtml.push(`<div class="hist-row ${rowCls}">
+      <span class="hist-date ${dowCls}">${pad(mo+1)}.${pad(d)}<span class="dow">${DOW[dow]}</span></span>
+      ${timeHtml}${durHtml}
+    </div>`);
+  }
+  document.getElementById('historyList').innerHTML = rowsHtml.join('') || '기록이 없습니다.';
 }
 
 /* ---------- 관리자: 오늘 전 직원 현황 ---------- */
@@ -625,6 +795,7 @@ function renderAdmin(attMap){
     document.getElementById('verifyCard').style.display = 'none';
     document.getElementById('punchCard').style.display = 'none';
     document.getElementById('todayCard').style.display = 'none';
+    document.getElementById('historyCard').style.display = 'none';
     document.getElementById('adminCard').style.display = 'block';
     loadAdminDashboard();
     setInterval(loadAdminDashboard, 60000);   // 60초마다 갱신
