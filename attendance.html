@@ -134,26 +134,36 @@
   .punch-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .punch-btn {
     border: none;
-    border-radius: 14px;
-    padding: 22px 12px;
+    border-radius: 16px;
+    padding: 24px 12px;
     font-family: inherit;
     font-size: 17px;
     font-weight: 800;
+    letter-spacing: -.2px;
     cursor: pointer;
     color: #fff;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
-    transition: transform .1s, background .15s, opacity .15s;
+    gap: 9px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 14px rgba(0,0,0,.25);
+    transition: transform .14s ease, box-shadow .2s ease, filter .15s ease, opacity .15s;
   }
-  .punch-btn .ico { font-size: 26px; }
-  .punch-btn:active { transform: scale(.97); }
-  .punch-in { background: var(--green); }
-  .punch-in:hover { background: var(--green-dim); }
-  .punch-out { background: var(--red); }
-  .punch-out:hover { background: var(--red-dim); }
-  .punch-btn:disabled { opacity: .4; cursor: not-allowed; }
+  .punch-btn::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(255,255,255,.14), transparent 60%);
+    pointer-events: none;
+  }
+  .punch-btn .ico { font-size: 27px; line-height: 1; }
+  .punch-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(0,0,0,.32); }
+  .punch-btn:active:not(:disabled) { transform: scale(.97); }
+  .punch-in { background: linear-gradient(150deg, #54b85a, #409045); }
+  .punch-in:hover:not(:disabled) { filter: brightness(1.06); }
+  .punch-out { background: linear-gradient(150deg, #e87878, #c25656); }
+  .punch-out:hover:not(:disabled) { filter: brightness(1.06); }
+  .punch-btn:disabled { opacity: .32; cursor: not-allowed; box-shadow: none; }
   .punch-btn:disabled:active { transform: none; }
 
   /* 오늘 기록 */
@@ -263,6 +273,62 @@
     .accum-col { width: 100%; flex-direction: row; }
     .accum-box { margin-bottom: 0; }
   }
+
+  /* 로딩 / 완료 오버레이 */
+  .overlay {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(20,20,20,.72);
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none;
+    transition: opacity .28s ease;
+  }
+  .overlay.show { opacity: 1; pointer-events: all; }
+  .overlay-box {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 18px; padding: 38px 44px;
+    background: linear-gradient(160deg, #383838, #2d2d2d);
+    border: 1px solid var(--border); border-radius: 22px;
+    box-shadow: 0 24px 60px rgba(0,0,0,.5);
+    transform: translateY(10px) scale(.98);
+    transition: transform .28s cubic-bezier(.2,.8,.2,1);
+    min-width: 240px;
+  }
+  .overlay.show .overlay-box { transform: translateY(0) scale(1); }
+
+  /* 3-dot 펄스 스피너 */
+  .ov-spinner { display: flex; gap: 9px; height: 16px; align-items: center; }
+  .ov-spinner span {
+    width: 13px; height: 13px; border-radius: 50%;
+    background: var(--accent);
+    animation: ov-bounce 1.2s infinite ease-in-out both;
+  }
+  .ov-spinner span:nth-child(1){ animation-delay: -.24s; }
+  .ov-spinner span:nth-child(2){ animation-delay: -.12s; }
+  @keyframes ov-bounce {
+    0%, 80%, 100% { transform: scale(.4); opacity: .4; }
+    40% { transform: scale(1); opacity: 1; }
+  }
+
+  /* 완료 체크 */
+  .ov-check { width: 56px; height: 56px; display: none; }
+  .ov-check.show { display: block; }
+  .ov-check-c {
+    fill: none; stroke: var(--green); stroke-width: 2.5;
+    stroke-dasharray: 151; stroke-dashoffset: 151;
+    animation: ov-circle .5s ease forwards;
+  }
+  .ov-check-p {
+    fill: none; stroke: var(--green); stroke-width: 3.2;
+    stroke-linecap: round; stroke-linejoin: round;
+    stroke-dasharray: 40; stroke-dashoffset: 40;
+    animation: ov-tick .35s .42s ease forwards;
+  }
+  @keyframes ov-circle { to { stroke-dashoffset: 0; } }
+  @keyframes ov-tick { to { stroke-dashoffset: 0; } }
+
+  .ov-msg { font-size: 18px; font-weight: 800; color: var(--text); text-align: center; letter-spacing: -.2px; }
+  .ov-sub { font-size: 13px; color: var(--text-dim); text-align: center; margin-top: -8px; }
 </style>
 </head>
 <body>
@@ -366,6 +432,21 @@
 
 <div class="toast" id="toast"></div>
 
+<!-- 로딩 / 완료 오버레이 -->
+<div class="overlay" id="overlay">
+  <div class="overlay-box">
+    <div class="ov-spinner" id="ovSpinner">
+      <span></span><span></span><span></span>
+    </div>
+    <svg class="ov-check" id="ovCheck" viewBox="0 0 52 52">
+      <circle class="ov-check-c" cx="26" cy="26" r="23"/>
+      <path class="ov-check-p" d="M15 27 l7 7 l15 -16"/>
+    </svg>
+    <div class="ov-msg" id="ovMsg">불러오는 중</div>
+    <div class="ov-sub" id="ovSub"></div>
+  </div>
+</div>
+
 <script>
 /* ====================================================================
    설정 — 아래 값만 실제 환경에 맞게 채워주세요.
@@ -389,6 +470,33 @@ const CONFIG = {
 
 let TECHS = [];          // [{name, id, pin}]
 let currentUser = null;  // {name, id}
+let punchPending = null; // 'clockIn' | 'clockOut' (기록 처리 중 표시)
+let loadTimeout = null;  // 로딩 안전장치 타이머
+
+/* ---------- 로딩 / 완료 오버레이 ---------- */
+function showLoading(msg, sub){
+  document.getElementById('ovSpinner').style.display = 'flex';
+  document.getElementById('ovCheck').classList.remove('show');
+  document.getElementById('ovMsg').textContent = msg || '불러오는 중입니다';
+  document.getElementById('ovSub').textContent = sub || '잠시만 기다려 주세요';
+  document.getElementById('overlay').classList.add('show');
+  clearTimeout(loadTimeout);
+  loadTimeout = setTimeout(hideLoading, 9000);   // 응답 지연 시 강제 해제
+}
+function hideLoading(){
+  clearTimeout(loadTimeout);
+  document.getElementById('overlay').classList.remove('show');
+}
+function showSuccess(msg, sub){
+  clearTimeout(loadTimeout);
+  document.getElementById('ovSpinner').style.display = 'none';
+  const c = document.getElementById('ovCheck');
+  c.classList.remove('show'); void c.offsetWidth; c.classList.add('show');  // 애니메이션 리셋
+  document.getElementById('ovMsg').textContent = msg;
+  document.getElementById('ovSub').textContent = sub || '';
+  document.getElementById('overlay').classList.add('show');
+  setTimeout(hideLoading, 2000);
+}
 
 /* ---------- 시계 ---------- */
 function pad(n){ return String(n).padStart(2,'0'); }
@@ -482,6 +590,7 @@ function setUser(u){
   document.getElementById('whoName').textContent = u.name;
   document.getElementById('whoMeta').textContent = '사번 ' + (u.id || '—');
   document.getElementById('pinInput').value = '';
+  showLoading('근태 정보를 불러오고 있어요', '잠시만 기다려 주세요');
   fetchStatus();
   loadMyHistory();   // 누적 + 일별 내역
 }
@@ -503,6 +612,7 @@ function fetchStatus(){
     // URL이 없어도 버튼은 눌러볼 수 있게 활성화(테스트용)
     document.getElementById('btnIn').disabled = false;
     document.getElementById('btnOut').disabled = false;
+    hideLoading();
     return;
   }
   const cb = 'st_' + Date.now();
@@ -542,6 +652,19 @@ function applyStatus(res){
     btnIn.disabled = true; btnOut.disabled = true;
   }
   document.getElementById('punchHint').textContent = '';
+
+  // 로딩 해제 + (출퇴근 직후라면) 인사 표시
+  if (punchPending){
+    const nm = currentUser ? currentUser.name : '';
+    if (punchPending === 'clockIn'){
+      showSuccess(`${nm}님, 좋은 하루 되세요!`, '출근이 기록되었습니다');
+    } else {
+      showSuccess(`${nm}님, 오늘도 수고하셨습니다!`, '퇴근이 기록되었습니다');
+    }
+    punchPending = null;
+  } else {
+    hideLoading();
+  }
 }
 
 function resetTodayUI(){
@@ -556,13 +679,23 @@ function resetTodayUI(){
 /* ---------- 출/퇴근 기록 (Apps Script doPost / no-cors) ---------- */
 function punch(action){
   if (!currentUser){ toast('먼저 본인 확인을 해주세요', 'err'); return; }
+  if (punchPending){ return; }   // 처리 중 중복 클릭 무시
   const now = new Date();
   const time = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  const nm = currentUser.name;
+
+  // 즉시 버튼 잠금 (중복 클릭 방지)
+  document.getElementById('btnIn').disabled = true;
+  document.getElementById('btnOut').disabled = true;
 
   if (!CONFIG.APPS_SCRIPT_URL || CONFIG.APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE'){
-    toast(`(테스트) ${action==='clockIn'?'출근':'퇴근'} ${time}`, 'ok');
+    if (action === 'clockIn') showSuccess(`${nm}님, 좋은 하루 되세요!`, `(테스트) 출근 ${time}`);
+    else showSuccess(`${nm}님, 오늘도 수고하셨습니다!`, `(테스트) 퇴근 ${time}`);
     return;
   }
+
+  punchPending = action;
+  showLoading(action==='clockIn' ? '출근을 기록하고 있어요' : '퇴근을 기록하고 있어요', '잠시만 기다려 주세요');
 
   fetch(CONFIG.APPS_SCRIPT_URL, {
     method: 'POST',
@@ -575,11 +708,12 @@ function punch(action){
       time: time,
     }),
   }).then(()=>{
-    toast(`${action==='clockIn'?'출근':'퇴근'} 기록됨 · ${time}`, 'ok');
-    // no-cors라 응답을 못 읽으므로 잠시 뒤 상태 재조회
+    // no-cors라 응답을 못 읽으므로 잠시 뒤 상태 재조회 → applyStatus에서 인사 표시
     setTimeout(()=>{ fetchStatus(); loadMyHistory(); }, 1200);
   }).catch(()=>{
-    toast('기록 전송 실패', 'err');
+    punchPending = null;
+    hideLoading();
+    toast('기록 전송에 실패했어요. 다시 시도해 주세요', 'err');
   });
 }
 
@@ -786,6 +920,7 @@ function renderAdmin(attMap){
     <div class="sum-box s-out"><div class="num">${nOut}</div><div class="lbl">퇴근</div></div>
     <div class="sum-box s-none"><div class="num">${nNone}</div><div class="lbl">미출근</div></div>`;
   document.getElementById('adminList').innerHTML = rowsHtml || '명단이 비어 있습니다.';
+  hideLoading();
 }
 
 /* ---------- 초기화 ---------- */
@@ -797,8 +932,9 @@ function renderAdmin(attMap){
     document.getElementById('todayCard').style.display = 'none';
     document.getElementById('historyCard').style.display = 'none';
     document.getElementById('adminCard').style.display = 'block';
+    showLoading('전 직원 현황을 불러오고 있어요', '잠시만 기다려 주세요');
     loadAdminDashboard();
-    setInterval(loadAdminDashboard, 60000);   // 60초마다 갱신
+    setInterval(loadAdminDashboard, 60000);   // 60초마다 갱신(자동, 오버레이 없음)
     return;
   }
   // 직원: 로그인 정보로 자동 진입 (이름만 있으면 본인확인 생략)
