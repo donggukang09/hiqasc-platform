@@ -268,10 +268,23 @@
   .hist-row.holiday { opacity: .55; }
   .hist-row.holiday .hist-time { color: var(--text-dim); }
 
-  @media (max-width: 520px) {
-    .punch-row { flex-direction: column; }
-    .accum-col { width: 100%; flex-direction: row; }
-    .accum-box { margin-bottom: 0; }
+  @media (max-width: 560px) {
+    body { padding: 20px 14px 40px; }
+    .punch-row { flex-direction: column; gap: 0; }
+    /* 누적: 라벨 한 줄 + 박스 2개 가로 (전체 폭) */
+    .accum-col {
+      width: 100%; flex-direction: row; flex-wrap: wrap;
+      gap: 12px; margin-top: 20px;
+    }
+    .accum-col .card-label { width: 100%; margin-bottom: 0; }
+    .accum-box { flex: 1; margin-bottom: 0; }
+    .accum-val { font-size: 19px; white-space: nowrap; }
+    .punch-btn { padding: 26px 12px; }
+    .accum-box { align-items: center; text-align: center; }
+    .accum-lbl { margin-bottom: 6px; }
+    .hist-date { width: 66px; }
+    .hist-time { font-size: 12px; }
+    .card { padding: 18px; }
   }
 
   /* 로딩 / 완료 오버레이 */
@@ -453,7 +466,7 @@
    ==================================================================== */
 const CONFIG = {
   // [1] 근태 기록/조회용 Apps Script 배포 URL (새 프로젝트로 별도 배포)
-  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbznn7_yaNAWFOeVxFt9o4IbFlKnNM-0nTyedjLAsNgaQNEmfwtaDW1rJBNEwuLxYpwUig/exec',
+  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwFsEvAkXNUNCggf-29k5PW1oVZhe6PFSft6sTmc20qVP2jZd1hjGsu0RP6GaJdamlndw/exec',
 
   // [2] 테크니션정보 시트 (이름/사번/PIN 읽기용, gviz)
   TECH_SHEET_ID: '1cmMEbIkmEL629RT04hpUUgXddnSVLGo1YwRzBwfyzCY',
