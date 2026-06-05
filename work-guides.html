@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<!-- =====================================================================
+     HIQASC 업무 가이드 — 목록 페이지 (v1.0)
+     ─────────────────────────────────────────────────────────────────
+     [가이드 추가하는 법]
+     아래 <script id="guide-list"> 의 GUIDES 배열에 객체 하나만 추가.
+       status:"active" → 카드 클릭 시 해당 가이드 페이지로 이동
+       status:"soon"   → "준비 중" 표시 (링크 비활성, 캡쳐/작성 대기용)
+     카테고리(cat)는 자동으로 상단 필터 칩에 반영됨.
+     ===================================================================== -->
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>업무 가이드 | HIQASC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f4f5f7; --surface:#ffffff; --surface-2:#f8f9fb;
+    --ink:#1c2128; --ink-soft:#5a6472; --ink-faint:#8a93a2;
+    --line:#e6e9ee; --line-strong:#d6dbe3;
+    --accent:#4a90e2; --accent-deep:#2f6fc0; --accent-soft:#eaf2fc;
+    --radius:16px;
+    --shadow:0 1px 2px rgba(20,30,45,.04), 0 8px 24px rgba(20,30,45,.06);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'Manrope',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    background:var(--bg);color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased;min-height:100vh;
+    background-image:radial-gradient(circle at 1px 1px, rgba(20,30,45,.025) 1px, transparent 0);background-size:22px 22px;
+  }
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+
+  .topbar{background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:50;backdrop-filter:saturate(140%) blur(6px)}
+  .topbar .wrap{display:flex;align-items:center;justify-content:space-between;height:60px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:-.02em}
+  .brand .logo{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--accent),var(--accent-deep));display:grid;place-items:center;color:#fff;font-size:14px;font-weight:800}
+  .brand small{color:var(--ink-faint);font-weight:600;font-size:12px}
+  .topbar .back{color:var(--ink-soft);text-decoration:none;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:9px;transition:.15s}
+  .topbar .back:hover{background:var(--surface-2);color:var(--ink)}
+
+  .hero{padding:52px 0 26px}
+  .crumb{font-size:12.5px;color:var(--ink-faint);font-weight:600;margin-bottom:16px}
+  .crumb b{color:var(--accent-deep)}
+  h1{font-size:clamp(28px,4vw,40px);font-weight:800;letter-spacing:-.03em;display:flex;align-items:center;gap:14px}
+  h1 .ic{font-size:.9em}
+  .lead{margin-top:12px;font-size:16px;color:var(--ink-soft);max-width:640px}
+  .count{margin-top:18px;font-size:13px;font-weight:700;color:var(--ink-faint)}
+
+  .filters{display:flex;flex-wrap:wrap;gap:8px;margin:26px 0 8px}
+  .chip{
+    font-size:13px;font-weight:700;color:var(--ink-soft);background:var(--surface);
+    border:1px solid var(--line);padding:8px 16px;border-radius:100px;cursor:pointer;transition:.15s;
+  }
+  .chip:hover{border-color:var(--line-strong);color:var(--ink)}
+  .chip.on{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 4px 12px rgba(74,144,226,.28)}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px;padding:18px 0 70px}
+  .card{
+    display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);
+    border-radius:var(--radius);box-shadow:var(--shadow);padding:24px;text-decoration:none;color:inherit;
+    transition:.18s cubic-bezier(.2,.7,.3,1);position:relative;overflow:hidden;min-height:188px;
+  }
+  .card::after{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--accent);opacity:0;transition:.18s}
+  .card.live:hover{transform:translateY(-4px);border-color:#cfe0f6;box-shadow:0 6px 14px rgba(20,30,45,.08),0 18px 40px rgba(20,30,45,.10)}
+  .card.live:hover::after{opacity:1}
+  .card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+  .tag{font-size:11.5px;font-weight:700;color:var(--accent-deep);background:var(--accent-soft);padding:5px 11px;border-radius:100px;letter-spacing:.01em}
+  .gico{width:42px;height:42px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line);display:grid;place-items:center;font-size:21px}
+  .card h2{font-size:18px;font-weight:800;letter-spacing:-.02em;line-height:1.3}
+  .card p{margin-top:9px;font-size:13.5px;color:var(--ink-soft);flex:1}
+  .card-foot{display:flex;align-items:center;gap:14px;margin-top:18px;padding-top:15px;border-top:1px solid var(--line);font-size:12px;color:var(--ink-faint);font-weight:600}
+  .card-foot .go{margin-left:auto;color:var(--accent-deep);display:inline-flex;align-items:center;gap:5px}
+  .card-foot .m{display:inline-flex;align-items:center;gap:5px}
+
+  .card.soon{opacity:.72;cursor:default}
+  .card.soon .tag{color:var(--ink-faint);background:var(--note-soft,#eef0f3)}
+  .soon-badge{font-size:11px;font-weight:800;color:#b06a14;background:#fcf2e6;border:1px solid #f3dcbf;padding:3px 10px;border-radius:100px}
+
+  .empty{padding:60px 20px;text-align:center;color:var(--ink-faint);font-weight:600;grid-column:1/-1}
+
+  .card{opacity:0;transform:translateY(12px);animation:rise .5s cubic-bezier(.2,.7,.3,1) forwards}
+  @keyframes rise{to{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <div class="brand"><div class="logo">H</div><div>HIQASC <small>업무 가이드</small></div></div>
+    <a class="back" href="./index.html">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      허브로</a>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <div class="crumb">HIQ ASC / <b>업무 가이드</b></div>
+    <h1><span class="ic">🧭</span>업무 가이드</h1>
+    <p class="lead">시스템과 업무별 사용법을 단계별로 정리한 가이드 모음입니다. 카드를 눌러 상세 가이드를 확인하세요.</p>
+    <div class="count" id="count"></div>
+    <div class="filters" id="filters"></div>
+  </div>
+</section>
+
+<div class="wrap">
+  <div class="grid" id="grid"></div>
+</div>
+
+<!-- =====================================================================
+     ▼▼▼ 가이드 추가는 여기만 ▼▼▼
+     ===================================================================== -->
+<script id="guide-list">
+const GUIDES = [
+  {
+    title  : "일양택배 운송장 출력 시스템 사용 가이드",
+    desc   : "택배 발송을 위한 일양택배 운송장 등록·출력·번호 전달 전 과정을 4단계로 안내합니다.",
+    cat    : "물류 / 택배",
+    icon   : "📦",
+    url    : "guide-ilyang-waybill.html",
+    steps  : 4,
+    updated: "2026-06-04",
+    status : "active",   // active | soon
+  },
+
+  /* ── 새 가이드는 아래 형식으로 추가 ──
+  {
+    title  : "가이드 제목",
+    desc   : "한 줄 설명",
+    cat    : "카테고리",
+    icon   : "🛠️",
+    url    : "guide-xxxx.html",
+    steps  : 0,
+    updated: "2026-00-00",
+    status : "soon",     // 작성 전이면 soon → '준비 중' 표시
+  },
+  */
+];
+/* ▲▲▲ 여기까지 ▲▲▲ */
+</script>
+
+<!-- ===== Render (수정 불필요) ===== -->
+<script>
+(function(){
+  const $=s=>document.querySelector(s);
+  const grid=$("#grid"), filters=$("#filters");
+  const cats=["전체",...[...new Set(GUIDES.map(g=>g.cat))]];
+  let active="전체";
+
+  $("#count").textContent=`총 ${GUIDES.length}개 가이드`;
+
+  filters.innerHTML=cats.map(c=>`<button class="chip${c==="전체"?" on":""}" data-c="${c}">${c}</button>`).join("");
+  filters.addEventListener("click",e=>{
+    const b=e.target.closest(".chip"); if(!b)return;
+    active=b.dataset.c;
+    [...filters.children].forEach(x=>x.classList.toggle("on",x.dataset.c===active));
+    render();
+  });
+
+  function render(){
+    const list=GUIDES.filter(g=>active==="전체"||g.cat===active);
+    if(!list.length){grid.innerHTML='<div class="empty">해당 카테고리의 가이드가 아직 없습니다.</div>';return;}
+    grid.innerHTML=list.map((g,i)=>{
+      const live=g.status==="active";
+      const tag=live?`<span class="tag">${g.cat}</span>`:`<span class="soon-badge">준비 중</span>`;
+      const foot=live
+        ? `<span class="m">📄 ${g.steps}단계</span><span class="m">🕘 ${g.updated}</span>
+           <span class="go">열기 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>`
+        : `<span class="m">작성 예정</span>`;
+      const inner=`
+        <div class="card-top">${tag}<div class="gico">${g.icon||"📘"}</div></div>
+        <h2>${g.title}</h2>
+        <p>${g.desc}</p>
+        <div class="card-foot">${foot}</div>`;
+      const style=`style="animation-delay:${i*55}ms"`;
+      return live
+        ? `<a class="card live" href="${g.url}" ${style}>${inner}</a>`
+        : `<div class="card soon" ${style}>${inner}</div>`;
+    }).join("");
+  }
+  render();
+})();
+</script>
+</body>
+</html>
