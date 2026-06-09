@@ -48,6 +48,12 @@
             border-radius: 6px; font-size: 0.8em; transition: all 0.2s;
         }
         .back-link:hover { background: #4a90e2; color: #fff; }
+        .sheet-link {
+            color: #808080; text-decoration: none;
+            padding: 4px 10px; border: 1px solid #444;
+            border-radius: 5px; font-size: 0.75em; transition: all 0.2s;
+        }
+        .sheet-link:hover { background: #444; color: #fff; }
 
         /* 로딩 */
         .loading { text-align: center; padding: 100px 20px; }
@@ -299,6 +305,10 @@
                 <div class="update-info">
                     <div>마지막 업데이트</div>
                     <div class="update-time" id="updateTime">-</div>
+                </div>
+                <div style="display:flex;gap:6px;">
+                    <a href="https://docs.google.com/spreadsheets/d/111K9l8gt-14roqvynNFEJrT2aLsTYjU8gQBsKNiyFmI/edit#gid=0" target="_blank" class="sheet-link">완료</a>
+                    <a href="https://docs.google.com/spreadsheets/d/111K9l8gt-14roqvynNFEJrT2aLsTYjU8gQBsKNiyFmI/edit#gid=19870539" target="_blank" class="sheet-link">잔여</a>
                 </div>
                 <a href="https://donggukang09.github.io/hiqasc-platform/" class="back-link">← 메인으로</a>
             </div>
