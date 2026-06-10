@@ -569,40 +569,15 @@ function addImagePreview(file, dataUrl) {
   item.className = 'img-preview-item';
   item.innerHTML = `
     <img src="${dataUrl}" alt="">
-    <div class="img-status uploading">업로드 중...</div>
+    <div class="img-status done">✓</div>
     <button class="img-del" onclick="removeImage(this)">✕</button>`;
   grid.appendChild(item);
-
-  const statusEl = item.querySelector('.img-status');
-  const idx = pendingImages.length;
-  pendingImages.push({ file, item, statusEl, uploadedUrl: null });
-  uploadImage(file, dataUrl, idx);
-}
-
-async function uploadImage(file, dataUrl, idx) {
-  const statusEl = pendingImages[idx].statusEl;
-  if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE') {
-    pendingImages[idx].uploadedUrl = dataUrl;
-    statusEl.textContent = '✓';
-    statusEl.className = 'img-status done';
-    return;
-  }
-  try {
-    const base64 = dataUrl.split(',')[1];
-    const res = await fetch(APPS_SCRIPT_URL, {
-      method: 'POST',
-      body: JSON.stringify({ action: 'uploadImage', base64, mimeType: file.type, filename: file.name })
-    });
-    const data = await res.json();
-    if (data.success) {
-      pendingImages[idx].uploadedUrl = data.url;
-      statusEl.textContent = '✓';
-      statusEl.className = 'img-status done';
-    } else throw new Error(data.error);
-  } catch(e) {
-    statusEl.textContent = '실패';
-    statusEl.className = 'img-status error';
-  }
+  pendingImages.push({
+    item,
+    base64: dataUrl.split(',')[1],
+    mimeType: file.type,
+    filename: `work-order-${Date.now()}-${file.name}`
+  });
 }
 
 function removeImage(btn) {
@@ -655,7 +630,6 @@ async function saveOrder() {
   if (!team) { showToast('팀을 선택하세요', 'error'); return; }
   if (!title) { showToast('제목을 입력하세요', 'error'); return; }
   if (!author) { showToast('작성자를 입력하세요', 'error'); return; }
-  if (pendingImages.some(p => !p.uploadedUrl)) { showToast('이미지 업로드가 완료될 때까지 기다려주세요', 'error'); return; }
   if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE') { showToast('Apps Script URL을 먼저 설정해 주세요', 'error'); return; }
 
   document.getElementById('save-btn').disabled = true;
@@ -671,7 +645,7 @@ async function saveOrder() {
     parts: getListVals('parts-list'),
     steps: getListVals('steps-list'),
     notes: getListVals('notes-list'),
-    images: pendingImages.map(p => p.uploadedUrl).filter(Boolean),
+    images: pendingImages.map(p => ({ base64: p.base64, mimeType: p.mimeType, filename: p.filename })),
   };
 
   try {
