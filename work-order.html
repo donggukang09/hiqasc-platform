@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>작업 지시서 | HIQ ASC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #2a2a2a;
+  --card: #353535;
+  --card2: #3d3d3d;
+  --accent: #4a90e2;
+  --accent-hover: #3a7fd1;
+  --text: #f0f0f0;
+  --text-muted: #aaa;
+  --text-dim: #777;
+  --border: rgba(255,255,255,0.08);
+  --border-hover: rgba(255,255,255,0.15);
+  --success: #4caf50;
+  --warning: #ff9800;
+  --danger: #e53935;
+  --radius: 10px;
+  --radius-sm: 6px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Manrope', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 14px; }
+
+/* HEADER */
+.page-header { background: var(--card); border-bottom: 1px solid var(--border); padding: 0 1.5rem; display: flex; align-items: center; gap: 1rem; height: 56px; position: sticky; top: 0; z-index: 100; }
+.back-btn { display: flex; align-items: center; gap: 6px; color: var(--text-muted); text-decoration: none; font-size: 13px; transition: color .15s; }
+.back-btn:hover { color: var(--text); }
+.back-btn svg { width: 16px; height: 16px; }
+.header-title { font-size: 15px; font-weight: 600; }
+.header-actions { margin-left: auto; display: flex; gap: 8px; }
+
+/* TABS */
+.tab-bar { display: flex; gap: 2px; padding: 0 1.5rem; background: var(--card); border-bottom: 1px solid var(--border); }
+.tab-btn { padding: 12px 18px; font-size: 13px; font-weight: 500; color: var(--text-muted); background: transparent; border: none; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color .15s; font-family: inherit; }
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* LAYOUT */
+.container { max-width: 880px; margin: 0 auto; padding: 1.5rem; }
+.view { display: none; }
+.view.active { display: block; }
+
+/* BOARD */
+.board-toolbar { display: flex; gap: 10px; margin-bottom: 1.25rem; align-items: center; }
+.search-wrap { position: relative; flex: 1; }
+.search-wrap svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--text-dim); }
+.search-wrap input { width: 100%; padding: 9px 12px 9px 34px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 13px; font-family: inherit; transition: border-color .15s; }
+.search-wrap input:focus { outline: none; border-color: var(--accent); }
+.search-wrap input::placeholder { color: var(--text-dim); }
+.filter-select { padding: 9px 12px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 13px; font-family: inherit; cursor: pointer; }
+.filter-select:focus { outline: none; border-color: var(--accent); }
+.new-btn { display: flex; align-items: center; gap: 6px; padding: 9px 16px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; white-space: nowrap; transition: background .15s; }
+.new-btn:hover { background: var(--accent-hover); }
+.new-btn svg { width: 15px; height: 15px; }
+
+/* ORDER CARDS */
+.order-grid { display: flex; flex-direction: column; gap: 8px; }
+.order-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; cursor: pointer; transition: border-color .15s, background .15s; }
+.order-card:hover { border-color: var(--border-hover); background: var(--card2); }
+.oc-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+.oc-docno { font-size: 11px; color: var(--text-dim); letter-spacing: .3px; margin-bottom: 3px; }
+.oc-title { font-size: 14px; font-weight: 600; color: var(--text); }
+.oc-meta { display: flex; gap: 14px; font-size: 12px; color: var(--text-muted); align-items: center; flex-wrap: wrap; }
+.oc-meta svg { width: 13px; height: 13px; vertical-align: -1px; margin-right: 3px; }
+.badge { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 4px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+.badge-수리 { background: rgba(74,144,226,0.15); color: #6fb3f7; }
+.badge-부품 { background: rgba(255,152,0,0.15); color: #ffb74d; }
+.badge-품질 { background: rgba(76,175,80,0.15); color: #81c784; }
+.badge-물류 { background: rgba(156,39,176,0.15); color: #ce93d8; }
+.badge-기타 { background: rgba(150,150,150,0.15); color: #aaa; }
+
+/* EMPTY */
+.empty-state { text-align: center; padding: 4rem 1rem; color: var(--text-dim); }
+.empty-state svg { width: 40px; height: 40px; margin-bottom: 12px; opacity: .4; }
+.empty-state p { font-size: 14px; }
+
+/* FORM */
+.form-head { margin-bottom: 1.5rem; }
+.form-head h2 { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
+.form-head p { font-size: 12px; color: var(--text-muted); }
+.meta-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 1rem; }
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .5px; }
+.field input, .field select, .field textarea {
+  padding: 9px 11px; background: var(--card2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); color: var(--text); font-size: 13px; font-family: inherit;
+  transition: border-color .15s; width: 100%;
+}
+.field input:focus, .field select:focus, .field textarea:focus { outline: none; border-color: var(--accent); }
+.field input::placeholder, .field textarea::placeholder { color: var(--text-dim); }
+.field textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
+.field select option { background: #2a2a2a; }
+.section-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 1rem; }
+.sec-label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+.sec-label svg { width: 14px; height: 14px; }
+.dyn-list { display: flex; flex-direction: column; gap: 6px; }
+.list-row { display: flex; gap: 6px; align-items: center; }
+.list-row input { flex: 1; }
+.btn-del { width: 30px; height: 30px; flex-shrink: 0; background: transparent; border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; color: var(--text-dim); display: flex; align-items: center; justify-content: center; transition: all .15s; }
+.btn-del:hover { border-color: var(--danger); color: var(--danger); }
+.btn-del svg { width: 12px; height: 12px; }
+.btn-add-row { width: 100%; margin-top: 6px; padding: 7px; border: 1px dashed var(--border); border-radius: var(--radius-sm); background: transparent; cursor: pointer; font-size: 12px; color: var(--text-dim); font-family: inherit; transition: all .15s; }
+.btn-add-row:hover { border-color: var(--accent); color: var(--accent); }
+.img-hint { font-size: 11px; color: var(--text-dim); margin-top: 6px; line-height: 1.5; }
+.form-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border); }
+.btn-ghost { padding: 9px 20px; background: transparent; color: var(--text-muted); border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; cursor: pointer; font-family: inherit; transition: all .15s; }
+.btn-ghost:hover { border-color: var(--border-hover); color: var(--text); }
+.btn-save { padding: 9px 24px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; transition: background .15s; }
+.btn-save:hover { background: var(--accent-hover); }
+.btn-save:disabled { opacity: .5; cursor: not-allowed; }
+
+/* DETAIL */
+.detail-back { display: flex; align-items: center; gap: 6px; color: var(--text-muted); cursor: pointer; font-size: 13px; margin-bottom: 1.25rem; width: fit-content; transition: color .15s; border: none; background: transparent; font-family: inherit; }
+.detail-back:hover { color: var(--text); }
+.detail-back svg { width: 15px; height: 15px; }
+.detail-header { margin-bottom: 1.25rem; }
+.detail-header h2 { font-size: 20px; font-weight: 700; margin-bottom: 8px; line-height: 1.3; }
+.detail-badges { display: flex; gap: 8px; align-items: center; margin-bottom: 14px; }
+.detail-docno { font-size: 12px; color: var(--text-dim); }
+.meta-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1.25rem; }
+.meta-cell { background: var(--card2); border-radius: var(--radius-sm); padding: 10px 12px; }
+.meta-cell .k { font-size: 11px; color: var(--text-dim); margin-bottom: 3px; }
+.meta-cell .v { font-size: 13px; font-weight: 600; }
+.detail-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 1rem; }
+.detail-card h3 { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+.detail-card h3 svg { width: 14px; height: 14px; }
+.detail-card p { font-size: 13px; line-height: 1.7; color: var(--text); }
+.detail-card ul { padding-left: 18px; display: flex; flex-direction: column; gap: 5px; }
+.detail-card ul li, .detail-card ol li { font-size: 13px; line-height: 1.6; }
+.detail-card ol { padding-left: 18px; display: flex; flex-direction: column; gap: 6px; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 1rem; }
+.two-col .detail-card { margin: 0; }
+.img-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+.img-thumb { width: 100%; aspect-ratio: 16/10; object-fit: cover; border-radius: var(--radius-sm); border: 1px solid var(--border); cursor: pointer; transition: opacity .15s; }
+.img-thumb:hover { opacity: .85; }
+.detail-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border); }
+.btn-danger { padding: 8px 18px; background: transparent; color: var(--danger); border: 1px solid rgba(229,57,53,.3); border-radius: var(--radius-sm); font-size: 13px; cursor: pointer; font-family: inherit; transition: all .15s; display: flex; align-items: center; gap: 5px; }
+.btn-danger:hover { background: rgba(229,57,53,.1); }
+.btn-danger svg { width: 14px; height: 14px; }
+
+/* TOAST */
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: #333; color: #fff; padding: 10px 20px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 500; z-index: 999; transition: transform .3s; pointer-events: none; white-space: nowrap; }
+.toast.show { transform: translateX(-50%) translateY(0); }
+.toast.success { background: #1b5e20; }
+.toast.error { background: #b71c1c; }
+
+/* LOADING */
+.loading-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: flex; align-items: center; justify-content: center; z-index: 200; display: none; }
+.loading-overlay.show { display: flex; }
+.spinner { width: 32px; height: 32px; border: 3px solid rgba(255,255,255,.15); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loading"><div class="spinner"></div></div>
+<div class="toast" id="toast"></div>
+
+<header class="page-header">
+  <a href="index.html" class="back-btn">
+    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
+    홈
+  </a>
+  <span class="header-title">작업 지시서</span>
+</header>
+
+<div class="tab-bar">
+  <button class="tab-btn active" id="tab-board" onclick="switchTab('board')">목록</button>
+  <button class="tab-btn" id="tab-form" onclick="switchTab('form')">새 지시서 작성</button>
+</div>
+
+<div class="container">
+
+  <!-- BOARD -->
+  <div class="view active" id="view-board">
+    <div class="board-toolbar">
+      <div class="search-wrap">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="search-input" placeholder="지시서 번호, 제목, 작성자 검색..." oninput="renderBoard()">
+      </div>
+      <select class="filter-select" id="filter-cat" onchange="renderBoard()">
+        <option value="">전체</option>
+        <option value="수리">수리</option>
+        <option value="부품">부품</option>
+        <option value="품질">품질</option>
+        <option value="물류">물류</option>
+        <option value="기타">기타</option>
+      </select>
+      <button class="new-btn" onclick="switchTab('form')">
+        <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+        새 지시서
+      </button>
+    </div>
+    <div class="order-grid" id="order-grid">
+      <div class="empty-state">
+        <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414A1 1 0 0121 9.414V19a2 2 0 01-2 2z"/></svg>
+        <p>불러오는 중...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- FORM -->
+  <div class="view" id="view-form">
+    <div class="form-head">
+      <h2>새 작업 지시서 작성</h2>
+      <p>저장 후 목록에서 바로 열람할 수 있습니다</p>
+    </div>
+    <div class="meta-row">
+      <div class="field">
+        <label>문서번호</label>
+        <input type="text" id="f-docno" placeholder="HiQ-SV-2025-000">
+      </div>
+      <div class="field">
+        <label>분류</label>
+        <select id="f-cat">
+          <option value="수리">수리</option>
+          <option value="부품">부품</option>
+          <option value="품질">품질</option>
+          <option value="물류">물류</option>
+          <option value="기타">기타</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>작성자</label>
+        <input type="text" id="f-author" placeholder="이름">
+      </div>
+    </div>
+    <div class="field" style="margin-bottom:1rem">
+      <label>제목</label>
+      <input type="text" id="f-title" placeholder="작업 지시서 제목을 입력하세요">
+    </div>
+
+    <div class="section-card">
+      <div class="sec-label">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414A1 1 0 0121 9.414V19a2 2 0 01-2 2z"/></svg>
+        개요
+      </div>
+      <div class="field">
+        <textarea id="f-summary" placeholder="작업의 목적 및 배경을 입력하세요"></textarea>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="sec-label">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        필요 공구 / 자재
+      </div>
+      <div class="dyn-list" id="tools-list">
+        <div class="list-row"><input type="text" placeholder="예) 케이블 스트리퍼"><button class="btn-del" onclick="removeRow(this)"><svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
+      </div>
+      <button class="btn-add-row" onclick="addRow('tools-list','공구 또는 자재 이름')">+ 항목 추가</button>
+    </div>
+
+    <div class="section-card">
+      <div class="sec-label">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
+        교체 부품 / 검사 항목
+      </div>
+      <div class="dyn-list" id="parts-list">
+        <div class="list-row"><input type="text" placeholder="예) 117750 : Spare thermobl.294 cpl (C61)"><button class="btn-del" onclick="removeRow(this)"><svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
+      </div>
+      <button class="btn-add-row" onclick="addRow('parts-list','부품번호 및 명칭')">+ 항목 추가</button>
+    </div>
+
+    <div class="section-card">
+      <div class="sec-label">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        작업 절차
+      </div>
+      <div class="dyn-list" id="steps-list">
+        <div class="list-row"><input type="text" placeholder="1단계 작업 내용"><button class="btn-del" onclick="removeRow(this)"><svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
+      </div>
+      <button class="btn-add-row" onclick="addRow('steps-list','절차 항목 추가')">+ 단계 추가</button>
+    </div>
+
+    <div class="section-card">
+      <div class="sec-label">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        주의사항
+      </div>
+      <div class="dyn-list" id="notes-list">
+        <div class="list-row"><input type="text" placeholder="작업 시 유의사항"><button class="btn-del" onclick="removeRow(this)"><svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
+      </div>
+      <button class="btn-add-row" onclick="addRow('notes-list','주의사항 추가')">+ 항목 추가</button>
+    </div>
+
+    <div class="section-card">
+      <div class="sec-label">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+        참고 이미지 URL
+      </div>
+      <div class="dyn-list" id="images-list">
+        <div class="list-row"><input type="text" placeholder="https://drive.google.com/... 또는 이미지 직접 링크"><button class="btn-del" onclick="removeRow(this)"><svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
+      </div>
+      <button class="btn-add-row" onclick="addRow('images-list','이미지 URL 추가')">+ URL 추가</button>
+      <p class="img-hint">Drive 파일 → 우클릭 → 링크 복사 후 붙여넣기. 공유 설정이 "링크 있는 모든 사용자"로 되어 있어야 표시됩니다.</p>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn-ghost" onclick="clearForm()">초기화</button>
+      <button class="btn-save" id="save-btn" onclick="saveOrder()">저장하기</button>
+    </div>
+  </div>
+
+  <!-- DETAIL -->
+  <div class="view" id="view-detail">
+    <button class="detail-back" onclick="switchTab('board')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
+      목록으로
+    </button>
+    <div id="detail-content"></div>
+  </div>
+
+</div>
+
+<script>
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwDnM9QnIHuRic1ipOJOcQ0Ax-FtSPzr30y21Kd0mCYkaT7mbTSGtQ4OCMFyJT4aIvoxw/exec';
+const SEP = '§';
+let allOrders = [];
+
+// ── INIT ──
+window.addEventListener('DOMContentLoaded', () => {
+  loadOrders();
+});
+
+// ── TABS ──
+function switchTab(t) {
+  ['board','form','detail'].forEach(n => {
+    document.getElementById('tab-' + n)?.classList.toggle('active', n === t);
+    document.getElementById('view-' + n).classList.toggle('active', n === t);
+  });
+  if (t === 'board') renderBoard();
+}
+
+// ── DATA ──
+async function loadOrders() {
+  if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE') {
+    renderBoard(); return;
+  }
+  showLoading(true);
+  try {
+    const url = `${APPS_SCRIPT_URL}?action=getAll&_=${Date.now()}`;
+    const res = await fetch(url);
+    allOrders = await res.json();
+  } catch (e) {
+    showToast('데이터 로드 실패', 'error');
+  }
+  showLoading(false);
+  renderBoard();
+}
+
+// ── BOARD ──
+function renderBoard() {
+  const q = (document.getElementById('search-input').value || '').toLowerCase();
+  const cat = document.getElementById('filter-cat').value;
+  let list = allOrders.filter(o => {
+    const match = !q || (o.docno + o.title + o.author).toLowerCase().includes(q);
+    return match && (!cat || o.cat === cat);
+  }).sort((a, b) => b.id > a.id ? 1 : -1);
+
+  const el = document.getElementById('order-grid');
+  if (!list.length) {
+    el.innerHTML = `<div class="empty-state">
+      <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414A1 1 0 0121 9.414V19a2 2 0 01-2 2z"/></svg>
+      <p>${allOrders.length ? '검색 결과가 없습니다' : '등록된 작업 지시서가 없습니다'}</p>
+    </div>`;
+    return;
+  }
+  el.innerHTML = list.map(o => `
+    <div class="order-card" onclick="openDetail('${o.id}')">
+      <div class="oc-top">
+        <div>
+          <div class="oc-docno">${o.docno || '번호 없음'}</div>
+          <div class="oc-title">${o.title}</div>
+        </div>
+        <span class="badge badge-${o.cat}">${o.cat}</span>
+      </div>
+      <div class="oc-meta">
+        <span>
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          ${o.author}
+        </span>
+        <span>
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          ${o.date}
+        </span>
+        <span style="color:var(--text-dim)">절차 ${(o.steps||[]).length}단계 · 부품 ${(o.parts||[]).length}종</span>
+      </div>
+    </div>`).join('');
+}
+
+// ── DETAIL ──
+function openDetail(id) {
+  const o = allOrders.find(x => x.id === id);
+  if (!o) return;
+
+  const listHtml = (arr) => arr && arr.length
+    ? `<ul>${arr.map(i => `<li>${i}</li>`).join('')}</ul>`
+    : `<p style="color:var(--text-dim);font-size:12px">없음</p>`;
+
+  const stepsHtml = o.steps && o.steps.length
+    ? `<ol>${o.steps.map(s => `<li>${s}</li>`).join('')}</ol>`
+    : `<p style="color:var(--text-dim);font-size:12px">없음</p>`;
+
+  const imagesHtml = o.images && o.images.length
+    ? `<div class="detail-card" style="margin-bottom:1rem">
+        <h3><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>참고 이미지</h3>
+        <div class="img-grid">${o.images.map(url => {
+          const direct = driveToDirectUrl(url);
+          return `<img class="img-thumb" src="${direct}" alt="참고 이미지" onclick="window.open('${url}','_blank')" onerror="this.style.display='none'">`;
+        }).join('')}</div>
+      </div>`
+    : '';
+
+  document.getElementById('detail-content').innerHTML = `
+    <div class="detail-header">
+      <h2>${o.title}</h2>
+      <div class="detail-badges">
+        <span class="badge badge-${o.cat}">${o.cat}</span>
+        <span class="detail-docno">${o.docno || ''}</span>
+      </div>
+    </div>
+    <div class="meta-grid">
+      <div class="meta-cell"><div class="k">작성자</div><div class="v">${o.author}</div></div>
+      <div class="meta-cell"><div class="k">작성일</div><div class="v">${o.date}</div></div>
+      <div class="meta-cell"><div class="k">분류</div><div class="v">${o.cat}</div></div>
+    </div>
+    <div class="detail-card">
+      <h3><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414A1 1 0 0121 9.414V19a2 2 0 01-2 2z"/></svg>개요</h3>
+      <p>${o.summary || '없음'}</p>
+    </div>
+    <div class="two-col">
+      <div class="detail-card">
+        <h3><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>필요 공구 / 자재</h3>
+        ${listHtml(o.tools)}
+      </div>
+      <div class="detail-card">
+        <h3><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>교체 부품</h3>
+        ${listHtml(o.parts)}
+      </div>
+    </div>
+    <div class="detail-card">
+      <h3><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>작업 절차</h3>
+      ${stepsHtml}
+    </div>
+    <div class="detail-card">
+      <h3><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>주의사항</h3>
+      ${listHtml(o.notes)}
+    </div>
+    ${imagesHtml}
+    <div class="detail-actions">
+      <button class="btn-danger" onclick="deleteOrder('${o.id}')">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+        삭제
+      </button>
+    </div>`;
+  switchTab('detail');
+}
+
+// Drive 공유 링크 → 직접 이미지 URL 변환
+function driveToDirectUrl(url) {
+  const m = url.match(/\/d\/([^/]+)\//);
+  if (m) return `https://drive.google.com/uc?export=view&id=${m[1]}`;
+  return url;
+}
+
+// ── FORM ──
+function addRow(listId, placeholder) {
+  const list = document.getElementById(listId);
+  const row = document.createElement('div');
+  row.className = 'list-row';
+  row.innerHTML = `<input type="text" placeholder="${placeholder}"><button class="btn-del" onclick="removeRow(this)"><svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button>`;
+  list.appendChild(row);
+}
+
+function removeRow(btn) {
+  const list = btn.closest('.dyn-list');
+  if (list.children.length > 1) btn.closest('.list-row').remove();
+  else btn.closest('.list-row').querySelector('input').value = '';
+}
+
+function getListVals(id) {
+  return Array.from(document.querySelectorAll('#' + id + ' input')).map(i => i.value.trim()).filter(Boolean);
+}
+
+function clearForm() {
+  ['f-docno','f-title','f-author','f-summary'].forEach(id => document.getElementById(id).value = '');
+  ['tools-list','parts-list','steps-list','notes-list','images-list'].forEach(lid => {
+    document.getElementById(lid).innerHTML = `<div class="list-row"><input type="text"><button class="btn-del" onclick="removeRow(this)"><svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>`;
+  });
+}
+
+async function saveOrder() {
+  const title = document.getElementById('f-title').value.trim();
+  const author = document.getElementById('f-author').value.trim();
+  if (!title) { showToast('제목을 입력하세요', 'error'); return; }
+  if (!author) { showToast('작성자를 입력하세요', 'error'); return; }
+  if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE') {
+    showToast('Apps Script URL을 먼저 설정해 주세요', 'error'); return;
+  }
+
+  const btn = document.getElementById('save-btn');
+  btn.disabled = true;
+  showLoading(true);
+
+  const payload = {
+    action: 'save',
+    docno: document.getElementById('f-docno').value.trim(),
+    title,
+    cat: document.getElementById('f-cat').value,
+    author,
+    summary: document.getElementById('f-summary').value.trim(),
+    tools: getListVals('tools-list'),
+    parts: getListVals('parts-list'),
+    steps: getListVals('steps-list'),
+    notes: getListVals('notes-list'),
+    images: getListVals('images-list'),
+  };
+
+  try {
+    await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+    showToast('저장되었습니다', 'success');
+    clearForm();
+    await loadOrders();
+    switchTab('board');
+  } catch (e) {
+    showToast('저장 실패: ' + e.message, 'error');
+  }
+  btn.disabled = false;
+  showLoading(false);
+}
+
+async function deleteOrder(id) {
+  if (!confirm('이 작업 지시서를 삭제하시겠습니까?')) return;
+  if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE') return;
+  showLoading(true);
+  try {
+    await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'delete', id }) });
+    showToast('삭제되었습니다');
+    await loadOrders();
+    switchTab('board');
+  } catch (e) {
+    showToast('삭제 실패', 'error');
+  }
+  showLoading(false);
+}
+
+// ── UTILS ──
+function showLoading(v) { document.getElementById('loading').classList.toggle('show', v); }
+let toastTimer;
+function showToast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show' + (type ? ' ' + type : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+}
+</script>
+</body>
+</html>
