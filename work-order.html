@@ -649,7 +649,7 @@ async function saveOrder() {
   };
 
   try {
-    await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+    await fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
     showToast('저장되었습니다', 'success');
     clearForm();
     await loadOrders();
@@ -665,7 +665,7 @@ async function deleteOrder(id) {
   if (!confirm('이 작업 지시서를 삭제하시겠습니까?')) return;
   showLoading(true);
   try {
-    await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'delete', id }) });
+    await fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'delete', id }) });
     showToast('삭제되었습니다');
     await loadOrders();
     switchTab('board');
