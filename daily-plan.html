@@ -337,7 +337,6 @@
     <div class="header-right">
         <button class="save-btn-header" onclick="saveToSheets()">💾 저장</button>
         <button class="pdf-btn" onclick="window.print()">📄 PDF</button>
-        <a href="https://docs.google.com/spreadsheets/d/111K9l8gt-14roqvynNFEJrT2aLsTYjU8gQBsKNiyFmI/edit#gid=141486615" target="_blank" class="home-btn" style="font-size:12px; padding:6px 12px;">주간입고 시트</a>
         <a href="index.html" class="home-btn">🏠 메인으로</a>
     </div>
 </div>
@@ -369,12 +368,12 @@
             <button class="apply-btn" onclick="loadIntakeData()" style="background:linear-gradient(135deg,#0d9488,#14b8a6);border-color:#0d9488;gap:6px;">📥 데이터 불러오기</button>
             <div class="input-group">
                 <label>근무 인원</label>
-                <input type="number" id="inputHeadcount" placeholder="0" min="1" max="30" value="5" onchange="recalcWithHeadcount()">
+                <input type="number" id="inputHeadcount" placeholder="0" min="1" max="30" value="13" onchange="recalcWithHeadcount()">
                 <span class="unit">명</span>
             </div>
             <div class="input-group">
                 <label>부대시간</label>
-                <input type="number" id="inputOverhead" placeholder="0" min="0" max="30" value="5" onchange="recalcWithHeadcount()">
+                <input type="number" id="inputOverhead" value="15" readonly style="background:#f1f5f9;color:#64748b;">
                 <span class="unit">분/대</span>
             </div>
             <div class="input-group">
@@ -533,7 +532,7 @@
 // ═══════════════════════════════════════
 // 설정
 // ═══════════════════════════════════════
-const APPS_SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyvKVjAjnRLr21S2N4EACiNtKu_gi7WoJS_9jnT-ViDq-BSWbwxbcI6juNK-McffScY-A/exec';
 const SHEET_ID = '111K9l8gt-14roqvynNFEJrT2aLsTYjU8gQBsKNiyFmI';
 const START_HOUR = 9, END_HOUR = 18, TOTAL_HOURS = 9;
 const LUNCH_S = 12, LUNCH_E = 13;
@@ -828,6 +827,7 @@ function loadFromSheets(dateStr){
         if(r.success){
             if(r.qty>0||r.activities.length>0){
                 currentQty=r.qty;document.getElementById('inputQty').value=r.qty||'';
+                if(r.headcount>0) document.getElementById('inputHeadcount').value=r.headcount;
                 totalRepairHours=r.totalRepairHours||0;
                 if(totalRepairHours>0) predictedHour=getHourForRepairTime(totalRepairHours);
                 else predictedHour=null;
@@ -880,7 +880,9 @@ function saveToSheets(){
     if(APPS_SCRIPT_URL==='YOUR_APPS_SCRIPT_URL_HERE'){showToast('Apps Script URL을 설정해주세요.','error');return;}
     const dateStr=fmtDate(selectedDate);
     const actList=[];Object.keys(activities).forEach(h=>{const a=activities[h];actList.push({hour:parseInt(h),title:a.title,detail:a.detail||'',participants:a.participants||''});});
-    const payload={action:'saveAll',date:dateStr,qty:currentQty,totalRepairHours:totalRepairHours,activities:actList,execData:getExecData()};
+    const predictedTime = predictedHour ? formatHour(predictedHour) : '';
+    const headcount = parseInt(document.getElementById('inputHeadcount').value) || 13;
+    const payload={action:'saveAll',date:dateStr,qty:currentQty,totalRepairHours:totalRepairHours,predictedTime:predictedTime,headcount:headcount,activities:actList,execData:getExecData()};
     showLoading('저장 중...');
     fetch(APPS_SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
     .then(()=>{hideLoading();isDirty=false;isFromSheets=true;updateStatus('saved');showToast('저장되었습니다!','success');
