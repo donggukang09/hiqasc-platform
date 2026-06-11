@@ -301,7 +301,7 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);min
 </div>
 
 <script>
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwDnM9QnIHuRic1ipOJOcQ0Ax-FtSPzr30y21Kd0mCYkaT7mbTSGtQ4OCMFyJT4aIvoxw/exec';
+const APPS_SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
 let allOrders = [];
 let guidePageCount = 0;
 // guideImages[pageId] = [{dataUrl, caption}, ...]
@@ -602,10 +602,13 @@ async function renderPagesToCanvas(docno,title,team,cat,author,summary,tools,ste
   return pages;
 }
 
+const PDF_SCALE=3;
 function makeCanvas(){
   const c=document.createElement('canvas');
-  c.width=794;c.height=1123; // A4 96dpi
-  return c;
+  c.width=794*PDF_SCALE;c.height=1123*PDF_SCALE;
+  const ctx=c.getContext('2d');
+  ctx.scale(PDF_SCALE,PDF_SCALE);
+  return {canvas:c,ctx};
 }
 
 // 텍스트 줄바꿈 헬퍼
@@ -636,10 +639,9 @@ function drawSection(ctx,num,label,x,y,w){
 }
 
 async function renderPage1(docno,title,team,cat,author,summary,tools,steps,notes,parts,sigWrite,sigReview,sigApprove,dateStr,pg,total){
-  const canvas=makeCanvas();
-  const ctx=canvas.getContext('2d');
+  const {canvas,ctx}=makeCanvas();
   const W=794,ML=56,MR=56,CW=W-ML-MR;
-  ctx.fillStyle='#fff';ctx.fillRect(0,0,W,canvas.height);
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,W,1123);
 
   let y=MT=56;
 
@@ -754,7 +756,7 @@ async function renderPage1(docno,title,team,cat,author,summary,tools,steps,notes
   } else {ctx.fillStyle='#999';ctx.font='13px sans-serif';ctx.fillText('없음',ML+28,y);y+=20;}
 
   // SIGNATURE
-  const sh=70,sy=canvas.height-100;
+  const sh=70,sy=1123-100;
   ctx.strokeStyle='#ddd';ctx.lineWidth=0.5;ctx.strokeRect(ML,sy,CW,sh);
   const sc=CW/3;
   ['작성','검토','승인'].forEach((label,i)=>{
@@ -769,19 +771,18 @@ async function renderPage1(docno,title,team,cat,author,summary,tools,steps,notes
 
   // FOOTER
   ctx.fillStyle='#aaa';ctx.font='11px sans-serif';ctx.textAlign='left';
-  ctx.fillText('HIQASC — NESPRESSO Authorized Service Center',ML,canvas.height-18);
+  ctx.fillText('HIQASC — NESPRESSO Authorized Service Center',ML,1123-18);
   ctx.textAlign='right';
-  ctx.fillText(`${docno}  ·  ${pg} / ${total}`,W-MR,canvas.height-18);
+  ctx.fillText(`${docno}  ·  ${pg} / ${total}`,W-MR,1123-18);
   ctx.textAlign='left';
 
   return canvas.toDataURL('image/png');
 }
 
 async function renderGuidePage(docno,gpTitle,gpDesc,imgs,pg,total){
-  const canvas=makeCanvas();
-  const ctx=canvas.getContext('2d');
+  const {canvas,ctx}=makeCanvas();
   const W=794,ML=56,MR=56,CW=W-ML-MR;
-  ctx.fillStyle='#fff';ctx.fillRect(0,0,W,canvas.height);
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,W,1123);
 
   // HEADER
   ctx.strokeStyle='#ddd';ctx.lineWidth=0.5;
@@ -825,9 +826,9 @@ async function renderGuidePage(docno,gpTitle,gpDesc,imgs,pg,total){
 
   // FOOTER
   ctx.fillStyle='#aaa';ctx.font='11px sans-serif';ctx.textAlign='left';
-  ctx.fillText('HIQASC — NESPRESSO Authorized Service Center',ML,canvas.height-18);
+  ctx.fillText('HIQASC — NESPRESSO Authorized Service Center',ML,1123-18);
   ctx.textAlign='right';
-  ctx.fillText(`${docno}  ·  ${pg} / ${total}`,W-MR,canvas.height-18);
+  ctx.fillText(`${docno}  ·  ${pg} / ${total}`,W-MR,1123-18);
   ctx.textAlign='left';
 
   return canvas.toDataURL('image/png');
