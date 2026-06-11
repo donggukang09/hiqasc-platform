@@ -54,7 +54,7 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);min
 .dash-date{font-size:14px;color:var(--text-sub);letter-spacing:1px;}
 
 /* MOSAIC */
-.mosaic{display:grid;grid-template-columns:repeat(6,1fr);grid-template-rows:300px auto auto 260px;grid-template-areas:"intake intake intake chart chart chart" "remain remain att att att att" "good good bad bad focus focus" "sched sched sched notice notice notice";gap:16px;}
+.mosaic{display:grid;grid-template-columns:repeat(6,1fr);grid-template-rows:300px auto auto 260px;grid-template-areas:"intake intake eta chart chart chart" "remain remain att att att att" "good good bad bad focus focus" "sched sched sched notice notice notice";gap:16px;}
 .m-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;position:relative;overflow:hidden;transition:all 0.35s ease;cursor:default;}
 .m-card:hover{border-color:var(--border-hover);transform:translateY(-3px);}
 .m-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;opacity:0;transition:opacity 0.35s;}
@@ -67,7 +67,7 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);min
 .m-card.glow-cyan:hover{box-shadow:0 12px 40px var(--cyan-glow);}.m-card.glow-cyan::before{background:linear-gradient(90deg,var(--cyan),transparent);}
 .m-card.glow-red:hover{box-shadow:0 12px 40px var(--red-glow);}.m-card.glow-red::before{background:linear-gradient(90deg,var(--red),transparent);}
 
-.area-intake{grid-area:intake;}.area-chart{grid-area:chart;}.area-remain{grid-area:remain;}
+.area-intake{grid-area:intake;}.area-chart{grid-area:chart;}.area-remain{grid-area:remain;}.area-eta{grid-area:eta;display:flex;flex-direction:column;}
 .area-att{grid-area:att;}.area-sched{grid-area:sched;}.area-notice{grid-area:notice;}
 .area-good{grid-area:good;}.area-bad{grid-area:bad;}.area-focus{grid-area:focus;}
 
@@ -123,8 +123,8 @@ body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);min
 @keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-3px);}75%{transform:translateX(3px);}}
 .shake{animation:shake 0.15s ease;}
 
-@media(max-width:1000px){.mosaic{grid-template-columns:1fr 1fr;grid-template-rows:auto;grid-template-areas:"intake intake" "chart chart" "remain att" "att att" "good bad" "focus focus" "sched notice";}}
-@media(max-width:600px){.mosaic{grid-template-columns:1fr;grid-template-areas:"intake" "chart" "remain" "att" "good" "bad" "focus" "sched" "notice";}.header{padding:14px 16px;flex-wrap:wrap;gap:8px;}.card-big{font-size:32px;}.att-grid{flex-direction:column;gap:10px;}}
+@media(max-width:1000px){.mosaic{grid-template-columns:1fr 1fr;grid-template-rows:auto;grid-template-areas:"intake eta" "chart chart" "remain att" "att att" "good bad" "focus focus" "sched notice";}}
+@media(max-width:600px){.mosaic{grid-template-columns:1fr;grid-template-areas:"intake" "eta" "chart" "remain" "att" "good" "bad" "focus" "sched" "notice";}.header{padding:14px 16px;flex-wrap:wrap;gap:8px;}.card-big{font-size:32px;}.att-grid{flex-direction:column;gap:10px;}}
 </style>
 </head>
 <body>
@@ -189,7 +189,7 @@ function normalizeDate(s){if(!s)return '';s=String(s);const g=s.match(/Date\((\d
 let brief={
     todayIntake:0,yesterdayIntake:0,trendDiff:0,
     recentIntake:[],avg5:0,avg5Complete:0,
-    remain:0,good:'',bad:'',focus:'',
+    remain:0,good:'',bad:'',focus:'',predictedTime:'',
     teams:{as:{members:[],count:0},support:{members:[],count:0},admin:{members:[],count:0}},
     leaveNames:[],totalMembers:0,totalPresent:0,
     schedule:'',notice:''
@@ -203,7 +203,7 @@ function stopLoadMsgs(){clearInterval(loadMsgTimer);document.getElementById('loa
 // FETCH
 async function fetchAllData(){
     startLoadMsgs();
-    await Promise.all([fetchIntake(),fetchCompletion(),fetchTeamMembers(),fetchLeave(),fetchBriefingData()]);
+    await Promise.all([fetchIntake(),fetchCompletion(),fetchTeamMembers(),fetchLeave(),fetchBriefingData(),fetchPredictedTime()]);
     mergeCompletionData();
     calcAttendance();
     stopLoadMsgs();
@@ -267,6 +267,23 @@ async function fetchBriefingData(){
             brief.good=get(3);
             brief.bad=get(4);
             brief.focus=get(5);
+        }
+    }
+}
+
+// 데일리플랜 시트에서 오늘 날짜의 종료예상시간 가져오기 (A=날짜, G=종료예상시간)
+async function fetchPredictedTime(){
+    const rows=await loadGviz(SHEET_IDS.main,'데일리플랜',`SELECT G WHERE A = date '${todayStr}'`,'cb_eta');
+    if(rows.length>0){
+        const val=getCellVal(rows[0],0);
+        if(val){
+            // "17:30" 또는 "Date(...)" 형태 처리
+            const tm=val.match(/(\d{1,2}):(\d{2})/);
+            if(tm){
+                brief.predictedTime=String(tm[1]).padStart(2,'0')+':'+tm[2];
+            }else{
+                brief.predictedTime=val;
+            }
         }
     }
 }
@@ -337,6 +354,23 @@ function buildDashboard(){
             <div class="card-big val-blue" style="font-size:64px;margin:12px 0;" data-count="${d.todayIntake}">0</div>
             <div class="card-unit" style="font-size:15px;">대 ${trendBadge}</div>
             <div class="card-detail">전일 대비 ${d.trendDiff>0?'+':''}${d.trendDiff}대 · 5일 평균 ${d.avg5}대</div>
+        </div>
+
+        <div class="m-card area-eta glow-red">
+            <div class="card-top"><div class="card-icon icon-red">⏱</div><div class="card-label label-red">완료 예상</div></div>
+            ${d.predictedTime?`
+                <div style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;">
+                    <div class="card-big val-red" style="font-size:48px;letter-spacing:-1px;">${d.predictedTime}</div>
+                    <div class="card-unit" style="margin-top:8px;">예상 종료 시각</div>
+                </div>
+                <div style="font-size:11px;color:var(--text-sub);text-align:center;opacity:0.7;">데일리플랜 기준</div>
+            `:`
+                <div style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;color:var(--text-sub);">
+                    <div style="font-size:32px;margin-bottom:8px;">⏳</div>
+                    <div style="font-size:13px;font-weight:600;">미입력</div>
+                    <div style="font-size:11px;opacity:0.7;margin-top:4px;">데일리플랜 작성 필요</div>
+                </div>
+            `}
         </div>
 
         <div class="m-card area-chart glow-cyan">
