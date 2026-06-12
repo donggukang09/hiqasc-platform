@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>머신 수량 현황 대시보드</title>
-    <!-- v2.0 | 팀현황 + 수량 + 테크니션 바그래프 통합 | Developer: DONGGU KANG -->
+    <!-- v2.1 | B2B 라인 추가 | Developer: DONGGU KANG -->
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -143,6 +143,7 @@
         .section-title { font-size: 1.2em; font-weight: bold; }
         .section.original .section-title { color: #3498db; }
         .section.vertuo .section-title { color: #9b59b6; }
+        .section.b2b .section-title { color: #1abc9c; }
         .section.other .section-title { color: #e67e22; }
         .section-count {
             font-size: 1em; font-weight: bold;
@@ -384,6 +385,13 @@
                         </div>
                         <div class="models-grid" id="completeVertuoModels"></div>
                     </div>
+                    <div class="section b2b" id="completeB2bSection">
+                        <div class="section-header">
+                            <h3 class="section-title">B2B</h3>
+                            <span class="section-count" id="completeB2bCount">0대</span>
+                        </div>
+                        <div class="models-grid" id="completeB2bModels"></div>
+                    </div>
                     <div class="section other" id="completeOtherSection">
                         <div class="section-header">
                             <h3 class="section-title">OTHER</h3>
@@ -415,6 +423,13 @@
                             <span class="section-count" id="remainingVertuoCount">0대</span>
                         </div>
                         <div class="models-grid" id="remainingVertuoModels"></div>
+                    </div>
+                    <div class="section b2b" id="remainingB2bSection">
+                        <div class="section-header">
+                            <h3 class="section-title">B2B</h3>
+                            <span class="section-count" id="remainingB2bCount">0대</span>
+                        </div>
+                        <div class="models-grid" id="remainingB2bModels"></div>
                     </div>
                     <div class="section other" id="remainingOtherSection">
                         <div class="section-header">
@@ -601,7 +616,7 @@
         }
 
         function processData(data) {
-            const stats = { ORIGINAL: {}, VERTUO: {}, OTHER: {} };
+            const stats = { ORIGINAL: {}, VERTUO: {}, B2B: {}, OTHER: {} };
             let totalCount = 0;
             data.forEach((row) => {
                 const machineId = row['International Machine ID'];
@@ -613,7 +628,7 @@
                 const modelInfo = getModelInfo(machineId);
                 const line = modelInfo.line;
                 const modelName = modelInfo.model;
-                if (line === 'ORIGINAL' || line === 'VERTUO') {
+                if (line === 'ORIGINAL' || line === 'VERTUO' || line === 'B2B') {
                     stats[line][modelName] = (stats[line][modelName] || 0) + 1;
                     totalCount += 1;
                 } else {
@@ -630,7 +645,7 @@
                 const machineId = row['International Machine ID'];
                 if (!techName || !machineId) return;
                 if (!techStats[techName]) {
-                    techStats[techName] = { total: 0, original: 0, vertuo: 0, models: {} };
+                    techStats[techName] = { total: 0, original: 0, vertuo: 0, b2b: 0, models: {} };
                 }
                 const modelInfo = getModelInfo(machineId);
                 const line = modelInfo.line;
@@ -638,6 +653,7 @@
                 techStats[techName].total++;
                 if (line === 'ORIGINAL') techStats[techName].original++;
                 else if (line === 'VERTUO') techStats[techName].vertuo++;
+                else if (line === 'B2B') techStats[techName].b2b++;
                 if (!techStats[techName].models[modelName]) techStats[techName].models[modelName] = 0;
                 techStats[techName].models[modelName]++;
             });
@@ -662,6 +678,12 @@
             const vertuoCount = Object.values(stats.VERTUO).reduce((a, b) => a + b, 0);
             document.getElementById(`${prefix}VertuoCount`).textContent = `${vertuoCount.toLocaleString()}대`;
             displayModels(`${prefix}VertuoModels`, stats.VERTUO);
+            const b2bCount = Object.values(stats.B2B).reduce((a, b) => a + b, 0);
+            document.getElementById(`${prefix}B2bCount`).textContent = `${b2bCount.toLocaleString()}대`;
+            displayModels(`${prefix}B2bModels`, stats.B2B);
+            const b2bSection = document.getElementById(`${prefix}B2bSection`);
+            if (b2bCount === 0) b2bSection.classList.add('hidden');
+            else b2bSection.classList.remove('hidden');
             const otherCount = Object.values(stats.OTHER).reduce((a, b) => a + b, 0);
             document.getElementById(`${prefix}OtherCount`).textContent = `${otherCount.toLocaleString()}대`;
             displayModels(`${prefix}OtherModels`, stats.OTHER);
