@@ -661,9 +661,10 @@
         }
 
         function processAllData(completeData, remainingData) {
-            const completeResult = processData(completeData);
+            const filteredCompleteData = completeData.filter(row => row['담당자'] !== '김태정');
+            const completeResult = processData(filteredCompleteData);
             const remainingResult = processData(remainingData);
-            const technicianStats = processTechnicianData(completeData);
+            const technicianStats = processTechnicianData(filteredCompleteData);
 
             displayPanel('complete', completeResult.stats, completeResult.totalCount);
             displayPanel('remaining', remainingResult.stats, remainingResult.totalCount);
