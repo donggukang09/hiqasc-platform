@@ -1,580 +1,2041 @@
 <!DOCTYPE html>
+<!-- Version: 4.1.0 | Updated: 2026-06-05 | HIQ ASC 그룹에 업무 가이드 카드 추가 -->
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-<meta name="theme-color" content="#14110d">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="플래너">
-<title>업무 플래너</title>
-<link rel="manifest" href="manifest.json">
-<link rel="icon" href="favicon.png">
-<link rel="apple-touch-icon" href="icon-192.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,400&family=Noto+Sans+KR:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --ink:#14110d;--ink-2:#1c1813;--panel:#221d16;--panel-2:#2a241b;
-    --line:#3a3225;--line-soft:#2e2820;
-    --text:#ece4d4;--text-dim:#a89b82;--text-faint:#6f6553;
-    --gold:#e0b252;--gold-soft:#caa052;
-    --high:#e07a5f;--mid:#e0b252;--low:#83a06e;
-    --od:#ef5d47;          /* 지연 */
-    --soon:#6ea2c4;        /* 예정 */
-    --done:#83a06e;        /* 완료 */
-    --maxw:460px;
-  }
-  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-  html,body{height:100%}
-  body{
-    font-family:'Noto Sans KR',sans-serif;background:var(--ink);color:var(--text);line-height:1.5;
-    display:flex;justify-content:center;
-    background-image:radial-gradient(900px 500px at 80% -10%, rgba(224,178,82,.07), transparent 60%),radial-gradient(700px 400px at -10% 110%, rgba(131,160,110,.05), transparent 60%);
-  }
-  body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:9999;opacity:.03;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>HIQASC 통합 업무 시스템</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-  .app{width:100%;max-width:var(--maxw);min-height:100vh;display:flex;flex-direction:column;
-    background:var(--ink);border-left:1px solid var(--line-soft);border-right:1px solid var(--line-soft);
-    padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+        body {
+            font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
+            background: #2a2a2a;
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
 
-  /* header */
-  .hd{display:flex;align-items:center;justify-content:space-between;padding:14px 18px 8px;gap:10px}
-  .hd .ttl{display:flex;flex-direction:column;gap:1px}
-  .hd .eyebrow{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.28em;text-transform:uppercase;color:var(--text-faint)}
-  .hd h1{font-family:'Fraunces',serif;font-weight:400;font-size:21px;line-height:1}
-  .hd .actions{display:flex;gap:7px;align-items:center}
-  .ibtn{background:var(--panel);border:1px solid var(--line);color:var(--text-dim);width:36px;height:36px;border-radius:10px;display:grid;place-items:center;cursor:pointer;font-size:15px;transition:all .15s}
-  .ibtn:hover{border-color:var(--gold);color:var(--gold)}
-  .ibtn.on{border-color:var(--low);color:var(--low)}
-  .sync-dot{width:7px;height:7px;border-radius:50%;background:var(--text-faint);transition:background .3s}
-  .sync-dot.ok{background:var(--low)}.sync-dot.busy{background:var(--gold)}.sync-dot.err{background:var(--high)}
+        /* ============================================ */
+        /* 로그인 화면 */
+        /* ============================================ */
+        .login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #2a2a2a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
 
-  /* month nav — 컴팩트 */
-  .mnav{display:flex;align-items:center;justify-content:space-between;padding:0 18px 7px}
-  .mnav .mt{font-family:'Fraunces',serif;font-size:21px;display:flex;align-items:baseline;gap:7px}
-  .mnav .mt .yr{font-size:12px;color:var(--gold);font-style:italic}
-  .mnav .grp{display:flex;gap:5px;align-items:center}
-  .mnav button{background:var(--panel);border:1px solid var(--line);color:var(--text-dim);width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:14px;display:grid;place-items:center;transition:all .15s}
-  .mnav button:hover{border-color:var(--gold);color:var(--gold)}
-  .mnav .today-btn{width:auto;padding:0 11px;font-family:'Noto Sans KR';font-weight:500;font-size:11.5px}
+        /* 이미 인증된 경우 로그인 숨기고 허브 바로 표시 */
+        .login-overlay.pre-auth { display: none !important; }
+        .hub-content.pre-auth { display: block; opacity: 1; }
 
-  /* calendar — 작게 */
-  .cal{padding:0 14px 6px}
-  .wd{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:3px}
-  .wd div{font-family:'Noto Sans KR';font-weight:500;font-size:10px;color:var(--text-faint);text-align:center}
-  .wd .s0{color:#c97a6d}.wd .s6{color:#7d97c4}
-  .grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
-  .cell{height:34px;background:var(--panel);border:1px solid var(--line-soft);border-radius:7px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;position:relative;transition:all .12s}
-  .cell:active{transform:scale(.92)}
-  .cell.muted{background:transparent;border-color:transparent;cursor:default;opacity:.3}
-  .cell .n{font-family:'Fraunces',serif;font-size:13px;color:var(--text-dim);line-height:1}
-  .cell.today{border-color:var(--gold);background:linear-gradient(180deg,rgba(224,178,82,.13),rgba(224,178,82,.02))}
-  .cell.today .n{color:var(--gold);font-weight:600}
-  .cell.sel{outline:2px solid var(--gold-soft);outline-offset:-1px}
-  .cell .s0{color:#c97a6d}.cell .s6{color:#8aa3cf}
-  .dots{display:flex;gap:2px;height:4px;align-items:center}
-  .dots i{width:3.5px;height:3.5px;border-radius:50%;display:block}
-  .dots i.p-high{background:var(--high)}.dots i.p-mid{background:var(--mid)}.dots i.p-low{background:var(--low)}
-  .dots i.od{background:var(--od);box-shadow:0 0 4px var(--od)}
-  .cell .alldone{font-size:8px;color:var(--low);line-height:1}
+        .login-box {
+            background: #353535;
+            border: 1px solid #4a4a4a;
+            border-radius: 12px;
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+        }
 
-  /* selected day header — 컴팩트 */
-  .selhd{display:flex;align-items:center;justify-content:space-between;padding:9px 18px 7px;border-top:1px solid var(--line-soft);margin-top:2px}
-  .selhd .d{font-family:'Fraunces',serif;font-size:19px}
-  .selhd .d .wlabel{color:var(--gold);font-style:italic;font-size:15px}
-  .selhd .stats{display:flex;gap:13px;text-align:right}
-  .selhd .stat .num{font-family:'Fraunces',serif;font-size:17px;line-height:1}
-  .selhd .stat .lab{font-size:9px;color:var(--text-faint)}
-  .selhd .stat.over .num{color:var(--od)}
-  .selhd .stat.soon .num{color:var(--soon)}
-  .selhd .stat.done .num{color:var(--done)}
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
 
-  /* tabs */
-  .tabs{display:flex;gap:6px;padding:4px 16px 0}
-  .tabs button{flex:1;background:none;border:none;border-bottom:2.5px solid transparent;color:var(--text-dim);padding:9px 0 10px;cursor:pointer;font-family:'Noto Sans KR';font-weight:500;font-size:14px;transition:all .15s}
-  .tabs button.on{color:var(--gold);border-bottom-color:var(--gold);font-weight:700}
+        .login-logo {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 32px;
+            font-weight: 700;
+            color: #ffffff;
+        }
 
-  /* body */
-  .body{flex:1;overflow-y:auto;padding:12px 18px 14px;-webkit-overflow-scrolling:touch}
+        .login-header h2 {
+            color: #ffffff;
+            font-size: 1.5em;
+            margin-bottom: 8px;
+        }
 
-  /* add — 접기 */
-  .add-trigger{width:100%;background:var(--panel);border:1px solid var(--line);color:var(--gold);border-radius:12px;padding:12px;cursor:pointer;font-family:'Noto Sans KR';font-weight:600;font-size:14px;margin-bottom:14px;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:7px}
-  .add-trigger:hover{border-color:var(--gold);background:var(--panel-2)}
-  .add-trigger .pl{font-size:18px;line-height:1}
-  .add{display:none;flex-direction:column;gap:9px;margin-bottom:16px;background:var(--panel-2);border:1px solid var(--line);border-radius:14px;padding:14px}
-  .add.open{display:flex;animation:slidein .2s ease}
-  @keyframes slidein{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
-  .add input[type=text]{background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:11px;padding:12px 13px;font-family:inherit;font-size:15px;outline:none;transition:border-color .15s}
-  .add input[type=text]:focus{border-color:var(--gold)}
-  .add input::placeholder{color:var(--text-faint)}
-  .trow{display:flex;gap:7px}
-  .trow input[type=time]{background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:10px;font-family:'Space Mono',monospace;font-size:15px;outline:none;color-scheme:dark;flex:1;min-width:0}
-  .trow input[type=time]:focus{border-color:var(--gold)}
-  .atog{display:flex;align-items:center;gap:5px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:0 14px;cursor:pointer;font-size:13px;color:var(--text-dim);font-family:'Noto Sans KR';font-weight:500;white-space:nowrap;transition:all .15s}
-  .atog.on{border-color:var(--gold);color:var(--gold);background:rgba(224,178,82,.12)}
-  .orow{display:flex;gap:7px}
-  .seg{display:flex;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;flex:1}
-  .seg button{flex:1;background:transparent;border:none;color:var(--text-dim);padding:11px 4px;cursor:pointer;font-family:'Noto Sans KR';font-weight:600;font-size:14px;transition:all .12s}
-  .seg button.on.p-high{background:rgba(224,122,95,.2);color:var(--high)}
-  .seg button.on.p-mid{background:rgba(224,178,82,.2);color:var(--mid)}
-  .seg button.on.p-low{background:rgba(131,160,110,.2);color:var(--low)}
-  select.cat{background:var(--panel);border:1px solid var(--line);color:var(--text-dim);border-radius:10px;padding:10px;font-family:'Noto Sans KR';font-weight:500;font-size:13.5px;outline:none;cursor:pointer}
-  .addbtn{background:var(--gold);color:#1a1408;border:none;border-radius:11px;padding:13px;cursor:pointer;font-family:'Noto Sans KR';font-weight:700;font-size:15px;transition:all .15s}
-  .addbtn:active{transform:scale(.98)}
+        .login-header p {
+            color: #808080;
+            font-size: 0.9em;
+        }
 
-  /* group headers (상태별) */
-  .grp{margin-top:18px}
-  .grp:first-child{margin-top:2px}
-  .grp-head{display:flex;align-items:center;gap:9px;margin-bottom:10px;font-family:'Noto Sans KR';font-weight:700;font-size:13.5px}
-  .grp-head .cnt{font-family:'Space Mono',monospace;font-size:11px;background:var(--panel-2);padding:1px 8px;border-radius:20px}
-  .grp-head::after{content:"";flex:1;height:1px;background:var(--line-soft)}
-  .grp-head.over{color:var(--od)}.grp-head.over .cnt{background:rgba(239,93,71,.18);color:var(--od)}
-  .grp-head.soon{color:var(--soon)}.grp-head.soon .cnt{background:rgba(110,162,196,.16);color:var(--soon)}
-  .grp-head.done{color:var(--done)}.grp-head.done .cnt{background:rgba(131,160,110,.16);color:var(--done)}
+        .login-input {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid #4a4a4a;
+            border-radius: 8px;
+            background: #2a2a2a;
+            color: #e0e0e0;
+            font-size: 1em;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+        }
 
-  /* timeline */
-  .tl-row{display:flex;gap:11px;min-height:42px}
-  .tl-h{font-family:'Space Mono',monospace;font-size:13px;color:var(--text-faint);width:44px;flex-shrink:0;padding-top:2px;text-align:right}
-  .tl-h.now{color:var(--gold);font-weight:700}
-  .tl-t{flex:1;border-left:1px solid var(--line-soft);padding:0 0 9px 11px;position:relative;min-width:0}
-  .tl-t::before{content:"";position:absolute;left:-4px;top:4px;width:7px;height:7px;border-radius:50%;background:var(--line)}
-  .nowline{position:absolute;left:44px;right:0;height:2px;background:var(--gold);z-index:5;box-shadow:0 0 8px rgba(224,178,82,.5)}
-  .nowline::before{content:"";position:absolute;left:-4px;top:-3px;width:8px;height:8px;border-radius:50%;background:var(--gold)}
+        .login-input:focus {
+            outline: none;
+            border-color: #4a90e2;
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+        }
 
-  /* item */
-  .item{background:var(--panel);border:1px solid var(--line-soft);border-left:3px solid var(--mid);border-radius:10px;padding:10px 11px;margin-bottom:7px;display:flex;align-items:flex-start;gap:10px;transition:all .15s}
-  .item.p-high{border-left-color:var(--high)}.item.p-mid{border-left-color:var(--mid)}.item.p-low{border-left-color:var(--low)}
-  .item.done{opacity:.55}
-  .item.overdue{border-left-color:var(--od);border-color:rgba(239,93,71,.45);background:rgba(239,93,71,.06)}
-  .chk{width:22px;height:22px;border-radius:6px;border:1.5px solid var(--line);cursor:pointer;flex-shrink:0;margin-top:1px;display:grid;place-items:center;transition:all .12s}
-  .chk.done{background:var(--gold);border-color:var(--gold)}
-  .chk.done::after{content:"\2713";color:#1a1408;font-size:13px;font-weight:700}
-  .item .mn{flex:1;min-width:0}
-  .item .tx{font-size:15.5px;word-break:break-word;line-height:1.35}
-  .item.done .tx{text-decoration:line-through;color:var(--text-faint)}
-  .item .meta{display:flex;gap:7px;margin-top:5px;align-items:center;flex-wrap:wrap}
-  .item .tm{font-family:'Space Mono',monospace;font-size:12px;color:var(--gold-soft);font-weight:700}
-  .item .ct{font-family:'Noto Sans KR';font-weight:500;font-size:11px;color:var(--text-faint);background:var(--panel-2);padding:2px 8px;border-radius:5px}
-  .item .al{font-size:12px;color:var(--gold)}
-  .item .od-badge{font-family:'Noto Sans KR';font-weight:700;font-size:11px;color:#fff;background:var(--od);padding:2px 8px;border-radius:5px}
-  .del{background:none;border:none;color:var(--text-faint);cursor:pointer;font-size:19px;flex-shrink:0;padding:0 3px;line-height:1}
-  .del:active{color:var(--high)}
-  .empty{text-align:center;color:var(--text-faint);font-size:13.5px;padding:26px 14px;font-style:italic;font-family:'Fraunces',serif;line-height:1.7}
+        .login-button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
 
-  .sig{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:.16em;color:var(--text-faint);opacity:.5;text-align:center;padding:14px 0 12px}
+        .login-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+        }
 
-  /* alarm popup */
-  .pop{position:fixed;inset:0;background:rgba(10,8,5,.74);backdrop-filter:blur(4px);display:none;place-items:center;z-index:10000;padding:20px}
-  .pop.show{display:grid}
-  .card{background:var(--panel);border:1px solid var(--gold);border-radius:20px;padding:28px 26px 24px;text-align:center;box-shadow:0 24px 70px rgba(0,0,0,.6);max-width:330px;width:100%;animation:pop .3s ease}
-  @keyframes pop{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
-  .card .ic{font-size:38px;animation:ring .6s ease infinite}
-  @keyframes ring{0%,100%{transform:rotate(0)}25%{transform:rotate(12deg)}75%{transform:rotate(-12deg)}}
-  .card .at{font-family:'Space Mono',monospace;font-size:14px;color:var(--gold);letter-spacing:.1em;margin:6px 0 2px}
-  .card .atx{font-family:'Fraunces',serif;font-size:21px;margin:4px 0 16px;line-height:1.3}
-  .snooze-label{font-size:11px;color:var(--text-faint);margin-bottom:7px;font-weight:500}
-  .snooze-row{display:flex;gap:6px;margin-bottom:14px}
-  .snooze-row button{flex:1;background:var(--panel-2);border:1px solid var(--line);color:var(--text-dim);border-radius:9px;padding:9px 4px;cursor:pointer;font-family:'Noto Sans KR';font-weight:600;font-size:12.5px;transition:all .15s}
-  .snooze-row button:hover{border-color:var(--gold);color:var(--gold)}
-  .card-btns{display:flex;gap:8px}
-  .card-btns button{flex:1;border:none;border-radius:11px;padding:12px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR';font-size:14px}
-  .btn-done{background:var(--gold);color:#1a1408}
-  .btn-close{background:var(--panel-2);color:var(--text-dim);border:1px solid var(--line)!important}
+        select.login-input {
+            appearance: none;
+            -webkit-appearance: none;
+            cursor: pointer;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path fill='%23808080' d='M6 8L2 4h8z'/></svg>");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+        }
+        select.login-input option { background: #2a2a2a; color: #e0e0e0; }
 
-  .banner{background:rgba(224,122,95,.12);border:1px solid rgba(224,122,95,.4);color:#f0c0b2;font-size:12px;border-radius:10px;padding:10px 13px;margin:0 18px 4px;line-height:1.6}
-  .banner b{color:var(--gold)}
-  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--panel-2);border:1px solid var(--line);color:var(--text);font-size:13px;padding:11px 19px;border-radius:11px;z-index:10001;opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap}
-  .toast.show{opacity:1}
-  .body::-webkit-scrollbar{width:7px}
-  .body::-webkit-scrollbar-thumb{background:var(--line);border-radius:8px}
-</style>
+        .login-switch {
+            text-align: center;
+            margin-top: 14px;
+        }
+        .login-switch a {
+            color: #808080;
+            font-size: 0.88em;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .login-switch a:hover { color: #4a90e2; }
+
+        .login-error {
+            background: rgba(231, 76, 60, 0.1);
+            border: 1px solid #e74c3c;
+            color: #e74c3c;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            text-align: center;
+            font-size: 0.9em;
+            display: none;
+        }
+
+        /* ============================================ */
+        /* 팀 선택 허브 */
+        /* ============================================ */
+        .hub-content {
+            display: none;
+            min-height: 100vh;
+        }
+
+        .hub-content.unlocked {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 60px 20px 20px;
+        }
+
+        .hub-header {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: fadeInDown 0.6s ease;
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hub-brand {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            margin-bottom: 16px;
+        }
+
+        .hub-brand-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .hub-brand-text {
+            font-size: 1.6em;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .hub-subtitle {
+            color: #808080;
+            font-size: 1em;
+        }
+
+        .hub-date {
+            color: #606060;
+            font-size: 0.9em;
+            margin-top: 8px;
+        }
+
+        /* ============================================ */
+        /* HIQ Workspace (전사 공통) - 메인 섹션 */
+        /* ============================================ */
+        .workspace-section {
+            width: 100%;
+            max-width: 1200px;
+            padding: 0 30px;
+            margin-bottom: 18px;
+            animation: fadeInUp 0.6s ease 0.15s both;
+        }
+
+        .section-label {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        .section-label-line {
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #4a4a4a, transparent);
+        }
+
+        .section-label-text {
+            color: #7ba8b8;
+            font-size: 0.85em;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-label-text::before {
+            content: '◆';
+            color: #7ba8b8;
+        }
+
+        .workspace-panel {
+            background: linear-gradient(135deg, #2e3a3f 0%, #353535 60%);
+            border: 1px solid #3d5560;
+            border-radius: 20px;
+            padding: 22px 28px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .workspace-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #5a8a9a, #7ba8b8, #5a8a9a);
+        }
+
+        /* 센터별 테마 컬러 */
+        .workspace-panel.theme-teal { background: linear-gradient(135deg, #2e3a3f 0%, #353535 60%); border-color: #3d5560; }
+        .workspace-panel.theme-teal::before { background: linear-gradient(90deg, #5a8a9a, #7ba8b8, #5a8a9a); }
+        .workspace-panel.theme-teal .workspace-title-icon { background: linear-gradient(135deg, #5a8a9a 0%, #3d6b7a 100%); box-shadow: 0 4px 12px rgba(90, 138, 154, 0.25); }
+        .workspace-panel.theme-teal .workspace-tag { background: rgba(123, 168, 184, 0.12); border-color: rgba(123, 168, 184, 0.35); color: #7ba8b8; }
+        .workspace-panel.theme-teal .workspace-item:hover { border-color: #5a8a9a; background: #2c3438; box-shadow: 0 8px 20px rgba(90, 138, 154, 0.18); }
+        .workspace-panel.theme-teal .workspace-item:hover .workspace-item-icon { background: linear-gradient(135deg, #5a8a9a 0%, #3d6b7a 100%); }
+
+        .workspace-panel.theme-blue { background: linear-gradient(135deg, #2e3545 0%, #353535 60%); border-color: #3d4f6a; }
+        .workspace-panel.theme-blue::before { background: linear-gradient(90deg, #4a90e2, #5ba0f0, #4a90e2); }
+        .workspace-panel.theme-blue .workspace-title-icon { background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%); box-shadow: 0 4px 12px rgba(74, 144, 226, 0.25); }
+        .workspace-panel.theme-blue .workspace-tag { background: rgba(74, 144, 226, 0.12); border-color: rgba(74, 144, 226, 0.35); color: #4a90e2; }
+        .workspace-panel.theme-blue .workspace-item:hover { border-color: #4a90e2; background: #2c3040; box-shadow: 0 8px 20px rgba(74, 144, 226, 0.18); }
+        .workspace-panel.theme-blue .workspace-item:hover .workspace-item-icon { background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%); }
+
+        .workspace-panel.theme-green { background: linear-gradient(135deg, #2e3f35 0%, #353535 60%); border-color: #3d6050; }
+        .workspace-panel.theme-green::before { background: linear-gradient(90deg, #27ae60, #2ecc71, #27ae60); }
+        .workspace-panel.theme-green .workspace-title-icon { background: linear-gradient(135deg, #27ae60 0%, #219a52 100%); box-shadow: 0 4px 12px rgba(39, 174, 96, 0.25); }
+        .workspace-panel.theme-green .workspace-tag { background: rgba(39, 174, 96, 0.12); border-color: rgba(39, 174, 96, 0.35); color: #27ae60; }
+        .workspace-panel.theme-green .workspace-item:hover { border-color: #27ae60; background: #2c3830; box-shadow: 0 8px 20px rgba(39, 174, 96, 0.18); }
+        .workspace-panel.theme-green .workspace-item:hover .workspace-item-icon { background: linear-gradient(135deg, #27ae60 0%, #219a52 100%); }
+
+        .workspace-panel.theme-purple { background: linear-gradient(135deg, #382e45 0%, #353535 60%); border-color: #5a3d6a; }
+        .workspace-panel.theme-purple::before { background: linear-gradient(90deg, #9b59b6, #b06cc8, #9b59b6); }
+        .workspace-panel.theme-purple .workspace-title-icon { background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%); box-shadow: 0 4px 12px rgba(155, 89, 182, 0.25); }
+        .workspace-panel.theme-purple .workspace-tag { background: rgba(155, 89, 182, 0.12); border-color: rgba(155, 89, 182, 0.35); color: #9b59b6; }
+        .workspace-panel.theme-purple .workspace-item:hover { border-color: #9b59b6; background: #342c40; box-shadow: 0 8px 20px rgba(155, 89, 182, 0.18); }
+        .workspace-panel.theme-purple .workspace-item:hover .workspace-item-icon { background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%); }
+
+        .workspace-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .workspace-title-group {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .workspace-title-icon {
+            width: 36px;
+            height: 36px;
+            background: #3a3a3a;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .workspace-title h3 {
+            color: #ffffff;
+            font-size: 1.15em;
+            font-weight: 700;
+            margin-bottom: 1px;
+        }
+
+        .workspace-title p {
+            color: #a0a0a0;
+            font-size: 0.78em;
+        }
+
+        .workspace-tag {
+            background: rgba(128, 128, 128, 0.12);
+            border: 1px solid rgba(128, 128, 128, 0.35);
+            color: #808080;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 0.78em;
+            font-weight: 600;
+        }
+
+        .workspace-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 14px;
+        }
+
+        .workspace-item {
+            background: #2c2c2c;
+            border: 1px solid #4a4a4a;
+            border-radius: 12px;
+            padding: 16px 14px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            width: calc((100% - 56px) / 5);
+            min-width: 140px;
+        }
+
+        .workspace-item:hover {
+            transform: translateY(-4px);
+        }
+
+        .workspace-item-icon {
+            width: 40px;
+            height: 40px;
+            margin: 0 auto 8px;
+            background: #3a3a3a;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .workspace-item:hover .workspace-item-icon {
+            transform: scale(1.05);
+        }
+
+        .workspace-item-name {
+            color: #ffffff;
+            font-size: 0.92em;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .workspace-item-desc {
+            color: #808080;
+            font-size: 0.72em;
+            line-height: 1.4;
+        }
+
+        /* 팀 카드 그리드 */
+        .team-section {
+            width: 100%;
+            max-width: 1200px;
+            padding: 0 30px;
+        }
+
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            width: 100%;
+            animation: fadeInUp 0.6s ease 0.3s both;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .team-card {
+            background: #353535;
+            border: 1px solid #4a4a4a;
+            border-radius: 16px;
+            padding: 36px 28px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.35s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .team-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            transform: scaleX(0);
+            transition: transform 0.35s ease;
+        }
+
+        .team-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .team-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        /* AS Team */
+        .team-card.as-team::before {
+            background: linear-gradient(90deg, #4a90e2, #357abd);
+        }
+        .team-card.as-team:hover {
+            border-color: #4a90e2;
+            box-shadow: 0 12px 40px rgba(74, 144, 226, 0.2);
+        }
+        .team-card.as-team .team-icon {
+            background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+        }
+
+        /* Support Team */
+        .team-card.support-team::before {
+            background: linear-gradient(90deg, #27ae60, #219a52);
+        }
+        .team-card.support-team:hover {
+            border-color: #27ae60;
+            box-shadow: 0 12px 40px rgba(39, 174, 96, 0.2);
+        }
+        .team-card.support-team .team-icon {
+            background: linear-gradient(135deg, #27ae60 0%, #219a52 100%);
+        }
+
+        /* Admin */
+        .team-card.admin::before {
+            background: linear-gradient(90deg, #e67e22, #d35400);
+        }
+        .team-card.admin:hover {
+            border-color: #e67e22;
+            box-shadow: 0 12px 40px rgba(230, 126, 34, 0.2);
+        }
+        .team-card.admin .team-icon {
+            background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
+        }
+
+        .team-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 18px;
+            font-size: 28px;
+        }
+
+        .team-name {
+            font-size: 1.25em;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 10px;
+        }
+
+        .team-description {
+            color: #a0a0a0;
+            font-size: 0.85em;
+            line-height: 1.6;
+            margin-bottom: 18px;
+        }
+
+        .team-badge {
+            display: inline-block;
+            padding: 5px 14px;
+            border-radius: 6px;
+            font-size: 0.78em;
+            font-weight: 600;
+        }
+
+        .team-badge.active {
+            background: rgba(74, 144, 226, 0.15);
+            border: 1px solid rgba(74, 144, 226, 0.3);
+            color: #4a90e2;
+        }
+
+        .team-badge.coming {
+            background: rgba(128, 128, 128, 0.15);
+            border: 1px solid rgba(128, 128, 128, 0.3);
+            color: #808080;
+        }
+
+        /* Footer */
+        .hub-footer {
+            text-align: center;
+            padding: 40px 30px 30px;
+            color: #505050;
+            font-size: 0.8em;
+            animation: fadeInUp 0.6s ease 0.4s both;
+        }
+
+        .hub-footer .developer-tag {
+            margin-top: 6px;
+            font-weight: 600;
+            color: #4a90e2;
+        }
+
+        /* 이스터에그 고양이 */
+        .hub-footer {
+            position: relative;
+            overflow: visible;
+        }
+
+        /* 부우 로딩 화면 */
+        .boo-loading {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: #2a2a2a;
+            z-index: 9999;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .boo-loading.active {
+            display: flex;
+        }
+
+        .boo-loading.fade-out {
+            animation: booFadeOut 0.6s ease forwards;
+        }
+
+        @keyframes booFadeOut {
+            to { opacity: 0; }
+        }
+
+        .boo-loading-floor {
+            position: absolute;
+            bottom: 38%;
+            left: 0; right: 0;
+            height: 2px;
+            background: rgba(255,255,255,0.06);
+        }
+
+        .boo-run-wrap {
+            animation: booRunAcross 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes booRunAcross {
+            0% { transform: translateX(-120px) scaleX(1); }
+            49% { transform: translateX(120px) scaleX(1); }
+            50% { transform: translateX(120px) scaleX(-1); }
+            100% { transform: translateX(-120px) scaleX(-1); }
+        }
+
+        .boo-loading canvas {
+            image-rendering: pixelated;
+        }
+
+        .boo-loading-text {
+            margin-top: 30px;
+            font-family: 'Manrope', 'Segoe UI', sans-serif;
+            font-size: 0.85em;
+            color: #606060;
+            letter-spacing: 2px;
+        }
+
+        .boo-loading-dots {
+            display: inline;
+        }
+
+        .boo-loading-dots::after {
+            content: '';
+            animation: loadDots 1.5s steps(4) infinite;
+        }
+
+        @keyframes loadDots {
+            0% { content: ''; }
+            25% { content: '.'; }
+            50% { content: '..'; }
+            75% { content: '...'; }
+        }
+
+        .easter-cat {
+            position: absolute;
+            bottom: 20px;
+            image-rendering: pixelated;
+            cursor: pointer;
+            opacity: 0;
+            transition: transform 0.15s;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .easter-cat.peek {
+            opacity: 1;
+            pointer-events: auto;
+            animation: catPeek 2s ease-in-out forwards;
+        }
+
+        .easter-cat:hover {
+            transform: scale(1.2);
+        }
+
+        .easter-cat:active {
+            transform: scale(0.9);
+        }
+
+        @keyframes catPeek {
+            0% { transform: translateY(20px); opacity: 0; }
+            15% { transform: translateY(-5px); opacity: 1; }
+            25% { transform: translateY(-3px); opacity: 1; }
+            60% { transform: translateY(-3px); opacity: 1; }
+            80% { transform: translateY(2px); opacity: 0.5; }
+            100% { transform: translateY(20px); opacity: 0; }
+        }
+
+        /* ============================================ */
+        /* 종합 검색 */
+        /* ============================================ */
+        .search-wrapper {
+            width: 100%;
+            max-width: 560px;
+            margin: 0 auto 10px;
+            position: relative;
+            z-index: 500;
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 14px 48px 14px 44px;
+            background: #353535;
+            border: 1px solid #4a4a4a;
+            border-radius: 14px;
+            color: #e0e0e0;
+            font-size: 0.95em;
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+
+        .search-input::placeholder {
+            color: #707070;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #4a90e2;
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.15), 0 4px 20px rgba(0,0,0,0.3);
+            background: #3a3a3a;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 16px;
+            color: #707070;
+            pointer-events: none;
+        }
+
+        .search-clear {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #707070;
+            font-size: 16px;
+            cursor: pointer;
+            display: none;
+            padding: 4px;
+            line-height: 1;
+        }
+
+        .search-clear:hover {
+            color: #e0e0e0;
+        }
+
+        .search-shortcut {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #2a2a2a;
+            border: 1px solid #4a4a4a;
+            color: #606060;
+            padding: 2px 8px;
+            border-radius: 5px;
+            font-size: 0.7em;
+            font-family: monospace;
+            pointer-events: none;
+        }
+
+        .search-dropdown {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            right: 0;
+            background: #353535;
+            border: 1px solid #4a4a4a;
+            border-radius: 14px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+            display: none;
+            overflow: hidden;
+            max-height: 440px;
+            overflow-y: auto;
+        }
+
+        .search-dropdown.open {
+            display: block;
+            animation: dropdownSlide 0.2s ease;
+        }
+
+        @keyframes dropdownSlide {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .search-section-label {
+            padding: 10px 16px 6px;
+            font-size: 0.7em;
+            font-weight: 700;
+            color: #606060;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .search-result-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 16px;
+            cursor: pointer;
+            transition: background 0.15s;
+            border-left: 3px solid transparent;
+        }
+
+        .search-result-item:hover,
+        .search-result-item.active {
+            background: #3e3e3e;
+            border-left-color: #4a90e2;
+        }
+
+        .search-result-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 17px;
+            flex-shrink: 0;
+        }
+
+        .search-result-icon.team-common { background: linear-gradient(135deg, #5a8a9a, #3d6b7a); }
+        .search-result-icon.team-data { background: linear-gradient(135deg, #4a90e2, #357abd); }
+        .search-result-icon.team-inventory { background: linear-gradient(135deg, #27ae60, #219a52); }
+        .search-result-icon.team-support { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
+        .search-result-icon.team-as { background: linear-gradient(135deg, #4a90e2, #357abd); }
+        .search-result-icon.team-support-team { background: linear-gradient(135deg, #27ae60, #219a52); }
+        .search-result-icon.team-admin { background: linear-gradient(135deg, #e67e22, #d35400); }
+
+        .search-result-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .search-result-name {
+            font-size: 0.9em;
+            font-weight: 600;
+            color: #e0e0e0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .search-result-name mark {
+            background: rgba(74, 144, 226, 0.3);
+            color: #7ab8ff;
+            border-radius: 2px;
+            padding: 0 1px;
+        }
+
+        .search-result-desc {
+            font-size: 0.75em;
+            color: #808080;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-top: 2px;
+        }
+
+        .search-result-badge {
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-size: 0.65em;
+            font-weight: 600;
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+
+        .badge-common { background: rgba(90, 138, 154, 0.15); color: #7ba8b8; }
+        .badge-data { background: rgba(74, 144, 226, 0.15); color: #4a90e2; }
+        .badge-inventory { background: rgba(39, 174, 96, 0.15); color: #27ae60; }
+        .badge-support { background: rgba(155, 89, 182, 0.15); color: #9b59b6; }
+        .badge-as { background: rgba(74, 144, 226, 0.15); color: #4a90e2; }
+        .badge-support-team { background: rgba(39, 174, 96, 0.15); color: #27ae60; }
+        .badge-admin { background: rgba(230, 126, 34, 0.15); color: #e67e22; }
+
+        .search-empty {
+            padding: 30px 16px;
+            text-align: center;
+            color: #606060;
+            font-size: 0.85em;
+        }
+
+        .search-empty-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .search-recent-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 16px 6px;
+        }
+
+        .search-recent-label {
+            font-size: 0.7em;
+            font-weight: 700;
+            color: #606060;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .search-recent-clear {
+            font-size: 0.7em;
+            color: #606060;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .search-recent-clear:hover {
+            color: #e74c3c;
+        }
+
+        .search-footer {
+            padding: 8px 16px;
+            border-top: 1px solid #3a3a3a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            font-size: 0.7em;
+            color: #505050;
+        }
+
+        .search-footer kbd {
+            background: #2a2a2a;
+            border: 1px solid #4a4a4a;
+            border-radius: 3px;
+            padding: 1px 5px;
+            font-family: monospace;
+            font-size: 0.95em;
+        }
+
+        .search-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 499;
+            display: none;
+        }
+
+        .search-overlay.open {
+            display: block;
+        }
+
+        /* 로그아웃 버튼 */
+        .logout-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #353535;
+            border: 1px solid #4a4a4a;
+            color: #a0a0a0;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.85em;
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 100;
+        }
+
+        .logout-btn:hover {
+            background: #4a4a4a;
+            color: #ffffff;
+        }
+
+        /* 반응형 */
+        @media (max-width: 1100px) {
+            .workspace-item {
+                width: calc((100% - 28px) / 3);
+            }
+        }
+
+        @media (max-width: 900px) {
+            .team-grid {
+                grid-template-columns: 1fr;
+                max-width: 400px;
+                margin: 0 auto;
+                gap: 20px;
+            }
+            .team-card {
+                padding: 30px 24px;
+            }
+            .workspace-item {
+                width: calc((100% - 14px) / 2);
+            }
+            .workspace-panel {
+                padding: 24px 20px;
+            }
+        }
+
+        @media (max-width: 500px) {
+            .workspace-item {
+                width: calc((100% - 14px) / 2);
+            }
+        }
+
+        /* ===== BRIEFING BANNER ===== */
+        .attend-banner {
+            margin: 0 auto 24px;
+            width: calc(100% - 60px); max-width: 1140px;
+            background: linear-gradient(135deg, #2f4a35 0%, #353535 60%);
+            border: 1px solid #4caf50;
+            border-radius: 18px;
+            padding: 26px 30px;
+            display: flex; align-items: center; gap: 20px;
+            cursor: pointer; transition: all 0.3s ease;
+            position: relative; overflow: hidden;
+            box-shadow: 0 4px 20px rgba(76, 175, 80, 0.12);
+        }
+        .attend-banner::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+            background: linear-gradient(90deg, #4caf50, #7fd683, #4caf50);
+            background-size: 200% 100%;
+            animation: briefing-shimmer 3s infinite;
+        }
+        .attend-banner:hover {
+            border-color: #7fd683;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(76, 175, 80, 0.28);
+        }
+        .attend-icon-wrap {
+            width: 60px; height: 60px;
+            background: rgba(76, 175, 80, 0.15); border: 2px solid rgba(76, 175, 80, 0.35);
+            border-radius: 16px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 30px; flex-shrink: 0;
+        }
+        .attend-text { flex: 1; }
+        .attend-text h3 {
+            font-size: 20px; font-weight: 800;
+            color: #7fd683; margin-bottom: 5px;
+        }
+        .attend-text p { font-size: 14px; color: #b8c4ba; margin: 0; }
+        .attend-cta {
+            background: #4caf50; color: #fff;
+            font-size: 14px; font-weight: 800; letter-spacing: .5px;
+            padding: 11px 22px; border-radius: 12px; flex-shrink: 0;
+            transition: background 0.2s;
+        }
+        .attend-banner:hover .attend-cta { background: #3d9140; }
+        .attend-arrow {
+            font-size: 22px; color: #7fd683; flex-shrink: 0; transition: transform 0.3s;
+        }
+        .attend-banner:hover .attend-arrow { transform: translateX(4px); }
+        @media (max-width: 600px) {
+            .attend-banner { padding: 20px; gap: 14px; }
+            .attend-text h3 { font-size: 17px; }
+            .attend-cta { display: none; }
+        }
+
+        .briefing-banner {
+            margin: 0 auto 24px;
+            width: calc(100% - 60px); max-width: 1140px;
+            background: #353535;
+            border: 1px solid #4a4a4a;
+            border-radius: 16px;
+            padding: 20px 28px;
+            display: flex; align-items: center; gap: 18px;
+            cursor: pointer; transition: all 0.3s ease;
+            position: relative; overflow: hidden;
+        }
+        .briefing-banner::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, #4a90e2, #64b5f6, #4a90e2);
+            background-size: 200% 100%;
+            animation: briefing-shimmer 3s infinite;
+        }
+        @keyframes briefing-shimmer { 0%{background-position:0% 50%} 100%{background-position:200% 50%} }
+        .briefing-banner:hover {
+            border-color: #4a90e2;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(74, 144, 226, 0.2);
+        }
+        .briefing-icon-wrap {
+            width: 52px; height: 52px;
+            background: rgba(74, 144, 226, 0.12); border: 2px solid rgba(74, 144, 226, 0.25);
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px; flex-shrink: 0;
+        }
+        .briefing-text { flex: 1; }
+        .briefing-text h3 {
+            font-size: 15px; font-weight: 800;
+            color: #4a90e2; margin-bottom: 4px;
+        }
+        .briefing-text p { font-size: 14px; color: #aaa; margin: 0; }
+        .briefing-new {
+            background: linear-gradient(135deg, #ef4444, #f97316);
+            color: #fff; font-size: 11px; font-weight: 800; letter-spacing: 1px;
+            padding: 5px 14px; border-radius: 20px; flex-shrink: 0;
+            animation: briefing-pulse 1.5s ease-in-out infinite;
+        }
+        @keyframes briefing-pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+            50% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+        }
+        .briefing-arrow {
+            font-size: 20px; color: #4a90e2; flex-shrink: 0; transition: transform 0.3s;
+        }
+        .briefing-banner:hover .briefing-arrow { transform: translateX(4px); }
+        .briefing-banner.seen .briefing-new { display: none; }
+        .briefing-banner.seen .briefing-text p::after {
+            content: ' ✓ 확인완료'; color: #27ae60; font-weight: 700; font-size: 12px;
+        }
+    </style>
+    <script>
+    // 즉시 실행 — 인증 상태면 로그인 화면 깜빡임 방지
+    if (sessionStorage.getItem('hiqasc_authenticated') === 'true') {
+        document.documentElement.classList.add('authenticated');
+    }
+    </script>
+    <style>
+    .authenticated .login-overlay { display: none !important; }
+    .authenticated .hub-content { display: flex !important; flex-direction: column; align-items: center; justify-content: flex-start; padding: 60px 20px 20px; opacity: 1 !important; }
+    </style>
 </head>
 <body>
-<div class="app">
-  <div class="hd">
-    <div class="ttl"><span class="eyebrow">Work Planner</span><h1>업무 플래너</h1></div>
-    <div class="actions">
-      <span class="sync-dot" id="syncDot" title="동기화 상태"></span>
-      <button class="ibtn" id="syncBtn" title="새로고침">&#8635;</button>
-      <button class="ibtn" id="bellBtn" title="알림 권한">&#128276;</button>
-    </div>
-  </div>
-
-  <div class="banner" id="setupBanner" style="display:none"></div>
-
-  <div class="mnav">
-    <div class="mt"><span id="monthName">—</span><span class="yr" id="yearLabel"></span></div>
-    <div class="grp">
-      <button id="prevBtn">&lsaquo;</button>
-      <button class="today-btn" id="todayBtn">오늘</button>
-      <button id="nextBtn">&rsaquo;</button>
-    </div>
-  </div>
-
-  <div class="cal">
-    <div class="wd"><div class="s0">일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div class="s6">토</div></div>
-    <div class="grid" id="grid"></div>
-  </div>
-
-  <div class="selhd">
-    <div class="d"><span id="selWeekday" class="wlabel"></span> <span id="selDay"></span></div>
-    <div class="stats">
-      <div class="stat over"><div class="num" id="stOver">0</div><div class="lab">지연</div></div>
-      <div class="stat soon"><div class="num" id="stSoon">0</div><div class="lab">예정</div></div>
-      <div class="stat done"><div class="num" id="stDone">0</div><div class="lab">완료</div></div>
-    </div>
-  </div>
-
-  <div class="tabs">
-    <button class="on" data-tab="status">상태별</button>
-    <button data-tab="schedule">시간표</button>
-  </div>
-
-  <div class="body">
-    <button class="add-trigger" id="addTrigger"><span class="pl">+</span> 일정 추가</button>
-    <div class="add" id="addForm">
-      <input type="text" id="taskInput" placeholder="일정 / 할 일 입력…">
-      <div class="trow">
-        <input type="time" id="timeInput">
-        <div class="atog" id="alarmToggle">&#128276; 알람</div>
-      </div>
-      <div class="orow">
-        <div class="seg" id="prioSeg">
-          <button class="p-high" data-p="high">높음</button>
-          <button class="p-mid on" data-p="mid">중간</button>
-          <button class="p-low" data-p="low">낮음</button>
+    <!-- 부우 로딩 화면 -->
+    <div class="boo-loading" id="booLoading">
+        <div class="boo-loading-floor"></div>
+        <div class="boo-run-wrap">
+            <canvas id="booLoadingCanvas" width="42" height="36"></canvas>
         </div>
-        <select class="cat" id="catSel">
-          <option value="업무">업무</option><option value="수리">수리</option>
-          <option value="회의">회의</option><option value="보고">보고</option><option value="개인">개인</option>
-        </select>
-      </div>
-      <button class="addbtn" id="addBtn">추가하기</button>
+        <div class="boo-loading-text">LOADING<span class="boo-loading-dots"></span></div>
     </div>
 
-    <div id="statusView"></div>
-    <div id="scheduleView" style="display:none">
-      <div id="timeline"></div>
+    <!-- 로그인 화면 -->
+    <div class="login-overlay" id="loginOverlay">
+        <div class="login-box">
+            <div class="login-header">
+                <div class="login-logo">H</div>
+                <h2>HIQASC 통합 업무 시스템</h2>
+                <p id="loginSub">이름과 PIN으로 로그인하세요</p>
+            </div>
+
+            <!-- 직원 개인 로그인 -->
+            <div id="empMode">
+                <select class="login-input" id="empName">
+                    <option value="">이름 선택</option>
+                </select>
+                <input
+                    type="password"
+                    class="login-input"
+                    id="empPin"
+                    inputmode="numeric"
+                    placeholder="개인 PIN"
+                    autocomplete="off"
+                    onkeypress="if(event.key === 'Enter') loginEmployee()"
+                >
+                <button class="login-button" onclick="loginEmployee()">로그인</button>
+                <div class="login-switch"><a onclick="setMode('admin')">관리자 로그인 →</a></div>
+            </div>
+
+            <!-- 관리자 로그인 -->
+            <div id="adminMode" style="display:none;">
+                <input
+                    type="password"
+                    class="login-input"
+                    id="adminPw"
+                    placeholder="관리자 비밀번호"
+                    onkeypress="if(event.key === 'Enter') loginAdmin()"
+                >
+                <button class="login-button" onclick="loginAdmin()">관리자 로그인</button>
+                <div class="login-switch"><a onclick="setMode('emp')">← 직원 로그인</a></div>
+            </div>
+
+            <div class="login-error" id="loginError">로그인 정보가 올바르지 않습니다</div>
+        </div>
     </div>
 
-    <div class="sig">DEVELOPED BY DONGGU KANG</div>
-  </div>
-</div>
+    <!-- 팀 선택 허브 -->
+    <div class="hub-content" id="hubContent">
+        <button class="logout-btn" onclick="logout()">🔓 로그아웃</button>
 
-<div class="pop" id="alarmPop">
-  <div class="card">
-    <div class="ic">&#128276;</div>
-    <div class="at" id="alarmTime"></div>
-    <div class="atx" id="alarmText"></div>
-    <div class="snooze-label">미루기</div>
-    <div class="snooze-row">
-      <button data-min="10">+10분</button>
-      <button data-min="30">+30분</button>
-      <button data-min="60">+1시간</button>
+        <div class="hub-header">
+            <div class="hub-brand">
+                <div class="hub-brand-icon">H</div>
+                <span class="hub-brand-text">HIQASC 통합 업무 시스템</span>
+            </div>
+            <p class="hub-subtitle">팀을 선택하여 업무를 시작하세요</p>
+            <p class="hub-date" id="currentDate"></p>
+        </div>
+
+        <!-- 종합 검색 -->
+        <div class="search-wrapper" id="searchWrapper">
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" class="search-input" id="searchInput" placeholder="메뉴 검색 (초성 지원 — 예: ㅅㄹ → 수리 타이머)" autocomplete="off">
+                <span class="search-shortcut" id="searchShortcut">/</span>
+                <button class="search-clear" id="searchClear" onclick="clearSearch()">✕</button>
+            </div>
+            <div class="search-dropdown" id="searchDropdown"></div>
+        </div>
+        <div class="search-overlay" id="searchOverlay"></div>
+
+        <!-- ============================================ -->
+        <!-- 근태 기록 (최우선) -->
+        <!-- ============================================ -->
+        <div class="attend-banner" onclick="goTeam('attendance.html')">
+            <div class="attend-icon-wrap">⏰</div>
+            <div class="attend-text">
+                <h3>출퇴근 기록</h3>
+                <p>출근하면 가장 먼저! 출근·퇴근 시간을 기록하세요</p>
+            </div>
+            <div class="attend-cta">기록하기</div>
+            <div class="attend-arrow">→</div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- DAILY BRIEFING BANNER -->
+        <!-- ============================================ -->
+        <div class="briefing-banner" id="briefingBanner" onclick="goTeam('daily-briefing.html')">
+            <div class="briefing-icon-wrap">📋</div>
+            <div class="briefing-text">
+                <h3>📌 DAILY BRIEFING</h3>
+                <p>금일의 브리핑을 확인하세요!</p>
+            </div>
+            <div class="briefing-new" id="briefingNew">NEW</div>
+            <div class="briefing-arrow">→</div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- HIQ ASC -->
+        <!-- ============================================ -->
+        <div class="workspace-section">
+            <div class="section-label">
+                <div class="section-label-line"></div>
+                <span class="section-label-text">HIQ Workspace · 전사 공통</span>
+                <div class="section-label-line"></div>
+            </div>
+
+            <div class="workspace-panel theme-teal">
+                <div class="workspace-header">
+                    <div class="workspace-title-group">
+                        <div class="workspace-title-icon">🏢</div>
+                        <div class="workspace-title">
+                            <h3>HIQ ASC</h3>
+                            <p>조직 운영 및 업무 가이드</p>
+                        </div>
+                    </div>
+                    <span class="workspace-tag">COMPANY</span>
+                </div>
+                <div class="workspace-grid">
+                    <div class="workspace-item" onclick="goTeam('org-dashboard.html?v=' + Date.now())">
+                        <div class="workspace-item-icon">👥</div>
+                        <div class="workspace-item-name">조직도 &amp; 담당</div>
+                        <div class="workspace-item-desc">조직 구성 및<br>업무 담당자</div>
+                    </div>
+                    <div class="workspace-item" onclick="goTeam('team-dashboard.html')">
+                        <div class="workspace-item-icon">📊</div>
+                        <div class="workspace-item-name">HIQASC 팀 현황</div>
+                        <div class="workspace-item-desc">근무 현황, 연차,<br>당일 수리 현황</div>
+                    </div>
+                    <div class="workspace-item" onclick="goTeam('daily-playbook.html')">
+                        <div class="workspace-item-icon">📖</div>
+                        <div class="workspace-item-name">업무 플레이북</div>
+                        <div class="workspace-item-desc">전사 업무 흐름<br>&amp; 온보딩 가이드</div>
+                    </div>
+                    <div class="workspace-item" onclick="goTeam('quiz.html')">
+                        <div class="workspace-item-icon">📝</div>
+                        <div class="workspace-item-name">업무 퀴즈</div>
+                        <div class="workspace-item-desc">AS 업무 지식<br>퀴즈 &amp; 랭킹</div>
+                    </div>
+                    <div class="workspace-item" onclick="goTeam('work-guides.html')">
+                        <div class="workspace-item-icon">🧭</div>
+                        <div class="workspace-item-name">업무 가이드</div>
+                        <div class="workspace-item-desc">시스템·업무별<br>사용법 가이드 모음</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- 데이터 센터 -->
+        <!-- ============================================ -->
+        <div class="workspace-section">
+            <div class="workspace-panel theme-blue">
+                <div class="workspace-header">
+                    <div class="workspace-title-group">
+                        <div class="workspace-title-icon">📈</div>
+                        <div class="workspace-title">
+                            <h3>데이터 센터</h3>
+                            <p>AS 실적 분석 및 입고 데이터</p>
+                        </div>
+                    </div>
+                    <span class="workspace-tag">DATA</span>
+                </div>
+                <div class="workspace-grid">
+                    <div class="workspace-item" onclick="goTeam('machine-dashboard.html')">
+                        <div class="workspace-item-icon">🖥️</div>
+                        <div class="workspace-item-name">AS현황 대시보드</div>
+                        <div class="workspace-item-desc">머신 수량 현황<br>실시간 모니터링</div>
+                    </div>
+                    <div class="workspace-item" onclick="goTeam('weekly-closing-dashboard.html')">
+                        <div class="workspace-item-icon">📊</div>
+                        <div class="workspace-item-name">AS 로우 데이터</div>
+                        <div class="workspace-item-desc">입고·완료 현황 및<br>테크니션 실적 분석</div>
+                    </div>
+                    <div class="workspace-item" onclick="goTeam('intake-trend-dashboard.html')">
+                        <div class="workspace-item-icon">📉</div>
+                        <div class="workspace-item-name">입고 추세 분석</div>
+                        <div class="workspace-item-desc">주간·월별 입고량<br>추이 및 변동 분석</div>
+                    </div>
+                    <div class="workspace-item" onclick="goTeam('repair-analysis.html')">
+                        <div class="workspace-item-icon">🤖</div>
+                        <div class="workspace-item-name">AS 분석 대시보드</div>
+                        <div class="workspace-item-desc">접수 내용 텍스트 기반<br>AI 증상·부품 분석</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- 재고 관리 센터 -->
+        <!-- ============================================ -->
+        <div class="workspace-section">
+            <div class="workspace-panel theme-green">
+                <div class="workspace-header">
+                    <div class="workspace-title-group">
+                        <div class="workspace-title-icon">📦</div>
+                        <div class="workspace-title">
+                            <h3>재고 관리 센터</h3>
+                            <p>창고 현황 및 소모품 재고 관리</p>
+                        </div>
+                    </div>
+                    <span class="workspace-tag">INVENTORY</span>
+                </div>
+                <div class="workspace-grid">
+                    <div class="workspace-item" onclick="goTeam('warehouse-dashboard.html')">
+                        <div class="workspace-item-icon">🏭</div>
+                        <div class="workspace-item-name">창고 대시보드</div>
+                        <div class="workspace-item-desc">창고 사용 현황<br>실시간 모니터링</div>
+                    </div>
+                    <div class="workspace-item" onclick="goTeam('consumables-inventory.html')">
+                        <div class="workspace-item-icon">🧰</div>
+                        <div class="workspace-item-name">소모품 재고</div>
+                        <div class="workspace-item-desc">실시간 소모품<br>재고 현황 조회</div>
+                    </div>
+                    <div class="workspace-item" onclick="goTeam('parts-search.html')">
+                        <div class="workspace-item-icon">🔍</div>
+                        <div class="workspace-item-name">부품 검색</div>
+                        <div class="workspace-item-desc">부품 위치 검색<br>에어리어 맵 안내</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- 업무 지원 센터 -->
+        <!-- ============================================ -->
+        <div class="workspace-section">
+            <div class="workspace-panel theme-purple">
+                <div class="workspace-header">
+                    <div class="workspace-title-group">
+                        <div class="workspace-title-icon">📋</div>
+                        <div class="workspace-title">
+                            <h3>업무 지원 센터</h3>
+                            <p>결재, 보고, 근태 관리</p>
+                        </div>
+                    </div>
+                    <span class="workspace-tag">SUPPORT</span>
+                </div>
+                <div class="workspace-grid">
+                    <div class="workspace-item" onclick="goTeam('approval-system.html')">
+                        <div class="workspace-item-icon">📝</div>
+                        <div class="workspace-item-name">기안 &amp; 결재</div>
+                        <div class="workspace-item-desc">기안서 제출 및<br>승인 워크플로우</div>
+                    </div>
+                    <div class="workspace-item" onclick="goTeam('daily-report.html')">
+                        <div class="workspace-item-icon">📅</div>
+                        <div class="workspace-item-name">일일 업무 보고</div>
+                        <div class="workspace-item-desc">매일 업무 종료 시<br>작성하는 보고서</div>
+                    </div>
+                    <div class="workspace-item" onclick="goExternal('https://donggukang09.github.io/hiqasc-overtime/leave_request.html')">
+                        <div class="workspace-item-icon">🌴</div>
+                        <div class="workspace-item-name">연차 신청</div>
+                        <div class="workspace-item-desc">연차 신청 및<br>승인 관리</div>
+                    </div>
+                    <div class="workspace-item" onclick="goTeam('attendance.html')">
+                        <div class="workspace-item-icon">⏰</div>
+                        <div class="workspace-item-name">근태 기록</div>
+                        <div class="workspace-item-desc">출근 · 퇴근<br>시간 기록</div>
+                    </div>
+                    <div class="workspace-item" onclick="goTeam('qc.html')">
+                        <div class="workspace-item-icon">🔍</div>
+                        <div class="workspace-item-name">QC 품질검사</div>
+                        <div class="workspace-item-desc">수리 완료 머신<br>품질 검사 및 판정</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- 팀별 업무 시스템 -->
+        <!-- ============================================ -->
+        <div class="team-section">
+            <div class="section-label">
+                <div class="section-label-line"></div>
+                <span class="section-label-text" style="color: #4a90e2;">팀별 전용 시스템</span>
+                <div class="section-label-line"></div>
+            </div>
+
+            <div class="team-grid">
+                <!-- AS Team -->
+                <div class="team-card as-team" onclick="goTeam('as-team.html')">
+                    <div class="team-icon">🔧</div>
+                    <h3 class="team-name">AS Team</h3>
+                    <p class="team-description">
+                        Bench AS 수리팀 전용 업무 시스템.<br>
+                        수리 관리, 데이터 분석, 업무 도구를 사용합니다.
+                    </p>
+                    <span class="team-badge active">운영중</span>
+                </div>
+
+                <!-- Support Team -->
+                <div class="team-card support-team" onclick="goTeam('support-team.html')">
+                    <div class="team-icon">📦</div>
+                    <h3 class="team-name">Support Team</h3>
+                    <p class="team-description">
+                        물류 및 부품 지원팀 업무 시스템.<br>
+                        입출고 관리, 재고 현황, 배송 추적을 처리합니다.
+                    </p>
+                    <span class="team-badge active">운영중</span>
+                </div>
+
+                <!-- Admin -->
+                <div class="team-card admin" onclick="goTeam('admin.html')">
+                    <div class="team-icon">⚙️</div>
+                    <h3 class="team-name">Admin</h3>
+                    <p class="team-description">
+                        관리자 전용 시스템.<br>
+                        전체 팀 관리, 시스템 설정, 통합 리포트를 확인합니다.
+                    </p>
+                    <span class="team-badge active">운영중</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="hub-footer">
+            <p>&copy; 2025 HIQASC Repair Team Management Platform. All rights reserved.</p>
+            <p class="developer-tag">DEVELOPED BY DONGGU KANG</p>
+            <canvas class="easter-cat" id="easterCat" width="42" height="42" onclick="window.location.href='developer.html'"></canvas>
+        </div>
     </div>
-    <div class="card-btns">
-      <button class="btn-close" id="alarmDismiss">닫기</button>
-      <button class="btn-done" id="alarmDone">완료</button>
-    </div>
-  </div>
-</div>
-<div class="toast" id="toast"></div>
 
-<script>
-(function(){
-  /* ===================== 설정 =====================
-     아래 WEBAPP_URL 한 줄만 본인 Apps Script 웹앱 주소로 바꾸면 됩니다. */
-  const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbykds5kzPzdvjme4gqHSoQa01axjunEryWrK89meX0URHD_Ki1a1BME7yziX4m35MO-/exec';
-  /* ================================================ */
+    <script>
+        // ============================================
+        // 종합 검색 시스템
+        // ============================================
+        const SEARCH_MENU = [
+            // === index.html — HIQ ASC ===
+            { name: '조직도 & 담당', icon: '👥', desc: '조직 구성 및 업무 담당자', url: 'org-dashboard.html?v=' + Date.now(), team: '전사 공통', badge: 'common', iconClass: 'team-common', keywords: '조직도,담당,조직,구성,인원,org' },
+            { name: 'HIQASC 팀 현황', icon: '📊', desc: '근무 현황, 연차, 당일 수리 현황', url: 'team-dashboard.html', team: '전사 공통', badge: 'common', iconClass: 'team-common', keywords: '팀현황,근무,연차,수리현황,team,dashboard' },
+            { name: '업무 플레이북', icon: '📖', desc: '전사 업무 흐름 & 온보딩 가이드', url: 'daily-playbook.html', team: '전사 공통', badge: 'common', iconClass: 'team-common', keywords: '플레이북,온보딩,가이드,업무흐름,playbook' },
+            { name: '업무 퀴즈', icon: '📝', desc: 'AS 업무 지식 퀴즈 & 랭킹', url: 'quiz.html', team: '전사 공통', badge: 'common', iconClass: 'team-common', keywords: '퀴즈,시험,테스트,quiz,랭킹,문제' },
+            { name: '업무 가이드', icon: '🧭', desc: '시스템·업무별 사용법 가이드 모음', url: 'work-guides.html', team: '전사 공통', badge: 'common', iconClass: 'team-common', keywords: '가이드,사용법,매뉴얼,guide,일양,택배,송장,출력,운송장' },
+            // === index.html — 데이터 센터 ===
+            { name: 'AS현황 대시보드', icon: '🖥️', desc: '머신 수량 현황 실시간 모니터링', url: 'machine-dashboard.html', team: '데이터 센터', badge: 'data', iconClass: 'team-data', keywords: '머신,수량,현황,대시보드,machine,tv' },
+            { name: 'AS 로우 데이터', icon: '📊', desc: '입고·완료 현황 및 테크니션 실적 분석', url: 'weekly-closing-dashboard.html', team: '데이터 센터', badge: 'data', iconClass: 'team-data', keywords: '주간마감,마감,실적,입고,완료,weekly,closing,로우데이터,raw' },
+            { name: '입고 추세 분석', icon: '📉', desc: '주간·월별 입고량 추이 및 변동 분석', url: 'intake-trend-dashboard.html', team: '데이터 센터', badge: 'data', iconClass: 'team-data', keywords: '입고추세,추세,트렌드,입고량,변동,intake,trend' },
+            { name: 'AS 분석 대시보드', icon: '🤖', desc: '접수 내용 텍스트 기반 AI 증상·부품 분석', url: 'repair-analysis.html', team: '데이터 센터', badge: 'data', iconClass: 'team-data', keywords: '분석,AI,증상,부품,모델,텍스트,analysis,repair,DOA,NTF,재입고' },
+            // === index.html — 재고 관리 센터 ===
+            { name: '창고 대시보드', icon: '🏭', desc: '창고 사용 현황 실시간 모니터링', url: 'warehouse-dashboard.html', team: '재고 관리', badge: 'inventory', iconClass: 'team-inventory', keywords: '창고,warehouse,사용현황' },
+            { name: '소모품 재고', icon: '🧰', desc: '실시간 소모품 재고 현황 조회', url: 'consumables-inventory.html', team: '재고 관리', badge: 'inventory', iconClass: 'team-inventory', keywords: '소모품,재고,consumables,inventory' },
+            { name: '부품 검색', icon: '🔍', desc: '부품 위치 검색 에어리어 맵 안내', url: 'parts-search.html', team: '재고 관리', badge: 'inventory', iconClass: 'team-inventory', keywords: '부품,검색,위치,에어리어,맵,parts,search' },
+            // === index.html — 업무 지원 센터 ===
+            { name: '기안 & 결재', icon: '📝', desc: '기안서 제출 및 승인 워크플로우', url: 'approval-system.html', team: '업무 지원', badge: 'support', iconClass: 'team-support', keywords: '기안,결재,승인,approval' },
+            { name: '일일 업무 보고', icon: '📅', desc: '매일 업무 종료 시 작성하는 보고서', url: 'daily-report.html', team: '업무 지원', badge: 'support', iconClass: 'team-support', keywords: '일일보고,업무보고,daily,report' },
+            { name: '연차 신청', icon: '🌴', desc: '연차 신청 및 승인 관리', url: 'https://donggukang09.github.io/hiqasc-overtime/leave_request.html', team: '업무 지원', badge: 'support', iconClass: 'team-support', external: true, keywords: '연차,휴가,신청,leave' },
+            { name: 'QC 품질검사', icon: '🔍', desc: '수리 완료 머신 품질 검사 및 PASS/FAIL 판정', url: 'qc.html', team: '업무 지원', badge: 'support', iconClass: 'team-support', keywords: 'QC,품질,검사,테스트,quality,check,pass,fail' },
+            // === as-team.html — 데이터 분석 ===
+            { name: '백로그 대시보드', icon: '📈', desc: '일간/주간 수리 백로그 현황', url: 'as-team.html#sec-data', page: 'backlog-dashboard.html', team: 'AS Team', badge: 'as', iconClass: 'team-as', keywords: '백로그,잔여,backlog' },
+            { name: '모델 성취도 대시보드', icon: '✅', desc: '테크니션별 모델 수리 가능 현황 매트릭스', url: 'model-achievement.html', team: 'AS Team', badge: 'as', iconClass: 'team-as', keywords: '모델,성취도,매트릭스,교육,achievement' },
+            // === as-team.html — 업무 관리 ===
+            { name: '추가근로 신청 시스템', icon: '⏰', desc: '초과근무 및 추가근로 신청과 승인', url: 'https://donggukang09.github.io/hiqasc-overtime/overtime_request.html', team: 'AS Team', badge: 'as', iconClass: 'team-as', external: true, keywords: '추가근로,초과근무,야근,overtime' },
+            { name: '부품 입력 시스템', icon: '🔧', desc: '수리 시 사용된 부품 정보 입력 및 추적', url: 'https://script.google.com/macros/s/AKfycbxH-usbWLQYim1T32p9ClYSnXnSToLQgebuQMGv9Apz3ThDx8wZkqaEEant6EiUWTAI/exec', team: 'AS Team', badge: 'as', iconClass: 'team-as', external: true, keywords: '부품입력,부품,사용,parts' },
+            { name: '사내 교육 보고서', icon: '🎓', desc: '사내 교육 실시 후 보고서 작성', url: 'training-report.html', team: 'AS Team', badge: 'as', iconClass: 'team-as', keywords: '교육,보고서,training,report' },
+            { name: '데일리 플랜', icon: '📆', desc: '시간대별 수리 계획과 입고 수량 기반 완료 예측', url: 'daily-plan.html', team: 'AS Team', badge: 'as', iconClass: 'team-as', keywords: '데일리,일일,플랜,계획,daily,plan' },
+            { name: '주간 플랜', icon: '📅', desc: '주간 수리 계획과 요일별 입고 예측', url: 'weekly-plan.html', team: 'AS Team', badge: 'as', iconClass: 'team-as', keywords: '주간,위클리,플랜,weekly,plan' },
+            // === as-team.html — 업무 도구 ===
+            { name: '수리 타이머', icon: '⏱️', desc: '수리 시간 측정 및 모델별 통계', url: 'repair-timer.html', team: 'AS Team', badge: 'as', iconClass: 'team-as', keywords: '타이머,수리시간,측정,timer,repair' },
+            { name: 'DOA 정리 시스템', icon: '📋', desc: '통화요청 건 DOA 시트 자동 정리', url: 'doa-system.html', team: 'AS Team', badge: 'as', iconClass: 'team-as', keywords: 'doa,도아,정리,통화요청' },
+            { name: '통화요청 파일 자동 생성', icon: '📞', desc: '로우데이터와 콜센터 파일 자동 병합', url: 'call-request-system.html', team: 'AS Team', badge: 'as', iconClass: 'team-as', keywords: '통화요청,콜,전화,call,request' },
+            { name: '통화요청 관리 시스템', icon: '📊', desc: '통화요청 현황 조회 및 관리', url: 'https://script.google.com/macros/s/AKfycbzQ5ROrUuCrBRU24UN__FuD94UJnVgiZRDozlGF7OOc8cGmsppvbqXbz8u0G5WqkglR0A/exec', team: 'AS Team', badge: 'as', iconClass: 'team-as', external: true, keywords: '통화요청,관리,콜,call,management' },
+            { name: '문서 출력 시스템', icon: '🖨️', desc: '보상판매 문서 생성 및 출력', url: 'document-output-main.html', team: 'AS Team', badge: 'as', iconClass: 'team-as', keywords: '문서,출력,보상판매,document,output' },
+            { name: '알림 시스템', icon: '🔔', desc: '긴급 알림 팝업 출력', url: 'alert-system.html', team: 'AS Team', badge: 'as', iconClass: 'team-as', keywords: '알림,알람,팝업,alert,notification' },
+            { name: '소모품 신청', icon: '🎁', desc: '필요한 소모품 신청 및 관리', url: 'supplies-request.html', team: 'AS Team', badge: 'as', iconClass: 'team-as', keywords: '소모품,신청,supplies,request' },
+            { name: '소모품 재고 리스트', icon: '📦', desc: '실시간 소모품 재고 현황 조회', url: 'consumables-inventory.html', team: 'AS Team', badge: 'as', iconClass: 'team-as', keywords: '소모품,재고,리스트,consumables' },
+            // === as-team.html — 정보 관리 ===
+            { name: '위키 시스템', icon: '📚', desc: '수리 매뉴얼, 증상별 해결 방법', url: 'wiki-system.html', team: 'AS Team', badge: 'as', iconClass: 'team-as', keywords: '위키,매뉴얼,증상,해결,wiki' },
+            { name: '네스프레소 머신 사용법 안내', icon: '☕', desc: '네스프레소 머신별 공식 사용법 가이드', url: 'nespresso-machine-guide.html', team: 'AS Team', badge: 'as', iconClass: 'team-as', keywords: '네스프레소,머신,사용법,가이드,nespresso,guide' },
+            { name: '업무 게시판', icon: '📋', desc: '업무 절차, 매뉴얼 등 정보 등록 및 검색', url: 'board.html', team: 'AS Team', badge: 'as', iconClass: 'team-as', keywords: '게시판,게시글,매뉴얼,board' },
+            { name: 'AS 팀장 대체업무 트리', icon: '🔄', desc: '팀장 부재 시 업무별 대체자 지정', url: 'as-backup-tree.html', team: 'AS Team', badge: 'as', iconClass: 'team-as', keywords: '대체,백업,팀장,부재,backup' },
+            // === support-team.html ===
+            { name: 'Rental Team 데일리 플랜', icon: '📆', desc: '임대머신 입고, 준비, 출고 일일 업무', url: 'rental-daily-plan.html', team: 'Support Team', badge: 'support-team', iconClass: 'team-support-team', keywords: '렌탈,임대,rental,데일리,플랜' },
+            { name: '부품관리 데일리 플랜', icon: '🔧', desc: '시간대별 부품 창고 정리, 입고작업', url: 'parts-daily-plan.html', team: 'Support Team', badge: 'support-team', iconClass: 'team-support-team', keywords: '부품관리,부품,창고,정리,parts' },
+            { name: '포장 & 입출고 데일리 플랜', icon: '🚚', desc: '머신 입고, 포장, 출고 업무 관리', url: 'shipping-daily-plan.html', team: 'Support Team', badge: 'support-team', iconClass: 'team-support-team', keywords: '포장,입출고,출고,입고,배송,shipping' },
+            { name: 'Support 팀장 대체업무 트리', icon: '🔄', desc: '팀장 부재 시 업무별 대체자 지정', url: 'support-backup-tree.html', team: 'Support Team', badge: 'support-team', iconClass: 'team-support-team', keywords: '대체,백업,팀장,부재,backup,support' },
+            // === admin.html ===
+            { name: '연차 승인', icon: '✅', desc: '직원 연차/휴가 승인 또는 반려 처리', url: 'https://donggukang09.github.io/hiqasc-overtime/leave_approval.html', team: 'Admin', badge: 'admin', iconClass: 'team-admin', external: true, keywords: '연차,승인,반려,leave,approval' },
+            { name: 'HIQASC 위클리 플랜', icon: '📊', desc: '전사 주간 업무 계획 및 진행 현황', url: 'company-weekly-plan.html', team: 'Admin', badge: 'admin', iconClass: 'team-admin', keywords: '위클리,전사,주간,회사,company,weekly' },
+            { name: '센터장 대체업무 트리', icon: '🔄', desc: '센터장 부재 시 업무별 대체자 지정', url: 'admin-backup-tree.html', team: 'Admin', badge: 'admin', iconClass: 'team-admin', keywords: '센터장,대체,백업,부재,admin,backup' },
+            { name: '월 컴플레인 마감 자료', icon: '📈', desc: '부품불량, 컴플레인, 손상 등 월별 마감', url: 'center-dashboard.html', team: 'Admin', badge: 'admin', iconClass: 'team-admin', keywords: '컴플레인,마감,월별,불량,손상,complaint' },
+            // === 팀 페이지 바로가기 ===
+            { name: 'AS Team', icon: '🔧', desc: 'Bench AS 수리팀 전용 업무 시스템', url: 'as-team.html', team: '팀 바로가기', badge: 'as', iconClass: 'team-as', keywords: 'as,수리팀,수리,bench' },
+            { name: 'Support Team', icon: '📦', desc: '물류 및 부품 지원팀 업무 시스템', url: 'support-team.html', team: '팀 바로가기', badge: 'support-team', iconClass: 'team-support-team', keywords: 'support,물류,지원,서포트' },
+            { name: 'Admin', icon: '⚙️', desc: '관리자 전용 시스템', url: 'admin.html', team: '팀 바로가기', badge: 'admin', iconClass: 'team-admin', keywords: 'admin,관리자,설정' },
+        ];
 
-  const MONTHS=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
-  const WD=['일','월','화','수','목','금','토'];
-  const LS_KEY='workplanner:v3';
-  let tasks=[], viewYear, viewMonth, selectedKey, activePrio='mid', alarmOn=false, activeTab='status';
-  const fired=new Set();
-  let audioCtx=null, alarmTask=null;
+        // 초성 매핑
+        const CHO = ['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
 
-  const $=id=>document.getElementById(id);
-  const pad=n=>String(n).padStart(2,'0');
-  const keyOf=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
-  const parseKey=k=>{const a=k.split('-').map(Number);return new Date(a[0],a[1]-1,a[2]);};
-  const esc=s=>String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-  const hasRemote=()=>WEBAPP_URL && WEBAPP_URL.indexOf('script.google.com')>-1;
-  const nowHHMM=()=>{const n=new Date();return pad(n.getHours())+':'+pad(n.getMinutes());};
+        function getChosung(str) {
+            return [...str].map(c => {
+                const code = c.charCodeAt(0) - 0xAC00;
+                if (code < 0 || code > 11171) return c;
+                return CHO[Math.floor(code / 588)];
+            }).join('');
+        }
 
-  /* 상태: done / overdue(지연) / soon(예정) */
-  function statusOf(t){
-    if(t.done)return 'done';
-    const todayKey=keyOf(new Date());
-    if(t.date<todayKey)return 'over';
-    if(t.date===todayKey && t.time && t.time<nowHHMM())return 'over';
-    return 'soon';
-  }
-  const isOverdue=t=>!t.done&&!t.deleted&&statusOf(t)==='over';
+        function isChosung(str) {
+            return [...str].every(c => CHO.includes(c));
+        }
 
-  function loadLocal(){try{const r=localStorage.getItem(LS_KEY);tasks=r?JSON.parse(r):[];}catch(e){tasks=[];}}
-  function saveLocal(){try{localStorage.setItem(LS_KEY,JSON.stringify(tasks));}catch(e){}}
+        function matchSearch(item, query) {
+            const q = query.toLowerCase();
+            const name = item.name.toLowerCase();
+            const keywords = (item.keywords || '').toLowerCase();
+            const team = item.team.toLowerCase();
+            const desc = item.desc.toLowerCase();
 
-  function setDot(s){const d=$('syncDot');d.className='sync-dot'+(s?' '+s:'');}
-  async function pull(){
-    if(!hasRemote())return;setDot('busy');
-    try{const res=await fetch(WEBAPP_URL+'?action=list&_t='+Date.now());const data=await res.json();
-      if(data&&data.ok&&Array.isArray(data.items)){merge(data.items);saveLocal();render();setDot('ok');}else setDot('err');
-    }catch(e){setDot('err');}
-  }
-  function merge(remote){
-    const localById={}; tasks.forEach(t=>localById[t.id]=t);
-    const remoteById={}; remote.forEach(r=>remoteById[r.id]=r);
-    const out=[];
-    remote.forEach(r=>{const l=localById[r.id];
-      if(l&&l.deleted)return;
-      if(l&&l.pending&&(l.updated||0)>=(r.updated||0)) out.push(l);
-      else out.push(Object.assign({},r,{pending:false,deleted:false}));});
-    tasks.forEach(l=>{if(!remoteById[l.id]&&!l.deleted) out.push(l);});
-    tasks=out;
-  }
-  async function push(action,payload){
-    if(!hasRemote())return false;
-    try{const res=await fetch(WEBAPP_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(Object.assign({action:action},payload))});const d=await res.json();return d&&d.ok;}catch(e){return false;}
-  }
-  function cleanT(t){return {id:t.id,date:t.date,time:t.time||'',text:t.text,prio:t.prio,cat:t.cat,done:!!t.done,alarm:!!t.alarm,notified:!!t.notified,updated:t.updated||Date.now()};}
-  async function syncItem(t){if(!hasRemote()){t.pending=false;return;}setDot('busy');const ok=await push('upsert',{item:cleanT(t)});t.pending=!ok;saveLocal();setDot(ok?'ok':'err');}
-  async function syncDelete(id){if(!hasRemote())return;setDot('busy');const ok=await push('delete',{id:id});if(ok){tasks=tasks.filter(x=>x.id!==id);saveLocal();render();}setDot(ok?'ok':'err');}
-  async function flushPending(){
-    if(!hasRemote())return;
-    for(const t of tasks.filter(t=>t.pending&&!t.deleted)){const ok=await push('upsert',{item:cleanT(t)});if(ok)t.pending=false;}
-    for(const t of tasks.filter(t=>t.deleted)){const ok=await push('delete',{id:t.id});if(ok)tasks=tasks.filter(x=>x.id!==t.id);}
-    saveLocal();
-  }
+            // 1. 이름 포함
+            if (name.includes(q)) return { score: 100, field: 'name' };
+            // 2. 초성 검색
+            if (isChosung(query)) {
+                const nameChosung = getChosung(item.name);
+                if (nameChosung.includes(query)) return { score: 90, field: 'name' };
+            }
+            // 3. 키워드 매칭
+            if (keywords.includes(q)) return { score: 70, field: 'keywords' };
+            // 4. 팀명
+            if (team.includes(q)) return { score: 50, field: 'team' };
+            // 5. 설명
+            if (desc.includes(q)) return { score: 30, field: 'desc' };
 
-  function dayTasks(k){return tasks.filter(t=>t.date===k&&!t.deleted);}
-  function sortByTime(list){
-    const order={high:0,mid:1,low:2};
-    return [...list].sort((a,b)=>{
-      if(a.time&&b.time)return a.time.localeCompare(b.time);
-      if(a.time)return -1;if(b.time)return 1;
-      return order[a.prio]-order[b.prio];
-    });
-  }
+            return null;
+        }
 
-  function render(){
-    const todayKey=keyOf(new Date());
-    $('monthName').textContent=MONTHS[viewMonth];
-    $('yearLabel').textContent=viewYear;
-    const startDow=new Date(viewYear,viewMonth,1).getDay();
-    const dim=new Date(viewYear,viewMonth+1,0).getDate();
-    const grid=$('grid');grid.innerHTML='';
-    const cells=Math.ceil((startDow+dim)/7)*7;
-    for(let i=0;i<cells;i++){
-      const dn=i-startDow+1;const inM=dn>=1&&dn<=dim;
-      const cell=document.createElement('div');
-      cell.className='cell'+(inM?'':' muted');
-      const dow=i%7;const sCls=dow===0?'s0':dow===6?'s6':'';
-      if(!inM){cell.innerHTML='<span class="n '+sCls+'"></span>';grid.appendChild(cell);continue;}
-      const k=keyOf(new Date(viewYear,viewMonth,dn));
-      const list=dayTasks(k);
-      let h='<span class="n '+sCls+'">'+dn+'</span>';
-      if(list.length){
-        const undone=list.filter(t=>!t.done);
-        const hasOver=list.some(isOverdue);
-        if(undone.length===0){h+='<span class="alldone">\u2713</span>';}
-        else{h+='<span class="dots">';
-          if(hasOver)h+='<i class="od"></i>';
-          const prs=[...new Set(undone.filter(t=>!isOverdue(t)).map(t=>t.prio))].slice(0,hasOver?2:3);
-          prs.forEach(p=>h+='<i class="p-'+p+'"></i>');
-          h+='</span>';}
-      }else{h+='<span class="dots"></span>';}
-      cell.innerHTML=h;
-      if(k===todayKey)cell.classList.add('today');
-      if(k===selectedKey)cell.classList.add('sel');
-      cell.addEventListener('click',(function(kk){return function(){selectedKey=kk;render();};})(k));
-      grid.appendChild(cell);
-    }
-    renderDay();
-  }
+        function highlightText(text, query) {
+            if (!query) return text;
+            const q = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const regex = new RegExp(`(${q})`, 'gi');
+            return text.replace(regex, '<mark>$1</mark>');
+        }
 
-  function renderDay(){
-    const d=parseKey(selectedKey);
-    $('selWeekday').textContent=WD[d.getDay()]+'요일';
-    $('selDay').textContent=d.getDate()+'일';
-    const list=dayTasks(selectedKey);
-    $('stOver').textContent=list.filter(t=>statusOf(t)==='over').length;
-    $('stSoon').textContent=list.filter(t=>statusOf(t)==='soon').length;
-    $('stDone').textContent=list.filter(t=>t.done).length;
-    if(activeTab==='status')renderStatus(list);else renderTimeline(list);
-  }
+        // 최근 방문 관리
+        function getRecent() {
+            try { return JSON.parse(localStorage.getItem('hiq_search_recent') || '[]'); }
+            catch { return []; }
+        }
 
-  function renderStatus(list){
-    const groups=[
-      {key:'over', cls:'over', label:'지연 · 지난 미완료', items:sortByTime(list.filter(t=>statusOf(t)==='over'))},
-      {key:'soon', cls:'soon', label:'예정', items:sortByTime(list.filter(t=>statusOf(t)==='soon'))},
-      {key:'done', cls:'done', label:'완료', items:sortByTime(list.filter(t=>t.done))}
-    ];
-    let html='';
-    let any=false;
-    groups.forEach(g=>{
-      if(!g.items.length)return;
-      any=true;
-      html+='<div class="grp"><div class="grp-head '+g.cls+'">'+g.label+'<span class="cnt">'+g.items.length+'</span></div>';
-      html+=g.items.map(t=>itemHtml(t,true)).join('');
-      html+='</div>';
-    });
-    $('statusView').innerHTML=any?html:'<div class="empty">이 날은 일정이 없습니다.<br>위 + 버튼으로 추가해보세요.</div>';
-    bind();
-  }
+        function addRecent(name) {
+            let recent = getRecent().filter(r => r !== name);
+            recent.unshift(name);
+            if (recent.length > 5) recent = recent.slice(0, 5);
+            localStorage.setItem('hiq_search_recent', JSON.stringify(recent));
+        }
 
-  function renderTimeline(list){
-    const timed=list.filter(t=>t.time).sort((a,b)=>a.time.localeCompare(b.time));
-    const notimed=sortByTime(list.filter(t=>!t.time));
-    const tl=$('timeline');
-    if(!timed.length&&!notimed.length){tl.innerHTML='<div class="empty">일정이 없습니다.</div>';bind();return;}
-    let html='';
-    if(timed.length){
-      let minH=parseInt(timed[0].time)-1;if(minH<0)minH=0;
-      let maxH=parseInt(timed[timed.length-1].time)+1;if(maxH>23)maxH=23;
-      const now=new Date();const isToday=selectedKey===keyOf(now);
-      const nowMin=now.getHours()*60+now.getMinutes();
-      for(let hr=minH;hr<=maxH;hr++){
-        const inHour=timed.filter(t=>parseInt(t.time)===hr);
-        const isNow=isToday&&now.getHours()===hr;
-        html+='<div class="tl-row"><div class="tl-h '+(isNow?'now':'')+'">'+pad(hr)+':00</div><div class="tl-t">';
-        if(isNow){const off=((nowMin-hr*60)/60)*100;html+='<div class="nowline" style="top:'+off+'%"></div>';}
-        inHour.forEach(t=>{html+=itemHtml(t,true);});
-        html+='</div></div>';
-      }
-    }
-    if(notimed.length){
-      html+='<div class="grp" style="margin-top:'+(timed.length?18:2)+'px"><div class="grp-head soon">시간 미지정<span class="cnt">'+notimed.length+'</span></div>';
-      html+=notimed.map(t=>itemHtml(t,false)).join('')+'</div>';
-    }
-    tl.innerHTML=html;bind();
-  }
+        function clearRecent() {
+            localStorage.removeItem('hiq_search_recent');
+            renderDropdown('');
+        }
 
-  function itemHtml(t,showTime){
-    const over=isOverdue(t);
-    return '<div class="item p-'+t.prio+' '+(t.done?'done':'')+(over?' overdue':'')+'" data-id="'+t.id+'">'+
-      '<div class="chk '+(t.done?'done':'')+'" data-act="toggle"></div>'+
-      '<div class="mn"><div class="tx">'+esc(t.text)+'</div>'+
-      '<div class="meta">'+(over?'<span class="od-badge">지남</span>':'')+
-        (showTime&&t.time?'<span class="tm">'+t.time+'</span>':'')+
-        '<span class="ct">'+esc(t.cat)+'</span>'+(t.alarm?'<span class="al">\uD83D\uDD14</span>':'')+'</div></div>'+
-      '<button class="del" data-act="del">\u00D7</button></div>';
-  }
+        // 결과 렌더링
+        function renderDropdown(query) {
+            const dropdown = document.getElementById('searchDropdown');
+            const q = query.trim();
 
-  function bind(){
-    document.querySelectorAll('.body [data-id]').forEach(el=>{
-      const id=el.dataset.id;
-      const tg=el.querySelector('[data-act=toggle]');const dl=el.querySelector('[data-act=del]');
-      if(tg)tg.addEventListener('click',()=>toggle(id));
-      if(dl)dl.addEventListener('click',()=>del(id));
-    });
-  }
+            if (!q) {
+                // 최근 방문 표시
+                const recent = getRecent();
+                const recentItems = recent.map(n => SEARCH_MENU.find(m => m.name === n)).filter(Boolean);
 
-  function setForm(open){
-    const f=$('addForm'),tg=$('addTrigger');
-    if(open){f.classList.add('open');tg.innerHTML='<span class="pl">\u2212</span> 입력 닫기';setTimeout(()=>$('taskInput').focus(),50);}
-    else{f.classList.remove('open');tg.innerHTML='<span class="pl">+</span> 일정 추가';}
-  }
-  function toggleForm(){setForm(!$('addForm').classList.contains('open'));}
+                if (recentItems.length === 0) {
+                    dropdown.innerHTML = `
+                        <div class="search-empty">
+                            <div class="search-empty-icon">🔍</div>
+                            <div>메뉴 이름, 키워드, 초성으로 검색하세요</div>
+                        </div>
+                        <div class="search-footer">
+                            <span><kbd>↑</kbd><kbd>↓</kbd> 이동</span>
+                            <span><kbd>Enter</kbd> 열기</span>
+                            <span><kbd>Esc</kbd> 닫기</span>
+                        </div>`;
+                } else {
+                    let html = `
+                        <div class="search-recent-header">
+                            <span class="search-recent-label">최근 방문</span>
+                            <button class="search-recent-clear" onclick="event.stopPropagation(); clearRecent();">지우기</button>
+                        </div>`;
+                    recentItems.forEach((item, i) => {
+                        html += renderItem(item, '', i);
+                    });
+                    html += `<div class="search-footer">
+                        <span><kbd>↑</kbd><kbd>↓</kbd> 이동</span>
+                        <span><kbd>Enter</kbd> 열기</span>
+                        <span><kbd>Esc</kbd> 닫기</span>
+                    </div>`;
+                    dropdown.innerHTML = html;
+                }
+                return;
+            }
 
-  function addTask(){
-    const inp=$('taskInput');const text=inp.value.trim();if(!text)return;
-    const time=$('timeInput').value||'';
-    const t={id:Date.now()+''+Math.floor(Math.random()*999),date:selectedKey,time:time,text:text,
-      prio:activePrio,cat:$('catSel').value,done:false,alarm:alarmOn&&!!time,notified:false,
-      updated:Date.now(),pending:true,deleted:false};
-    tasks.push(t);
-    inp.value='';$('timeInput').value='';
-    if(alarmOn){alarmOn=false;$('alarmToggle').classList.remove('on');}
-    saveLocal();render();inp.focus();syncItem(t);
-  }
-  function toggle(id){const t=tasks.find(x=>x.id===id);if(!t)return;t.done=!t.done;t.notified=t.done?true:t.notified;t.updated=Date.now();t.pending=true;saveLocal();render();syncItem(t);}
-  function del(id){const t=tasks.find(x=>x.id===id);if(!t)return;if(hasRemote()){t.deleted=true;t.updated=Date.now();saveLocal();render();syncDelete(id);}else{tasks=tasks.filter(x=>x.id!==id);saveLocal();render();}}
+            // 검색 실행
+            const results = [];
+            SEARCH_MENU.forEach(item => {
+                const match = matchSearch(item, q);
+                if (match) results.push({ ...item, score: match.score, field: match.field });
+            });
 
-  /* 알람 */
-  function beep(){
-    try{if(!audioCtx)audioCtx=new (window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume();
-      const t=audioCtx.currentTime;[0,0.5,1.0].forEach(off=>{const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.connect(g);g.connect(audioCtx.destination);o.frequency.value=880;o.type='sine';g.gain.setValueAtTime(0,t+off);g.gain.linearRampToValueAtTime(0.3,t+off+0.05);g.gain.linearRampToValueAtTime(0,t+off+0.4);o.start(t+off);o.stop(t+off+0.42);});}catch(e){}
-  }
-  function notify(t){
-    alarmTask=t;
-    $('alarmTime').textContent=t.time;$('alarmText').textContent=t.text;$('alarmPop').classList.add('show');beep();
-    if('Notification'in window&&Notification.permission==='granted'){
-      try{if(navigator.serviceWorker&&navigator.serviceWorker.ready){navigator.serviceWorker.ready.then(reg=>reg.showNotification('\uD83D\uDD14 업무 플래너',{body:t.time+' · '+t.text,tag:t.id,icon:'icon-192.png'}));}
-        else{new Notification('\uD83D\uDD14 업무 플래너',{body:t.time+' · '+t.text,tag:t.id,icon:'icon-192.png'});}}catch(e){}
-    }
-  }
-  function closePop(){$('alarmPop').classList.remove('show');alarmTask=null;}
-  function alarmDone(){if(!alarmTask)return;alarmTask.done=true;alarmTask.notified=true;alarmTask.updated=Date.now();alarmTask.pending=true;saveLocal();render();syncItem(alarmTask);toast('완료 처리했어요');closePop();}
-  function snooze(min){
-    if(!alarmTask)return;
-    const t=alarmTask;const n=new Date();n.setMinutes(n.getMinutes()+min);
-    t.time=pad(n.getHours())+':'+pad(n.getMinutes());t.date=keyOf(n);
-    t.notified=false;t.alarm=true;t.done=false;t.updated=Date.now();t.pending=true;
-    fired.delete(t.id);
-    saveLocal();render();syncItem(t);
-    toast(min+'분 뒤 '+t.time+'로 미뤘어요');closePop();
-  }
-  function checkAlarms(){
-    const todayKey=keyOf(new Date());const hhmm=nowHHMM();
-    tasks.forEach(t=>{if(t.date===todayKey&&t.alarm&&t.time===hhmm&&!t.done&&!t.deleted&&!fired.has(t.id)){fired.add(t.id);notify(t);}});
-  }
-  async function reqNotif(){
-    if(!('Notification'in window)){toast('이 브라우저는 알림 미지원 — 소리만 작동');return;}
-    if(Notification.permission==='granted'){$('bellBtn').classList.add('on');toast('알림 켜짐');return;}
-    const p=await Notification.requestPermission();
-    if(p==='granted'){$('bellBtn').classList.add('on');toast('알림 켜짐');}else toast('알림 거부됨 — 소리/이메일은 작동');
-  }
-  function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._tm);t._tm=setTimeout(()=>t.classList.remove('show'),2200);}
+            results.sort((a, b) => b.score - a.score);
+            const top = results.slice(0, 8);
 
-  function changeMonth(d){viewMonth+=d;if(viewMonth<0){viewMonth=11;viewYear--;}if(viewMonth>11){viewMonth=0;viewYear++;}render();}
-  function goToday(){const t=new Date();viewYear=t.getFullYear();viewMonth=t.getMonth();selectedKey=keyOf(t);render();}
+            if (top.length === 0) {
+                dropdown.innerHTML = `
+                    <div class="search-empty">
+                        <div class="search-empty-icon">😅</div>
+                        <div>"${q}"에 해당하는 메뉴를 찾을 수 없습니다</div>
+                    </div>`;
+                return;
+            }
 
-  async function init(){
-    loadLocal();
-    const t=new Date();viewYear=t.getFullYear();viewMonth=t.getMonth();selectedKey=keyOf(t);
-    if(!hasRemote()){
-      $('setupBanner').style.display='block';
-      $('setupBanner').innerHTML='⚠ <b>로컬 모드</b> — 이 기기에만 저장됩니다. 시트 동기화·이메일 알람을 켜려면 Apps Script 웹앱 주소를 <b>index.html</b>의 WEBAPP_URL에 넣어주세요.';
-      setDot('');
-    }
-    $('prevBtn').onclick=()=>changeMonth(-1);
-    $('nextBtn').onclick=()=>changeMonth(1);
-    $('todayBtn').onclick=goToday;
-    $('addTrigger').onclick=toggleForm;
-    $('addBtn').onclick=addTask;
-    $('syncBtn').onclick=()=>{pull();toast('동기화 중…');};
-    $('bellBtn').onclick=reqNotif;
-    $('taskInput').addEventListener('keydown',e=>{if(e.key==='Enter')addTask();});
-    $('prioSeg').querySelectorAll('button').forEach(b=>b.onclick=()=>{$('prioSeg').querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');activePrio=b.dataset.p;});
-    $('alarmToggle').onclick=()=>{alarmOn=!alarmOn;$('alarmToggle').classList.toggle('on',alarmOn);if(alarmOn)reqNotif();};
-    $('alarmDismiss').onclick=closePop;
-    $('alarmDone').onclick=alarmDone;
-    document.querySelectorAll('.snooze-row button').forEach(b=>b.onclick=()=>snooze(parseInt(b.dataset.min,10)));
-    document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
-      activeTab=b.dataset.tab;
-      document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
-      $('statusView').style.display=activeTab==='status'?'block':'none';
-      $('scheduleView').style.display=activeTab==='schedule'?'block':'none';
-      renderDay();
-    });
-    if('Notification'in window&&Notification.permission==='granted')$('bellBtn').classList.add('on');
+            let html = `<div class="search-section-label">검색 결과 · ${top.length}건</div>`;
+            top.forEach((item, i) => {
+                html += renderItem(item, q, i);
+            });
+            html += `<div class="search-footer">
+                <span><kbd>↑</kbd><kbd>↓</kbd> 이동</span>
+                <span><kbd>Enter</kbd> 열기</span>
+                <span><kbd>Esc</kbd> 닫기</span>
+            </div>`;
+            dropdown.innerHTML = html;
+        }
 
-    render();
-    await flushPending();
-    await pull();
-    setInterval(()=>{checkAlarms();renderDay();},15000);
-    checkAlarms();
-    document.addEventListener('visibilitychange',()=>{if(!document.hidden){flushPending().then(pull);}});
-    setInterval(()=>{if(!document.hidden)pull();},120000);
-  }
+        function renderItem(item, query, index) {
+            const nameHtml = query ? highlightText(item.name, query) : item.name;
+            return `<div class="search-result-item" data-index="${index}" data-url="${item.url}" data-name="${item.name}" data-external="${item.external || false}"
+                onclick="navigateToResult(this)">
+                <div class="search-result-icon ${item.iconClass}">${item.icon}</div>
+                <div class="search-result-info">
+                    <div class="search-result-name">${nameHtml}</div>
+                    <div class="search-result-desc">${item.desc}</div>
+                </div>
+                <span class="search-result-badge badge-${item.badge}">${item.team}</span>
+            </div>`;
+        }
 
-  if('serviceWorker'in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}
-  init();
-})();
-</script>
+        function navigateToResult(el) {
+            const url = el.dataset.url;
+            const name = el.dataset.name;
+            const external = el.dataset.external === 'true';
+            addRecent(name);
+            if (external) {
+                window.location.href = url;
+            } else {
+                goTeam(url);
+            }
+        }
+
+        // 검색 인터렉션
+        let activeIndex = -1;
+
+        function openSearch() {
+            const dropdown = document.getElementById('searchDropdown');
+            const overlay = document.getElementById('searchOverlay');
+            dropdown.classList.add('open');
+            overlay.classList.add('open');
+            activeIndex = -1;
+            renderDropdown(document.getElementById('searchInput').value);
+        }
+
+        function closeSearch() {
+            const dropdown = document.getElementById('searchDropdown');
+            const overlay = document.getElementById('searchOverlay');
+            dropdown.classList.remove('open');
+            overlay.classList.remove('open');
+            activeIndex = -1;
+        }
+
+        function clearSearch() {
+            const input = document.getElementById('searchInput');
+            input.value = '';
+            document.getElementById('searchClear').style.display = 'none';
+            document.getElementById('searchShortcut').style.display = '';
+            input.focus();
+            renderDropdown('');
+        }
+
+        function updateActive() {
+            const items = document.querySelectorAll('.search-result-item');
+            items.forEach((el, i) => el.classList.toggle('active', i === activeIndex));
+            if (activeIndex >= 0 && items[activeIndex]) {
+                items[activeIndex].scrollIntoView({ block: 'nearest' });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const input = document.getElementById('searchInput');
+            const clearBtn = document.getElementById('searchClear');
+            const shortcut = document.getElementById('searchShortcut');
+            const overlay = document.getElementById('searchOverlay');
+
+            input.addEventListener('focus', openSearch);
+            overlay.addEventListener('click', closeSearch);
+
+            input.addEventListener('input', () => {
+                const q = input.value;
+                clearBtn.style.display = q ? 'block' : 'none';
+                shortcut.style.display = q ? 'none' : '';
+                activeIndex = -1;
+                renderDropdown(q);
+            });
+
+            input.addEventListener('keydown', (e) => {
+                const items = document.querySelectorAll('.search-result-item');
+                const count = items.length;
+
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    activeIndex = (activeIndex + 1) % count;
+                    updateActive();
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    activeIndex = activeIndex <= 0 ? count - 1 : activeIndex - 1;
+                    updateActive();
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (activeIndex >= 0 && items[activeIndex]) {
+                        navigateToResult(items[activeIndex]);
+                    }
+                } else if (e.key === 'Escape') {
+                    input.blur();
+                    closeSearch();
+                }
+            });
+
+            // 슬래시 키보드 단축키
+            document.addEventListener('keydown', (e) => {
+                if (e.key === '/' && document.activeElement !== input && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+                    e.preventDefault();
+                    input.focus();
+                }
+            });
+        });
+    </script>
+
+    <script>
+        // ============================================
+        // 비밀번호 설정
+        // ============================================
+        // ===== 인증 설정 =====
+        // 테크니션정보 탭의 헤더명이 다르면 아래 COL_* 값만 맞춰주세요.
+        const AUTH_CONFIG = {
+            TECH_SHEET_ID: '1cmMEbIkmEL629RT04hpUUgXddnSVLGo1YwRzBwfyzCY',
+            TECH_TAB: '테크니션정보',
+            COL_NAME: '이름',
+            COL_ID:   '사번',
+            COL_PIN:  'PIN',
+            ADMIN_PASSWORDS: ['admin'],   // 관리자 전용 진입 (개인 로그인과 병행)
+        };
+
+        let EMP_LIST = [];   // [{name, id, pin}]
+
+        // 직원 명단 로드 (gviz)
+        function loadEmployees() {
+            const cb = 'emp_' + Date.now();
+            window[cb] = function (resp) {
+                try {
+                    const table = resp.table;
+                    let cols = table.cols.map(c => (c.label || '').trim());
+                    let rows = table.rows;
+                    // 첫 행(헤더) 고정이 안 돼 데이터로 흡수된 경우 자동 보정
+                    if (cols.indexOf(AUTH_CONFIG.COL_NAME) < 0 && rows.length > 0) {
+                        const head = rows[0].c.map(c => c ? String(c.v).trim() : '');
+                        if (head.indexOf(AUTH_CONFIG.COL_NAME) >= 0) {
+                            cols = head;
+                            rows = rows.slice(1);
+                        }
+                    }
+                    const ci = {
+                        name: cols.indexOf(AUTH_CONFIG.COL_NAME),
+                        id:   cols.indexOf(AUTH_CONFIG.COL_ID),
+                        pin:  cols.indexOf(AUTH_CONFIG.COL_PIN),
+                    };
+                    if (ci.name < 0 || ci.pin < 0) {
+                        console.warn('테크니션정보 헤더(이름/PIN) 확인 필요:', cols);
+                        return;
+                    }
+                    EMP_LIST = rows.map(r => ({
+                        name: r.c[ci.name] ? String(r.c[ci.name].v).trim() : '',
+                        id:   (ci.id >= 0 && r.c[ci.id]) ? String(r.c[ci.id].v).trim() : '',
+                        pin:  r.c[ci.pin] ? String(r.c[ci.pin].v).trim() : '',
+                    })).filter(e => e.name);
+                    const sel = document.getElementById('empName');
+                    if (sel) {
+                        sel.innerHTML = '<option value="">이름 선택</option>' +
+                            EMP_LIST.map((e, i) => `<option value="${i}">${e.name}</option>`).join('');
+                    }
+                } catch (err) { console.error(err); }
+            };
+            const url = `https://docs.google.com/spreadsheets/d/${AUTH_CONFIG.TECH_SHEET_ID}/gviz/tq`
+                + `?sheet=${encodeURIComponent(AUTH_CONFIG.TECH_TAB)}&headers=1`
+                + `&tqx=out:json;responseHandler:${cb}`;
+            const s = document.createElement('script');
+            s.src = url;
+            document.body.appendChild(s);
+        }
+
+        // 로그인 모드 전환 (직원 / 관리자)
+        function setMode(m) {
+            const emp = document.getElementById('empMode');
+            const adm = document.getElementById('adminMode');
+            const sub = document.getElementById('loginSub');
+            if (emp) emp.style.display = (m === 'emp') ? 'block' : 'none';
+            if (adm) adm.style.display = (m === 'admin') ? 'block' : 'none';
+            if (sub) sub.textContent = (m === 'admin') ? '관리자 비밀번호를 입력하세요' : '이름과 PIN으로 로그인하세요';
+        }
+
+        function showLoginError(msg) {
+            const e = document.getElementById('loginError');
+            e.textContent = msg;
+            e.style.display = 'block';
+            setTimeout(() => { e.style.display = 'none'; }, 3000);
+        }
+
+        // 진입 처리
+        function enterHub() {
+            document.getElementById('loginOverlay').style.display = 'none';
+            document.getElementById('hubContent').classList.add('unlocked');
+        }
+
+        // 비밀번호 확인
+        // ============================================
+        // 부우 로딩 애니메이션 (전역 스코프)
+        // ============================================
+        function drawBooLoading() {
+            const c = document.getElementById('booLoadingCanvas');
+            if (!c) return;
+            const ctx = c.getContext('2d');
+            ctx.imageSmoothingEnabled = false;
+            const s = 3;
+            const px = (x,y,col) => { ctx.fillStyle = col; ctx.fillRect(x*s, y*s, s, s); };
+            const d='#e8913a',m='#f0a852',l='#fff',ear='#e8a0a0',eye='#8BC34A',nose='#e8a0a0',p='#1a1a1a';
+            px(3,0,d);px(4,0,d);px(9,0,d);px(10,0,d);
+            px(2,1,d);px(3,1,ear);px(4,1,d);px(9,1,d);px(10,1,ear);px(11,1,d);
+            px(2,2,d);px(3,2,m);px(4,2,m);px(5,2,m);px(6,2,d);px(7,2,m);px(8,2,d);px(9,2,d);px(10,2,d);px(11,2,d);
+            px(2,3,d);px(3,3,m);px(4,3,l);px(5,3,m);px(6,3,l);px(7,3,m);px(8,3,l);px(9,3,m);px(10,3,d);
+            px(2,4,m);px(3,4,l);px(4,4,eye);px(5,4,l);px(6,4,l);px(7,4,l);px(8,4,eye);px(9,4,l);px(10,4,m);
+            px(2,5,m);px(3,5,l);px(4,5,p);px(5,5,l);px(6,5,nose);px(7,5,l);px(8,5,p);px(9,5,l);px(10,5,m);
+            px(3,6,l);px(4,6,l);px(5,6,l);px(6,6,l);px(7,6,l);px(8,6,l);px(9,6,l);
+            px(2,7,d);px(3,7,m);px(4,7,l);px(5,7,l);px(6,7,l);px(7,7,l);px(8,7,l);px(9,7,m);px(10,7,d);
+            px(1,8,d);px(2,8,m);px(3,8,l);px(4,8,l);px(5,8,l);px(6,8,l);px(7,8,l);px(8,8,l);px(9,8,m);px(10,8,d);
+            px(2,9,d);px(3,9,l);px(4,9,l);px(8,9,l);px(9,9,l);px(10,9,d);
+            px(11,7,d);px(12,6,d);px(13,5,d);
+        }
+
+        function showBooLoading(callback) {
+            const loader = document.getElementById('booLoading');
+            loader.classList.add('active');
+            loader.style.opacity = '1';
+            drawBooLoading();
+
+            setTimeout(function() {
+                loader.style.transition = 'opacity 0.3s ease';
+                loader.style.opacity = '0';
+                setTimeout(function() {
+                    loader.classList.remove('active');
+                    loader.style.display = 'none';
+                    loader.style.transition = '';
+                    loader.style.opacity = '';
+                    if (callback) callback();
+                }, 300);
+            }, 600);
+        }
+
+        // 직원 개인 로그인 (이름 + PIN)
+        function loginEmployee() {
+            const idx = document.getElementById('empName').value;
+            const pin = document.getElementById('empPin').value.trim();
+            if (idx === '') { showLoginError('이름을 선택하세요'); return; }
+            if (!pin) { showLoginError('PIN을 입력하세요'); return; }
+            const emp = EMP_LIST[Number(idx)];
+            if (!emp || String(emp.pin) !== pin) { showLoginError('PIN이 올바르지 않습니다'); return; }
+            sessionStorage.setItem('hiqasc_authenticated', 'true');
+            sessionStorage.setItem('userName', emp.name);
+            sessionStorage.setItem('userId', emp.id);
+            sessionStorage.removeItem('hiqasc_isAdmin');
+            enterHub();
+        }
+
+        // 관리자 로그인 (기존 admin 비번)
+        function loginAdmin() {
+            const pw = document.getElementById('adminPw').value;
+            if (AUTH_CONFIG.ADMIN_PASSWORDS.includes(pw)) {
+                sessionStorage.setItem('hiqasc_authenticated', 'true');
+                sessionStorage.setItem('userName', '관리자');
+                sessionStorage.setItem('hiqasc_isAdmin', 'true');
+                sessionStorage.removeItem('userId');
+                enterHub();
+            } else {
+                showLoginError('관리자 비밀번호가 올바르지 않습니다');
+            }
+        }
+
+        // 팀 이동
+        function goTeam(url) {
+            window.location.href = url;
+        }
+
+        // 외부 리포지토리 이동 (다른 GitHub Pages 사이트)
+        function goExternal(url) {
+            window.location.href = url;
+        }
+
+        // 로그아웃
+        function logout() {
+            sessionStorage.removeItem('hiqasc_authenticated');
+            sessionStorage.removeItem('userName');
+            sessionStorage.removeItem('userId');
+            sessionStorage.removeItem('hiqasc_isAdmin');
+            location.reload();
+        }
+
+        // 날짜 표시
+        function updateDate() {
+            const now = new Date();
+            const options = { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                weekday: 'long'
+            };
+            document.getElementById('currentDate').textContent = 
+                now.toLocaleDateString('ko-KR', options);
+        }
+
+        // 페이지 로드 시
+        window.addEventListener('load', () => {
+            updateDate();
+            loadEmployees();
+            
+            if (sessionStorage.getItem('hiqasc_authenticated') === 'true') {
+                document.getElementById('loginOverlay').style.display = 'none';
+                document.getElementById('hubContent').classList.add('unlocked');
+            }
+
+            // ============================================
+            // 이스터에그 고양이
+            // ============================================
+            const easterCat = document.getElementById('easterCat');
+            const ectx = easterCat.getContext('2d');
+            ectx.imageSmoothingEnabled = false;
+            const es = 3;
+
+            function drawEasterCat(type) {
+                ectx.clearRect(0, 0, 42, 42);
+                const px = (x,y,c) => { ectx.fillStyle = c; ectx.fillRect(x*es, y*es, es, es); };
+
+                if (type === 'dende') {
+                    const d='#4a3728',m='#6b5240',l='#ffffff',ear='#d4a0a0',eye='#4CAF50',nose='#d4a0a0',p='#1a1a1a';
+                    // 귀
+                    px(3,0,d);px(4,0,d);px(9,0,d);px(10,0,d);
+                    px(2,1,d);px(3,1,ear);px(4,1,d);px(9,1,d);px(10,1,ear);px(11,1,d);
+                    // 머리
+                    px(2,2,d);px(3,2,m);px(4,2,m);px(5,2,m);px(6,2,d);px(7,2,m);px(8,2,d);px(9,2,d);px(10,2,d);px(11,2,d);
+                    px(2,3,d);px(3,3,m);px(4,3,l);px(5,3,m);px(6,3,l);px(7,3,m);px(8,3,l);px(9,3,m);px(10,3,d);
+                    px(2,4,m);px(3,4,l);px(4,4,eye);px(5,4,l);px(6,4,l);px(7,4,l);px(8,4,eye);px(9,4,l);px(10,4,m);
+                    px(2,5,m);px(3,5,l);px(4,5,p);px(5,5,l);px(6,5,nose);px(7,5,l);px(8,5,p);px(9,5,l);px(10,5,m);
+                    px(3,6,l);px(4,6,l);px(5,6,l);px(6,6,l);px(7,6,l);px(8,6,l);px(9,6,l);
+                    // 앞발
+                    px(2,7,d);px(3,7,l);px(4,7,l);px(5,7,l);px(7,7,l);px(8,7,l);px(9,7,l);px(10,7,d);
+                } else {
+                    const d='#e8913a',m='#f0a852',l='#ffffff',ear='#e8a0a0',eye='#8BC34A',nose='#e8a0a0',p='#1a1a1a';
+                    px(3,0,d);px(4,0,d);px(9,0,d);px(10,0,d);
+                    px(2,1,d);px(3,1,ear);px(4,1,d);px(9,1,d);px(10,1,ear);px(11,1,d);
+                    px(2,2,d);px(3,2,m);px(4,2,m);px(5,2,m);px(6,2,d);px(7,2,m);px(8,2,d);px(9,2,d);px(10,2,d);px(11,2,d);
+                    px(2,3,d);px(3,3,m);px(4,3,l);px(5,3,m);px(6,3,l);px(7,3,m);px(8,3,l);px(9,3,m);px(10,3,d);
+                    px(2,4,m);px(3,4,l);px(4,4,eye);px(5,4,l);px(6,4,l);px(7,4,l);px(8,4,eye);px(9,4,l);px(10,4,m);
+                    px(2,5,m);px(3,5,l);px(4,5,p);px(5,5,l);px(6,5,nose);px(7,5,l);px(8,5,p);px(9,5,l);px(10,5,m);
+                    px(3,6,l);px(4,6,l);px(5,6,l);px(6,6,l);px(7,6,l);px(8,6,l);px(9,6,l);
+                    px(2,7,d);px(3,7,l);px(4,7,l);px(5,7,l);px(7,7,l);px(8,7,l);px(9,7,l);px(10,7,d);
+                }
+            }
+
+            function showEasterCat() {
+                const cat = easterCat;
+                const type = Math.random() > 0.5 ? 'dende' : 'boo';
+                drawEasterCat(type);
+
+                // 랜덤 위치 (footer 텍스트 근처)
+                const footer = document.querySelector('.hub-footer');
+                const footerW = footer.offsetWidth;
+                const tagEl = document.querySelector('.developer-tag');
+                const tagRect = tagEl.getBoundingClientRect();
+                const footerRect = footer.getBoundingClientRect();
+                const offsetX = tagRect.left - footerRect.left + Math.random() * tagRect.width - 21;
+                cat.style.left = Math.max(10, Math.min(offsetX, footerW - 50)) + 'px';
+
+                cat.classList.remove('peek');
+                void cat.offsetWidth;
+                cat.classList.add('peek');
+
+                // 사라진 후 다음 등장 예약
+                setTimeout(() => {
+                    cat.classList.remove('peek');
+                    scheduleEasterCat();
+                }, 2200);
+            }
+
+            function scheduleEasterCat() {
+                const delay = 25000 + Math.random() * 25000; // 25~50초 간격
+                setTimeout(showEasterCat, delay);
+            }
+
+            // 첫 등장 (10~20초 후)
+            setTimeout(showEasterCat, 30000 + Math.random() * 30000);
+        });
+    </script>
+    <script src="hiq-notification.js?v=4"></script>
+    <script src="hiq-widget.js?v=1"></script>
+    <script>
+    (function() {
+        var today = new Date().toISOString().slice(0, 10);
+        var banner = document.getElementById('briefingBanner');
+        if (!banner) return;
+        var user = sessionStorage.getItem('userName') || (sessionStorage.getItem('hiqasc_isAdmin') === 'true' ? 'admin' : '');
+        var key = user ? 'hiq_briefing_seen_' + user : 'hiq_briefing_seen';
+        if (localStorage.getItem(key) === today) {
+            banner.classList.add('seen');
+        }
+    })();
+    </script>
 </body>
 </html>
