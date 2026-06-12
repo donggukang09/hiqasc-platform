@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>재입고 분석 대시보드 | HIQASC</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #1e1e1e;
+    --card: #2a2a2a;
+    --card2: #353535;
+    --border: #4a4a4a;
+    --text: #e0e0e0;
+    --text-muted: #999;
+    --blue: #4a90e2;
+    --blue-dim: rgba(74,144,226,0.15);
+    --orange: #e28a4a;
+    --orange-dim: rgba(226,138,74,0.15);
+    --green: #4ae28a;
+    --green-dim: rgba(74,226,138,0.15);
+    --red: #e24a4a;
+    --red-dim: rgba(226,74,74,0.15);
+    --yellow: #e2d44a;
+  }
+
+  body {
+    font-family: 'Manrope', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-left { display: flex; align-items: center; gap: 12px; }
+  .header-logo {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--blue);
+    letter-spacing: 1px;
+  }
+  .header-divider { width: 1px; height: 18px; background: var(--border); }
+  .header-title { font-size: 15px; font-weight: 700; }
+  .badge-reinput {
+    background: var(--orange-dim);
+    color: var(--orange);
+    border: 1px solid var(--orange);
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    letter-spacing: 0.5px;
+  }
+
+  /* ── Load Panel ── */
+  .load-panel {
+    max-width: 640px;
+    margin: 80px auto;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 40px;
+    text-align: center;
+  }
+  .load-panel h2 { font-size: 20px; font-weight: 800; margin-bottom: 8px; }
+  .load-panel p { color: var(--text-muted); font-size: 14px; margin-bottom: 28px; line-height: 1.6; }
+  .load-btn {
+    background: var(--blue);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 14px 36px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    width: 100%;
+  }
+  .load-btn:hover { opacity: 0.85; }
+  .load-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .progress-bar-wrap {
+    background: var(--card2);
+    border-radius: 4px;
+    height: 6px;
+    margin-top: 20px;
+    overflow: hidden;
+    display: none;
+  }
+  .progress-bar {
+    height: 100%;
+    background: var(--blue);
+    border-radius: 4px;
+    width: 0%;
+    transition: width 0.3s;
+  }
+  .status-msg {
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--text-muted);
+    min-height: 18px;
+  }
+
+  /* ── Dashboard ── */
+  #dashboard { display: none; padding: 28px 32px; }
+
+  /* KPI Row */
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+  .kpi-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+  }
+  .kpi-label { font-size: 11px; color: var(--text-muted); font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 8px; }
+  .kpi-value { font-size: 28px; font-weight: 800; line-height: 1; }
+  .kpi-sub { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+  .kpi-card.orange { border-top: 3px solid var(--orange); }
+  .kpi-card.blue { border-top: 3px solid var(--blue); }
+  .kpi-card.red { border-top: 3px solid var(--red); }
+  .kpi-card.green { border-top: 3px solid var(--green); }
+  .kpi-card.yellow { border-top: 3px solid var(--yellow); }
+
+  /* Section */
+  .section-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title::before {
+    content: '';
+    display: inline-block;
+    width: 3px;
+    height: 14px;
+    background: var(--blue);
+    border-radius: 2px;
+  }
+
+  /* Grid layouts */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 24px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; margin-bottom: 24px; }
+  .grid-full { margin-bottom: 24px; }
+
+  .chart-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+  }
+  .chart-card-title {
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: var(--text);
+  }
+  .chart-wrap { position: relative; }
+  .chart-wrap canvas { max-height: 260px; }
+
+  /* Table */
+  .table-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .table-card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .table-scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th {
+    background: var(--card2);
+    padding: 10px 14px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: rgba(255,255,255,0.03); }
+  tbody td { padding: 10px 14px; white-space: nowrap; }
+  .td-center { text-align: center; }
+
+  /* Chips */
+  .chip {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .chip-orange { background: var(--orange-dim); color: var(--orange); }
+  .chip-red { background: var(--red-dim); color: var(--red); }
+  .chip-blue { background: var(--blue-dim); color: var(--blue); }
+  .chip-green { background: var(--green-dim); color: var(--green); }
+
+  /* Rank bars */
+  .rank-list { display: flex; flex-direction: column; gap: 8px; }
+  .rank-item { display: flex; align-items: center; gap: 10px; }
+  .rank-name { font-size: 13px; font-weight: 600; min-width: 90px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rank-bar-wrap { flex: 1; background: var(--card2); border-radius: 3px; height: 8px; }
+  .rank-bar { height: 100%; border-radius: 3px; }
+  .rank-count { font-size: 12px; font-weight: 700; min-width: 36px; text-align: right; }
+
+  /* Case detail modal */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    width: 90%;
+    max-width: 900px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .modal-header {
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .modal-header h3 { font-size: 16px; font-weight: 800; }
+  .modal-close {
+    background: var(--card2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 6px;
+    padding: 6px 14px;
+    cursor: pointer;
+    font-size: 13px;
+    font-family: 'Manrope', sans-serif;
+  }
+  .modal-body { overflow-y: auto; padding: 20px 24px; }
+
+  /* Filter bar */
+  .filter-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .filter-bar input, .filter-bar select {
+    background: var(--card2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 6px;
+    padding: 7px 12px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 13px;
+    outline: none;
+  }
+  .filter-bar input:focus, .filter-bar select:focus { border-color: var(--blue); }
+  .filter-bar input { min-width: 180px; }
+
+  /* Timeline */
+  .timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .tl-item {
+    display: flex;
+    gap: 14px;
+    position: relative;
+    padding-bottom: 16px;
+  }
+  .tl-item:last-child { padding-bottom: 0; }
+  .tl-dot-wrap { display: flex; flex-direction: column; align-items: center; }
+  .tl-dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 3px;
+  }
+  .tl-line { flex: 1; width: 2px; background: var(--border); margin-top: 4px; }
+  .tl-item:last-child .tl-line { display: none; }
+  .tl-content { flex: 1; }
+  .tl-date { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
+  .tl-main { font-size: 13px; font-weight: 600; }
+  .tl-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+  .pagination {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: flex-end;
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .page-btn {
+    background: var(--card2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 4px;
+    padding: 4px 10px;
+    cursor: pointer;
+    font-family: 'Manrope', sans-serif;
+    font-size: 12px;
+  }
+  .page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .page-btn.active { background: var(--blue); border-color: var(--blue); color: #fff; }
+
+  /* Excluded list footer note */
+  .note { font-size: 11px; color: var(--text-muted); margin-top: 8px; }
+
+  /* Insight cards */
+  .insight-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 24px; }
+  .insight-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+  }
+  .insight-icon { font-size: 22px; margin-bottom: 8px; }
+  .insight-label { font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  .insight-val { font-size: 18px; font-weight: 800; margin: 4px 0 2px; }
+  .insight-desc { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <span class="header-logo">HIQASC</span>
+    <div class="header-divider"></div>
+    <span class="header-title">재입고 분석 대시보드</span>
+  </div>
+  <span class="badge-reinput">재입고</span>
+</div>
+
+<!-- Load Panel -->
+<div id="loadPanel" class="load-panel">
+  <h2>📦 재입고 분석 시작</h2>
+  <p>주간 마감(완료 누적) 시트에서 데이터를 불러옵니다.<br>네트워크 상태에 따라 수 초가 소요될 수 있습니다.</p>
+  <button class="load-btn" id="loadBtn" onclick="loadData()">데이터 불러오기</button>
+  <div class="progress-bar-wrap" id="progressWrap">
+    <div class="progress-bar" id="progressBar"></div>
+  </div>
+  <div class="status-msg" id="statusMsg"></div>
+</div>
+
+<!-- Dashboard -->
+<div id="dashboard">
+
+  <!-- KPI Row -->
+  <div class="kpi-row">
+    <div class="kpi-card orange">
+      <div class="kpi-label">재입고 건수</div>
+      <div class="kpi-value" id="kpiTotal">-</div>
+      <div class="kpi-sub" id="kpiTotalSub">-</div>
+    </div>
+    <div class="kpi-card red">
+      <div class="kpi-label">고위험 시리얼 (3회+)</div>
+      <div class="kpi-value" id="kpiHighRisk">-</div>
+      <div class="kpi-sub">동일 시리얼 3회 이상</div>
+    </div>
+    <div class="kpi-card blue">
+      <div class="kpi-label">관련 테크니션</div>
+      <div class="kpi-value" id="kpiTech">-</div>
+      <div class="kpi-sub">1건 이상 원인 테크니션</div>
+    </div>
+    <div class="kpi-card yellow">
+      <div class="kpi-label">재입고 발생 모델 종류</div>
+      <div class="kpi-value" id="kpiModels">-</div>
+      <div class="kpi-sub">고유 모델 수</div>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-label">전체 대비 재입고율</div>
+      <div class="kpi-value" id="kpiRate">-</div>
+      <div class="kpi-sub" id="kpiRateSub">-</div>
+    </div>
+  </div>
+
+  <!-- Insight row -->
+  <div class="insight-row">
+    <div class="insight-card">
+      <div class="insight-icon">🔁</div>
+      <div class="insight-label">평균 재입고 간격</div>
+      <div class="insight-val" id="insAvgDays">-</div>
+      <div class="insight-desc" id="insAvgDaysDesc">첫 입고 → 재입고 평균 일수</div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-icon">⚠️</div>
+      <div class="insight-label">최다 재입고 테크니션</div>
+      <div class="insight-val" id="insTopTech">-</div>
+      <div class="insight-desc" id="insTopTechDesc">원인 수리 건수 기준</div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-icon">🖥️</div>
+      <div class="insight-label">최다 재입고 모델</div>
+      <div class="insight-val" id="insTopModel">-</div>
+      <div class="insight-desc" id="insTopModelDesc">재입고 발생 횟수 기준</div>
+    </div>
+  </div>
+
+  <!-- Charts Row 1 -->
+  <div class="section-title">원인 테크니션 분석</div>
+  <div class="grid-2">
+    <div class="chart-card">
+      <div class="chart-card-title">테크니션별 재입고 원인 건수</div>
+      <div id="rankTech" class="rank-list"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-title">테크니션별 재입고율 (본인 수리 건 대비)</div>
+      <div class="chart-wrap"><canvas id="chartTechRate"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Charts Row 2 -->
+  <div class="section-title">모델 분석</div>
+  <div class="grid-2">
+    <div class="chart-card">
+      <div class="chart-card-title">모델별 재입고 건수 TOP 15</div>
+      <div id="rankModel" class="rank-list"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-title">재입고 간격 분포 (일)</div>
+      <div class="chart-wrap"><canvas id="chartInterval"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Charts Row 3 -->
+  <div class="section-title">월별 트렌드</div>
+  <div class="grid-full">
+    <div class="chart-card">
+      <div class="chart-card-title">월별 재입고 건수 추이</div>
+      <div class="chart-wrap"><canvas id="chartMonthly" style="max-height:200px"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Detail Table -->
+  <div class="section-title">재입고 케이스 상세</div>
+  <div class="grid-full">
+    <div class="table-card">
+      <div class="table-card-header">
+        <span>전체 재입고 케이스</span>
+        <div class="filter-bar" style="margin:0">
+          <input type="text" id="searchInput" placeholder="시리얼번호 / 모델 검색..." oninput="filterTable()">
+          <select id="filterTech" onchange="filterTable()">
+            <option value="">전체 테크니션</option>
+          </select>
+          <select id="filterRepeat" onchange="filterTable()">
+            <option value="">전체 반복</option>
+            <option value="2">2회</option>
+            <option value="3">3회+</option>
+          </select>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>시리얼번호</th>
+              <th>모델</th>
+              <th>재입고 입고일</th>
+              <th>총 입고 횟수</th>
+              <th>이전 담당 테크니션</th>
+              <th>이전 완료일</th>
+              <th>재입고 간격 (일)</th>
+              <th>Warranty</th>
+              <th>상세</th>
+            </tr>
+          </thead>
+          <tbody id="caseTableBody"></tbody>
+        </table>
+      </div>
+      <div class="pagination" id="tablePagination"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modalTitle">시리얼번호 이력</h3>
+      <button class="modal-close" onclick="closeModal()">닫기</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+// ── Config ──────────────────────────────────────────────
+const SHEET_ID = '111K9l8gt-14roqvynNFEJrT2aLsTYjU8gQBsKNiyFmI';
+const GID      = '351004172';
+// Excluded technicians (from memory)
+const EXCLUDED_TECHS = ['이선제','김태정','김찬우','노경호','홍성균','임성산','박학림','노세진'];
+
+// Column indices (0-based) – will be resolved from header row
+// Expected columns: Y=Serial, AA=WarrantyCode, AU=완료일, AM=담당자, AW=수리입고일, X=Machine
+let COL = { serial: -1, warranty: -1, completedDate: -1, tech: -1, receiveDate: -1, model: -1 };
+
+let allRows = [];      // all parsed rows
+let reinputCases = []; // rows where warranty === '재입고'
+let serialMap = {};    // serial → [row, row, ...]
+let filteredCases = [];
+let currentPage = 1;
+const PAGE_SIZE = 20;
+
+// ── Load ─────────────────────────────────────────────────
+function setStatus(msg) { document.getElementById('statusMsg').textContent = msg; }
+function setProgress(p) {
+  document.getElementById('progressWrap').style.display = 'block';
+  document.getElementById('progressBar').style.width = p + '%';
+}
+
+async function loadData() {
+  const btn = document.getElementById('loadBtn');
+  btn.disabled = true;
+  setProgress(10);
+  setStatus('시트 데이터 요청 중...');
+
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${GID}&headers=1`;
+
+  try {
+    const res = await fetch(url);
+    const raw = await res.text();
+    setProgress(40);
+    setStatus('파싱 중...');
+    const json = JSON.parse(raw.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);?\s*$/)[1]);
+    parseData(json);
+  } catch(e) {
+    setStatus('❌ 데이터 로드 실패: ' + e.message);
+    btn.disabled = false;
+  }
+}
+
+function colLabel(c) { return c ? c.label : ''; }
+
+function parseData(json) {
+  setProgress(60);
+  const cols = json.table.cols;
+  const rows = json.table.rows;
+
+  // Resolve column indices by label
+  // Expected: Y(24)=Serial, AA(26)=WarrantyCode, AU(46)=완료일, AM(38)=담당자, AW(48)=수리입고일, X(23)=Machine
+  // Use both label-based and positional fallback
+  const labelMap = {};
+  cols.forEach((c, i) => { if(c.label) labelMap[c.label.trim()] = i; });
+
+  // Try various possible column name patterns
+  COL.serial      = findCol(labelMap, ['Serial No', 'Serial Number', 'S/N', 'Serial', '시리얼'], 24);
+  COL.warranty    = findCol(labelMap, ['Warranty Code', 'Warranty', '보증구분', '무상유상'], 26);
+  COL.completedDate = findCol(labelMap, ['완료일', '수리완료일', '처리완료일'], 46);
+  COL.tech        = findCol(labelMap, ['담당자', '테크니션', '수리자'], 38);
+  COL.receiveDate = findCol(labelMap, ['수리입고일', '입고일', '접수일'], 48);
+  COL.model       = findCol(labelMap, ['Machine', '모델', '모델명', 'Model'], 23);
+
+  // Parse rows
+  allRows = [];
+  rows.forEach((r, ri) => {
+    if(!r || !r.c) return;
+    const get = (i) => {
+      if(i < 0 || i >= r.c.length) return '';
+      const cell = r.c[i];
+      if(!cell) return '';
+      // formatted value preferred
+      return (cell.f || cell.v || '').toString().trim();
+    };
+    const obj = {
+      rowIndex: ri,
+      serial: get(COL.serial),
+      warranty: get(COL.warranty),
+      completedDate: get(COL.completedDate),
+      tech: get(COL.tech),
+      receiveDate: get(COL.receiveDate),
+      model: get(COL.model),
+    };
+    if(obj.serial) allRows.push(obj);
+  });
+
+  setProgress(75);
+  setStatus('재입고 분석 중...');
+  analyze();
+}
+
+function findCol(labelMap, candidates, fallback) {
+  for(const c of candidates) {
+    if(labelMap[c] !== undefined) return labelMap[c];
+    // partial match
+    for(const k of Object.keys(labelMap)) {
+      if(k.toLowerCase().includes(c.toLowerCase())) return labelMap[k];
+    }
+  }
+  return fallback;
+}
+
+// ── Parse date ───────────────────────────────────────────
+function parseDate(str) {
+  if(!str) return null;
+  // formats: YYYY-MM-DD, YYYY/MM/DD, M/D/YYYY, DD-MM-YYYY, "2024. 1. 5."
+  str = str.replace(/\.\s*/g, '-').replace(/\//g, '-').trim().replace(/-$/, '');
+  const parts = str.split('-').map(s => s.trim());
+  if(parts.length === 3) {
+    let y = parseInt(parts[0]), m = parseInt(parts[1]), d = parseInt(parts[2]);
+    if(y < 100) { // 2-digit year
+      const full = parseInt(parts[2]);
+      y = full; m = parseInt(parts[0]); d = parseInt(parts[1]);
+    }
+    if(!isNaN(y) && !isNaN(m) && !isNaN(d)) {
+      return new Date(y, m-1, d);
+    }
+  }
+  const d = new Date(str);
+  return isNaN(d) ? null : d;
+}
+
+function diffDays(a, b) {
+  if(!a || !b) return null;
+  return Math.round((b - a) / 86400000);
+}
+
+function fmtDate(d) {
+  if(!d) return '-';
+  return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;
+}
+
+// ── Analyze ───────────────────────────────────────────────
+function analyze() {
+  // Build serial map
+  serialMap = {};
+  allRows.forEach(r => {
+    if(!r.serial) return;
+    if(!serialMap[r.serial]) serialMap[r.serial] = [];
+    serialMap[r.serial].push(r);
+  });
+
+  // Sort each serial's records by receiveDate
+  Object.values(serialMap).forEach(arr => {
+    arr.sort((a, b) => {
+      const da = parseDate(a.receiveDate), db = parseDate(b.receiveDate);
+      if(!da && !db) return 0;
+      if(!da) return 1;
+      if(!db) return -1;
+      return da - db;
+    });
+  });
+
+  // Find reinput cases: warranty === '재입고'
+  reinputCases = allRows.filter(r => r.warranty && r.warranty.includes('재입고'));
+
+  // For each reinput case, find the PREVIOUS record (same serial, earlier date)
+  reinputCases = reinputCases.map(r => {
+    const allForSerial = serialMap[r.serial] || [];
+    const rDate = parseDate(r.receiveDate);
+    const prev = allForSerial.filter(x => {
+      if(x === r) return false;
+      const d = parseDate(x.receiveDate);
+      if(!d || !rDate) return false;
+      return d < rDate;
+    });
+    // The most recent previous record = "원인" record
+    const prevRecord = prev.length ? prev[prev.length - 1] : null;
+    const prevDate = prevRecord ? parseDate(prevRecord.receiveDate) : null;
+    const interval = diffDays(prevDate, rDate);
+
+    return {
+      ...r,
+      totalCount: allForSerial.length,
+      prevRecord,
+      interval,
+      rDate,
+    };
+  });
+
+  setProgress(90);
+  setStatus('차트 렌더링 중...');
+  setTimeout(render, 100);
+}
+
+// ── Render ────────────────────────────────────────────────
+function render() {
+  // KPIs
+  const totalAll = allRows.length;
+  const totalReinput = reinputCases.length;
+  const highRisk = Object.values(serialMap).filter(a => a.length >= 3).length;
+  const techsInvolved = new Set(reinputCases.map(r => r.prevRecord?.tech).filter(Boolean)).size;
+  const modelsInvolved = new Set(reinputCases.map(r => r.model).filter(Boolean)).size;
+  const rate = totalAll > 0 ? ((totalReinput / totalAll) * 100).toFixed(1) : '0.0';
+
+  document.getElementById('kpiTotal').textContent = totalReinput.toLocaleString();
+  document.getElementById('kpiTotalSub').textContent = `전체 ${totalAll.toLocaleString()}건 중`;
+  document.getElementById('kpiHighRisk').textContent = highRisk;
+  document.getElementById('kpiTech').textContent = techsInvolved;
+  document.getElementById('kpiModels').textContent = modelsInvolved;
+  document.getElementById('kpiRate').textContent = rate + '%';
+  document.getElementById('kpiRateSub').textContent = `${totalAll.toLocaleString()}건 기준`;
+
+  // Insights: avg interval
+  const intervals = reinputCases.map(r => r.interval).filter(x => x !== null && x >= 0);
+  const avgDays = intervals.length ? Math.round(intervals.reduce((a,b)=>a+b,0)/intervals.length) : null;
+  document.getElementById('insAvgDays').textContent = avgDays !== null ? avgDays + '일' : '-';
+  document.getElementById('insAvgDaysDesc').textContent = `샘플 ${intervals.length}건 기준 평균`;
+
+  // Top tech
+  const techCount = {};
+  reinputCases.forEach(r => {
+    const t = r.prevRecord?.tech || '미확인';
+    techCount[t] = (techCount[t]||0) + 1;
+  });
+  const topTech = Object.entries(techCount).sort((a,b)=>b[1]-a[1])[0];
+  document.getElementById('insTopTech').textContent = topTech ? topTech[0] : '-';
+  document.getElementById('insTopTechDesc').textContent = topTech ? `${topTech[1]}건 원인 담당` : '';
+
+  // Top model
+  const modelCount = {};
+  reinputCases.forEach(r => {
+    const m = r.model || '미확인';
+    modelCount[m] = (modelCount[m]||0) + 1;
+  });
+  const topModel = Object.entries(modelCount).sort((a,b)=>b[1]-a[1])[0];
+  document.getElementById('insTopModel').textContent = topModel ? topModel[0] : '-';
+  document.getElementById('insTopModelDesc').textContent = topModel ? `${topModel[1]}건 재입고 발생` : '';
+
+  // Technician rank list
+  renderRankList('rankTech', techCount, '#e24a4a', 15);
+
+  // Technician rate chart
+  renderTechRateChart(techCount);
+
+  // Model rank list
+  renderRankList('rankModel', modelCount, '#4a90e2', 15);
+
+  // Interval histogram
+  renderIntervalChart(intervals);
+
+  // Monthly trend
+  renderMonthlyChart();
+
+  // Table
+  filteredCases = [...reinputCases];
+  populateFilterTech(techCount);
+  renderTable();
+
+  // Show dashboard
+  setProgress(100);
+  document.getElementById('loadPanel').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+}
+
+function renderRankList(containerId, countObj, color, limit) {
+  const sorted = Object.entries(countObj).sort((a,b)=>b[1]-a[1]).slice(0, limit);
+  const max = sorted[0]?.[1] || 1;
+  const el = document.getElementById(containerId);
+  el.innerHTML = sorted.map(([name, cnt]) => `
+    <div class="rank-item">
+      <span class="rank-name" title="${name}">${name}</span>
+      <div class="rank-bar-wrap">
+        <div class="rank-bar" style="width:${(cnt/max*100).toFixed(1)}%;background:${color}"></div>
+      </div>
+      <span class="rank-count" style="color:${color}">${cnt}</span>
+    </div>
+  `).join('');
+}
+
+function renderTechRateChart(techCount) {
+  // Calculate each tech's personal repair count from allRows
+  const techTotal = {};
+  allRows.forEach(r => {
+    const t = r.tech;
+    if(t) techTotal[t] = (techTotal[t]||0) + 1;
+  });
+
+  const entries = Object.entries(techCount)
+    .filter(([t]) => t !== '미확인' && !EXCLUDED_TECHS.includes(t))
+    .map(([t, cnt]) => ({ tech: t, cnt, total: techTotal[t]||0, rate: techTotal[t] ? (cnt/techTotal[t]*100) : 0 }))
+    .sort((a,b)=>b.rate-a.rate)
+    .slice(0, 12);
+
+  const ctx = document.getElementById('chartTechRate').getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: entries.map(e => e.tech),
+      datasets: [{
+        label: '재입고율 (%)',
+        data: entries.map(e => e.rate.toFixed(2)),
+        backgroundColor: 'rgba(226,74,74,0.7)',
+        borderColor: '#e24a4a',
+        borderWidth: 1,
+        borderRadius: 4,
+      }]
+    },
+    options: chartOpts('재입고율 (%)'),
+  });
+}
+
+function renderIntervalChart(intervals) {
+  // Bucket into: 1-7, 8-14, 15-30, 31-60, 61-90, 90+
+  const buckets = [
+    { label: '1-7일', min:1, max:7 },
+    { label: '8-14일', min:8, max:14 },
+    { label: '15-30일', min:15, max:30 },
+    { label: '31-60일', min:31, max:60 },
+    { label: '61-90일', min:61, max:90 },
+    { label: '91일+', min:91, max:Infinity },
+  ];
+  const counts = buckets.map(b => intervals.filter(d => d >= b.min && d <= b.max).length);
+
+  const ctx = document.getElementById('chartInterval').getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: buckets.map(b => b.label),
+      datasets: [{
+        label: '건수',
+        data: counts,
+        backgroundColor: 'rgba(74,144,226,0.7)',
+        borderColor: '#4a90e2',
+        borderWidth: 1,
+        borderRadius: 4,
+      }]
+    },
+    options: chartOpts('건수'),
+  });
+}
+
+function renderMonthlyChart() {
+  const monthly = {};
+  reinputCases.forEach(r => {
+    const d = r.rDate;
+    if(!d) return;
+    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    monthly[key] = (monthly[key]||0) + 1;
+  });
+  const sorted = Object.entries(monthly).sort((a,b)=>a[0].localeCompare(b[0]));
+  const ctx = document.getElementById('chartMonthly').getContext('2d');
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: sorted.map(([k]) => k),
+      datasets: [{
+        label: '재입고 건수',
+        data: sorted.map(([,v]) => v),
+        borderColor: '#e28a4a',
+        backgroundColor: 'rgba(226,138,74,0.15)',
+        fill: true,
+        tension: 0.35,
+        pointRadius: 3,
+        pointBackgroundColor: '#e28a4a',
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: { mode: 'index', intersect: false },
+      },
+      scales: {
+        x: { grid: { color: '#3a3a3a' }, ticks: { color: '#999', font: { size: 11 } } },
+        y: { grid: { color: '#3a3a3a' }, ticks: { color: '#999', font: { size: 11 } }, beginAtZero: true },
+      },
+    }
+  });
+}
+
+function chartOpts(yLabel) {
+  return {
+    responsive: true,
+    indexAxis: 'x',
+    plugins: {
+      legend: { display: false },
+      tooltip: { mode: 'index', intersect: false },
+    },
+    scales: {
+      x: { grid: { color: '#3a3a3a' }, ticks: { color: '#999', font: { size: 11 }, maxRotation: 40, minRotation: 20 } },
+      y: {
+        grid: { color: '#3a3a3a' },
+        ticks: { color: '#999', font: { size: 11 } },
+        beginAtZero: true,
+        title: { display: true, text: yLabel, color: '#777', font: { size: 11 } }
+      },
+    },
+  };
+}
+
+// ── Table ─────────────────────────────────────────────────
+function populateFilterTech(techCount) {
+  const sel = document.getElementById('filterTech');
+  Object.keys(techCount).sort().forEach(t => {
+    const opt = document.createElement('option');
+    opt.value = t; opt.textContent = t;
+    sel.appendChild(opt);
+  });
+}
+
+function filterTable() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const tech = document.getElementById('filterTech').value;
+  const repeat = parseInt(document.getElementById('filterRepeat').value) || 0;
+
+  filteredCases = reinputCases.filter(r => {
+    if(q && !r.serial.toLowerCase().includes(q) && !r.model.toLowerCase().includes(q)) return false;
+    if(tech && (r.prevRecord?.tech || '미확인') !== tech) return false;
+    if(repeat === 2 && r.totalCount !== 2) return false;
+    if(repeat === 3 && r.totalCount < 3) return false;
+    return true;
+  });
+  currentPage = 1;
+  renderTable();
+}
+
+function renderTable() {
+  const start = (currentPage-1) * PAGE_SIZE;
+  const pageData = filteredCases.slice(start, start + PAGE_SIZE);
+  const tbody = document.getElementById('caseTableBody');
+
+  tbody.innerHTML = pageData.map((r, i) => {
+    const tech = r.prevRecord?.tech || '미확인';
+    const prevDate = r.prevRecord ? (r.prevRecord.completedDate || r.prevRecord.receiveDate) : '-';
+    const countChip = r.totalCount >= 3
+      ? `<span class="chip chip-red">${r.totalCount}회</span>`
+      : `<span class="chip chip-orange">${r.totalCount}회</span>`;
+    const intervalStr = r.interval !== null ? r.interval + '일' : '-';
+    const warrantyChip = r.warranty.includes('재입고') ? `<span class="chip chip-orange">재입고</span>` : r.warranty;
+
+    return `<tr>
+      <td class="td-center" style="color:var(--text-muted)">${start+i+1}</td>
+      <td><code style="font-size:12px;color:var(--blue)">${r.serial}</code></td>
+      <td>${r.model || '-'}</td>
+      <td>${r.receiveDate || '-'}</td>
+      <td class="td-center">${countChip}</td>
+      <td><span class="chip chip-blue">${tech}</span></td>
+      <td style="color:var(--text-muted)">${prevDate}</td>
+      <td class="td-center" style="color:${r.interval !== null && r.interval <= 30 ? 'var(--red)' : 'var(--text-muted)'}">${intervalStr}</td>
+      <td>${warrantyChip}</td>
+      <td><button onclick="showHistory('${r.serial.replace(/'/g,"\\'")}')}" style="background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:4px 10px;cursor:pointer;font-size:12px;font-family:Manrope,sans-serif">이력</button></td>
+    </tr>`;
+  }).join('');
+
+  renderPagination();
+}
+
+function renderPagination() {
+  const total = filteredCases.length;
+  const totalPages = Math.ceil(total / PAGE_SIZE);
+  const el = document.getElementById('tablePagination');
+  if(totalPages <= 1) { el.innerHTML = `<span>${total}건</span>`; return; }
+
+  let html = `<span>${total}건</span>&nbsp;`;
+  html += `<button class="page-btn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>◀</button>`;
+  const range = Math.min(totalPages, 7);
+  let start = Math.max(1, currentPage - 3);
+  let end = Math.min(totalPages, start + range - 1);
+  if(end - start < range - 1) start = Math.max(1, end - range + 1);
+  for(let p = start; p <= end; p++) {
+    html += `<button class="page-btn ${p===currentPage?'active':''}" onclick="goPage(${p})">${p}</button>`;
+  }
+  html += `<button class="page-btn" onclick="goPage(${currentPage+1})" ${currentPage===totalPages?'disabled':''}>▶</button>`;
+  el.innerHTML = html;
+}
+
+function goPage(p) {
+  const totalPages = Math.ceil(filteredCases.length / PAGE_SIZE);
+  if(p < 1 || p > totalPages) return;
+  currentPage = p;
+  renderTable();
+}
+
+// ── Modal ─────────────────────────────────────────────────
+function showHistory(serial) {
+  const records = serialMap[serial] || [];
+  document.getElementById('modalTitle').textContent = `시리얼 이력: ${serial} (총 ${records.length}회 입고)`;
+
+  const body = document.getElementById('modalBody');
+  body.innerHTML = `
+    <div class="timeline">
+      ${records.map((r, i) => {
+        const isReinput = r.warranty && r.warranty.includes('재입고');
+        const dotColor = isReinput ? 'var(--orange)' : i===0 ? 'var(--green)' : 'var(--blue)';
+        return `<div class="tl-item">
+          <div class="tl-dot-wrap">
+            <div class="tl-dot" style="background:${dotColor}"></div>
+            <div class="tl-line"></div>
+          </div>
+          <div class="tl-content">
+            <div class="tl-date">${r.receiveDate || '-'} 입고 ${i===0?'<span class="chip chip-green">최초</span>':isReinput?'<span class="chip chip-orange">재입고</span>':''}</div>
+            <div class="tl-main">${r.model || '-'}</div>
+            <div class="tl-meta">담당: ${r.tech || '-'} &nbsp;|&nbsp; 완료일: ${r.completedDate || '-'} &nbsp;|&nbsp; 보증: ${r.warranty || '-'}</div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+  `;
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+
+// Chart.js defaults
+Chart.defaults.color = '#999';
+Chart.defaults.font.family = 'Manrope';
+</script>
+</body>
+</html>
