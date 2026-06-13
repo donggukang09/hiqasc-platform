@@ -277,14 +277,16 @@ canvas { max-height: 250px; }
 </div>
 
 <script>
-const SHEET_ID = '111K9l8gt-14roqvynNFEJrT2aLsTYjU8gQBsKNiyFmI';
-const GID      = '351004172';
-const EXCLUDED = ['이선제','김태정','김찬우','노경호','홍성균','임성산','박학림','노세진'];
+const SHEET_ID  = '111K9l8gt-14roqvynNFEJrT2aLsTYjU8gQBsKNiyFmI';
+const GID       = '351004172';
+const MODEL_GID = '1409101472';
+const EXCLUDED  = ['이선제','김태정','김찬우','노경호','홍성균','임성산','박학림','노세진'];
 
-// 확정된 컬럼 인덱스 (헤더행 기준 0-based, gviz는 헤더1행 제외하므로 동일)
+// 확정된 컬럼 인덱스
 const C = { serial:24, warranty:26, machineId:22, tech:38, receive:48, complete:46 };
 
 let allRows = [], cases = [], serialMap = {};
+let modelNameMap = {}; // machineId(W열) → 모델명(C열)
 
 function setP(p) {
   document.getElementById('progWrap').style.display = 'block';
@@ -292,18 +294,51 @@ function setP(p) {
 }
 function setSt(m) { document.getElementById('statusMsg').textContent = m; }
 
+function parseGviz(raw) {
+  return JSON.parse(raw.match(/google\.visualization\.Query\.setResponse\(([\s\S]*?)\);\s*$/)[1]);
+}
+
 async function loadData() {
   const btn = document.getElementById('loadBtn');
   btn.disabled = true;
-  setP(10); setSt('시트 데이터 요청 중...');
+  setP(10); setSt('모델 정보 로드 중...');
 
-  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${GID}&headers=1`;
   try {
-    const res = await fetch(url);
-    const raw = await res.text();
-    setP(40); setSt('파싱 중...');
-    const json = JSON.parse(raw.match(/google\.visualization\.Query\.setResponse\(([\s\S]*?)\);\s*$/)[1]);
-    parseAndAnalyze(json);
+    // 1) model 탭: A열(machineId) → C열(모델명)
+    const modelUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${MODEL_GID}&headers=1`;
+    const mRes = await fetch(modelUrl);
+    const mRaw = await mRes.text();
+    const mJson = parseGviz(mRaw);
+    modelNameMap = {};
+    // gviz 구조 디버그
+    const cols = mJson.table.cols || [];
+    const mrows = mJson.table.rows || [];
+    console.log('[model탭] cols:', cols.map(c=>c.label));
+    console.log('[model탭] 첫3행:', mrows.slice(0,3).map(r=>r&&r.c?r.c.map(c=>c&&c.v):[]));
+
+    // headers=1 이면 헤더행이 cols.label로 들어오고 rows는 데이터만
+    // A열(idx0)=machineId, C열(idx2)=모델명
+    mrows.forEach(r => {
+      if(!r||!r.c) return;
+      const id   = r.c[0] ? String(r.c[0].v||'').trim() : '';
+      const name = r.c[2] ? String(r.c[2].v || r.c[2].f || '').trim() : '';
+      if(id && name && id !== 'International Machine ID') modelNameMap[id] = name;
+    });
+
+    // cols.label 기반으로도 시도 (헤더가 첫 데이터행에 있는 경우)
+    if(Object.keys(modelNameMap).length === 0) {
+      console.log('[model탭] rows 매핑 실패, cols label 확인:', cols);
+    }
+    console.log('[model탭] 매핑 수:', Object.keys(modelNameMap).length, '샘플:', Object.entries(modelNameMap).slice(0,5));
+
+    // 2) 주간마감 탭
+    setP(30); setSt('수리 데이터 로드 중...');
+    const dataUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${GID}&headers=1`;
+    const dRes = await fetch(dataUrl);
+    const dRaw = await dRes.text();
+    setP(50); setSt('파싱 중...');
+    parseAndAnalyze(parseGviz(dRaw));
+
   } catch(e) {
     setSt('❌ 로드 실패: ' + e.message);
     btn.disabled = false;
@@ -354,7 +389,9 @@ function parseAndAnalyze(json) {
     const receive  = cellVal(r, C.receive);
     const complete = cellVal(r, C.complete);
     if(!serial) return;
-    allRows.push({ serial, warranty, machId, tech, receive, complete });
+    // machId → 모델명 변환 (model 탭 매핑)
+    const machine = modelNameMap[machId] || machId || '미확인';
+    allRows.push({ serial, warranty, machine, tech, receive, complete });
   });
 
   setP(65); setSt('시리얼 매핑 중...');
@@ -385,7 +422,7 @@ function parseAndAnalyze(json) {
     const interval = diffDays(prevDate, rDate);
     cases.push({
       serial:        r.serial,
-      machId:        r.machId,
+      machine:       r.machine,
       currentTech:   r.tech,
       currentReceive:r.receive,
       prevTech:      prev.tech || '미확인',
@@ -416,7 +453,7 @@ function render() {
   const highRisk = Object.values(serialMap).filter(a=>a.length>=3).length;
   const allIntervals = cases.map(c=>c.interval).filter(x=>x!==null);
   const avgAll = avg(allIntervals);
-  const models = new Set(cases.map(c=>c.machId).filter(Boolean)).size;
+  const models = new Set(cases.map(c=>c.machine).filter(Boolean)).size;
   const rate = totalAll > 0 ? (totalReinput/totalAll*100).toFixed(1) : '0.0';
 
   document.getElementById('kpiMain').textContent = totalReinput.toLocaleString();
@@ -446,7 +483,7 @@ function render() {
   // ── 모델별 집계 ──
   const modelMap = {};
   cases.forEach(c => {
-    const m = c.machId || '미확인';
+    const m = c.machine || '미확인';
     if(!modelMap[m]) modelMap[m] = { count:0, intervals:[] };
     modelMap[m].count++;
     if(c.interval !== null) modelMap[m].intervals.push(c.interval);
