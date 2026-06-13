@@ -240,27 +240,37 @@ canvas { max-height: 250px; }
     </div>
   </div>
 
-  <!-- 트렌드 + 반복 -->
-  <div class="g2">
+  <!-- 월별 콤보 트렌드 (full width) -->
+  <div class="gfull">
     <div class="card">
-      <div class="card-title">월별 재입고 트렌드</div>
-      <canvas id="chartMonthly" style="max-height:200px"></canvas>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div class="card-title" style="margin:0">월별 입고량 vs 재입고 트렌드</div>
+        <div style="display:flex;gap:16px;font-size:11px;color:var(--muted)">
+          <span><span style="display:inline-block;width:10px;height:10px;background:rgba(74,144,226,0.6);border-radius:2px;margin-right:4px"></span>전체 입고량</span>
+          <span><span style="display:inline-block;width:10px;height:10px;background:rgba(226,138,74,0.7);border-radius:2px;margin-right:4px"></span>재입고 건수</span>
+          <span><span style="display:inline-block;width:22px;height:2px;background:#e24a4a;margin-right:4px;vertical-align:middle"></span>재입고율 %</span>
+        </div>
+      </div>
+      <canvas id="chartMonthly" style="max-height:220px"></canvas>
     </div>
+  </div>
+
+  <!-- 간격분포 + 반복 + 재입고율 -->
+  <div class="g2">
     <div class="card">
       <div class="card-title">재입고 간격 분포</div>
       <canvas id="chartInterval" style="max-height:200px"></canvas>
     </div>
-  </div>
-
-  <!-- 반복 횟수 + 테크니션×모델 -->
-  <div class="g2">
     <div class="card">
       <div class="card-title">반복 입고 횟수 분포</div>
       <canvas id="chartRepeat" style="max-height:200px"></canvas>
     </div>
+  </div>
+
+  <div class="gfull">
     <div class="card">
-      <div class="card-title">테크니션별 재입고율 % (본인 완료건 대비)</div>
-      <canvas id="chartTechRate" style="max-height:200px"></canvas>
+      <div class="card-title">테크니션별 재입고율 % (본인 완료건 대비, 10건+ 기준)</div>
+      <canvas id="chartTechRate" style="max-height:180px"></canvas>
     </div>
   </div>
 
@@ -507,33 +517,110 @@ function render() {
     });
   }
 
-  // ── 월별 트렌드 ──
+  // ── 월별 콤보 트렌드 ──
   {
-    const monthly = {};
+    // 전체 입고량: 수리입고일(receive) 기준
+    const monthlyTotal = {};
+    allRows.forEach(r => {
+      const k = r.receive ? r.receive.slice(0,7) : null;
+      if(k) monthlyTotal[k] = (monthlyTotal[k]||0)+1;
+    });
+    // 재입고 건수: 현재 케이스 기준
+    const monthlyRein = {};
     cases.forEach(c => {
       const k = c.currentReceive ? c.currentReceive.slice(0,7) : null;
-      if(k) monthly[k] = (monthly[k]||0)+1;
+      if(k) monthlyRein[k] = (monthlyRein[k]||0)+1;
     });
-    const sorted = Object.entries(monthly).sort((a,b)=>a[0].localeCompare(b[0]));
+    // 공통 월 목록 (전체 입고 기준으로 정렬)
+    const allMonths = [...new Set([
+      ...Object.keys(monthlyTotal),
+      ...Object.keys(monthlyRein),
+    ])].sort();
+
+    const totals = allMonths.map(k => monthlyTotal[k]||0);
+    const reins  = allMonths.map(k => monthlyRein[k]||0);
+    const rates  = allMonths.map((k,i) => totals[i] > 0 ? +(reins[i]/totals[i]*100).toFixed(1) : 0);
+
     new Chart(document.getElementById('chartMonthly'), {
-      type:'line',
-      data:{
-        labels: sorted.map(([k])=>k),
-        datasets:[{
-          label:'재입고',
-          data: sorted.map(([,v])=>v),
-          borderColor:'#e28a4a',
-          backgroundColor:'rgba(226,138,74,0.12)',
-          fill:true, tension:0.35,
-          pointRadius:3, pointBackgroundColor:'#e28a4a',
-        }]
+      type: 'bar',
+      data: {
+        labels: allMonths,
+        datasets: [
+          {
+            type: 'bar',
+            label: '전체 입고량',
+            data: totals,
+            backgroundColor: 'rgba(74,144,226,0.5)',
+            borderColor: 'rgba(74,144,226,0.8)',
+            borderWidth: 1,
+            borderRadius: 3,
+            yAxisID: 'yLeft',
+            order: 2,
+          },
+          {
+            type: 'bar',
+            label: '재입고 건수',
+            data: reins,
+            backgroundColor: 'rgba(226,138,74,0.75)',
+            borderColor: 'rgba(226,138,74,1)',
+            borderWidth: 1,
+            borderRadius: 3,
+            yAxisID: 'yLeft',
+            order: 1,
+          },
+          {
+            type: 'line',
+            label: '재입고율 (%)',
+            data: rates,
+            borderColor: '#e24a4a',
+            backgroundColor: 'rgba(226,74,74,0.08)',
+            fill: false,
+            tension: 0.35,
+            pointRadius: 4,
+            pointBackgroundColor: '#e24a4a',
+            borderWidth: 2,
+            yAxisID: 'yRight',
+            order: 0,
+          },
+        ]
       },
-      options:{
-        responsive:true,
-        plugins:{ legend:{display:false}, tooltip:{mode:'index',intersect:false} },
-        scales:{
-          x:{ grid:{color:'#3a3a3a'}, ticks:{color:'#999',font:{size:10}} },
-          y:{ grid:{color:'#3a3a3a'}, ticks:{color:'#999',font:{size:10}}, beginAtZero:true },
+      options: {
+        responsive: true,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: ctx => {
+                if(ctx.dataset.label === '재입고율 (%)') return ` 재입고율: ${ctx.raw}%`;
+                return ` ${ctx.dataset.label}: ${ctx.raw.toLocaleString()}건`;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { color: '#3a3a3a' },
+            ticks: { color: '#999', font: { size: 10 } },
+          },
+          yLeft: {
+            position: 'left',
+            grid: { color: '#3a3a3a' },
+            ticks: { color: '#999', font: { size: 10 } },
+            beginAtZero: true,
+            title: { display: true, text: '건수', color: '#666', font: { size: 10 } },
+          },
+          yRight: {
+            position: 'right',
+            grid: { drawOnChartArea: false },
+            ticks: {
+              color: '#e24a4a',
+              font: { size: 10 },
+              callback: v => v + '%',
+            },
+            beginAtZero: true,
+            title: { display: true, text: '재입고율', color: '#e24a4a', font: { size: 10 } },
+          },
         }
       }
     });
