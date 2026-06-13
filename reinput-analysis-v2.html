@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>재입고 분석 대시보드 | HIQASC</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #1e1e1e; --card: #2a2a2a; --card2: #353535; --border: #4a4a4a;
+  --text: #e0e0e0; --muted: #999;
+  --blue: #4a90e2; --blue-dim: rgba(74,144,226,0.15);
+  --orange: #e28a4a; --orange-dim: rgba(226,138,74,0.15);
+  --green: #4ae28a; --green-dim: rgba(74,226,138,0.15);
+  --red: #e24a4a; --red-dim: rgba(226,74,74,0.15);
+  --yellow: #e2d44a; --yellow-dim: rgba(226,212,74,0.15);
+}
+body { font-family: 'Manrope', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* Header */
+.header {
+  background: var(--card); border-bottom: 1px solid var(--border);
+  padding: 14px 28px; display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+}
+.header-left { display: flex; align-items: center; gap: 10px; }
+.logo { font-size: 13px; font-weight: 800; color: var(--blue); letter-spacing: 1px; }
+.hdiv { width: 1px; height: 16px; background: var(--border); }
+.htitle { font-size: 14px; font-weight: 700; }
+.badge { background: var(--orange-dim); color: var(--orange); border: 1px solid var(--orange); border-radius: 4px; font-size: 11px; font-weight: 700; padding: 2px 8px; }
+
+/* Load Panel */
+#loadPanel {
+  max-width: 580px; margin: 80px auto; background: var(--card);
+  border: 1px solid var(--border); border-radius: 12px; padding: 40px; text-align: center;
+}
+#loadPanel h2 { font-size: 18px; font-weight: 800; margin-bottom: 8px; }
+#loadPanel p { color: var(--muted); font-size: 13px; margin-bottom: 24px; line-height: 1.6; }
+.load-btn {
+  background: var(--blue); color: #fff; border: none; border-radius: 8px;
+  padding: 13px 32px; font-family: 'Manrope', sans-serif; font-size: 14px; font-weight: 700;
+  cursor: pointer; width: 100%; transition: opacity .15s;
+}
+.load-btn:hover { opacity: .85; }
+.load-btn:disabled { opacity: .4; cursor: not-allowed; }
+.prog-wrap { background: var(--card2); border-radius: 3px; height: 5px; margin-top: 18px; overflow: hidden; display: none; }
+.prog-bar { height: 100%; background: var(--blue); border-radius: 3px; width: 0; transition: width .3s; }
+.status { margin-top: 10px; font-size: 12px; color: var(--muted); min-height: 16px; }
+
+/* Dashboard */
+#dashboard { display: none; padding: 24px 28px; }
+
+/* KPI */
+.kpi-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 20px; }
+.kpi {
+  background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px;
+}
+.kpi.t-orange { border-top: 3px solid var(--orange); }
+.kpi.t-red    { border-top: 3px solid var(--red); }
+.kpi.t-blue   { border-top: 3px solid var(--blue); }
+.kpi.t-yellow { border-top: 3px solid var(--yellow); }
+.kpi.t-green  { border-top: 3px solid var(--green); }
+.kpi-label { font-size: 10px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
+.kpi-val { font-size: 26px; font-weight: 800; line-height: 1; }
+.kpi-sub { font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+/* Section title */
+.sec { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .8px; margin-bottom: 12px; display: flex; align-items: center; gap: 7px; }
+.sec::before { content: ''; display: inline-block; width: 3px; height: 12px; background: var(--blue); border-radius: 2px; }
+
+/* Grids */
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+.g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+.gfull { margin-bottom: 20px; }
+
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; }
+.card-title { font-size: 12px; font-weight: 700; margin-bottom: 14px; }
+canvas { max-height: 250px; }
+
+/* Rank bars */
+.rank-list { display: flex; flex-direction: column; gap: 7px; }
+.rank-item { display: flex; align-items: center; gap: 8px; }
+.rank-name { font-size: 12px; font-weight: 600; min-width: 72px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rank-bar-wrap { flex: 1; background: var(--card2); border-radius: 3px; height: 7px; }
+.rank-bar { height: 100%; border-radius: 3px; }
+.rank-val { font-size: 11px; font-weight: 700; min-width: 30px; text-align: right; }
+.rank-sub { font-size: 10px; color: var(--muted); min-width: 42px; text-align: right; }
+
+/* Tab switcher */
+.tabs { display: flex; gap: 4px; margin-bottom: 14px; }
+.tab {
+  background: var(--card2); border: 1px solid var(--border); border-radius: 6px;
+  padding: 6px 14px; font-family: 'Manrope', sans-serif; font-size: 12px; font-weight: 600;
+  color: var(--muted); cursor: pointer; transition: all .15s;
+}
+.tab.active { background: var(--blue); border-color: var(--blue); color: #fff; }
+
+/* Combined chart+rank card */
+.dual-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.dual-inner { display: grid; grid-template-columns: 1fr 1fr; }
+.dual-pane { padding: 18px 20px; }
+.dual-pane + .dual-pane { border-left: 1px solid var(--border); }
+.dual-pane .card-title { font-size: 12px; font-weight: 700; margin-bottom: 14px; }
+
+/* Chip */
+.chip { display: inline-block; padding: 1px 7px; border-radius: 3px; font-size: 10px; font-weight: 700; }
+.chip-orange { background: var(--orange-dim); color: var(--orange); }
+.chip-red    { background: var(--red-dim); color: var(--red); }
+.chip-blue   { background: var(--blue-dim); color: var(--blue); }
+.chip-green  { background: var(--green-dim); color: var(--green); }
+.chip-yellow { background: var(--yellow-dim); color: var(--yellow); }
+
+/* Insight strip */
+.insight-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+.ins {
+  background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px;
+  display: flex; align-items: flex-start; gap: 12px;
+}
+.ins-icon { font-size: 20px; flex-shrink: 0; }
+.ins-label { font-size: 10px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+.ins-val { font-size: 17px; font-weight: 800; margin: 2px 0; }
+.ins-desc { font-size: 11px; color: var(--muted); line-height: 1.4; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <span class="logo">HIQASC</span>
+    <div class="hdiv"></div>
+    <span class="htitle">재입고 분석 대시보드</span>
+  </div>
+  <span class="badge">재입고 분석</span>
+</div>
+
+<div id="loadPanel">
+  <h2>📦 재입고 분석</h2>
+  <p>주간 마감(완료 누적) 시트에서 전체 데이터를 불러와<br>재입고 원인·테크니션·모델을 분석합니다.<br><br>⚠️ 시트가 <b>링크 공유(뷰어)</b>로 설정되어 있어야 합니다.</p>
+  <button class="load-btn" id="loadBtn" onclick="loadData()">데이터 불러오기</button>
+  <div class="prog-wrap" id="progWrap"><div class="prog-bar" id="progBar"></div></div>
+  <div class="status" id="statusMsg"></div>
+</div>
+
+<div id="dashboard">
+
+  <!-- KPI -->
+  <div class="kpi-row">
+    <div class="kpi t-orange">
+      <div class="kpi-label">재입고 (이전기록 확인)</div>
+      <div class="kpi-val" id="kpiMain">-</div>
+      <div class="kpi-sub" id="kpiMainSub">-</div>
+    </div>
+    <div class="kpi t-red">
+      <div class="kpi-label">3회+ 고위험</div>
+      <div class="kpi-val" id="kpiHigh">-</div>
+      <div class="kpi-sub">동일 시리얼 3회 이상</div>
+    </div>
+    <div class="kpi t-yellow">
+      <div class="kpi-label">평균 재입고 간격</div>
+      <div class="kpi-val" id="kpiAvg">-</div>
+      <div class="kpi-sub">첫입고 → 재입고</div>
+    </div>
+    <div class="kpi t-blue">
+      <div class="kpi-label">발생 모델 종류</div>
+      <div class="kpi-val" id="kpiModels">-</div>
+      <div class="kpi-sub">고유 모델 수</div>
+    </div>
+    <div class="kpi t-green">
+      <div class="kpi-label">전체 대비 재입고율</div>
+      <div class="kpi-val" id="kpiRate">-</div>
+      <div class="kpi-sub" id="kpiRateSub">-</div>
+    </div>
+  </div>
+
+  <!-- Insight strip -->
+  <div class="insight-strip">
+    <div class="ins">
+      <div class="ins-icon">⚠️</div>
+      <div>
+        <div class="ins-label">최다 원인 테크니션</div>
+        <div class="ins-val" id="insTopTech">-</div>
+        <div class="ins-desc" id="insTopTechDesc">-</div>
+      </div>
+    </div>
+    <div class="ins">
+      <div class="ins-icon">⚡</div>
+      <div>
+        <div class="ins-label">최단 평균 재입고 간격</div>
+        <div class="ins-val" id="insFastTech">-</div>
+        <div class="ins-desc" id="insFastTechDesc">-</div>
+      </div>
+    </div>
+    <div class="ins">
+      <div class="ins-icon">🖥️</div>
+      <div>
+        <div class="ins-label">최다 재입고 모델</div>
+        <div class="ins-val" id="insTopModel">-</div>
+        <div class="ins-desc" id="insTopModelDesc">-</div>
+      </div>
+    </div>
+    <div class="ins">
+      <div class="ins-icon">🔁</div>
+      <div>
+        <div class="ins-label">30일 이내 재입고</div>
+        <div class="ins-val" id="ins30d">-</div>
+        <div class="ins-desc" id="ins30dDesc">-</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 테크니션 분석 -->
+  <div class="sec">테크니션 분석</div>
+  <div class="dual-card" style="margin-bottom:20px">
+    <div class="dual-inner">
+      <div class="dual-pane">
+        <div class="card-title">원인 건수 랭킹</div>
+        <div id="rankTech" class="rank-list"></div>
+      </div>
+      <div class="dual-pane">
+        <div class="card-title">평균 재입고 간격 (일) — 짧을수록 주의</div>
+        <canvas id="chartTechInterval"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- 모델 분석 -->
+  <div class="sec">모델 분석</div>
+  <div class="dual-card" style="margin-bottom:20px">
+    <div class="dual-inner">
+      <div class="dual-pane">
+        <div class="card-title">모델별 재입고 건수 TOP 12</div>
+        <div id="rankModel" class="rank-list"></div>
+      </div>
+      <div class="dual-pane">
+        <div class="card-title">모델별 평균 재입고 간격 (일)</div>
+        <canvas id="chartModelInterval"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- 트렌드 + 반복 -->
+  <div class="g2">
+    <div class="card">
+      <div class="card-title">월별 재입고 트렌드</div>
+      <canvas id="chartMonthly" style="max-height:200px"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-title">재입고 간격 분포</div>
+      <canvas id="chartInterval" style="max-height:200px"></canvas>
+    </div>
+  </div>
+
+  <!-- 반복 횟수 + 테크니션×모델 -->
+  <div class="g2">
+    <div class="card">
+      <div class="card-title">반복 입고 횟수 분포</div>
+      <canvas id="chartRepeat" style="max-height:200px"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-title">테크니션별 재입고율 % (본인 완료건 대비)</div>
+      <canvas id="chartTechRate" style="max-height:200px"></canvas>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const SHEET_ID = '111K9l8gt-14roqvynNFEJrT2aLsTYjU8gQBsKNiyFmI';
+const GID      = '351004172';
+const EXCLUDED = ['이선제','김태정','김찬우','노경호','홍성균','임성산','박학림','노세진'];
+
+// 확정된 컬럼 인덱스 (헤더행 기준 0-based, gviz는 헤더1행 제외하므로 동일)
+const C = { serial:24, warranty:26, machineId:22, tech:38, receive:48, complete:46 };
+
+let allRows = [], cases = [], serialMap = {};
+
+function setP(p) {
+  document.getElementById('progWrap').style.display = 'block';
+  document.getElementById('progBar').style.width = p + '%';
+}
+function setSt(m) { document.getElementById('statusMsg').textContent = m; }
+
+async function loadData() {
+  const btn = document.getElementById('loadBtn');
+  btn.disabled = true;
+  setP(10); setSt('시트 데이터 요청 중...');
+
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${GID}&headers=1`;
+  try {
+    const res = await fetch(url);
+    const raw = await res.text();
+    setP(40); setSt('파싱 중...');
+    const json = JSON.parse(raw.match(/google\.visualization\.Query\.setResponse\(([\s\S]*?)\);\s*$/)[1]);
+    parseAndAnalyze(json);
+  } catch(e) {
+    setSt('❌ 로드 실패: ' + e.message);
+    btn.disabled = false;
+  }
+}
+
+function cellVal(row, idx) {
+  if(idx >= row.c.length) return '';
+  const cell = row.c[idx];
+  if(!cell) return '';
+  // 날짜: formatted 우선
+  if(cell.f) return cell.f;
+  if(cell.v === null || cell.v === undefined) return '';
+  // gviz Date: "Date(2026,0,5)" 형태
+  if(typeof cell.v === 'string' && cell.v.startsWith('Date(')) {
+    const m = cell.v.match(/Date\((\d+),(\d+),(\d+)\)/);
+    if(m) {
+      const y = m[1], mo = String(parseInt(m[2])+1).padStart(2,'0'), d = String(m[3]).padStart(2,'0');
+      return `${y}-${mo}-${d}`;
+    }
+  }
+  return String(cell.v).trim();
+}
+
+function parseDate(s) {
+  if(!s) return null;
+  // YYYY-MM-DD
+  const m = s.match(/(\d{4})[.\-\/](\d{1,2})[.\-\/](\d{1,2})/);
+  if(m) return new Date(parseInt(m[1]), parseInt(m[2])-1, parseInt(m[3]));
+  return null;
+}
+function diffDays(a,b) {
+  if(!a||!b) return null;
+  return Math.round((b-a)/86400000);
+}
+
+function parseAndAnalyze(json) {
+  setP(55); setSt('행 파싱 중...');
+  const rows = json.table.rows || [];
+
+  allRows = [];
+  rows.forEach(r => {
+    if(!r||!r.c) return;
+    const serial   = cellVal(r, C.serial);
+    const warranty = cellVal(r, C.warranty);
+    const machId   = cellVal(r, C.machineId);
+    const tech     = cellVal(r, C.tech);
+    const receive  = cellVal(r, C.receive);
+    const complete = cellVal(r, C.complete);
+    if(!serial) return;
+    allRows.push({ serial, warranty, machId, tech, receive, complete });
+  });
+
+  setP(65); setSt('시리얼 매핑 중...');
+
+  // 시리얼 맵 구성 + 날짜순 정렬
+  serialMap = {};
+  allRows.forEach(r => {
+    if(!serialMap[r.serial]) serialMap[r.serial] = [];
+    serialMap[r.serial].push(r);
+  });
+  Object.values(serialMap).forEach(arr =>
+    arr.sort((a,b) => (a.receive||'').localeCompare(b.receive||''))
+  );
+
+  setP(75); setSt('재입고 분석 중...');
+
+  // 재입고 건 → 이전 건 매칭
+  const reinputs = allRows.filter(r => r.warranty && r.warranty.includes('재입고'));
+  cases = [];
+
+  reinputs.forEach(r => {
+    const all = serialMap[r.serial] || [];
+    const rDate = parseDate(r.receive);
+    const prevs = all.filter(x => x !== r && (x.receive||'') < (r.receive||'9999'));
+    if(!prevs.length) return; // 이전기록 없음 → 스킵
+    const prev = prevs[prevs.length-1];
+    const prevDate = parseDate(prev.receive);
+    const interval = diffDays(prevDate, rDate);
+    cases.push({
+      serial:        r.serial,
+      machId:        r.machId,
+      currentTech:   r.tech,
+      currentReceive:r.receive,
+      prevTech:      prev.tech || '미확인',
+      prevReceive:   prev.receive,
+      prevComplete:  prev.complete,
+      interval:      (interval !== null && interval >= 0 && interval <= 730) ? interval : null,
+      totalCount:    all.length,
+      warranty:      r.warranty,
+    });
+  });
+
+  setP(88); setSt('차트 생성 중...');
+  setTimeout(render, 80);
+}
+
+// ── Render ────────────────────────────────────────────────
+Chart.defaults.color = '#999';
+Chart.defaults.font.family = 'Manrope';
+
+function avg(arr) { return arr.length ? Math.round(arr.reduce((a,b)=>a+b,0)/arr.length) : null; }
+
+function render() {
+  const totalAll = allRows.length;
+  const totalReinput = cases.length; // 이전기록 있는 건만
+  const allReinputRaw = allRows.filter(r=>r.warranty&&r.warranty.includes('재입고')).length;
+
+  // ── KPI ──
+  const highRisk = Object.values(serialMap).filter(a=>a.length>=3).length;
+  const allIntervals = cases.map(c=>c.interval).filter(x=>x!==null);
+  const avgAll = avg(allIntervals);
+  const models = new Set(cases.map(c=>c.machId).filter(Boolean)).size;
+  const rate = totalAll > 0 ? (totalReinput/totalAll*100).toFixed(1) : '0.0';
+
+  document.getElementById('kpiMain').textContent = totalReinput.toLocaleString();
+  document.getElementById('kpiMainSub').textContent = `전체 재입고 ${allReinputRaw}건 중 이전기록 확인`;
+  document.getElementById('kpiHigh').textContent = highRisk;
+  document.getElementById('kpiAvg').textContent = avgAll !== null ? avgAll+'일' : '-';
+  document.getElementById('kpiModels').textContent = models;
+  document.getElementById('kpiRate').textContent = rate+'%';
+  document.getElementById('kpiRateSub').textContent = `완료 ${totalAll.toLocaleString()}건 기준`;
+
+  // ── 테크니션별 집계 ──
+  const techMap = {};
+  cases.forEach(c => {
+    const t = c.prevTech;
+    if(EXCLUDED.includes(t)) return;
+    if(!techMap[t]) techMap[t] = { count:0, intervals:[] };
+    techMap[t].count++;
+    if(c.interval !== null) techMap[t].intervals.push(c.interval);
+  });
+  // 본인 수리 전체 건수 (재입고 원인 비율용)
+  const techTotalMap = {};
+  allRows.forEach(r => {
+    const t = r.tech;
+    if(t && !EXCLUDED.includes(t)) techTotalMap[t] = (techTotalMap[t]||0)+1;
+  });
+
+  // ── 모델별 집계 ──
+  const modelMap = {};
+  cases.forEach(c => {
+    const m = c.machId || '미확인';
+    if(!modelMap[m]) modelMap[m] = { count:0, intervals:[] };
+    modelMap[m].count++;
+    if(c.interval !== null) modelMap[m].intervals.push(c.interval);
+  });
+
+  // ── Insights ──
+  const techSorted = Object.entries(techMap).sort((a,b)=>b[1].count-a[1].count);
+  const topTech = techSorted[0];
+  document.getElementById('insTopTech').textContent = topTech ? topTech[0] : '-';
+  document.getElementById('insTopTechDesc').textContent = topTech ? `${topTech[1].count}건 원인, 평균 ${avg(topTech[1].intervals)||'-'}일` : '';
+
+  const techWithInterval = techSorted.filter(([,d])=>d.intervals.length>=5);
+  const fastest = techWithInterval.sort((a,b)=>avg(a[1].intervals)-avg(b[1].intervals))[0];
+  document.getElementById('insFastTech').textContent = fastest ? fastest[0] : '-';
+  document.getElementById('insFastTechDesc').textContent = fastest ? `평균 ${avg(fastest[1].intervals)}일 (5건+ 기준)` : '';
+
+  const modelSorted = Object.entries(modelMap).sort((a,b)=>b[1].count-a[1].count);
+  const topModel = modelSorted[0];
+  document.getElementById('insTopModel').textContent = topModel ? topModel[0] : '-';
+  document.getElementById('insTopModelDesc').textContent = topModel ? `${topModel[1].count}건, 평균 ${avg(topModel[1].intervals)||'-'}일` : '';
+
+  const cnt30 = cases.filter(c=>c.interval!==null && c.interval<=30).length;
+  const pct30 = totalReinput > 0 ? (cnt30/totalReinput*100).toFixed(0) : 0;
+  document.getElementById('ins30d').textContent = cnt30+'건';
+  document.getElementById('ins30dDesc').textContent = `전체 재입고의 ${pct30}%`;
+
+  // ── 테크니션 랭킹 ──
+  renderRank('rankTech', techSorted.slice(0,14), d=>d.count, d=>`평균 ${avg(d.intervals)||'-'}일`, '#e24a4a');
+
+  // ── 테크니션 평균 간격 차트 ──
+  {
+    const filtered = techSorted.filter(([,d])=>d.intervals.length>=3).slice(0,12);
+    const labels = filtered.map(([t])=>t);
+    const vals   = filtered.map(([,d])=>avg(d.intervals)||0);
+    new Chart(document.getElementById('chartTechInterval'), {
+      type:'bar',
+      data:{
+        labels,
+        datasets:[{
+          label:'평균 간격(일)',
+          data: vals,
+          backgroundColor: vals.map(v => v<=20 ? 'rgba(226,74,74,0.8)' : v<=30 ? 'rgba(226,138,74,0.8)' : 'rgba(74,144,226,0.8)'),
+          borderRadius:4,
+        }]
+      },
+      options: barOpts('일', true),
+    });
+  }
+
+  // ── 모델 랭킹 ──
+  renderRank('rankModel', modelSorted.slice(0,12), d=>d.count, d=>`평균 ${avg(d.intervals)||'-'}일`, '#4a90e2');
+
+  // ── 모델 평균 간격 ──
+  {
+    const top = modelSorted.filter(([,d])=>d.intervals.length>=3).slice(0,10);
+    new Chart(document.getElementById('chartModelInterval'), {
+      type:'bar',
+      data:{
+        labels: top.map(([m])=>m),
+        datasets:[{
+          label:'평균 간격(일)',
+          data: top.map(([,d])=>avg(d.intervals)||0),
+          backgroundColor:'rgba(74,226,138,0.7)',
+          borderRadius:4,
+        }]
+      },
+      options: barOpts('일', true),
+    });
+  }
+
+  // ── 월별 트렌드 ──
+  {
+    const monthly = {};
+    cases.forEach(c => {
+      const k = c.currentReceive ? c.currentReceive.slice(0,7) : null;
+      if(k) monthly[k] = (monthly[k]||0)+1;
+    });
+    const sorted = Object.entries(monthly).sort((a,b)=>a[0].localeCompare(b[0]));
+    new Chart(document.getElementById('chartMonthly'), {
+      type:'line',
+      data:{
+        labels: sorted.map(([k])=>k),
+        datasets:[{
+          label:'재입고',
+          data: sorted.map(([,v])=>v),
+          borderColor:'#e28a4a',
+          backgroundColor:'rgba(226,138,74,0.12)',
+          fill:true, tension:0.35,
+          pointRadius:3, pointBackgroundColor:'#e28a4a',
+        }]
+      },
+      options:{
+        responsive:true,
+        plugins:{ legend:{display:false}, tooltip:{mode:'index',intersect:false} },
+        scales:{
+          x:{ grid:{color:'#3a3a3a'}, ticks:{color:'#999',font:{size:10}} },
+          y:{ grid:{color:'#3a3a3a'}, ticks:{color:'#999',font:{size:10}}, beginAtZero:true },
+        }
+      }
+    });
+  }
+
+  // ── 간격 분포 ──
+  {
+    const buckets = [
+      {label:'7일 이내', min:0, max:7},
+      {label:'8-14일',   min:8, max:14},
+      {label:'15-30일',  min:15,max:30},
+      {label:'31-60일',  min:31,max:60},
+      {label:'61-90일',  min:61,max:90},
+      {label:'91일+',    min:91,max:Infinity},
+    ];
+    const counts = buckets.map(b=>allIntervals.filter(d=>d>=b.min&&d<=b.max).length);
+    new Chart(document.getElementById('chartInterval'), {
+      type:'bar',
+      data:{
+        labels:buckets.map(b=>b.label),
+        datasets:[{
+          label:'건수',
+          data:counts,
+          backgroundColor:['rgba(226,74,74,.8)','rgba(226,138,74,.8)','rgba(226,212,74,.8)','rgba(74,144,226,.7)','rgba(74,144,226,.5)','rgba(74,144,226,.3)'],
+          borderRadius:4,
+        }]
+      },
+      options:barOpts('건수', false),
+    });
+  }
+
+  // ── 반복 횟수 분포 ──
+  {
+    const dist = {};
+    cases.forEach(c => { dist[c.totalCount] = (dist[c.totalCount]||0)+1; });
+    const sorted = Object.entries(dist).sort((a,b)=>parseInt(a[0])-parseInt(b[0]));
+    new Chart(document.getElementById('chartRepeat'), {
+      type:'doughnut',
+      data:{
+        labels: sorted.map(([k])=>k+'회 입고'),
+        datasets:[{
+          data: sorted.map(([,v])=>v),
+          backgroundColor:['rgba(74,226,138,.8)','rgba(74,144,226,.8)','rgba(226,138,74,.8)','rgba(226,74,74,.8)','rgba(226,212,74,.8)'],
+          borderColor:'#2a2a2a', borderWidth:2,
+        }]
+      },
+      options:{
+        responsive:true,
+        plugins:{
+          legend:{ position:'right', labels:{color:'#ccc',font:{size:11},padding:10} },
+          tooltip:{ callbacks:{ label: ctx => ` ${ctx.label}: ${ctx.raw}건` } },
+        }
+      }
+    });
+  }
+
+  // ── 테크니션별 재입고율 ──
+  {
+    const data = Object.entries(techMap)
+      .filter(([t])=>!EXCLUDED.includes(t) && t!=='미확인' && (techTotalMap[t]||0)>=10)
+      .map(([t,d])=>({ tech:t, rate: d.count/(techTotalMap[t]||1)*100 }))
+      .sort((a,b)=>b.rate-a.rate).slice(0,12);
+
+    new Chart(document.getElementById('chartTechRate'), {
+      type:'bar',
+      data:{
+        labels: data.map(d=>d.tech),
+        datasets:[{
+          label:'재입고율(%)',
+          data: data.map(d=>d.rate.toFixed(1)),
+          backgroundColor:'rgba(226,74,74,.7)',
+          borderRadius:4,
+        }]
+      },
+      options: barOpts('%', true),
+    });
+  }
+
+  // Show
+  setP(100);
+  document.getElementById('loadPanel').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+}
+
+function renderRank(id, sorted, getCount, getSub, color) {
+  const max = sorted[0] ? getCount(sorted[0][1]) : 1;
+  document.getElementById(id).innerHTML = sorted.map(([name, d]) => {
+    const cnt = getCount(d);
+    const sub = getSub(d);
+    return `<div class="rank-item">
+      <span class="rank-name" title="${name}">${name}</span>
+      <div class="rank-bar-wrap"><div class="rank-bar" style="width:${(cnt/max*100).toFixed(0)}%;background:${color}"></div></div>
+      <span class="rank-val" style="color:${color}">${cnt}</span>
+      <span class="rank-sub">${sub}</span>
+    </div>`;
+  }).join('');
+}
+
+function barOpts(yLabel, rotate) {
+  return {
+    responsive:true,
+    plugins:{ legend:{display:false}, tooltip:{mode:'index',intersect:false} },
+    scales:{
+      x:{
+        grid:{color:'#3a3a3a'},
+        ticks:{ color:'#999', font:{size:10}, maxRotation:rotate?35:0, minRotation:rotate?25:0 }
+      },
+      y:{
+        grid:{color:'#3a3a3a'},
+        ticks:{color:'#999',font:{size:10}},
+        beginAtZero:true,
+        title:{display:true, text:yLabel, color:'#666', font:{size:10}}
+      }
+    }
+  };
+}
+</script>
+</body>
+</html>
