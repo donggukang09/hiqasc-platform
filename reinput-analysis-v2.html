@@ -147,7 +147,19 @@ canvas { max-height: 250px; }
     <div class="hdiv"></div>
     <span class="htitle">재입고 분석 대시보드</span>
   </div>
-  <span class="badge">재입고 분석</span>
+  <div style="display:flex;align-items:center;gap:10px">
+    <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)">
+      <label for="filterFrom" style="white-space:nowrap">기간</label>
+      <input type="month" id="filterFrom" onchange="applyFilter()"
+        style="background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:4px 8px;font-family:Manrope,sans-serif;font-size:12px;outline:none">
+      <span>~</span>
+      <input type="month" id="filterTo" onchange="applyFilter()"
+        style="background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:4px 8px;font-family:Manrope,sans-serif;font-size:12px;outline:none">
+      <button onclick="resetFilter()"
+        style="background:var(--card2);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:4px 10px;font-family:Manrope,sans-serif;font-size:11px;cursor:pointer">전체</button>
+    </div>
+    <span class="badge">재입고 분석</span>
+  </div>
 </div>
 
 <div id="loadPanel">
@@ -229,12 +241,7 @@ canvas { max-height: 250px; }
   </div>
 
   <!-- 모델 KPI -->
-  <div class="kpi-row" style="grid-template-columns:repeat(3,1fr)">
-    <div class="kpi t-blue">
-      <div class="kpi-label">재입고 발생 모델 수</div>
-      <div class="kpi-val" id="kpiModels">-</div>
-      <div class="kpi-sub">고유 모델 기준</div>
-    </div>
+  <div class="kpi-row" style="grid-template-columns:repeat(2,1fr)">
     <div class="kpi t-orange">
       <div class="kpi-label">최다 재입고 모델</div>
       <div class="kpi-val" id="insTopModel">-</div>
@@ -467,6 +474,14 @@ function parseAndAnalyze(json) {
   });
 
   setP(88); setSt('차트 생성 중...');
+  filteredRows  = [...allRows];
+  filteredCases = [...cases];
+  // 기간 필터 초기값 설정
+  const dates = allRows.map(r=>r.receive).filter(Boolean).sort();
+  if(dates.length) {
+    document.getElementById('filterFrom').value = dates[0].slice(0,7);
+    document.getElementById('filterTo').value   = dates[dates.length-1].slice(0,7);
+  }
   setTimeout(render, 80);
 }
 
@@ -476,22 +491,70 @@ Chart.defaults.font.family = 'Manrope';
 
 function avg(arr) { return arr.length ? Math.round(arr.reduce((a,b)=>a+b,0)/arr.length) : null; }
 
-function render() {
-  const totalAll = allRows.length;
-  const totalReinput = cases.length;
-  const allReinputRaw = allRows.filter(r=>r.warranty&&r.warranty.includes('재입고')).length;
+// Chart 인스턴스 저장 (destroy용)
+const chartInstances = {};
+function makeChart(id, config) {
+  if(chartInstances[id]) { chartInstances[id].destroy(); }
+  chartInstances[id] = new Chart(document.getElementById(id), config);
+}
 
-  // 분석 기간
-  const allDates = allRows.map(r=>r.receive).filter(Boolean).sort();
-  if(allDates.length) {
-    const from = allDates[0].slice(0,7).replace('-','.');
-    const to   = allDates[allDates.length-1].slice(0,7).replace('-','.');
-    document.getElementById('secPeriod').textContent = `분석 기간: ${from} ~ ${to}`;
+// 기간 필터 적용
+let filteredRows = [];
+let filteredCases = [];
+
+function applyFilter() {
+  const from = document.getElementById('filterFrom').value; // "YYYY-MM"
+  const to   = document.getElementById('filterTo').value;
+  filteredRows  = allRows.filter(r => {
+    const m = r.receive ? r.receive.slice(0,7) : '';
+    return (!from || m >= from) && (!to || m <= to);
+  });
+  filteredCases = cases.filter(c => {
+    const m = c.currentReceive ? c.currentReceive.slice(0,7) : '';
+    return (!from || m >= from) && (!to || m <= to);
+  });
+  render();
+}
+
+function resetFilter() {
+  document.getElementById('filterFrom').value = '';
+  document.getElementById('filterTo').value = '';
+  filteredRows  = [...allRows];
+  filteredCases = [...cases];
+  render();
+}
+
+function render() {
+  const rows   = filteredRows;
+  const fCases = filteredCases;
+
+  const totalAll     = rows.length;
+  const totalReinput = fCases.length;
+  const allReinputRaw = rows.filter(r=>r.warranty&&r.warranty.includes('재입고')).length;
+
+  // 분석 기간 표시
+  const from = document.getElementById('filterFrom').value;
+  const to   = document.getElementById('filterTo').value;
+  if(from || to) {
+    document.getElementById('secPeriod').textContent =
+      `조회 기간: ${from||'시작'} ~ ${to||'현재'}`;
+  } else {
+    const allDates = rows.map(r=>r.receive).filter(Boolean).sort();
+    if(allDates.length) {
+      const f = allDates[0].slice(0,7).replace('-','.');
+      const t = allDates[allDates.length-1].slice(0,7).replace('-','.');
+      document.getElementById('secPeriod').textContent = `전체 기간: ${f} ~ ${t}`;
+    }
   }
 
   // ── KPI ──
-  const highRisk = Object.values(serialMap).filter(a=>a.length>=3).length;
-  const allIntervals = cases.map(c=>c.interval).filter(x=>x!==null);
+  const highRisk = (() => {
+    // 기간 필터 적용 시: 필터된 rows 안에서 3회+ 시리얼
+    const sm = {};
+    rows.forEach(r=>{ sm[r.serial]=(sm[r.serial]||0)+1; });
+    return Object.values(sm).filter(v=>v>=3).length;
+  })();
+  const allIntervals = fCases.map(c=>c.interval).filter(x=>x!==null);
   const avgAll = avg(allIntervals);
   const rate = totalAll > 0 ? (totalReinput/totalAll*100).toFixed(1) : '0.0';
 
@@ -504,7 +567,7 @@ function render() {
 
   // ── 테크니션별 집계 ──
   const techMap = {};
-  cases.forEach(c => {
+  fCases.forEach(c => {
     const t = c.prevTech;
     if(EXCLUDED.includes(t)) return;
     if(!techMap[t]) techMap[t] = { count:0, intervals:[] };
@@ -512,63 +575,67 @@ function render() {
     if(c.interval !== null) techMap[t].intervals.push(c.interval);
   });
   const techTotalMap = {};
-  allRows.forEach(r => {
+  rows.forEach(r => {
     const t = r.tech;
     if(t && !EXCLUDED.includes(t)) techTotalMap[t] = (techTotalMap[t]||0)+1;
   });
 
-  // ── 모델별 집계 ──
+  // ── 모델별 집계 (machine 기준) ──
   const modelMap = {};
-  cases.forEach(c => {
+  fCases.forEach(c => {
     const m = c.machine || '미확인';
     if(!modelMap[m]) modelMap[m] = { count:0, intervals:[] };
     modelMap[m].count++;
     if(c.interval !== null) modelMap[m].intervals.push(c.interval);
   });
-  // 모델 전체 수리건 (재입고율 계산용)
   const modelTotalMap = {};
-  allRows.forEach(r => {
+  rows.forEach(r => {
     const m = r.machine || '미확인';
     modelTotalMap[m] = (modelTotalMap[m]||0)+1;
   });
 
   const techSorted  = Object.entries(techMap).sort((a,b)=>b[1].count-a[1].count);
-  const modelSorted = Object.entries(modelMap).sort((a,b)=>b[1].count-a[1].count);
+  // 재입고 건수 기준 정렬
+  const modelSorted = Object.entries(modelMap)
+    .filter(([m])=>m!=='미확인')
+    .sort((a,b)=>b[1].count-a[1].count);
+
+  // 모델 재입고율: 재입고건수 / 해당모델 전체수리건수
+  const modelRates = modelSorted
+    .filter(([m])=>(modelTotalMap[m]||0)>=10)
+    .map(([m,d])=>({
+      name: m,
+      rate: d.count/(modelTotalMap[m]||1)*100,
+      count: d.count,
+      total: modelTotalMap[m]||0,
+    }))
+    .sort((a,b)=>b.rate-a.rate);
 
   // ══════════════════════════════════════
-  // SECTION 1 KPI & 차트
+  // SECTION 1
   // ══════════════════════════════════════
 
   // 월별 콤보
   {
-    const monthlyTotal = {};
-    allRows.forEach(r => {
-      const k = r.receive ? r.receive.slice(0,7) : null;
-      if(k) monthlyTotal[k] = (monthlyTotal[k]||0)+1;
-    });
-    const monthlyRein = {};
-    cases.forEach(c => {
-      const k = c.currentReceive ? c.currentReceive.slice(0,7) : null;
-      if(k) monthlyRein[k] = (monthlyRein[k]||0)+1;
-    });
-    const allMonths = [...new Set([...Object.keys(monthlyTotal),...Object.keys(monthlyRein)])].sort();
-    const totals = allMonths.map(k=>monthlyTotal[k]||0);
-    const reins  = allMonths.map(k=>monthlyRein[k]||0);
-    const rates  = allMonths.map((k,i)=>totals[i]>0?+(reins[i]/totals[i]*100).toFixed(1):0);
-    new Chart(document.getElementById('chartMonthly'), {
-      type:'bar',
-      data:{ labels:allMonths, datasets:[
-        { type:'bar', label:'전체 입고량', data:totals, backgroundColor:'rgba(74,144,226,0.5)', borderColor:'rgba(74,144,226,0.8)', borderWidth:1, borderRadius:3, yAxisID:'yLeft', order:2 },
-        { type:'bar', label:'재입고 건수', data:reins, backgroundColor:'rgba(226,138,74,0.75)', borderColor:'rgba(226,138,74,1)', borderWidth:1, borderRadius:3, yAxisID:'yLeft', order:1 },
-        { type:'line', label:'재입고율 (%)', data:rates, borderColor:'#e24a4a', backgroundColor:'rgba(226,74,74,0.08)', fill:false, tension:0.35, pointRadius:4, pointBackgroundColor:'#e24a4a', borderWidth:2, yAxisID:'yRight', order:0 },
+    const monthlyTotal={}, monthlyRein={};
+    rows.forEach(r=>{ const k=r.receive?r.receive.slice(0,7):null; if(k) monthlyTotal[k]=(monthlyTotal[k]||0)+1; });
+    fCases.forEach(c=>{ const k=c.currentReceive?c.currentReceive.slice(0,7):null; if(k) monthlyRein[k]=(monthlyRein[k]||0)+1; });
+    const allMonths=[...new Set([...Object.keys(monthlyTotal),...Object.keys(monthlyRein)])].sort();
+    const totals=allMonths.map(k=>monthlyTotal[k]||0);
+    const reins =allMonths.map(k=>monthlyRein[k]||0);
+    const rates =allMonths.map((k,i)=>totals[i]>0?+(reins[i]/totals[i]*100).toFixed(1):0);
+    makeChart('chartMonthly',{
+      type:'bar', data:{ labels:allMonths, datasets:[
+        {type:'bar',label:'전체 입고량',data:totals,backgroundColor:'rgba(74,144,226,0.5)',borderColor:'rgba(74,144,226,0.8)',borderWidth:1,borderRadius:3,yAxisID:'yLeft',order:2},
+        {type:'bar',label:'재입고 건수',data:reins,backgroundColor:'rgba(226,138,74,0.75)',borderColor:'rgba(226,138,74,1)',borderWidth:1,borderRadius:3,yAxisID:'yLeft',order:1},
+        {type:'line',label:'재입고율 (%)',data:rates,borderColor:'#e24a4a',backgroundColor:'rgba(226,74,74,0.08)',fill:false,tension:0.35,pointRadius:4,pointBackgroundColor:'#e24a4a',borderWidth:2,yAxisID:'yRight',order:0},
       ]},
-      options:{
-        responsive:true, interaction:{mode:'index',intersect:false},
-        plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:ctx=>ctx.dataset.label==='재입고율 (%)'?` 재입고율: ${ctx.raw}%`:` ${ctx.dataset.label}: ${ctx.raw.toLocaleString()}건` }}},
+      options:{responsive:true,interaction:{mode:'index',intersect:false},
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.dataset.label==='재입고율 (%)'?` 재입고율: ${ctx.raw}%`:` ${ctx.dataset.label}: ${ctx.raw.toLocaleString()}건`}}},
         scales:{
-          x:{ grid:{color:'#3a3a3a'}, ticks:{color:'#999',font:{size:10}} },
-          yLeft:{ position:'left', grid:{color:'#3a3a3a'}, ticks:{color:'#999',font:{size:10}}, beginAtZero:true, title:{display:true,text:'건수',color:'#666',font:{size:10}} },
-          yRight:{ position:'right', grid:{drawOnChartArea:false}, ticks:{color:'#e24a4a',font:{size:10},callback:v=>v+'%'}, beginAtZero:true, title:{display:true,text:'재입고율',color:'#e24a4a',font:{size:10}} },
+          x:{grid:{color:'#3a3a3a'},ticks:{color:'#999',font:{size:10}}},
+          yLeft:{position:'left',grid:{color:'#3a3a3a'},ticks:{color:'#999',font:{size:10}},beginAtZero:true,title:{display:true,text:'건수',color:'#666',font:{size:10}}},
+          yRight:{position:'right',grid:{drawOnChartArea:false},ticks:{color:'#e24a4a',font:{size:10},callback:v=>v+'%'},beginAtZero:true,title:{display:true,text:'재입고율',color:'#e24a4a',font:{size:10}}},
         }
       }
     });
@@ -577,119 +644,109 @@ function render() {
   // 간격 분포
   {
     const buckets=[{label:'7일 이내',min:0,max:7},{label:'8-14일',min:8,max:14},{label:'15-30일',min:15,max:30},{label:'31-60일',min:31,max:60},{label:'61-90일',min:61,max:90},{label:'91일+',min:91,max:Infinity}];
-    new Chart(document.getElementById('chartInterval'), {
-      type:'bar', data:{ labels:buckets.map(b=>b.label), datasets:[{ label:'건수', data:buckets.map(b=>allIntervals.filter(d=>d>=b.min&&d<=b.max).length), backgroundColor:['rgba(226,74,74,.8)','rgba(226,138,74,.8)','rgba(226,212,74,.8)','rgba(74,144,226,.7)','rgba(74,144,226,.5)','rgba(74,144,226,.3)'], borderRadius:4 }]},
-      options:barOpts('건수',false)
-    });
+    makeChart('chartInterval',{type:'bar',data:{labels:buckets.map(b=>b.label),datasets:[{label:'건수',data:buckets.map(b=>allIntervals.filter(d=>d>=b.min&&d<=b.max).length),backgroundColor:['rgba(226,74,74,.8)','rgba(226,138,74,.8)','rgba(226,212,74,.8)','rgba(74,144,226,.7)','rgba(74,144,226,.5)','rgba(74,144,226,.3)'],borderRadius:4}]},options:barOpts('건수',false)});
   }
 
   // 반복 횟수 도넛
   {
     const dist={};
-    cases.forEach(c=>{dist[c.totalCount]=(dist[c.totalCount]||0)+1;});
+    fCases.forEach(c=>{dist[c.totalCount]=(dist[c.totalCount]||0)+1;});
     const sorted=Object.entries(dist).sort((a,b)=>parseInt(a[0])-parseInt(b[0]));
-    new Chart(document.getElementById('chartRepeat'), {
-      type:'doughnut', data:{ labels:sorted.map(([k])=>k+'회 입고'), datasets:[{ data:sorted.map(([,v])=>v), backgroundColor:['rgba(74,226,138,.8)','rgba(74,144,226,.8)','rgba(226,138,74,.8)','rgba(226,74,74,.8)','rgba(226,212,74,.8)'], borderColor:'#2a2a2a', borderWidth:2 }]},
-      options:{ responsive:true, plugins:{ legend:{position:'right',labels:{color:'#ccc',font:{size:11},padding:10}}, tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${ctx.raw}건`}} }}
-    });
+    makeChart('chartRepeat',{type:'doughnut',data:{labels:sorted.map(([k])=>k+'회 입고'),datasets:[{data:sorted.map(([,v])=>v),backgroundColor:['rgba(74,226,138,.8)','rgba(74,144,226,.8)','rgba(226,138,74,.8)','rgba(226,74,74,.8)','rgba(226,212,74,.8)'],borderColor:'#2a2a2a',borderWidth:2}]},
+      options:{responsive:true,plugins:{legend:{position:'right',labels:{color:'#ccc',font:{size:11},padding:10}},tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${ctx.raw}건`}}}}});
   }
 
   // ══════════════════════════════════════
-  // SECTION 2 : 모델 분석
+  // SECTION 2 : 모델
   // ══════════════════════════════════════
 
   // 모델 KPI
-  const modelCount = new Set(cases.map(c=>c.machine).filter(m=>m&&m!=='미확인')).size;
-  document.getElementById('kpiModels').textContent = modelCount;
-
   const topModel = modelSorted[0];
   document.getElementById('insTopModel').textContent = topModel ? topModel[0] : '-';
-  document.getElementById('insTopModelDesc').textContent = topModel ? `${topModel[1].count}건 · 평균 ${avg(topModel[1].intervals)||'-'}일` : '';
+  document.getElementById('insTopModelDesc').textContent = topModel
+    ? `${topModel[1].count}건 · 평균 ${avg(topModel[1].intervals)||'-'}일` : '';
 
-  // 최고 재입고율 모델 (5건+ 기준)
-  const modelRates = Object.entries(modelMap)
-    .filter(([m])=>m!=='미확인' && (modelTotalMap[m]||0)>=5)
-    .map(([m,d])=>({ name:m, rate: d.count/(modelTotalMap[m]||1)*100, count:d.count, total:modelTotalMap[m] }))
-    .sort((a,b)=>b.rate-a.rate);
+  // 최고 재입고율: 재입고 건수 기준 정렬된 modelSorted 중 rate 최고값
   const topModelRate = modelRates[0];
   document.getElementById('insTopModelRate').textContent = topModelRate ? topModelRate.rate.toFixed(1)+'%' : '-';
-  document.getElementById('insTopModelRateDesc').textContent = topModelRate ? `${topModelRate.name} · ${topModelRate.count}/${topModelRate.total}건` : '';
+  document.getElementById('insTopModelRateDesc').textContent = topModelRate
+    ? `${topModelRate.name} · ${topModelRate.count}/${topModelRate.total}건` : '';
 
-  // 모델 랭킹
-  renderRank('rankModel', modelSorted.slice(0,12), d=>d.count, d=>`평균 ${avg(d.intervals)||'-'}일`, '#4a90e2');
+  // 모델 랭킹 (재입고 건수 + 재입고율 함께 표시)
+  renderRankModel('rankModel', modelSorted.slice(0,12), modelTotalMap);
 
   // 모델 평균 간격
   {
-    const top = modelSorted.filter(([,d])=>d.intervals.length>=3).slice(0,10);
-    new Chart(document.getElementById('chartModelInterval'), {
-      type:'bar', data:{ labels:top.map(([m])=>m), datasets:[{ label:'평균 간격(일)', data:top.map(([,d])=>avg(d.intervals)||0), backgroundColor:'rgba(74,226,138,0.7)', borderRadius:4 }]},
-      options:barOpts('일',true)
-    });
+    const top=modelSorted.filter(([,d])=>d.intervals.length>=3).slice(0,10);
+    makeChart('chartModelInterval',{type:'bar',data:{labels:top.map(([m])=>m),datasets:[{label:'평균 간격(일)',data:top.map(([,d])=>avg(d.intervals)||0),backgroundColor:'rgba(74,226,138,0.7)',borderRadius:4}]},options:barOpts('일',true)});
   }
 
-  // 모델 재입고율
+  // 모델 재입고율 (건수 상위 모델 기준, 10건+)
   {
-    const top = modelRates.slice(0,12);
-    new Chart(document.getElementById('chartModelRate'), {
-      type:'bar', data:{ labels:top.map(d=>d.name), datasets:[{ label:'재입고율(%)', data:top.map(d=>d.rate.toFixed(1)),
-        backgroundColor: top.map(d=>d.rate>=10?'rgba(226,74,74,.8)':d.rate>=5?'rgba(226,138,74,.8)':'rgba(74,144,226,.7)'),
-        borderRadius:4 }]},
-      options:barOpts('%',true)
-    });
+    // 재입고 건수 많은 순으로 정렬한 modelRates 사용 (이미 rate순이므로 건수순 재정렬)
+    const byCount = [...modelRates].sort((a,b)=>b.count-a.count).slice(0,12);
+    makeChart('chartModelRate',{type:'bar',data:{
+      labels:byCount.map(d=>d.name),
+      datasets:[{label:'재입고율(%)',data:byCount.map(d=>+d.rate.toFixed(1)),
+        backgroundColor:byCount.map(d=>d.rate>=10?'rgba(226,74,74,.8)':d.rate>=5?'rgba(226,138,74,.8)':'rgba(74,144,226,.7)'),
+        borderRadius:4}]},
+      options:barOpts('%',true)});
   }
 
   // ══════════════════════════════════════
-  // SECTION 3 : 테크니션 분석
+  // SECTION 3 : 테크니션
   // ══════════════════════════════════════
 
-  // 테크니션 KPI
   const topTech = techSorted[0];
   document.getElementById('insTopTech').textContent = topTech ? topTech[0] : '-';
   document.getElementById('insTopTechDesc').textContent = topTech ? `${topTech[1].count}건 원인 · 평균 ${avg(topTech[1].intervals)||'-'}일` : '';
 
-  // 최고 재입고율 테크니션 (10건+ 기준)
   const techRates = Object.entries(techMap)
-    .filter(([t])=>t!=='미확인' && (techTotalMap[t]||0)>=10)
-    .map(([t,d])=>({ tech:t, rate:d.count/(techTotalMap[t]||1)*100, count:d.count, total:techTotalMap[t] }))
+    .filter(([t])=>t!=='미확인'&&(techTotalMap[t]||0)>=10)
+    .map(([t,d])=>({tech:t,rate:d.count/(techTotalMap[t]||1)*100,count:d.count,total:techTotalMap[t]}))
     .sort((a,b)=>b.rate-a.rate);
   const topTechRate = techRates[0];
   document.getElementById('insTopTechRate').textContent = topTechRate ? topTechRate.rate.toFixed(1)+'%' : '-';
   document.getElementById('insTopTechRateDesc').textContent = topTechRate ? `${topTechRate.tech} · ${topTechRate.count}/${topTechRate.total}건` : '';
 
-  const techWithInterval = [...techSorted].filter(([,d])=>d.intervals.length>=5);
-  const fastest = techWithInterval.sort((a,b)=>avg(a[1].intervals)-avg(b[1].intervals))[0];
+  const techWithInterval=[...techSorted].filter(([,d])=>d.intervals.length>=5);
+  const fastest=techWithInterval.sort((a,b)=>avg(a[1].intervals)-avg(b[1].intervals))[0];
   document.getElementById('insFastTech').textContent = fastest ? fastest[0] : '-';
   document.getElementById('insFastTechDesc').textContent = fastest ? `평균 ${avg(fastest[1].intervals)}일 (5건+ 기준)` : '';
 
-  // 테크니션 랭킹
   renderRank('rankTech', techSorted.slice(0,14), d=>d.count, d=>`평균 ${avg(d.intervals)||'-'}일`, '#e24a4a');
 
-  // 테크니션 평균 간격
   {
-    const filtered = techSorted.filter(([,d])=>d.intervals.length>=3).slice(0,12);
-    const vals = filtered.map(([,d])=>avg(d.intervals)||0);
-    new Chart(document.getElementById('chartTechInterval'), {
-      type:'bar', data:{ labels:filtered.map(([t])=>t), datasets:[{ label:'평균 간격(일)', data:vals,
-        backgroundColor:vals.map(v=>v<=20?'rgba(226,74,74,0.8)':v<=30?'rgba(226,138,74,0.8)':'rgba(74,144,226,0.8)'),
-        borderRadius:4 }]},
-      options:barOpts('일',true)
-    });
+    const filtered=techSorted.filter(([,d])=>d.intervals.length>=3).slice(0,12);
+    const vals=filtered.map(([,d])=>avg(d.intervals)||0);
+    makeChart('chartTechInterval',{type:'bar',data:{labels:filtered.map(([t])=>t),datasets:[{label:'평균 간격(일)',data:vals,backgroundColor:vals.map(v=>v<=20?'rgba(226,74,74,0.8)':v<=30?'rgba(226,138,74,0.8)':'rgba(74,144,226,0.8)'),borderRadius:4}]},options:barOpts('일',true)});
   }
 
-  // 테크니션 재입고율
   {
-    new Chart(document.getElementById('chartTechRate'), {
-      type:'bar', data:{ labels:techRates.slice(0,12).map(d=>d.tech), datasets:[{ label:'재입고율(%)', data:techRates.slice(0,12).map(d=>d.rate.toFixed(1)),
-        backgroundColor:techRates.slice(0,12).map(d=>d.rate>=10?'rgba(226,74,74,.8)':d.rate>=5?'rgba(226,138,74,.8)':'rgba(74,144,226,.7)'),
-        borderRadius:4 }]},
-      options:barOpts('%',true)
-    });
+    makeChart('chartTechRate',{type:'bar',data:{labels:techRates.slice(0,12).map(d=>d.tech),datasets:[{label:'재입고율(%)',data:techRates.slice(0,12).map(d=>+d.rate.toFixed(1)),backgroundColor:techRates.slice(0,12).map(d=>d.rate>=10?'rgba(226,74,74,.8)':d.rate>=5?'rgba(226,138,74,.8)':'rgba(74,144,226,.7)'),borderRadius:4}]},options:barOpts('%',true)});
   }
 
   // Show
   setP(100);
   document.getElementById('loadPanel').style.display = 'none';
   document.getElementById('dashboard').style.display = 'block';
+}
+
+// 모델 랭킹 (재입고건수 + 재입고율 함께)
+function renderRankModel(id, sorted, totalMap) {
+  const max = sorted[0] ? sorted[0][1].count : 1;
+  document.getElementById(id).innerHTML = sorted.map(([name, d]) => {
+    const cnt  = d.count;
+    const tot  = totalMap[name] || 0;
+    const rate = tot > 0 ? (cnt/tot*100).toFixed(1) : '-';
+    const rateColor = parseFloat(rate) >= 10 ? 'var(--red)' : parseFloat(rate) >= 5 ? 'var(--orange)' : 'var(--muted)';
+    return `<div class="rank-item">
+      <span class="rank-name" title="${name}">${name}</span>
+      <div class="rank-bar-wrap"><div class="rank-bar" style="width:${(cnt/max*100).toFixed(0)}%;background:#4a90e2"></div></div>
+      <span class="rank-val" style="color:#4a90e2">${cnt}</span>
+      <span class="rank-sub" style="color:${rateColor}">${rate}%</span>
+    </div>`;
+  }).join('');
 }
 
 function renderRank(id, sorted, getCount, getSub, color) {
