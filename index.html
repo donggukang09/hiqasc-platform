@@ -1303,6 +1303,11 @@
                         <div class="workspace-item-name">AS 분석 대시보드</div>
                         <div class="workspace-item-desc">접수 내용 텍스트 기반<br>AI 증상·부품 분석</div>
                     </div>
+                    <div class="workspace-item" onclick="goTeam('reinput-analysis-v2.html')">
+                        <div class="workspace-item-icon">🔄</div>
+                        <div class="workspace-item-name">재입고 분석</div>
+                        <div class="workspace-item-desc">재입고 현황 및<br>원인 분석 대시보드</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1383,11 +1388,6 @@
                         <div class="workspace-item-name">QC 품질검사</div>
                         <div class="workspace-item-desc">수리 완료 머신<br>품질 검사 및 판정</div>
                     </div>
-                    <div class="workspace-item" onclick="goTeam('attendance.html')">
-                        <div class="workspace-item-icon">⏰</div>
-                        <div class="workspace-item-name">근태 기록</div>
-                        <div class="workspace-item-desc">출근 · 퇴근<br>시간 기록</div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -1461,6 +1461,7 @@
             { name: 'AS 로우 데이터', icon: '📊', desc: '입고·완료 현황 및 테크니션 실적 분석', url: 'weekly-closing-dashboard.html', team: '데이터 센터', badge: 'data', iconClass: 'team-data', keywords: '주간마감,마감,실적,입고,완료,weekly,closing,로우데이터,raw' },
             { name: '입고 추세 분석', icon: '📉', desc: '주간·월별 입고량 추이 및 변동 분석', url: 'intake-trend-dashboard.html', team: '데이터 센터', badge: 'data', iconClass: 'team-data', keywords: '입고추세,추세,트렌드,입고량,변동,intake,trend' },
             { name: 'AS 분석 대시보드', icon: '🤖', desc: '접수 내용 텍스트 기반 AI 증상·부품 분석', url: 'repair-analysis.html', team: '데이터 센터', badge: 'data', iconClass: 'team-data', keywords: '분석,AI,증상,부품,모델,텍스트,analysis,repair,DOA,NTF,재입고' },
+            { name: '재입고 분석', icon: '🔄', desc: '재입고 현황 및 원인 분석 대시보드', url: 'reinput-analysis-v2.html', team: '데이터 센터', badge: 'data', iconClass: 'team-data', keywords: '재입고,reinput,재수리,반복,분석,원인' },
             // === index.html — 재고 관리 센터 ===
             { name: '창고 대시보드', icon: '🏭', desc: '창고 사용 현황 실시간 모니터링', url: 'warehouse-dashboard.html', team: '재고 관리', badge: 'inventory', iconClass: 'team-inventory', keywords: '창고,warehouse,사용현황' },
             { name: '소모품 재고', icon: '🧰', desc: '실시간 소모품 재고 현황 조회', url: 'consumables-inventory.html', team: '재고 관리', badge: 'inventory', iconClass: 'team-inventory', keywords: '소모품,재고,consumables,inventory' },
