@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>잔류 근무 보고서 | HIQASC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f4f5f7;
+    --card: #ffffff;
+    --border: #e2e4e9;
+    --border-light: #eef0f3;
+    --text-primary: #1a1d23;
+    --text-secondary: #5c6070;
+    --text-muted: #9ba3b2;
+    --accent: #4a90e2;
+    --accent-hover: #357abd;
+    --accent-light: #eaf2fc;
+    --danger: #e24b4a;
+    --success: #2ebd7d;
+    --success-light: #e8f9f2;
+    --chip-active-bg: #eaf2fc;
+    --chip-active-border: #4a90e2;
+    --chip-active-text: #2567b8;
+    --section-bg: #f8f9fb;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  }
+
+  body {
+    font-family: 'Manrope', sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* 로그인 오버레이 */
+  #loginOverlay {
+    position: fixed; inset: 0;
+    background: #2a2a2a;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 9999;
+  }
+  .login-box {
+    background: #353535;
+    border: 1px solid #4a4a4a;
+    border-radius: 12px;
+    padding: 40px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+    font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
+  }
+  .login-header { text-align: center; margin-bottom: 30px; }
+  .login-logo {
+    width: 60px; height: 60px;
+    background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 20px;
+    font-size: 32px; font-weight: 700; color: #fff;
+  }
+  .login-header h2 { color: #fff; font-size: 1.5em; margin-bottom: 8px; }
+  .login-header p { color: #808080; font-size: 0.9em; }
+  .login-input {
+    width: 100%; padding: 15px;
+    border: 1px solid #4a4a4a; border-radius: 8px;
+    background: #2a2a2a; color: #e0e0e0;
+    font-size: 1em; margin-bottom: 15px;
+    font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
+    transition: all 0.3s;
+  }
+  .login-input:focus { outline: none; border-color: #4a90e2; box-shadow: 0 0 0 3px rgba(74,144,226,0.1); }
+  select.login-input {
+    appearance: none; -webkit-appearance: none; cursor: pointer;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path fill='%23808080' d='M6 8L2 4h8z'/></svg>");
+    background-repeat: no-repeat; background-position: right 16px center;
+  }
+  select.login-input option { background: #2a2a2a; color: #e0e0e0; }
+  .login-button {
+    width: 100%; padding: 15px;
+    background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+    color: #fff; border: none; border-radius: 8px;
+    font-size: 1em; font-weight: 600; cursor: pointer; transition: all 0.3s;
+  }
+  .login-button:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(74,144,226,0.3); }
+  .login-error {
+    background: rgba(231,76,60,0.1); border: 1px solid #e74c3c; color: #e74c3c;
+    padding: 12px; border-radius: 8px; margin-top: 15px;
+    text-align: center; font-size: 0.9em; display: none;
+  }
+
+  /* 헤더 */
+  .top-bar {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .top-bar-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .top-bar a.back-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    padding: 6px 10px;
+    border-radius: 8px;
+    transition: background 0.15s;
+  }
+  .top-bar a.back-btn:hover { background: var(--bg); }
+  .top-bar a.back-btn svg { width: 16px; height: 16px; }
+  .top-bar-divider {
+    width: 1px; height: 18px;
+    background: var(--border);
+  }
+  .top-bar-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .top-bar-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .user-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    background: var(--section-bg);
+    border: 1px solid var(--border-light);
+    border-radius: 20px;
+    padding: 4px 12px 4px 8px;
+  }
+  .user-chip .avatar {
+    width: 22px; height: 22px;
+    background: var(--accent-light);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  /* 메인 */
+  main {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+  }
+
+  /* 페이지 제목 */
+  .page-header {
+    margin-bottom: 1.75rem;
+  }
+  .page-header h1 {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+  }
+  .page-header p {
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+
+  /* 카드 */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    margin-bottom: 1rem;
+  }
+  .card-section {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border-light);
+  }
+  .card-section:last-child { border-bottom: none; }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 1rem;
+  }
+  .section-header svg {
+    width: 16px; height: 16px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+  }
+  .section-header span {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+
+  /* 폼 */
+  .field-grid {
+    display: grid;
+    gap: 12px;
+  }
+  .field-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+  .field-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .field label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+  .field label .req { color: var(--danger); margin-left: 2px; }
+
+  input[type="text"],
+  input[type="number"],
+  input[type="date"],
+  input[type="time"],
+  input[type="password"],
+  select,
+  textarea {
+    font-family: 'Manrope', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.12);
+  }
+  input[readonly] {
+    background: var(--section-bg);
+    color: var(--text-secondary);
+    cursor: default;
+  }
+  textarea { resize: vertical; min-height: 96px; line-height: 1.6; }
+  select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ba3b2' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 32px;
+  }
+
+  /* 총 근무 시간 요약 */
+  .time-summary {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    background: var(--success-light);
+    border: 1px solid #b2e8d2;
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-top: 12px;
+  }
+  .time-summary svg { width: 18px; height: 18px; color: var(--success); flex-shrink: 0; }
+  .time-summary .ts-label { font-size: 12px; color: #1a7a52; margin-bottom: 1px; }
+  .time-summary .ts-val { font-size: 18px; font-weight: 700; color: #1a7a52; }
+
+  /* 업무 구분 칩 */
+  .chip-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-top: 4px;
+  }
+  .chip {
+    padding: 5px 13px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    border: 1px solid var(--border);
+    background: var(--card);
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: all 0.12s;
+    font-family: 'Manrope', sans-serif;
+  }
+  .chip:hover { border-color: var(--accent); color: var(--accent); }
+  .chip.active {
+    background: var(--chip-active-bg);
+    border-color: var(--chip-active-border);
+    color: var(--chip-active-text);
+  }
+
+  /* 푸터 액션 */
+  .form-footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+    padding: 1rem 1.5rem;
+    background: var(--section-bg);
+    border-top: 1px solid var(--border-light);
+    border-radius: 0 0 14px 14px;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--text-secondary);
+  }
+  .btn:hover { background: var(--bg); }
+  .btn svg { width: 15px; height: 15px; }
+  .btn-primary {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+  .btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+  .btn-primary:disabled {
+    background: #b0c8e8;
+    border-color: #b0c8e8;
+    cursor: not-allowed;
+  }
+
+  /* 토스트 */
+  #toast {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #1a1d23;
+    color: white;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 10px 20px;
+    border-radius: 10px;
+    opacity: 0;
+    transition: all 0.25s;
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 200;
+  }
+  #toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  #toast.success { background: #1a7a52; }
+  #toast.error { background: #b53030; }
+
+  /* 제출 완료 화면 */
+  #successScreen {
+    display: none;
+    text-align: center;
+    padding: 4rem 2rem;
+  }
+  .success-icon {
+    width: 60px; height: 60px;
+    background: var(--success-light);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1.5rem;
+  }
+  .success-icon svg { width: 28px; height: 28px; color: var(--success); }
+  #successScreen h2 { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+  #successScreen p { font-size: 14px; color: var(--text-secondary); line-height: 1.6; }
+  .success-actions { margin-top: 2rem; display: flex; gap: 8px; justify-content: center; }
+
+  /* 인쇄 */
+  @media print {
+    .top-bar, .form-footer, #toast, #loginOverlay, .btn { display: none !important; }
+    body { background: white; }
+    main { padding: 0; max-width: 100%; }
+    .card { box-shadow: none; border: 1px solid #ccc; }
+    .page-header h1::after { content: ''; }
+  }
+
+  @media (max-width: 560px) {
+    .field-grid.cols-3 { grid-template-columns: 1fr 1fr; }
+    .field-grid.cols-2 { grid-template-columns: 1fr; }
+    main { padding: 1.25rem 1rem 4rem; }
+    .top-bar { padding: 0 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- 로그인 오버레이 -->
+<div id="loginOverlay">
+  <div class="login-box">
+    <div class="login-header">
+      <div class="login-logo">H</div>
+      <h2>잔류 근무 보고서</h2>
+      <p>이름과 PIN으로 로그인하세요</p>
+    </div>
+    <select class="login-input" id="empNameSel">
+      <option value="">이름 선택</option>
+    </select>
+    <input type="password" class="login-input" id="pinInput" inputmode="numeric" placeholder="개인 PIN" autocomplete="off" onkeypress="if(event.key==='Enter') loginEmployee()" />
+    <button class="login-button" onclick="loginEmployee()">로그인</button>
+    <div class="login-error" id="loginError">PIN이 올바르지 않습니다</div>
+  </div>
+</div>
+
+<!-- 상단 바 -->
+<header class="top-bar">
+  <div class="top-bar-left">
+    <a href="index.html" class="back-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      홈
+    </a>
+    <div class="top-bar-divider"></div>
+    <span class="top-bar-title">잔류 근무 보고서</span>
+  </div>
+  <div class="top-bar-right">
+    <div class="user-chip">
+      <div class="avatar" id="avatarInitial">—</div>
+      <span id="userNameDisplay">—</span>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- 페이지 헤더 -->
+  <div class="page-header">
+    <h1>잔류 근무 보고서</h1>
+    <p>탄력 근무 외 추가 근무 내역을 작성하고 제출해주세요</p>
+  </div>
+
+  <!-- 폼 -->
+  <div id="reportForm">
+    <!-- 직원 정보 -->
+    <div class="card">
+      <div class="card-section">
+        <div class="section-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+          <span>직원 정보</span>
+        </div>
+        <div class="field-grid cols-2">
+          <div class="field">
+            <label>이름 <span class="req">*</span></label>
+            <input type="text" id="empName" readonly />
+          </div>
+          <div class="field">
+            <label>소속 팀 <span class="req">*</span></label>
+            <select id="empTeam">
+              <option value="">선택</option>
+              <option>AS팀</option>
+              <option>서포트팀</option>
+              <option>어드민</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- 근무 일시 -->
+      <div class="card-section">
+        <div class="section-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <span>근무 일시</span>
+        </div>
+        <div class="field-grid cols-3">
+          <div class="field">
+            <label>근무 날짜 <span class="req">*</span></label>
+            <input type="date" id="workDate" />
+          </div>
+          <div class="field">
+            <label>업무 시작 <span class="req">*</span></label>
+            <input type="time" id="startTime" value="16:30" />
+          </div>
+          <div class="field">
+            <label>퇴근 시간 <span class="req">*</span></label>
+            <input type="time" id="endTime" value="18:00" />
+          </div>
+        </div>
+        <div class="time-summary" id="timeSummary">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <div>
+            <div class="ts-label">총 근무 시간</div>
+            <div class="ts-val" id="totalHours">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 업무 내역 -->
+      <div class="card-section">
+        <div class="section-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          <span>업무 내역</span>
+        </div>
+        <div class="field-grid cols-2" style="margin-bottom:12px">
+          <div class="field">
+            <label>업무 구분 <span class="req">*</span></label>
+            <div class="chip-group" id="catChips">
+              <button class="chip" onclick="selectCat(this)">수리</button>
+              <button class="chip" onclick="selectCat(this)">검수</button>
+              <button class="chip" onclick="selectCat(this)">재고 정리</button>
+              <button class="chip" onclick="selectCat(this)">문서 작업</button>
+              <button class="chip" onclick="selectCat(this)">기타</button>
+            </div>
+          </div>
+          <div class="field">
+            <label>처리 건수</label>
+            <input type="number" id="workCount" placeholder="예: 5" min="0" style="width:110px" />
+          </div>
+        </div>
+        <div class="field">
+          <label>업무 상세 내용 <span class="req">*</span></label>
+          <textarea id="workDetail" placeholder="수행한 업무를 구체적으로 입력하세요&#10;예) Vertuo Next 3대 분해 수리, 결함 부품 교체 완료"></textarea>
+        </div>
+      </div>
+
+      <!-- 특이사항 -->
+      <div class="card-section">
+        <div class="section-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <span>특이사항</span>
+        </div>
+        <div class="field">
+          <textarea id="notes" placeholder="관리자에게 전달할 내용이 있으면 입력하세요&#10;예) 부품 재고 부족으로 내일 추가 처리 필요" style="min-height:72px"></textarea>
+        </div>
+      </div>
+
+      <!-- 푸터 -->
+      <div class="form-footer">
+        <button class="btn" onclick="window.print()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          출력
+        </button>
+        <button class="btn btn-primary" id="submitBtn" onclick="submitReport()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          제출
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 제출 완료 화면 -->
+  <div id="successScreen">
+    <div class="success-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <h2>제출 완료</h2>
+    <p id="successMsg">잔류 근무 보고서가 저장되었습니다.</p>
+    <div class="success-actions">
+      <button class="btn" onclick="resetForm()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.6"/></svg>
+        새 보고서 작성
+      </button>
+      <button class="btn btn-primary" onclick="location.href='index.html'">홈으로</button>
+    </div>
+  </div>
+</main>
+
+<div id="toast"></div>
+
+<script>
+const APPS_SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
+
+/* ── 인증 설정 (index.html 동일) ── */
+const AUTH_CONFIG = {
+  TECH_SHEET_ID: '1cmMEbIkmEL629RT04hpUUgXddnSVLGo1YwRzBwfyzCY',
+  TECH_TAB: '테크니션정보',
+  COL_NAME: '이름',
+  COL_PIN:  'PIN',
+};
+
+let EMP_LIST = [];
+let currentUser = null;
+let selectedCat = '';
+
+/* ── 직원 목록 gviz 로드 ── */
+function loadEmployees() {
+  const cb = 'emp_ot_' + Date.now();
+  window[cb] = function(resp) {
+    try {
+      const table = resp.table;
+      let cols = table.cols.map(c => (c.label || '').trim());
+      let rows = table.rows;
+      if (cols.indexOf(AUTH_CONFIG.COL_NAME) < 0 && rows.length > 0) {
+        const head = rows[0].c.map(c => c ? String(c.v).trim() : '');
+        if (head.indexOf(AUTH_CONFIG.COL_NAME) >= 0) { cols = head; rows = rows.slice(1); }
+      }
+      const ci = { name: cols.indexOf(AUTH_CONFIG.COL_NAME), pin: cols.indexOf(AUTH_CONFIG.COL_PIN) };
+      if (ci.name < 0 || ci.pin < 0) { console.warn('테크니션정보 헤더 확인 필요:', cols); return; }
+      EMP_LIST = rows.map(r => ({
+        name: r.c[ci.name] ? String(r.c[ci.name].v).trim() : '',
+        pin:  r.c[ci.pin]  ? String(r.c[ci.pin].v).trim()  : '',
+      })).filter(e => e.name);
+      const sel = document.getElementById('empNameSel');
+      if (sel) {
+        sel.innerHTML = '<option value="">이름 선택</option>' +
+          EMP_LIST.map((e, i) => `<option value="${i}">${e.name}</option>`).join('');
+      }
+      // sessionStorage 자동 로그인 시도
+      tryAutoLogin();
+    } catch(err) { console.error(err); }
+  };
+  const url = `https://docs.google.com/spreadsheets/d/${AUTH_CONFIG.TECH_SHEET_ID}/gviz/tq`
+    + `?sheet=${encodeURIComponent(AUTH_CONFIG.TECH_TAB)}&headers=1`
+    + `&tqx=out:json;responseHandler:${cb}`;
+  const s = document.createElement('script');
+  s.src = url;
+  document.body.appendChild(s);
+}
+
+/* ── sessionStorage 자동 로그인 ── */
+function tryAutoLogin() {
+  const authenticated = sessionStorage.getItem('hiqasc_authenticated');
+  const savedName = sessionStorage.getItem('userName');
+  if (authenticated !== 'true' || !savedName) return;
+  const emp = EMP_LIST.find(e => e.name === savedName);
+  if (emp) {
+    currentUser = emp;
+    showApp();
+  }
+}
+
+/* ── 이름+PIN 로그인 ── */
+function loginEmployee() {
+  const idx = document.getElementById('empNameSel').value;
+  const pin = document.getElementById('pinInput').value.trim();
+  const errEl = document.getElementById('loginError');
+  if (idx === '') { showLoginError('이름을 선택하세요'); return; }
+  if (!pin) { showLoginError('PIN을 입력하세요'); return; }
+  const emp = EMP_LIST[Number(idx)];
+  if (!emp || String(emp.pin) !== pin) { showLoginError('PIN이 올바르지 않습니다'); return; }
+  currentUser = emp;
+  sessionStorage.setItem('hiqasc_authenticated', 'true');
+  sessionStorage.setItem('userName', emp.name);
+  showApp();
+}
+
+function showLoginError(msg) {
+  const e = document.getElementById('loginError');
+  e.textContent = msg;
+  e.style.display = 'block';
+  setTimeout(() => { e.style.display = 'none'; }, 3000);
+}
+
+function showApp() {
+  document.getElementById('loginOverlay').style.display = 'none';
+  document.getElementById('empName').value = currentUser.name;
+  document.getElementById('avatarInitial').textContent = currentUser.name.charAt(0);
+  document.getElementById('userNameDisplay').textContent = currentUser.name;
+}
+
+/* ── 날짜 기본값 ── */
+const today = new Date();
+document.getElementById('workDate').value =
+  `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+
+/* ── 총 근무 시간 계산 ── */
+function calcHours() {
+  const s = document.getElementById('startTime').value;
+  const e = document.getElementById('endTime').value;
+  const el = document.getElementById('timeSummary');
+  if (!s || !e) { el.style.display = 'none'; return; }
+  const [sh, sm] = s.split(':').map(Number);
+  const [eh, em] = e.split(':').map(Number);
+  const mins = (eh * 60 + em) - (sh * 60 + sm);
+  if (mins <= 0) { el.style.display = 'none'; return; }
+  const h = Math.floor(mins / 60), m = mins % 60;
+  document.getElementById('totalHours').textContent = m > 0 ? `${h}시간 ${m}분` : `${h}시간`;
+  el.style.display = 'flex';
+}
+document.getElementById('startTime').addEventListener('change', calcHours);
+document.getElementById('endTime').addEventListener('change', calcHours);
+calcHours();
+
+/* ── 업무 구분 칩 ── */
+function selectCat(btn) {
+  document.querySelectorAll('#catChips .chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  selectedCat = btn.textContent.trim();
+}
+
+/* ── 유효성 검사 ── */
+function validate() {
+  const date = document.getElementById('workDate').value;
+  const start = document.getElementById('startTime').value;
+  const end = document.getElementById('endTime').value;
+  const detail = document.getElementById('workDetail').value.trim();
+
+  if (!date) { showToast('근무 날짜를 입력해주세요.', 'error'); return false; }
+  if (!document.getElementById('empTeam').value) { showToast('소속 팀을 선택해주세요.', 'error'); return false; }
+  if (!start || !end) { showToast('업무 시작/퇴근 시간을 입력해주세요.', 'error'); return false; }
+  const [sh, sm] = start.split(':').map(Number);
+  const [eh, em] = end.split(':').map(Number);
+  if ((eh * 60 + em) - (sh * 60 + sm) <= 0) { showToast('퇴근 시간이 업무 시작보다 앞서 있습니다.', 'error'); return false; }
+  if (!selectedCat) { showToast('업무 구분을 선택해주세요.', 'error'); return false; }
+  if (!detail) { showToast('업무 상세 내용을 입력해주세요.', 'error'); return false; }
+  return true;
+}
+
+/* ── 제출 ── */
+function submitReport() {
+  if (!validate()) return;
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;animation:spin 1s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> 제출 중...`;
+
+  const start = document.getElementById('startTime').value;
+  const end = document.getElementById('endTime').value;
+  const [sh, sm] = start.split(':').map(Number);
+  const [eh, em] = end.split(':').map(Number);
+  const totalMins = (eh * 60 + em) - (sh * 60 + sm);
+
+  const payload = {
+    action: 'submitOvertimeReport',
+    name: currentUser.name,
+    team: document.getElementById('empTeam').value,
+    workDate: document.getElementById('workDate').value,
+    startTime: start,
+    endTime: end,
+    totalMinutes: totalMins,
+    category: selectedCat,
+    count: document.getElementById('workCount').value || '',
+    detail: document.getElementById('workDetail').value.trim(),
+    notes: document.getElementById('notes').value.trim(),
+    submittedAt: new Date().toLocaleString('ko-KR'),
+  };
+
+  if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE') {
+    setTimeout(() => {
+      showSuccess(payload);
+      btn.disabled = false;
+      btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> 제출`;
+    }, 1000);
+    return;
+  }
+
+  fetch(APPS_SCRIPT_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+  .then(() => {
+    showSuccess(payload);
+  })
+  .catch(() => {
+    showToast('제출 중 오류가 발생했습니다. 다시 시도해주세요.', 'error');
+  })
+  .finally(() => {
+    btn.disabled = false;
+    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> 제출`;
+  });
+}
+
+function showSuccess(payload) {
+  document.getElementById('reportForm').style.display = 'none';
+  const ss = document.getElementById('successScreen');
+  ss.style.display = 'block';
+  document.getElementById('successMsg').textContent =
+    `${payload.workDate} 잔류 근무 보고서가 저장되었습니다.`;
+}
+
+function resetForm() {
+  document.getElementById('reportForm').style.display = 'block';
+  document.getElementById('successScreen').style.display = 'none';
+  document.getElementById('workDate').value =
+    `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+  document.getElementById('startTime').value = '16:30';
+  document.getElementById('endTime').value = '18:00';
+  document.getElementById('workCount').value = '';
+  document.getElementById('workDetail').value = '';
+  document.getElementById('notes').value = '';
+  document.querySelectorAll('#catChips .chip').forEach(c => c.classList.remove('active'));
+  selectedCat = '';
+  calcHours();
+}
+
+/* ── 토스트 ── */
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show' + (type ? ' ' + type : '');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => { t.className = ''; }, 3000);
+}
+
+/* ── 스핀 애니메이션 ── */
+const style = document.createElement('style');
+style.textContent = '@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }';
+document.head.appendChild(style);
+
+/* ── 초기화 ── */
+loadEmployees();
+</script>
+</body>
+</html>
