@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>수리 오류 검출 | HIQASC</title>
+<!-- ===================================================================
+  [연동 안내] 이 페이지는 아래 두 곳과 연동됩니다. 배포 전 반드시 채워주세요.
+
+  1) MAIN_SHEET_ID / MAIN_GID   : 주간마감 탭 (읽기 전용, gviz)
+  2) STATUS_GID                 : 상태 저장용 새 탭의 gid (아래 설명 참고)
+  3) STATUS_APPS_SCRIPT_URL     : 상태/설정 저장용 Apps Script 배포 URL (별도 제공하는 Code.gs 참고)
+  4) CONFIG_GID                 : 코드/키워드 설정을 팀 전체와 공유하기 위한 새 탭의 gid
+
+  [사전 준비 - 상태 저장용 탭 만들기]
+  같은 스프레드시트(111K9l8gt-...)에 새 탭을 하나 만들고 이름을 "오류체크_상태" 로 지정 후,
+  1행에 아래 헤더를 그대로 입력하세요.
+    key | 관리번호 | 규칙 | 상태 | 담당자 | 메모 | 업데이트일시
+  탭을 만든 뒤 주소창 URL의 gid=숫자 부분을 복사해서 아래 STATUS_GID 에 넣으세요.
+
+  [사전 준비 - 설정 공유용 탭 만들기] (코드/키워드를 모든 사람이 같이 보게 하려면 필요)
+  같은 스프레드시트에 새 탭을 하나 만들고 이름을 "오류체크_설정" 으로 지정 후,
+  1행에 아래 헤더를 그대로 입력하세요.
+    key | value | 담당자 | 업데이트일시
+  탭을 만든 뒤 gid를 복사해서 아래 CONFIG_GID 에 넣으세요.
+  이 값을 비워두면(YOUR_로 시작) 기존처럼 이 브라우저에만 설정이 저장됩니다.
+==================================================================== -->
+<style>
+  :root{
+    --bg:#2a2a2a; --card:#353535; --card2:#3f3f3f; --border:#4a4a4a;
+    --text:#e0e0e0; --text-dim:#9a9a9a; --blue:#4a90e2;
+    --red:#e0554a; --amber:#e2b24a; --green:#4ae08a; --gray:#7a7a7a;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:'Manrope',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    padding:24px; min-height:100vh;
+  }
+  @font-face{font-family:'Manrope';src:local('Manrope');}
+  .wrap{max-width:1180px; margin:0 auto;}
+
+  header{display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:12px;}
+  header h1{font-size:22px; font-weight:800; margin:0; letter-spacing:-.02em;}
+  header .sub{color:var(--text-dim); font-size:13px; margin-top:4px; font-weight:500;}
+  .btnrow{display:flex; gap:8px;}
+  button{
+    font-family:inherit; cursor:pointer; border-radius:8px; border:1px solid var(--border);
+    background:var(--card2); color:var(--text); padding:9px 14px; font-size:13px; font-weight:700;
+    transition:.15s;
+  }
+  button:hover{background:#484848; border-color:#5a5a5a;}
+  button.primary{background:var(--blue); border-color:var(--blue); color:#fff;}
+  button.primary:hover{background:#3d7fce;}
+  button.ghost{background:transparent;}
+  button:disabled{opacity:.5; cursor:not-allowed;}
+
+  .cards{display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin-bottom:10px;}
+  .cards.cards-status{grid-template-columns:repeat(3,1fr); margin-bottom:18px;}
+  .card{background:var(--card); border:1px solid var(--border); border-radius:12px; padding:14px 14px;}
+  .card .n{font-size:24px; font-weight:800;}
+  .card .l{font-size:11.5px; color:var(--text-dim); font-weight:700; margin-top:2px;}
+  .card.r1 .n{color:var(--red);} .card.r2 .n{color:var(--amber);}
+  .card.r3 .n{color:#9d7ae2;} .card.r4 .n{color:#e27a9d;}
+  .card.done .n{color:var(--green);}
+  .card.falsepos .n{color:var(--gray);}
+  .card.exception .n{color:var(--blue);}
+
+  .period-bar{
+    display:flex; gap:10px; flex-wrap:wrap; align-items:center;
+    background:linear-gradient(135deg, rgba(74,144,226,.14), var(--card));
+    border:1px solid var(--blue); border-radius:12px;
+    padding:12px 14px; margin-bottom:14px;
+  }
+  .period-label{font-size:13px; font-weight:800; color:var(--blue); white-space:nowrap;}
+  .period-tilde{color:var(--text-dim); font-weight:700;}
+  .period-info{font-size:12.5px; color:var(--text-dim); font-weight:700; margin-left:2px;}
+  input[type=date]{
+    font-family:inherit; background:var(--card2); border:1px solid var(--border); color:var(--text);
+    border-radius:7px; padding:7px 10px; font-size:13px; font-weight:600;
+    color-scheme: dark;
+  }
+
+  .toolbar{
+    display:flex; gap:8px; flex-wrap:wrap; align-items:center;
+    background:var(--card); border:1px solid var(--border); border-radius:12px;
+    padding:12px; margin-bottom:14px;
+  }
+  select, input[type=text]{
+    font-family:inherit; background:var(--card2); border:1px solid var(--border); color:var(--text);
+    border-radius:7px; padding:8px 10px; font-size:13px; font-weight:600;
+  }
+  input[type=text]{min-width:180px;}
+  .toolbar .spacer{flex:1;}
+
+  .rule-badge{
+    display:inline-flex; align-items:center; gap:4px; font-size:11px; font-weight:800;
+    padding:3px 8px; border-radius:20px; white-space:nowrap;
+  }
+  .rule-badge.RULE1{background:rgba(224,85,74,.18); color:var(--red);}
+  .rule-badge.RULE2{background:rgba(226,178,74,.18); color:var(--amber);}
+  .rule-badge.RULE3{background:rgba(157,122,226,.18); color:#b79bf0;}
+  .rule-badge.RULE4{background:rgba(226,122,157,.18); color:#ee9bbb;}
+
+  .status-pill{font-size:11px; font-weight:800; padding:3px 9px; border-radius:20px;}
+  .status-미확인{background:rgba(224,85,74,.18); color:var(--red);}
+  .status-확인중{background:rgba(226,178,74,.18); color:var(--amber);}
+  .status-수정완료{background:rgba(74,224,138,.18); color:var(--green);}
+  .status-오탐{background:rgba(122,122,122,.25); color:#bdbdbd;}
+  .status-예외처리{background:rgba(74,144,226,.18); color:var(--blue);}
+
+  .list{display:flex; flex-direction:column; gap:8px;}
+  .row{
+    background:var(--card); border:1px solid var(--border); border-radius:12px;
+    padding:12px 14px; cursor:pointer; transition:.12s;
+  }
+  .row:hover{border-color:#666;}
+  .row.expanded{border-color:var(--blue);}
+  .row-top{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+  .row-id{font-weight:800; font-size:13.5px;}
+  .btnCopyId{padding:2px 6px; font-size:12px; border-radius:6px; line-height:1;}
+  .btnCopyId.copied{background:var(--green); border-color:var(--green); color:#123;}
+  .row-meta{color:var(--text-dim); font-size:12px; font-weight:600;}
+  .row-top .spacer{flex:1;}
+  .row-summary{margin-top:6px; font-size:12.5px; color:#c9c9c9; line-height:1.5;
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;}
+  .row.expanded .row-summary{-webkit-line-clamp:unset;}
+
+  .detail{margin-top:12px; padding-top:12px; border-top:1px dashed var(--border); display:none;}
+  .row.expanded .detail{display:block;}
+  .detail-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;}
+  .detail-field{background:var(--card2); border-radius:8px; padding:8px 10px;}
+  .detail-field .k{font-size:10.5px; color:var(--text-dim); font-weight:700; text-transform:uppercase; letter-spacing:.03em;}
+  .detail-field .v{font-size:13px; margin-top:3px; word-break:break-word; white-space:pre-wrap;}
+  .status-controls{display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
+  .status-controls input{flex:1; min-width:160px;}
+  .status-controls .who{font-size:11.5px; color:var(--text-dim); margin-left:auto; font-weight:600;}
+
+  .empty, .loading, .err{text-align:center; padding:60px 20px; color:var(--text-dim); font-weight:600;}
+  .err{color:var(--red);}
+
+  /* settings modal */
+  .modal-bg{position:fixed; inset:0; background:rgba(0,0,0,.55); display:none; align-items:center; justify-content:center; z-index:50;}
+  .modal-bg.open{display:flex;}
+  .modal{background:var(--card); border:1px solid var(--border); border-radius:14px; width:560px; max-width:92vw; max-height:86vh; overflow:auto; padding:20px;}
+  .modal h2{margin:0 0 4px; font-size:17px;}
+  .modal .desc{font-size:12px; color:var(--text-dim); margin-bottom:14px; line-height:1.5;}
+  .modal h3{font-size:13px; margin:16px 0 6px; color:var(--blue);}
+  .chips{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px; min-height:30px;}
+  .chip{background:var(--card2); border:1px solid var(--border); border-radius:20px; padding:5px 8px 5px 12px; font-size:12.5px; font-weight:700; display:flex; align-items:center; gap:6px;}
+  .chip button{padding:0; width:16px; height:16px; border:none; background:#666; color:#fff; border-radius:50%; font-size:11px; line-height:1; display:flex; align-items:center; justify-content:center;}
+  .add-row{display:flex; gap:6px;}
+  .add-row input{flex:1;}
+  .modal-foot{display:flex; justify-content:flex-end; gap:8px; margin-top:20px; border-top:1px solid var(--border); padding-top:14px;}
+
+  @media (max-width:900px){ .cards{grid-template-columns:repeat(3,1fr);} .cards.cards-status{grid-template-columns:repeat(3,1fr);} .detail-grid{grid-template-columns:1fr;} }
+  @media (max-width:560px){ .cards{grid-template-columns:repeat(2,1fr);} .cards.cards-status{grid-template-columns:repeat(1,1fr);} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>🔎 수리 오류 검출</h1>
+      <div class="sub">주간마감 데이터 기준 · 부품/리페어코드 불일치 자동 탐지</div>
+    </div>
+    <div class="btnrow">
+      <button id="btnSettings">⚙ 조건 설정</button>
+      <button id="btnRefresh" class="primary">↻ 새로고침</button>
+    </div>
+  </header>
+
+  <div class="period-bar">
+    <span class="period-label">📅 완료일 조회</span>
+    <input type="date" id="fDateFrom">
+    <span class="period-tilde">~</span>
+    <input type="date" id="fDateTo">
+    <button id="btnApplyPeriod" class="primary">조회하기</button>
+    <button id="btnDateClear" class="ghost">초기화</button>
+    <span class="period-info" id="periodInfo">전체 기간</span>
+  </div>
+
+  <div class="cards" id="cards">
+    <div class="card"><div class="n" id="cAll">-</div><div class="l">전체 검출</div></div>
+    <div class="card r1"><div class="n" id="cR1">-</div><div class="l">NTF - 부품입력</div></div>
+    <div class="card r2"><div class="n" id="cR2">-</div><div class="l">수리 코드 - 부품누락</div></div>
+    <div class="card r3"><div class="n" id="cR3">-</div><div class="l">부품교체 키워드 - 부품누락</div></div>
+    <div class="card r4"><div class="n" id="cR4">-</div><div class="l">이상없음 키워드 - 부품입력</div></div>
+  </div>
+  <div class="cards cards-status" id="cardsStatus">
+    <div class="card done"><div class="n" id="cDone">-</div><div class="l">수정완료</div></div>
+    <div class="card falsepos"><div class="n" id="cFalse">-</div><div class="l">오탐</div></div>
+    <div class="card exception"><div class="n" id="cException">-</div><div class="l">예외처리</div></div>
+  </div>
+
+  <div class="toolbar">
+    <select id="fRule">
+      <option value="ALL">전체 규칙</option>
+      <option value="RULE1">NTF - 부품입력</option>
+      <option value="RULE2">수리 코드 - 부품누락</option>
+      <option value="RULE3">부품교체 키워드 - 부품누락</option>
+      <option value="RULE4">이상없음 키워드 - 부품입력</option>
+    </select>
+    <select id="fStatus">
+      <option value="ALL">전체 상태</option>
+      <option value="미확인">미확인</option>
+      <option value="확인중">확인중</option>
+      <option value="수정완료">수정완료</option>
+      <option value="오탐">오탐</option>
+      <option value="예외처리">예외처리</option>
+    </select>
+    <input type="text" id="fSearch" placeholder="관리번호 / 시리얼 / 담당자 검색">
+    <label style="display:flex; align-items:center; gap:6px; font-size:12.5px; color:var(--text-dim); font-weight:600; cursor:pointer;">
+      <input type="checkbox" id="fHideDone" style="width:14px; height:14px;">
+      수정완료·오탐·예외처리 숨기기
+    </label>
+    <div class="spacer"></div>
+    <span class="sub" id="lastUpdated" style="color:var(--text-dim); font-size:12px;"></span>
+  </div>
+
+  <div id="listArea"><div class="loading">불러오는 중…</div></div>
+</div>
+
+<!-- 설정 모달 -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h2>검출 조건 설정</h2>
+    <div class="desc">이 설정은 시트(오류체크_설정 탭)에 저장되어 팀 전체에 공유됩니다. 단, 공유 탭이 아직 연결되지 않은 경우 이 브라우저에만 저장됩니다.</div>
+
+    <h3>부품이 들어가면 안 되는 리페어코드 (규칙1/2 기준)</h3>
+    <div class="chips" id="chipsCodes"></div>
+    <div class="add-row"><input type="text" id="inCode" placeholder="코드 번호 입력 후 Enter (예: 10)"><button id="addCode">추가</button></div>
+
+    <h3>수리 내용상 부품 사용이 예상되는 키워드 (규칙3)</h3>
+    <div class="chips" id="chipsPartsKw"></div>
+    <div class="add-row"><input type="text" id="inPartsKw" placeholder="키워드 입력 후 Enter (예: 교체)"><button id="addPartsKw">추가</button></div>
+
+    <h3>부품 사용이 없어야 하는 키워드 (규칙4)</h3>
+    <div class="chips" id="chipsNoPartsKw"></div>
+    <div class="add-row"><input type="text" id="inNoPartsKw" placeholder="키워드 입력 후 Enter (예: 이상없음)"><button id="addNoPartsKw">추가</button></div>
+
+    <div class="modal-foot">
+      <button id="btnResetDefault" class="ghost">기본값으로 초기화</button>
+      <button id="btnCloseModal" class="primary">닫기 &amp; 다시 계산</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================== 설정값 ============================== */
+const MAIN_SHEET_ID = '111K9l8gt-14roqvynNFEJrT2aLsTYjU8gQBsKNiyFmI';
+const MAIN_GID      = '351004172';           // 주간마감 탭
+
+const STATUS_GID    = '1476601052';
+const STATUS_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyEsMLN8kbdA8VIyDNrU9xFhGoZJyZBCwBYyMX2RtpdETlIz9C5IQNETjN_BHGnZN2Q/exec';
+const CONFIG_GID    = 'YOUR_CONFIG_TAB_GID_HERE';   // 오류체크_설정 탭 gid로 교체
+
+const DEFAULT_FORBIDDEN_CODES = [10,12,75,95,99,103,112,144,158,172];
+const DEFAULT_PARTS_KEYWORDS  = ['교체','탑사이드','탑로터'];
+const DEFAULT_NOPARTS_KEYWORDS= ['이상없음','환불요청'];
+
+const LS_CODES   = 'qcAudit_forbiddenCodes';
+const LS_PARTSKW = 'qcAudit_partsKeywords';
+const LS_NOPARTSKW = 'qcAudit_noPartsKeywords';
+
+const CONFIG_KEY_BY_LS = {
+  [LS_CODES]: 'forbiddenCodes',
+  [LS_PARTSKW]: 'partsKeywords',
+  [LS_NOPARTSKW]: 'noPartsKeywords',
+};
+
+function pushConfigToServer(configKey, arr){
+  if(!STATUS_APPS_SCRIPT_URL || STATUS_APPS_SCRIPT_URL.startsWith('YOUR_')) return;
+  fetch(STATUS_APPS_SCRIPT_URL, {
+    method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body: JSON.stringify({ type:'config', key: configKey, value: arr.join(','), 담당자: currentUser(), 업데이트일시: new Date().toLocaleString('ko-KR') })
+  }).catch(()=>{});
+}
+
+function loadList(key, fallback){
+  try{
+    const raw = localStorage.getItem(key);
+    if(!raw) return fallback.slice();
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) && arr.length ? arr : fallback.slice();
+  }catch(e){ return fallback.slice(); }
+}
+function saveList(key, arr){
+  localStorage.setItem(key, JSON.stringify(arr));
+  const cfgKey = CONFIG_KEY_BY_LS[key];
+  if(cfgKey) pushConfigToServer(cfgKey, arr);
+}
+
+let forbiddenCodes = loadList(LS_CODES, DEFAULT_FORBIDDEN_CODES).map(Number);
+let partsKeywords  = loadList(LS_PARTSKW, DEFAULT_PARTS_KEYWORDS);
+let noPartsKeywords= loadList(LS_NOPARTSKW, DEFAULT_NOPARTS_KEYWORDS);
+
+/* ============================== 상태 (사용자 이름) ============================== */
+function currentUser(){
+  return sessionStorage.getItem('userName') || '알수없음';
+}
+
+/* ============================== gviz 로딩 ============================== */
+let jsonpCounter = 0;
+function gvizLoad(sheetId, gid){
+  return new Promise((resolve, reject)=>{
+    const cbName = 'gvizCb_' + (jsonpCounter++);
+    window[cbName] = function(json){
+      delete window[cbName];
+      script.remove();
+      resolve(json);
+    };
+    const script = document.createElement('script');
+    script.src = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json;responseHandler:${cbName}&gid=${gid}&headers=1`;
+    script.onerror = ()=>{ delete window[cbName]; reject(new Error('시트를 불러오지 못했습니다.')); };
+    document.body.appendChild(script);
+    setTimeout(()=>{ if(window[cbName]){ delete window[cbName]; reject(new Error('시트 응답 시간 초과')); } }, 20000);
+  });
+}
+
+function colIndex(cols, label){
+  return cols.findIndex(c => (c.label||'').trim() === label);
+}
+function cellText(row, idx){
+  if(idx < 0 || !row.c[idx]) return '';
+  const c = row.c[idx];
+  if(c.f !== undefined && c.f !== null) return String(c.f).trim();
+  if(c.v === null || c.v === undefined) return '';
+  return String(c.v).trim();
+}
+function cellNumber(row, idx){
+  if(idx < 0 || !row.c[idx] || row.c[idx].v === null || row.c[idx].v === undefined) return null;
+  const n = Number(row.c[idx].v);
+  return isNaN(n) ? null : n;
+}
+function cellDate(row, idx){
+  if(idx < 0 || !row.c[idx] || row.c[idx].v === null || row.c[idx].v === undefined) return null;
+  const v = row.c[idx].v;
+  if(typeof v === 'string'){
+    const m = v.match(/^Date\((\d+),(\d+),(\d+)/);
+    if(m) return new Date(Number(m[1]), Number(m[2]), Number(m[3]));
+  }
+  return null;
+}
+
+/* ============================== 메인 데이터 파싱 + 규칙 검사 ============================== */
+let mainRows = [];   // 관리번호별 원본 레코드
+let statusMap = {};  // key -> {status, memo, who, ts}
+let findings = [];   // 검출 결과 (전체)
+let periodFindings = []; // 완료일 조회 기간 내 검출 결과 (대시보드/리스트 기준)
+
+async function loadMainData(){
+  const json = await gvizLoad(MAIN_SHEET_ID, MAIN_GID);
+  const cols = json.table.cols;
+  const idx = {
+    id: colIndex(cols,'관리번호'),
+    machine: colIndex(cols,'Machine'),
+    serial: colIndex(cols,'Serial Number'),
+    code1: colIndex(cols,'리페어코드#1'),
+    note: colIndex(cols,'Technician note'),
+    manager: colIndex(cols,'담당자'),
+    parts: colIndex(cols,'부품사용내역'),
+    doneDate: colIndex(cols,'완료일'),
+    fixedTime: colIndex(cols,'수리완료시간'),
+  };
+  const rows = json.table.rows || [];
+  const out = [];
+  rows.forEach(r=>{
+    if(!r || !r.c) return;
+    const id = cellText(r, idx.id);
+    if(!id) return; // 빈 행 skip
+    out.push({
+      id,
+      machine: cellText(r, idx.machine),
+      serial: cellText(r, idx.serial),
+      code1raw: cellText(r, idx.code1),
+      code1num: cellNumber(r, idx.code1),
+      note: cellText(r, idx.note),
+      manager: cellText(r, idx.manager),
+      parts: cellText(r, idx.parts),
+      doneDate: cellText(r, idx.doneDate) || cellText(r, idx.fixedTime),
+      doneDateObj: cellDate(r, idx.doneDate),
+    });
+  });
+  mainRows = out;
+}
+
+async function loadStatusData(){
+  statusMap = {};
+  if(!STATUS_GID || STATUS_GID.startsWith('YOUR_')) return; // 아직 미설정
+  try{
+    const json = await gvizLoad(MAIN_SHEET_ID, STATUS_GID);
+    const cols = json.table.cols;
+    const idx = {
+      key: colIndex(cols,'key'),
+      status: colIndex(cols,'상태'),
+      who: colIndex(cols,'담당자'),
+      memo: colIndex(cols,'메모'),
+      ts: colIndex(cols,'업데이트일시'),
+    };
+    (json.table.rows||[]).forEach(r=>{
+      if(!r || !r.c) return;
+      const key = cellText(r, idx.key);
+      if(!key) return;
+      statusMap[key] = {
+        status: cellText(r, idx.status) || '미확인',
+        who: cellText(r, idx.who),
+        memo: cellText(r, idx.memo),
+        ts: cellText(r, idx.ts),
+      };
+    });
+  }catch(e){
+    console.warn('상태 데이터를 불러오지 못했습니다', e);
+  }
+}
+
+async function loadConfigData(){
+  if(!CONFIG_GID || CONFIG_GID.startsWith('YOUR_')) return; // 아직 미설정 -> 로컬 저장값 사용
+  try{
+    const json = await gvizLoad(MAIN_SHEET_ID, CONFIG_GID);
+    const cols = json.table.cols;
+    const idxKey = colIndex(cols,'key');
+    const idxVal = colIndex(cols,'value');
+    const map = {};
+    (json.table.rows||[]).forEach(r=>{
+      if(!r || !r.c) return;
+      const k = cellText(r, idxKey);
+      if(!k) return;
+      map[k] = cellText(r, idxVal);
+    });
+    if(map.forbiddenCodes !== undefined){
+      forbiddenCodes = map.forbiddenCodes.split(',').map(s=>Number(s.trim())).filter(n=>!isNaN(n));
+      localStorage.setItem(LS_CODES, JSON.stringify(forbiddenCodes));
+    }
+    if(map.partsKeywords !== undefined){
+      partsKeywords = map.partsKeywords.split(',').map(s=>s.trim()).filter(Boolean);
+      localStorage.setItem(LS_PARTSKW, JSON.stringify(partsKeywords));
+    }
+    if(map.noPartsKeywords !== undefined){
+      noPartsKeywords = map.noPartsKeywords.split(',').map(s=>s.trim()).filter(Boolean);
+      localStorage.setItem(LS_NOPARTSKW, JSON.stringify(noPartsKeywords));
+    }
+  }catch(e){
+    console.warn('설정값을 불러오지 못했습니다', e);
+  }
+}
+
+function runRules(){
+  findings = [];
+  const forbiddenSet = new Set(forbiddenCodes.map(Number));
+  mainRows.forEach(row=>{
+    const hasParts = row.parts.length > 0;
+    const hasCode = row.code1num !== null;
+    const codeForbidden = hasCode && forbiddenSet.has(row.code1num);
+    const noteLower = row.note || '';
+
+    // 규칙1: 금지코드인데 부품 있음
+    if(codeForbidden && hasParts){
+      push(row, 'RULE1', `리페어코드 ${row.code1raw}는 부품 사용이 없어야 하는데 부품이 입력되어 있습니다.`);
+    }
+    // 규칙2: 정상코드(금지코드 아님)인데 부품 없음
+    if(hasCode && !codeForbidden && !hasParts){
+      push(row, 'RULE2', `리페어코드 ${row.code1raw}는 부품 사용이 필요할 수 있는데 부품 입력이 없습니다.`);
+    }
+    // 규칙3: 키워드 있는데 부품 없음
+    const matchedPartsKw = partsKeywords.filter(kw => kw && noteLower.includes(kw));
+    if(matchedPartsKw.length && !hasParts){
+      push(row, 'RULE3', `Technician note에 "${matchedPartsKw.join(', ')}" 키워드가 있는데 부품 입력이 없습니다.`);
+    }
+    // 규칙4: 불필요 키워드인데 부품 있음
+    const matchedNoPartsKw = noPartsKeywords.filter(kw => kw && noteLower.includes(kw));
+    if(matchedNoPartsKw.length && hasParts){
+      push(row, 'RULE4', `Technician note에 "${matchedNoPartsKw.join(', ')}" 키워드가 있는데 부품이 입력되어 있습니다.`);
+    }
+  });
+
+  function push(row, ruleId, reason){
+    const key = `${row.id}__${ruleId}`;
+    const st = statusMap[key] || {status:'미확인', who:'', memo:'', ts:''};
+    findings.push({ key, ruleId, reason, row, status: st.status, who: st.who, memo: st.memo, ts: st.ts });
+  }
+
+  // 정렬: 완료일 내림차순 우선, 다음 관리번호 내림차순
+  findings.sort((a,b)=>{
+    if(a.row.doneDate !== b.row.doneDate) return (b.row.doneDate||'').localeCompare(a.row.doneDate||'');
+    return String(b.row.id).localeCompare(String(a.row.id));
+  });
+}
+
+/* ============================== 렌더링 ============================== */
+const RULE_FULL_LABEL = {
+  RULE1:'NTF - 부품입력',
+  RULE2:'수리 코드 - 부품누락',
+  RULE3:'부품교체 키워드 - 부품누락',
+  RULE4:'이상없음 키워드 - 부품입력'
+};
+const RULE_GROUP_LABEL = { RULE1:'부품 오입력', RULE2:'부품 미입력', RULE3:'부품 미입력', RULE4:'부품 오입력' };
+const STATUS_OPTIONS = ['미확인','확인중','수정완료','오탐','예외처리'];
+let expandedKey = null;
+
+function renderCards(){
+  document.getElementById('cAll').textContent = periodFindings.length;
+  document.getElementById('cR1').textContent = periodFindings.filter(f=>f.ruleId==='RULE1').length;
+  document.getElementById('cR2').textContent = periodFindings.filter(f=>f.ruleId==='RULE2').length;
+  document.getElementById('cR3').textContent = periodFindings.filter(f=>f.ruleId==='RULE3').length;
+  document.getElementById('cR4').textContent = periodFindings.filter(f=>f.ruleId==='RULE4').length;
+  document.getElementById('cDone').textContent = periodFindings.filter(f=>f.status==='수정완료').length;
+  document.getElementById('cFalse').textContent = periodFindings.filter(f=>f.status==='오탐').length;
+  document.getElementById('cException').textContent = periodFindings.filter(f=>f.status==='예외처리').length;
+}
+
+function applyPeriod(){
+  const fromVal = document.getElementById('fDateFrom').value;
+  const toVal = document.getElementById('fDateTo').value;
+  const fromDate = fromVal ? new Date(fromVal + 'T00:00:00') : null;
+  const toDate = toVal ? new Date(toVal + 'T23:59:59') : null;
+
+  periodFindings = findings.filter(f=>{
+    if(fromDate && (!f.row.doneDateObj || f.row.doneDateObj < fromDate)) return false;
+    if(toDate && (!f.row.doneDateObj || f.row.doneDateObj > toDate)) return false;
+    return true;
+  });
+
+  const info = document.getElementById('periodInfo');
+  if(!fromVal && !toVal){
+    info.textContent = '전체 기간';
+  } else {
+    info.textContent = `${fromVal || '처음'} ~ ${toVal || '오늘'} · ${periodFindings.length}건`;
+  }
+
+  renderCards();
+  renderList();
+}
+
+function currentFiltered(){
+  const ruleF = document.getElementById('fRule').value;
+  const statusF = document.getElementById('fStatus').value;
+  const q = document.getElementById('fSearch').value.trim().toLowerCase();
+  const hideDone = document.getElementById('fHideDone').checked;
+  return periodFindings.filter(f=>{
+    if(hideDone && (f.status==='수정완료' || f.status==='오탐' || f.status==='예외처리')) return false;
+    if(ruleF!=='ALL' && f.ruleId!==ruleF) return false;
+    if(statusF!=='ALL' && f.status!==statusF) return false;
+    if(q){
+      const hay = `${f.row.id} ${f.row.serial} ${f.row.manager} ${f.row.machine}`.toLowerCase();
+      if(!hay.includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+function copyToClipboard(text, btn){
+  const done = ()=>{
+    if(!btn) return;
+    const old = btn.textContent;
+    btn.textContent = '✓';
+    btn.classList.add('copied');
+    setTimeout(()=>{ btn.textContent = old; btn.classList.remove('copied'); }, 1000);
+  };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(done).catch(()=>fallbackCopy(text, done));
+  } else {
+    fallbackCopy(text, done);
+  }
+}
+function fallbackCopy(text, cb){
+  const ta = document.createElement('textarea');
+  ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
+  document.body.appendChild(ta); ta.select();
+  try{ document.execCommand('copy'); }catch(e){}
+  document.body.removeChild(ta);
+  if(cb) cb();
+}
+function esc(s){ return (s||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+function renderList(){
+  renderCards();
+  const list = currentFiltered();
+  const area = document.getElementById('listArea');
+  if(!list.length){
+    area.innerHTML = `<div class="empty">조건에 맞는 검출 항목이 없습니다.</div>`;
+    return;
+  }
+  area.innerHTML = `<div class="list">${list.map(f=>rowHtml(f)).join('')}</div>`;
+
+  // bind events
+  list.forEach(f=>{
+    const el = document.getElementById('row_'+cssKey(f.key));
+    if(!el) return;
+    el.querySelector('.row-top').addEventListener('click', ()=>{
+      expandedKey = (expandedKey===f.key) ? null : f.key;
+      renderList();
+    });
+    el.querySelectorAll('.stop-prop').forEach(n=>n.addEventListener('click', e=>e.stopPropagation()));
+    const copyBtn = el.querySelector('.btnCopyId');
+    if(copyBtn) copyBtn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      copyToClipboard(copyBtn.dataset.id, copyBtn);
+    });
+    if(expandedKey===f.key){
+      const saveBtn = el.querySelector('.btnSave');
+      if(saveBtn) saveBtn.addEventListener('click', (e)=>{ e.stopPropagation(); saveStatus(f); });
+    }
+  });
+}
+
+function cssKey(k){ return k.replace(/[^a-zA-Z0-9]/g,'_'); }
+
+function rowHtml(f){
+  const r = f.row;
+  const isOpen = expandedKey === f.key;
+  return `
+  <div class="row ${isOpen?'expanded':''}" id="row_${cssKey(f.key)}">
+    <div class="row-top">
+      <span class="rule-badge ${f.ruleId}">${RULE_GROUP_LABEL[f.ruleId]}</span>
+      <span class="row-id">${esc(r.id)}</span>
+      <button class="stop-prop btnCopyId" data-id="${esc(r.id)}" title="관리번호 복사">📋</button>
+      <span class="row-meta">${esc(r.machine)} · ${esc(r.serial)}</span>
+      <span class="row-meta">담당 ${esc(r.manager)}</span>
+      <span class="row-meta">${esc(r.doneDate)}</span>
+      <div class="spacer"></div>
+      <span class="status-pill status-${f.status}">${f.status}</span>
+    </div>
+    <div class="row-summary">${esc(f.reason)}</div>
+    ${isOpen ? detailHtml(f) : ''}
+  </div>`;
+}
+
+function detailHtml(f){
+  const r = f.row;
+  return `
+  <div class="detail">
+    <div class="detail-grid">
+      <div class="detail-field"><div class="k">리페어코드#1</div><div class="v">${esc(r.code1raw)||'-'}</div></div>
+      <div class="detail-field"><div class="k">부품사용내역</div><div class="v">${esc(r.parts)||'(없음)'}</div></div>
+      <div class="detail-field" style="grid-column:1/-1"><div class="k">Technician note</div><div class="v">${esc(r.note)||'(없음)'}</div></div>
+    </div>
+    <div class="status-controls">
+      <select class="stop-prop selStatus">
+        ${STATUS_OPTIONS.map(s=>`<option value="${s}" ${f.status===s?'selected':''}>${s}</option>`).join('')}
+      </select>
+      <input type="text" class="stop-prop inMemo" placeholder="메모 (선택)" value="${esc(f.memo)}">
+      <button class="btnSave primary">저장</button>
+      <span class="who">${f.who ? `마지막 처리: ${esc(f.who)} · ${esc(f.ts)}` : ''}</span>
+    </div>
+  </div>`;
+}
+
+/* ============================== 상태 저장 ============================== */
+function saveStatus(f){
+  const el = document.getElementById('row_'+cssKey(f.key));
+  const status = el.querySelector('.selStatus').value;
+  const memo = el.querySelector('.inMemo').value;
+  const who = currentUser();
+  const ts = new Date().toLocaleString('ko-KR');
+
+  if(!STATUS_APPS_SCRIPT_URL || STATUS_APPS_SCRIPT_URL.startsWith('YOUR_')){
+    alert('상태 저장 기능이 아직 연결되지 않았습니다. (STATUS_APPS_SCRIPT_URL 설정 필요)');
+    return;
+  }
+
+  fetch(STATUS_APPS_SCRIPT_URL, {
+    method:'POST',
+    mode:'no-cors',
+    headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body: JSON.stringify({
+      key: f.key, 관리번호: f.row.id, 규칙: RULE_FULL_LABEL[f.ruleId],
+      상태: status, 담당자: who, 메모: memo, 업데이트일시: ts
+    })
+  }).catch(()=>{});
+
+  // optimistic update
+  f.status = status; f.memo = memo; f.who = who; f.ts = ts;
+  statusMap[f.key] = {status, who, memo, ts};
+  renderList();
+}
+
+/* ============================== 초기화 / 이벤트 ============================== */
+async function reloadAll(){
+  document.getElementById('listArea').innerHTML = `<div class="loading">불러오는 중…</div>`;
+  try{
+    await Promise.all([loadMainData(), loadStatusData(), loadConfigData()]);
+    runRules();
+    applyPeriod();
+    document.getElementById('lastUpdated').textContent = '마지막 갱신 ' + new Date().toLocaleTimeString('ko-KR');
+  }catch(e){
+    document.getElementById('listArea').innerHTML = `<div class="err">데이터를 불러오지 못했습니다: ${esc(e.message)}</div>`;
+  }
+}
+
+document.getElementById('btnRefresh').addEventListener('click', reloadAll);
+document.getElementById('fRule').addEventListener('change', renderList);
+document.getElementById('fStatus').addEventListener('change', renderList);
+document.getElementById('fSearch').addEventListener('input', renderList);
+document.getElementById('btnApplyPeriod').addEventListener('click', applyPeriod);
+document.getElementById('fDateFrom').addEventListener('keydown', e=>{ if(e.key==='Enter') applyPeriod(); });
+document.getElementById('fDateTo').addEventListener('keydown', e=>{ if(e.key==='Enter') applyPeriod(); });
+document.getElementById('btnDateClear').addEventListener('click', ()=>{
+  document.getElementById('fDateFrom').value = '';
+  document.getElementById('fDateTo').value = '';
+  applyPeriod();
+});
+const LS_HIDEDONE = 'qcAudit_hideDone';
+document.getElementById('fHideDone').checked = localStorage.getItem(LS_HIDEDONE) === '1';
+document.getElementById('fHideDone').addEventListener('change', (e)=>{
+  localStorage.setItem(LS_HIDEDONE, e.target.checked ? '1' : '0');
+  renderList();
+});
+
+/* 설정 모달 */
+function renderChips(containerId, arr, onRemove){
+  document.getElementById(containerId).innerHTML = arr.map((v,i)=>
+    `<span class="chip">${esc(String(v))}<button data-i="${i}">×</button></span>`
+  ).join('');
+  document.querySelectorAll('#'+containerId+' button').forEach(btn=>{
+    btn.addEventListener('click', ()=> onRemove(Number(btn.dataset.i)));
+  });
+}
+function refreshSettingsUI(){
+  renderChips('chipsCodes', forbiddenCodes, (i)=>{ forbiddenCodes.splice(i,1); saveList(LS_CODES, forbiddenCodes); refreshSettingsUI(); });
+  renderChips('chipsPartsKw', partsKeywords, (i)=>{ partsKeywords.splice(i,1); saveList(LS_PARTSKW, partsKeywords); refreshSettingsUI(); });
+  renderChips('chipsNoPartsKw', noPartsKeywords, (i)=>{ noPartsKeywords.splice(i,1); saveList(LS_NOPARTSKW, noPartsKeywords); refreshSettingsUI(); });
+}
+document.getElementById('btnSettings').addEventListener('click', ()=>{
+  refreshSettingsUI();
+  document.getElementById('modalBg').classList.add('open');
+});
+document.getElementById('btnCloseModal').addEventListener('click', ()=>{
+  document.getElementById('modalBg').classList.remove('open');
+  runRules(); applyPeriod();
+});
+document.getElementById('modalBg').addEventListener('click', (e)=>{
+  if(e.target.id==='modalBg'){ document.getElementById('modalBg').classList.remove('open'); runRules(); applyPeriod(); }
+});
+document.getElementById('btnResetDefault').addEventListener('click', ()=>{
+  if(!confirm('설정을 기본값으로 초기화할까요?')) return;
+  forbiddenCodes = DEFAULT_FORBIDDEN_CODES.slice();
+  partsKeywords = DEFAULT_PARTS_KEYWORDS.slice();
+  noPartsKeywords = DEFAULT_NOPARTS_KEYWORDS.slice();
+  saveList(LS_CODES, forbiddenCodes); saveList(LS_PARTSKW, partsKeywords); saveList(LS_NOPARTSKW, noPartsKeywords);
+  refreshSettingsUI();
+});
+function addChip(inputId, arr, key, validate){
+  const input = document.getElementById(inputId);
+  const val = input.value.trim();
+  if(!val) return;
+  const parsed = validate ? validate(val) : val;
+  if(parsed === null){ alert('숫자만 입력해주세요.'); return; }
+  if(arr.includes(parsed)) { input.value=''; return; }
+  arr.push(parsed);
+  saveList(key, arr);
+  input.value='';
+  refreshSettingsUI();
+}
+document.getElementById('addCode').addEventListener('click', ()=> addChip('inCode', forbiddenCodes, LS_CODES, v=> isNaN(Number(v))?null:Number(v)) );
+document.getElementById('inCode').addEventListener('keydown', e=>{ if(e.key==='Enter') addChip('inCode', forbiddenCodes, LS_CODES, v=> isNaN(Number(v))?null:Number(v)); });
+document.getElementById('addPartsKw').addEventListener('click', ()=> addChip('inPartsKw', partsKeywords, LS_PARTSKW) );
+document.getElementById('inPartsKw').addEventListener('keydown', e=>{ if(e.key==='Enter') addChip('inPartsKw', partsKeywords, LS_PARTSKW); });
+document.getElementById('addNoPartsKw').addEventListener('click', ()=> addChip('inNoPartsKw', noPartsKeywords, LS_NOPARTSKW) );
+document.getElementById('inNoPartsKw').addEventListener('keydown', e=>{ if(e.key==='Enter') addChip('inNoPartsKw', noPartsKeywords, LS_NOPARTSKW); });
+
+reloadAll();
+</script>
+</body>
+</html>
