@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>자동 메일 발송 - HIQASC</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Manrope', sans-serif;
+    background: #f4f4f2;
+    color: #2a2a2a;
+    padding: 30px 20px 80px;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; }
+
+  .top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+  }
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+    color: #666;
+    background: #fff;
+    border: 1.5px solid #e5e5e0;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 700;
+    transition: all 0.15s;
+  }
+  .back-btn:hover {
+    color: #e67e22;
+    border-color: #e67e22;
+    background: #fff8f0;
+  }
+
+  h1 {
+    font-size: 22px;
+    font-weight: 800;
+    margin-bottom: 4px;
+  }
+  .subtitle {
+    font-size: 13px;
+    color: #888;
+    margin-bottom: 28px;
+  }
+
+  .info-banner {
+    background: #fff8f0;
+    border: 1px solid #e67e22;
+    color: #b35c00;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 10px 14px;
+    border-radius: 8px;
+    margin-bottom: 24px;
+    line-height: 1.7;
+  }
+  .info-banner b { display: inline-block; min-width: 74px; }
+
+  .card {
+    background: #ffffff;
+    border: 1px solid #e5e5e0;
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+  }
+  .card h2 {
+    font-size: 15px;
+    font-weight: 700;
+    color: #e67e22;
+    margin-bottom: 16px;
+  }
+
+  .type-select {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+  .type-option { position: relative; }
+  .type-option input {
+    position: absolute;
+    opacity: 0;
+    inset: 0;
+    cursor: pointer;
+  }
+  .type-option label {
+    display: block;
+    text-align: center;
+    padding: 14px 8px;
+    border: 2px solid #e5e5e0;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .type-option input:checked + label {
+    border-color: #e67e22;
+    background: #fff8f0;
+    color: #e67e22;
+  }
+
+  .field { margin-bottom: 14px; }
+  .field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    color: #999;
+    margin-bottom: 6px;
+    letter-spacing: 0.3px;
+  }
+  .field input {
+    width: 100%;
+    padding: 11px 12px;
+    border: 1.5px solid #e5e5e0;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    color: #2a2a2a;
+    background: #fafaf9;
+    transition: border-color 0.15s;
+  }
+  .field input:focus {
+    outline: none;
+    border-color: #e67e22;
+    background: #fff;
+  }
+
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  /* 수신자 */
+  .recipient-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+  .recipient-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1.5px solid #e5e5e0;
+    border-radius: 8px;
+    background: #fafaf9;
+  }
+  .recipient-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #e67e22;
+    cursor: pointer;
+  }
+  .recipient-item span {
+    font-size: 13px;
+    font-weight: 600;
+    color: #444;
+  }
+  .recipient-item.custom {
+    justify-content: space-between;
+    background: #fff8f0;
+    border-color: #f0c896;
+  }
+  .recipient-item .remove-btn {
+    background: none;
+    border: none;
+    color: #c62828;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0 4px;
+  }
+  .add-recipient-row {
+    display: flex;
+    gap: 8px;
+  }
+  .add-recipient-row input {
+    flex: 1;
+    padding: 10px 12px;
+    border: 1.5px solid #e5e5e0;
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: inherit;
+    background: #fafaf9;
+  }
+  .add-recipient-row input:focus {
+    outline: none;
+    border-color: #e67e22;
+    background: #fff;
+  }
+  .add-recipient-row button {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 8px;
+    background: #2a2a2a;
+    color: #fff;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .add-recipient-row button:hover { background: #444; }
+
+  .preview-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #999;
+    margin-bottom: 10px;
+    letter-spacing: 0.3px;
+  }
+  .mail-meta {
+    font-size: 12px;
+    color: #666;
+    background: #f4f4f2;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 14px;
+    line-height: 1.8;
+  }
+  .mail-meta b { color: #2a2a2a; }
+  .mail-subject {
+    font-size: 13px;
+    font-weight: 700;
+    color: #2a2a2a;
+    background: #f4f4f2;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 14px;
+    word-break: break-all;
+  }
+  .mail-intro {
+    font-size: 13px;
+    color: #444;
+    line-height: 1.6;
+    margin-bottom: 14px;
+  }
+
+  .send-btn {
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 10px;
+    background: #e67e22;
+    color: #fff;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .send-btn:hover { background: #d3690f; }
+  .send-btn:disabled { background: #ccc; cursor: not-allowed; }
+
+  .status-msg {
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    margin-top: 12px;
+    display: none;
+  }
+  .status-msg.success { color: #2e7d32; display: block; }
+  .status-msg.error { color: #c62828; display: block; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="top-bar">
+    <a href="index.html" class="back-btn">🏠 메인으로</a>
+  </div>
+
+  <h1>자동 메일 발송</h1>
+  <div class="subtitle">반송 입고 / 픽업폼 요청 메일을 자동으로 작성하고 발송합니다</div>
+
+  <div class="info-banner">
+    <b>표시 이름</b> HIQASC &lt;hiqasc@gmail.com&gt;<br>
+    <b>회신 주소</b> asc@hiqasc.kr (받는 사람이 회신 누르면 여기로 감)
+  </div>
+
+  <div class="card">
+    <h2>1. 메일 종류</h2>
+    <div class="type-select">
+      <div class="type-option">
+        <input type="radio" name="mailType" id="typeReturn" value="return" checked>
+        <label for="typeReturn">머신 반송 입고</label>
+      </div>
+      <div class="type-option">
+        <input type="radio" name="mailType" id="typePickup" value="pickup">
+        <label for="typePickup">픽업폼 요청</label>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>2. 정보 입력</h2>
+    <div class="row2">
+      <div class="field">
+        <label>회원번호</label>
+        <input type="text" id="memberNo" placeholder="예: 1782492">
+      </div>
+      <div class="field">
+        <label>회원명</label>
+        <input type="text" id="memberName" placeholder="예: 김연신">
+      </div>
+    </div>
+    <div class="field">
+      <label>시리얼</label>
+      <input type="text" id="serial" placeholder="예: 16343C50k056574K0KT">
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label>모델명</label>
+        <input type="text" id="modelName" placeholder="예: C50CW">
+      </div>
+      <div class="field">
+        <label>송장번호</label>
+        <input type="text" id="invoiceNo" placeholder="예: 8064379024">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>3. 받는 사람</h2>
+    <div class="recipient-list" id="recipientList"></div>
+    <div class="add-recipient-row">
+      <input type="text" id="newRecipientInput" placeholder="직접 추가할 이메일 주소 입력">
+      <button type="button" onclick="addCustomRecipient()">+ 추가</button>
+    </div>
+    <div style="margin-top:14px;padding-top:14px;border-top:1px dashed #e5e5e0;">
+      <div class="field" style="margin-bottom:0;">
+        <label>참조 (고정)</label>
+        <div style="font-size:13px;font-weight:600;color:#444;background:#f4f4f2;border-radius:8px;padding:10px 12px;">
+          asc@hiqasc.kr <span style="color:#999;font-weight:500;">— 직원 확인용, 항상 자동 포함</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>4. 미리보기</h2>
+    <div class="preview-label">받는 사람</div>
+    <div class="mail-meta" id="previewRecipients">-</div>
+    <div class="preview-label">참조</div>
+    <div class="mail-meta" id="previewCc">-</div>
+    <div class="preview-label">제목</div>
+    <div class="mail-subject" id="previewSubject">-</div>
+    <div class="preview-label">본문</div>
+    <div class="mail-intro" id="previewIntro">-</div>
+    <div id="previewTable"></div>
+  </div>
+
+  <button class="send-btn" id="sendBtn" onclick="sendMail()">메일 발송</button>
+  <div class="status-msg" id="statusMsg"></div>
+
+</div>
+
+<script>
+// 배포 후 Apps Script 웹앱 URL을 여기에 넣으세요
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyEkYFGKDqO-SaO-AeMRy1r--bm0k9Eh-h1N7TT7IynJ1oYKY5sEmVNyUiW5GChC4D3/exec';
+
+// 기본 수신자 - 필요시 체크 해제하거나 아래에서 추가 가능
+const DEFAULT_RECIPIENTS = [
+  'nespresso_tck_crm@trans-cosmos.co.kr',
+  'CRC.KR@nespresso.com',
+  'nespressocsd@ilyang.com'
+];
+
+// 참조(CC) - 항상 고정 포함 (직원들도 발송 메일을 받아야 함)
+const FIXED_CC = 'asc@hiqasc.kr';
+
+let customRecipients = [];
+
+const fields = ['memberNo','memberName','serial','modelName','invoiceNo'];
+
+// Outlook(Word 렌더링 엔진) 호환을 위해 border 속성 + 인라인 스타일 병행
+const TABLE_STYLE = 'border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;border:1px solid #000000;font-family:Arial,sans-serif;font-size:13px;width:480px;';
+const TD_BASE = 'border:1px solid #000000;padding:8px 10px;';
+const TD_TITLE = TD_BASE + 'background:#f2f2f2;font-weight:bold;text-align:center;';
+const TD_LABEL = TD_BASE + 'background:#f2f2f2;font-weight:bold;text-align:center;width:28%;';
+const TD_SUBLABEL = TD_BASE + 'background:#f2f2f2;font-weight:bold;text-align:center;';
+const TD_VALUE = TD_BASE + 'text-align:left;';
+
+// ===== 수신자 렌더링 =====
+function renderRecipients() {
+  const list = document.getElementById('recipientList');
+  list.innerHTML = '';
+
+  DEFAULT_RECIPIENTS.forEach((email, i) => {
+    const div = document.createElement('div');
+    div.className = 'recipient-item';
+    div.innerHTML = `
+      <input type="checkbox" id="default-${i}" checked onchange="updatePreview()">
+      <label for="default-${i}" style="flex:1;cursor:pointer;"><span>${email}</span></label>
+    `;
+    list.appendChild(div);
+  });
+
+  customRecipients.forEach((email, i) => {
+    const div = document.createElement('div');
+    div.className = 'recipient-item custom';
+    div.innerHTML = `
+      <span>${email} <span style="color:#e67e22;font-weight:700;">(직접 추가)</span></span>
+      <button type="button" class="remove-btn" onclick="removeCustomRecipient(${i})">&times;</button>
+    `;
+    list.appendChild(div);
+  });
+}
+
+function addCustomRecipient() {
+  const input = document.getElementById('newRecipientInput');
+  const email = input.value.trim();
+  if (!email) return;
+  if (!email.includes('@')) {
+    showStatus('error', '올바른 이메일 주소를 입력해주세요.');
+    return;
+  }
+  customRecipients.push(email);
+  input.value = '';
+  renderRecipients();
+  updatePreview();
+}
+
+function removeCustomRecipient(i) {
+  customRecipients.splice(i, 1);
+  renderRecipients();
+  updatePreview();
+}
+
+function getSelectedRecipients() {
+  const selected = [];
+  DEFAULT_RECIPIENTS.forEach((email, i) => {
+    const cb = document.getElementById(`default-${i}`);
+    if (cb && cb.checked) selected.push(email);
+  });
+  selected.push(...customRecipients);
+  return selected;
+}
+
+// ===== 데이터 =====
+function getData() {
+  const type = document.querySelector('input[name="mailType"]:checked').value;
+  const d = { type };
+  fields.forEach(f => d[f] = document.getElementById(f).value.trim());
+  return d;
+}
+
+function buildSubject(d) {
+  const prefix = `M#${d.memberNo || '______'}_${d.memberName || '____'} 회원님 `;
+  if (d.type === 'return') {
+    return prefix + '머신 반송 입고 건 진행 방향 요청 드립니다.';
+  } else {
+    return prefix + '수리 진행을 위한 픽업폼 요청 드립니다.';
+  }
+}
+
+function buildIntro(d) {
+  if (d.type === 'return') {
+    return `M#${d.memberNo || '______'}_${d.memberName || '____'} 회원님 머신 금일 반송 입고되었습니다.<br>진행 방향 요청드립니다.`;
+  } else {
+    return `선점검을 위한 새 머신이 입고 되었습니다.<br>수리 진행을 위한 픽업폼 요청 드립니다.`;
+  }
+}
+
+function buildTableHtml(d) {
+  const title = d.type === 'return' ? '반송 입고 건' : '픽업폼 요청 건';
+  return `
+    <table border="1" cellpadding="8" cellspacing="0" style="${TABLE_STYLE}">
+      <tr><td colspan="3" style="${TD_TITLE}">${title}</td></tr>
+      <tr><td style="${TD_LABEL}">회원번호</td><td colspan="2" style="${TD_VALUE}">${d.memberNo || ''}</td></tr>
+      <tr><td style="${TD_LABEL}">회원명</td><td colspan="2" style="${TD_VALUE}">${d.memberName || ''}</td></tr>
+      <tr><td rowspan="3" style="${TD_LABEL}">머신 정보</td><td style="${TD_SUBLABEL}">시리얼</td><td style="${TD_VALUE}">${d.serial || ''}</td></tr>
+      <tr><td style="${TD_SUBLABEL}">모델명</td><td style="${TD_VALUE}">${d.modelName || ''}</td></tr>
+      <tr><td style="${TD_SUBLABEL}">송장번호</td><td style="${TD_VALUE}">${d.invoiceNo || ''}</td></tr>
+    </table>
+  `;
+}
+
+function updatePreview() {
+  const d = getData();
+  document.getElementById('previewSubject').textContent = buildSubject(d);
+  document.getElementById('previewIntro').innerHTML = buildIntro(d);
+  document.getElementById('previewTable').innerHTML = buildTableHtml(d);
+
+  const recipients = getSelectedRecipients();
+  document.getElementById('previewRecipients').textContent = recipients.length
+    ? recipients.join(', ')
+    : '(선택된 수신자 없음)';
+  document.getElementById('previewCc').textContent = FIXED_CC;
+}
+
+fields.forEach(f => document.getElementById(f).addEventListener('input', updatePreview));
+document.querySelectorAll('input[name="mailType"]').forEach(r => r.addEventListener('change', updatePreview));
+document.getElementById('newRecipientInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); addCustomRecipient(); }
+});
+
+function sendMail() {
+  const d = getData();
+  const missing = fields.filter(f => !d[f]);
+  if (missing.length) {
+    showStatus('error', '모든 항목을 입력해주세요.');
+    return;
+  }
+  const recipients = getSelectedRecipients();
+  if (!recipients.length) {
+    showStatus('error', '받는 사람을 최소 1명 이상 선택해주세요.');
+    return;
+  }
+  if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE') {
+    showStatus('error', 'Apps Script URL이 설정되지 않았습니다.');
+    return;
+  }
+
+  const payload = {
+    type: d.type,
+    to: recipients.join(','),
+    cc: FIXED_CC,
+    memberNo: d.memberNo,
+    memberName: d.memberName,
+    subject: buildSubject(d),
+    introHtml: buildIntro(d),
+    tableHtml: buildTableHtml(d),
+    serial: d.serial,
+    modelName: d.modelName,
+    invoiceNo: d.invoiceNo
+  };
+
+  const btn = document.getElementById('sendBtn');
+  btn.disabled = true;
+  btn.textContent = '발송 중...';
+
+  fetch(APPS_SCRIPT_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify(payload)
+  }).then(() => {
+    showStatus('success', '메일이 발송되었습니다.');
+    btn.disabled = false;
+    btn.textContent = '메일 발송';
+  }).catch(() => {
+    showStatus('error', '발송 중 오류가 발생했습니다.');
+    btn.disabled = false;
+    btn.textContent = '메일 발송';
+  });
+}
+
+function showStatus(type, msg) {
+  const el = document.getElementById('statusMsg');
+  el.className = 'status-msg ' + type;
+  el.textContent = msg;
+}
+
+renderRecipients();
+updatePreview();
+</script>
+</body>
+</html>
