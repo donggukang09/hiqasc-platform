@@ -361,8 +361,8 @@
     <div class="mail-subject" id="previewSubject">-</div>
     <div class="preview-label">본문</div>
     <div class="mail-intro" id="previewIntro">-</div>
+    <div class="mail-intro" id="previewExtra" style="margin-bottom:14px;"></div>
     <div id="previewTable"></div>
-    <div class="mail-intro" id="previewExtra" style="margin-top:14px;"></div>
   </div>
 
   <button class="send-btn" id="sendBtn" onclick="sendMail()">메일 발송</button>
@@ -499,7 +499,7 @@ function buildExtraHtml() {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/\n/g, '<br>');
-  return `<p style="margin-top:14px;line-height:1.6;color:#444;">${escaped}</p>`;
+  return `<p style="margin-bottom:14px;line-height:1.6;color:#444;">${escaped}</p>`;
 }
 
 function updatePreview() {
