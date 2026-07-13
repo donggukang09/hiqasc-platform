@@ -344,7 +344,15 @@
   </div>
 
   <div class="card">
-    <h2>4. 미리보기</h2>
+    <h2>4. 추가 내용 <span style="color:#999;font-weight:500;font-size:12px;">(선택 · 예외 상황 시)</span></h2>
+    <div class="field" style="margin-bottom:0;">
+      <label>본문 표 아래에 추가로 들어갈 내용</label>
+      <textarea id="extraNote" rows="4" placeholder="예외적인 상황 설명 등, 필요할 때만 입력하세요" style="width:100%;padding:11px 12px;border:1.5px solid #e5e5e0;border-radius:8px;font-size:14px;font-family:inherit;color:#2a2a2a;background:#fafaf9;resize:vertical;"></textarea>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>5. 미리보기</h2>
     <div class="preview-label">받는 사람</div>
     <div class="mail-meta" id="previewRecipients">-</div>
     <div class="preview-label">참조</div>
@@ -354,6 +362,7 @@
     <div class="preview-label">본문</div>
     <div class="mail-intro" id="previewIntro">-</div>
     <div id="previewTable"></div>
+    <div class="mail-intro" id="previewExtra" style="margin-top:14px;"></div>
   </div>
 
   <button class="send-btn" id="sendBtn" onclick="sendMail()">메일 발송</button>
@@ -482,11 +491,23 @@ function buildTableHtml(d) {
   `;
 }
 
+function buildExtraHtml() {
+  const text = document.getElementById('extraNote').value.trim();
+  if (!text) return '';
+  const escaped = text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\n/g, '<br>');
+  return `<p style="margin-top:14px;line-height:1.6;color:#444;">${escaped}</p>`;
+}
+
 function updatePreview() {
   const d = getData();
   document.getElementById('previewSubject').textContent = buildSubject(d);
   document.getElementById('previewIntro').innerHTML = buildIntro(d);
   document.getElementById('previewTable').innerHTML = buildTableHtml(d);
+  document.getElementById('previewExtra').innerHTML = buildExtraHtml();
 
   const recipients = getSelectedRecipients();
   document.getElementById('previewRecipients').textContent = recipients.length
@@ -497,6 +518,7 @@ function updatePreview() {
 
 fields.forEach(f => document.getElementById(f).addEventListener('input', updatePreview));
 document.querySelectorAll('input[name="mailType"]').forEach(r => r.addEventListener('change', updatePreview));
+document.getElementById('extraNote').addEventListener('input', updatePreview);
 document.getElementById('newRecipientInput').addEventListener('keydown', e => {
   if (e.key === 'Enter') { e.preventDefault(); addCustomRecipient(); }
 });
@@ -527,6 +549,7 @@ function sendMail() {
     subject: buildSubject(d),
     introHtml: buildIntro(d),
     tableHtml: buildTableHtml(d),
+    extraHtml: buildExtraHtml(),
     serial: d.serial,
     modelName: d.modelName,
     invoiceNo: d.invoiceNo
