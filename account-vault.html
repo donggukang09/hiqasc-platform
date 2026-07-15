@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>계정 정보 조회 | HIQASC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --accent:#e08a2f;
+    --accent-dark:#c26f18;
+    --accent-light:#fdf1e2;
+    --bg:#f4f6f9;
+    --card:#ffffff;
+    --border:#e0e5ec;
+    --text:#2b2f36;
+    --text-sub:#6b7280;
+    --danger:#d64545;
+    --ok-bg:#f0f9f0;
+    --ok-border:#bfe3bf;
+    --radius:12px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:760px;margin:0 auto;padding:24px 16px 80px;}
+
+  .back-home{
+    display:inline-flex;align-items:center;gap:6px;color:var(--text-sub);
+    text-decoration:none;font-size:13px;font-weight:700;margin-bottom:14px;
+  }
+  .back-home:hover{color:var(--accent-dark);}
+
+  header.page-head{margin-bottom:8px;}
+  header.page-head h1{font-size:22px;font-weight:800;margin:0 0 4px;display:flex;align-items:center;gap:8px;}
+  header.page-head p{margin:0;color:var(--text-sub);font-size:13.5px;}
+
+  .notice{
+    background:var(--accent-light);border:1.5px solid #f0d3a8;border-radius:var(--radius);
+    padding:14px 16px;margin:18px 0;font-size:13px;line-height:1.6;color:#7a4a12;
+  }
+
+  .search-box{position:relative;margin:18px 0;}
+  .search-box input{
+    width:100%;padding:14px 16px 14px 44px;border:1.5px solid var(--border);border-radius:12px;
+    font-size:15px;font-family:'Manrope',sans-serif;background:var(--card);color:var(--text);outline:none;
+  }
+  .search-box input:focus{border-color:var(--accent);}
+  .search-icon{position:absolute;left:15px;top:50%;transform:translateY(-50%);color:var(--text-sub);}
+
+  #status{color:var(--text-sub);font-size:13px;margin:4px 2px 16px;min-height:16px;}
+
+  .site-card{
+    background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+    padding:16px 18px;margin-bottom:12px;
+  }
+  .site-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
+  .site-name{font-weight:800;font-size:15px;margin:0 0 3px;}
+  .site-meta{font-size:12.5px;color:var(--text-sub);line-height:1.6;}
+  .site-meta a{color:var(--accent-dark);text-decoration:none;}
+  .site-meta a:hover{text-decoration:underline;}
+  .site-note{font-size:12px;color:var(--text-sub);margin-top:4px;}
+
+  .pw-btn{
+    flex:none;background:var(--accent-light);color:var(--accent-dark);border:1.5px solid #f0d3a8;
+    padding:9px 16px;border-radius:20px;font-size:13px;font-weight:700;cursor:pointer;
+    font-family:'Manrope',sans-serif;white-space:nowrap;
+  }
+  .pw-btn:hover{background:#f7e2c0;}
+
+  .pw-reveal{
+    margin-top:12px;background:var(--ok-bg);border:1.5px solid var(--ok-border);border-radius:10px;
+    padding:10px 14px;display:flex;align-items:center;gap:10px;
+  }
+  .pw-reveal code{font-family:monospace;font-size:14px;font-weight:700;color:#1f6b1f;flex:1;word-break:break-all;}
+  .pw-copy-btn{
+    flex:none;background:#fff;border:1px solid var(--ok-border);color:#1f6b1f;border-radius:8px;
+    padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;
+  }
+  .pw-timer{font-size:11px;color:#5a8a5a;flex:none;}
+  .pw-error{
+    margin-top:12px;background:#fdecea;border:1.5px solid #f5b7b1;border-radius:10px;
+    padding:10px 14px;font-size:13px;color:#a33;
+  }
+
+  .empty-state{text-align:center;color:var(--text-sub);font-size:14px;padding:50px 10px;}
+
+  /* 게이트 모달 */
+  .modal-backdrop{
+    position:fixed;inset:0;background:rgba(20,20,20,.45);display:none;
+    align-items:center;justify-content:center;z-index:100;padding:16px;
+  }
+  .modal-backdrop.show{display:flex;}
+  .modal{
+    background:var(--card);border-radius:16px;padding:24px;max-width:340px;width:100%;
+    box-shadow:0 20px 60px rgba(0,0,0,.25);
+  }
+  .modal h3{margin:0 0 6px;font-size:16px;font-weight:800;}
+  .modal p{margin:0 0 16px;font-size:13px;color:var(--text-sub);}
+  .modal input{
+    width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;
+    font-size:15px;font-family:'Manrope',sans-serif;outline:none;margin-bottom:6px;
+  }
+  .modal input:focus{border-color:var(--accent);}
+  .modal-err{color:var(--danger);font-size:12.5px;min-height:16px;margin-bottom:10px;}
+  .modal-actions{display:flex;gap:8px;margin-top:6px;}
+  .modal-actions button{
+    flex:1;padding:11px;border-radius:10px;font-size:13.5px;font-weight:700;cursor:pointer;
+    font-family:'Manrope',sans-serif;border:none;
+  }
+  .modal-cancel{background:#eef1f5;color:var(--text-sub);}
+  .modal-confirm{background:var(--accent);color:#fff;}
+  .modal-confirm:disabled{opacity:.6;cursor:default;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <a class="back-home" href="index.html">← 메인으로</a>
+
+  <header class="page-head">
+    <h1>🔐 계정 정보 조회</h1>
+    <p>업무용 사이트 계정 목록입니다. 비밀번호는 내부 공유 암호를 입력해야 확인할 수 있어요.</p>
+  </header>
+
+  <div class="notice">
+    비밀번호는 이 페이지에 저장되어 있지 않고, 입력한 암호가 맞을 때만 그 순간에 서버에서 조회해 옵니다.
+    화면에 표시된 비밀번호는 30초 후 자동으로 다시 가려집니다.
+  </div>
+
+  <div class="search-box">
+    <span class="search-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </span>
+    <input type="text" id="searchInput" placeholder="사이트명으로 검색..." autocomplete="off">
+  </div>
+
+  <div id="status">목록 불러오는 중...</div>
+  <div id="siteList"></div>
+
+</div>
+
+<!-- 게이트 비밀번호 입력 모달 -->
+<div class="modal-backdrop" id="gateModal">
+  <div class="modal">
+    <h3 id="gateModalSite">비밀번호 확인</h3>
+    <p>내부 공유 암호를 입력하면 해당 사이트의 비밀번호가 표시됩니다.</p>
+    <input type="password" id="gatePasswordInput" placeholder="내부 공유 암호" autocomplete="off">
+    <div class="modal-err" id="gateModalErr"></div>
+    <div class="modal-actions">
+      <button class="modal-cancel" id="gateCancelBtn">취소</button>
+      <button class="modal-confirm" id="gateConfirmBtn">확인</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============ 설정 ============ */
+const SHEET_ID = '1XK3KwdrNbRgvbUbongqetmydZOWimrADh3MBVDPBXKM';           // 계정목록(공개) 탭이 있는 시트 ID
+const LIST_TAB_NAME = '계정목록';                 // 사이트명 | URL | 아이디 | 비고
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwNrw1q2Tg41KMx9WVzRGPfDh2kwL6feriJAfV8usa9qVuoTyT9HEkbdnB_UTvqi57S/exec'; // Code.gs 배포 URL
+
+/* ============ 상태 ============ */
+let siteData = [];
+let currentGateSite = null;
+
+/* ============ 목록 로드 (gviz, 공개 - 비밀번호 없는 정보만) ============ */
+function loadSiteList(){
+  const cb = '__gviz_sites_' + Date.now();
+  window[cb] = function(resp){
+    try{
+      const cols = resp.table.cols.map(c => (c.label||'').trim());
+      const rows = (resp.table.rows||[]).map(r=>{
+        const obj = {};
+        (r.c||[]).forEach((cell,i)=>{ obj[cols[i]] = cell && cell.v!=null ? String(cell.v) : ''; });
+        return obj;
+      });
+      siteData = rows.map(r=>({
+        name: (r['사이트명']||'').trim(),
+        url: (r['URL']||'').trim(),
+        id: (r['아이디']||'').trim(),
+        note: (r['비고']||'').trim()
+      })).filter(r=>r.name);
+      document.getElementById('status').textContent = siteData.length + '개 사이트';
+      render();
+    }catch(e){
+      showListError("목록을 불러오지 못했습니다. 시트 헤더(1행) 틀고정과 컬럼명을 확인해주세요.");
+      console.error(e);
+    }
+    delete window[cb];
+    script.remove();
+  };
+  const url = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID +
+              '/gviz/tq?headers=1&sheet=' + encodeURIComponent(LIST_TAB_NAME) +
+              '&tqx=out:json;responseHandler:' + cb;
+  const script = document.createElement('script');
+  script.src = url;
+  script.onerror = function(){ showListError("목록을 불러오지 못했습니다. 시트 공유 설정과 시트 ID를 확인해주세요."); };
+  document.body.appendChild(script);
+}
+
+function showListError(msg){
+  document.getElementById('status').textContent = '';
+  document.getElementById('siteList').innerHTML = '<div class="empty-state">⚠️ ' + escapeHtml(msg) + '</div>';
+}
+
+function escapeHtml(s){
+  return (s||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+/* ============ 렌더링 ============ */
+function render(){
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  const list = q ? siteData.filter(s=>s.name.toLowerCase().includes(q)) : siteData;
+  const el = document.getElementById('siteList');
+
+  if(!list.length){
+    el.innerHTML = '<div class="empty-state">등록된 사이트가 없습니다.</div>';
+    return;
+  }
+
+  el.innerHTML = list.map(s=>{
+    const safeName = escapeHtml(s.name).replace(/'/g, "\\'");
+    return '<div class="site-card" data-site="' + escapeHtml(s.name) + '">' +
+      '<div class="site-top">' +
+        '<div>' +
+          '<div class="site-name">' + escapeHtml(s.name) + '</div>' +
+          '<div class="site-meta">' +
+            (s.url ? '<a href="' + escapeHtml(s.url) + '" target="_blank" rel="noopener">' + escapeHtml(s.url) + '</a><br>' : '') +
+            (s.id ? '아이디: ' + escapeHtml(s.id) : '') +
+          '</div>' +
+          (s.note ? '<div class="site-note">' + escapeHtml(s.note) + '</div>' : '') +
+        '</div>' +
+        '<button class="pw-btn" onclick="openGate(\'' + safeName + '\')">PW 보기</button>' +
+      '</div>' +
+      '<div class="pw-slot" id="pw-slot-' + encodeURIComponent(s.name) + '"></div>' +
+    '</div>';
+  }).join('');
+}
+
+document.getElementById('searchInput').addEventListener('input', render);
+
+/* ============ 게이트 모달 ============ */
+function openGate(siteName){
+  currentGateSite = siteName;
+  document.getElementById('gateModalSite').textContent = siteName + ' 비밀번호 확인';
+  document.getElementById('gatePasswordInput').value = '';
+  document.getElementById('gateModalErr').textContent = '';
+  document.getElementById('gateModal').classList.add('show');
+  document.getElementById('gatePasswordInput').focus();
+}
+function closeGate(){
+  document.getElementById('gateModal').classList.remove('show');
+  currentGateSite = null;
+}
+document.getElementById('gateCancelBtn').addEventListener('click', closeGate);
+document.getElementById('gateModal').addEventListener('click', e=>{
+  if(e.target.id === 'gateModal') closeGate();
+});
+document.getElementById('gatePasswordInput').addEventListener('keydown', e=>{
+  if(e.key === 'Enter') confirmGate();
+});
+document.getElementById('gateConfirmBtn').addEventListener('click', confirmGate);
+
+function confirmGate(){
+  const pw = document.getElementById('gatePasswordInput').value;
+  if(!pw){
+    document.getElementById('gateModalErr').textContent = '암호를 입력해주세요.';
+    return;
+  }
+  const btn = document.getElementById('gateConfirmBtn');
+  btn.disabled = true;
+  btn.textContent = '확인 중...';
+
+  fetch(APPS_SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // preflight 회피
+    body: JSON.stringify({ site: currentGateSite, gatePassword: pw })
+  })
+  .then(r => r.json())
+  .then(data => {
+    btn.disabled = false;
+    btn.textContent = '확인';
+    if(data.success){
+      closeGate();
+      revealPassword(data.site, data.password);
+    } else {
+      document.getElementById('gateModalErr').textContent = data.error || '비밀번호가 올바르지 않습니다.';
+    }
+  })
+  .catch(err => {
+    btn.disabled = false;
+    btn.textContent = '확인';
+    document.getElementById('gateModalErr').textContent = '요청 중 오류가 발생했습니다. 다시 시도해주세요.';
+    console.error(err);
+  });
+}
+
+/* ============ 비밀번호 표시 (30초 후 자동으로 다시 가림) ============ */
+function revealPassword(siteName, password){
+  const slot = document.getElementById('pw-slot-' + encodeURIComponent(siteName));
+  if(!slot) return;
+
+  let remaining = 30;
+  slot.innerHTML =
+    '<div class="pw-reveal">' +
+      '<code>' + escapeHtml(password) + '</code>' +
+      '<button class="pw-copy-btn" id="copyBtn-' + encodeURIComponent(siteName) + '">복사</button>' +
+      '<span class="pw-timer" id="timer-' + encodeURIComponent(siteName) + '">' + remaining + '초</span>' +
+    '</div>';
+
+  document.getElementById('copyBtn-' + encodeURIComponent(siteName)).addEventListener('click', ()=>{
+    navigator.clipboard.writeText(password).then(()=>{
+      const b = document.getElementById('copyBtn-' + encodeURIComponent(siteName));
+      if(b){ b.textContent = '복사됨'; setTimeout(()=>{ if(b) b.textContent = '복사'; }, 1500); }
+    });
+  });
+
+  const timerEl = document.getElementById('timer-' + encodeURIComponent(siteName));
+  const interval = setInterval(()=>{
+    remaining--;
+    if(!timerEl){ clearInterval(interval); return; }
+    if(remaining <= 0){
+      clearInterval(interval);
+      slot.innerHTML = '';
+    } else {
+      timerEl.textContent = remaining + '초';
+    }
+  }, 1000);
+}
+
+loadSiteList();
+</script>
+</body>
+</html>
