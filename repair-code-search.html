@@ -109,6 +109,12 @@
   .tag.cost{background:#e8f7ee;color:#1f8a4c;}
   .tag.cat{background:var(--accent-light);color:var(--accent-dark);}
 
+  mark.hl{
+    background:#fff3b0;color:#7a5b00;font-weight:800;
+    border-radius:3px;padding:0 2px;
+  }
+  .note-card mark.hl{background:#ffe58a;color:#5c3d00;}
+
   .empty-state{
     text-align:center;color:var(--text-sub);font-size:14px;
     padding:50px 10px;
@@ -328,14 +334,14 @@ function render(){
 
   if(allCodes.length){
     html += '<div class="section-label">리페어 코드</div>';
-    allCodes.forEach(c=> html += codeCardHtml(c));
+    allCodes.forEach(c=> html += codeCardHtml(c, q));
   }
 
   if(matchedNotes.length){
     html += '<div class="section-label">관련 안내</div>';
     matchedNotes.forEach(n=>{
-      html += '<div class="note-card"><div class="note-kw">📌 ' + escapeHtml(n.keyword) + '</div>' +
-              '<div class="note-body">' + escapeHtml(n.content) + '</div></div>';
+      html += '<div class="note-card"><div class="note-kw">📌 ' + highlightText(n.keyword, q) + '</div>' +
+              '<div class="note-body">' + highlightText(n.content, q) + '</div></div>';
     });
   }
 
@@ -343,7 +349,7 @@ function render(){
   statusEl.textContent = totalFound + "건 찾음";
 }
 
-function codeCardHtml(c){
+function codeCardHtml(c, query){
   let tags = "";
   if(c.cat1) tags += '<span class="tag cat">' + escapeHtml(c.cat1) + '</span>';
   if(c.cat2) tags += '<span class="tag">' + escapeHtml(c.cat2) + '</span>';
@@ -351,8 +357,8 @@ function codeCardHtml(c){
   return '<div class="code-card">' +
     '<div class="code-badge">' + escapeHtml(c.code) + '</div>' +
     '<div class="code-body">' +
-      '<div class="code-en">' + escapeHtml(c.en) + '</div>' +
-      (c.kr ? '<div class="code-kr">' + escapeHtml(c.kr) + '</div>' : '') +
+      '<div class="code-en">' + highlightText(c.en, query) + '</div>' +
+      (c.kr ? '<div class="code-kr">' + highlightText(c.kr, query) + '</div>' : '') +
       (tags ? '<div class="code-tags">' + tags + '</div>' : '') +
     '</div></div>';
 }
@@ -361,6 +367,22 @@ function escapeHtml(s){
   return (s||"").replace(/[&<>"']/g, m=>({
     "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
   }[m]));
+}
+
+// 검색어를 텍스트 안에서 찾아 <mark>로 감싸기. 한글 검색 시 공백 유무 차이를 허용하기 위해
+// 검색어 글자 사이에 \s*를 끼워넣은 정규식을 사용 (줄바꿈은 넘지 않도록 라인 단위로 처리)
+function highlightLine(line, rawQuery){
+  const esc = escapeHtml(line);
+  if(!rawQuery) return esc;
+  const chars = rawQuery.trim().split("").filter(c=>c.trim().length>0)
+    .map(c=>c.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"));
+  if(!chars.length) return esc;
+  let re;
+  try{ re = new RegExp(chars.join("\\s*"), "gi"); }catch(e){ return esc; }
+  return esc.replace(re, m=>'<mark class="hl">'+m+'</mark>');
+}
+function highlightText(text, rawQuery){
+  return (text||"").split("\n").map(l=>highlightLine(l, rawQuery)).join("\n");
 }
 
 /* ============ 전체 목록 토글 ============ */
