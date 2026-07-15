@@ -1099,6 +1099,43 @@
         .briefing-banner.seen .briefing-text p::after {
             content: ' ✓ 확인완료'; color: #27ae60; font-weight: 700; font-size: 12px;
         }
+
+        .repaircode-banner {
+            margin: 0 auto 24px;
+            width: calc(100% - 60px); max-width: 1140px;
+            background: #353535;
+            border: 1px solid #4a4a4a;
+            border-radius: 16px;
+            padding: 18px 28px;
+            display: flex; align-items: center; gap: 18px;
+            cursor: pointer; transition: all 0.25s ease;
+        }
+        .repaircode-banner:hover {
+            border-color: #f2994a;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 28px rgba(242, 153, 74, 0.18);
+        }
+        .repaircode-icon-wrap {
+            width: 48px; height: 48px;
+            background: rgba(242, 153, 74, 0.12); border: 2px solid rgba(242, 153, 74, 0.3);
+            border-radius: 13px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px; flex-shrink: 0;
+        }
+        .repaircode-text { flex: 1; }
+        .repaircode-text h3 { font-size: 15px; font-weight: 800; color: #f2994a; margin: 0 0 4px; }
+        .repaircode-text p { font-size: 13.5px; color: #aaa; margin: 0; }
+        .repaircode-cta {
+            background: rgba(242, 153, 74, 0.12); color: #f2994a; border: 1px solid rgba(242, 153, 74, 0.3);
+            font-size: 12px; font-weight: 700; padding: 6px 14px; border-radius: 20px; flex-shrink: 0;
+        }
+        .repaircode-arrow { font-size: 18px; color: #f2994a; flex-shrink: 0; transition: transform 0.25s; }
+        .repaircode-banner:hover .repaircode-arrow { transform: translateX(4px); }
+        @media (max-width: 600px) {
+            .repaircode-banner { padding: 16px 18px; gap: 12px; }
+            .repaircode-text h3 { font-size: 14px; }
+            .repaircode-cta { display: none; }
+        }
     </style>
     <script>
     // 즉시 실행 — 인증 상태면 로그인 화면 깜빡임 방지
@@ -1216,6 +1253,19 @@
             </div>
             <div class="briefing-new" id="briefingNew">NEW</div>
             <div class="briefing-arrow">→</div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- REPAIR CODE SEARCH BANNER -->
+        <!-- ============================================ -->
+        <div class="repaircode-banner" onclick="goTeam('repair-code-search.html')">
+            <div class="repaircode-icon-wrap">🔎</div>
+            <div class="repaircode-text">
+                <h3>리페어 코드 검색</h3>
+                <p>증상·키워드로 리페어 코드를 바로 찾아보세요 (B2C · B2B · Milk Device)</p>
+            </div>
+            <div class="repaircode-cta">검색하기</div>
+            <div class="repaircode-arrow">→</div>
         </div>
 
         <!-- ============================================ -->
@@ -1400,6 +1450,11 @@
                         <div class="workspace-item-name">자동 메일 발송</div>
                         <div class="workspace-item-desc">반송 입고·픽업폼 요청<br>메일 자동 작성 및 발송</div>
                     </div>
+                    <div class="workspace-item" onclick="goTeam('repair-code-search.html')">
+                        <div class="workspace-item-icon">🔎</div>
+                        <div class="workspace-item-name">리페어 코드 검색</div>
+                        <div class="workspace-item-desc">증상·키워드로<br>리페어 코드 즉시 검색</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1486,6 +1541,7 @@
             { name: 'QC 품질검사', icon: '🔍', desc: '수리 완료 머신 품질 검사 및 PASS/FAIL 판정', url: 'qc.html', team: '업무 지원', badge: 'support', iconClass: 'team-support', keywords: 'QC,품질,검사,테스트,quality,check,pass,fail' },
             { name: '잔류 근무 보고서', icon: '🌙', desc: '탄력 근무 외 잔류 근무 내역 제출', url: 'overtime-report.html', team: '업무 지원', badge: 'support', iconClass: 'team-support', keywords: '잔류,근무,보고서,야근,추가근무,overtime,report' },
             { name: '자동 메일 발송', icon: '✉️', desc: '반송 입고·픽업폼 요청 메일 자동 작성 및 발송', url: 'auto-mail.html', team: '업무 지원', badge: 'support', iconClass: 'team-support', keywords: '메일,자동메일,반송,입고,픽업,폼,요청,mail,email,auto' },
+            { name: '리페어 코드 검색', icon: '🔎', desc: '증상·키워드로 리페어 코드 즉시 검색', url: 'repair-code-search.html', team: '업무 지원', badge: 'support', iconClass: 'team-support', keywords: '리페어,코드,repair,code,NTF,이상없음,검색,증상,부품,수리코드' },
             // === as-team.html — 데이터 분석 ===
             { name: '백로그 대시보드', icon: '📈', desc: '일간/주간 수리 백로그 현황', url: 'as-team.html#sec-data', page: 'backlog-dashboard.html', team: 'AS Team', badge: 'as', iconClass: 'team-as', keywords: '백로그,잔여,backlog' },
             { name: '모델 성취도 대시보드', icon: '✅', desc: '테크니션별 모델 수리 가능 현황 매트릭스', url: 'model-achievement.html', team: 'AS Team', badge: 'as', iconClass: 'team-as', keywords: '모델,성취도,매트릭스,교육,achievement' },

@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>리페어 코드 검색 | HIQASC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --accent:#4a90e2;
+    --accent-dark:#3a7bc8;
+    --accent-light:#eaf2fc;
+    --bg:#f4f6f9;
+    --card:#ffffff;
+    --border:#e0e5ec;
+    --text:#2b2f36;
+    --text-sub:#6b7280;
+    --warn-bg:#fff8e6;
+    --warn-border:#f0c94a;
+    --radius:12px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Manrope',sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:820px;margin:0 auto;padding:24px 16px 80px;}
+
+  header.page-head{margin-bottom:20px;}
+  header.page-head h1{
+    font-size:22px;font-weight:800;margin:0 0 4px;
+    display:flex;align-items:center;gap:8px;
+  }
+  header.page-head p{margin:0;color:var(--text-sub);font-size:13.5px;}
+
+  .back-home{
+    display:inline-flex;align-items:center;gap:6px;
+    color:var(--text-sub);text-decoration:none;font-size:13px;font-weight:700;
+    margin-bottom:14px;
+  }
+  .back-home:hover{color:var(--accent-dark);}
+
+  /* search box */
+  .search-box{position:relative;margin-bottom:18px;}
+  .search-box input{
+    width:100%;padding:14px 16px 14px 44px;
+    border:1.5px solid var(--border);border-radius:12px;
+    font-size:15.5px;font-family:'Manrope',sans-serif;
+    background:var(--card);color:var(--text);
+    outline:none;transition:border-color .15s;
+  }
+  .search-box input:focus{border-color:var(--accent);}
+  .search-icon{
+    position:absolute;left:15px;top:50%;transform:translateY(-50%);
+    color:var(--text-sub);pointer-events:none;
+  }
+  .clear-btn{
+    position:absolute;right:10px;top:50%;transform:translateY(-50%);
+    background:none;border:none;color:var(--text-sub);cursor:pointer;
+    font-size:18px;padding:6px;display:none;line-height:1;
+  }
+  .clear-btn.show{display:block;}
+
+  /* status */
+  #status{color:var(--text-sub);font-size:13.5px;margin:10px 2px 16px;min-height:18px;}
+
+  /* keyword note card */
+  .note-card{
+    background:var(--warn-bg);border:1.5px solid var(--warn-border);
+    border-radius:var(--radius);padding:16px 18px;margin-bottom:14px;
+  }
+  .note-card .note-kw{
+    font-weight:800;font-size:13px;color:#8a6d00;
+    text-transform:uppercase;letter-spacing:.3px;margin-bottom:6px;
+  }
+  .note-card .note-body{
+    white-space:pre-line;font-size:14.5px;line-height:1.65;color:#4a3f1f;
+  }
+
+  .section-label{
+    font-size:12.5px;font-weight:700;color:var(--text-sub);
+    margin:22px 2px 10px;text-transform:uppercase;letter-spacing:.4px;
+  }
+
+  /* code card */
+  .code-card{
+    background:var(--card);border:1px solid var(--border);
+    border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;
+    display:flex;gap:14px;align-items:flex-start;
+  }
+  .code-badge{
+    flex:none;min-width:44px;height:44px;border-radius:10px;
+    background:var(--accent-light);color:var(--accent-dark);
+    display:flex;align-items:center;justify-content:center;
+    font-weight:800;font-size:15px;
+  }
+  .code-body{flex:1;min-width:0;}
+  .code-en{font-weight:700;font-size:14.5px;color:var(--text);margin-bottom:2px;}
+  .code-kr{font-size:13.5px;color:var(--text-sub);line-height:1.5;}
+  .code-tags{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;}
+  .tag{
+    font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;
+    background:#eef1f5;color:var(--text-sub);
+  }
+  .tag.cost{background:#e8f7ee;color:#1f8a4c;}
+  .tag.cat{background:var(--accent-light);color:var(--accent-dark);}
+
+  .empty-state{
+    text-align:center;color:var(--text-sub);font-size:14px;
+    padding:50px 10px;
+  }
+
+  .toggle-all{
+    text-align:center;margin-top:26px;
+  }
+  .toggle-all button{
+    background:none;border:1.5px solid var(--border);color:var(--text-sub);
+    padding:9px 18px;border-radius:20px;font-size:13px;font-weight:700;
+    cursor:pointer;font-family:'Manrope',sans-serif;
+  }
+  .toggle-all button:hover{border-color:var(--accent);color:var(--accent-dark);}
+
+  #fullListBlock{display:none;margin-top:14px;}
+
+  .err-box{
+    background:#fdecea;border:1px solid #f5b7b1;color:#a33;
+    border-radius:var(--radius);padding:16px;font-size:13.5px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <a class="back-home" href="index.html">← 메인으로</a>
+
+  <header class="page-head">
+    <h1>🔧 리페어 코드 검색</h1>
+    <p>증상, 키워드, 코드번호로 검색하세요 (B2C/B2B/Milk Device 전체 대상). 예: 이상없음, NTF, 누수, 60</p>
+  </header>
+
+  <div class="search-box">
+    <span class="search-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </span>
+    <input type="text" id="searchInput" placeholder="검색어 입력..." autocomplete="off">
+    <button class="clear-btn" id="clearBtn">✕</button>
+  </div>
+
+  <div id="status">시트 불러오는 중...</div>
+
+  <div id="results"></div>
+
+  <div class="toggle-all">
+    <button id="toggleAllBtn">전체 코드 목록 보기</button>
+  </div>
+  <div id="fullListBlock"></div>
+
+</div>
+
+<script>
+/* ============ 설정 ============ */
+const SHEET_ID   = "1-Kuw1rB_7_3LwbqjNKRJvHASbfHQF-yk745mlI1suDo";
+const TAB_CODES  = "repair code";   // 코드 탭 이름
+const TAB_NOTES  = "비고";           // 키워드 설명 탭 이름
+
+/* ============ 상태 ============ */
+let codeData = [];    // [{cat1, cat2, code, en, kr, cost}]
+let noteData = [];    // [{keyword, content}]
+let loaded = { codes:false, notes:false };
+
+/* ============ gviz JSONP 로더 ============ */
+function loadSheetTab(tabName, cbName, onRows){
+  const cb = "__gviz_" + cbName + "_" + Date.now();
+  window[cb] = function(resp){
+    try{
+      const cols = resp.table.cols.map(c => (c.label || "").trim());
+      const rows = (resp.table.rows || []).map(r=>{
+        const obj = {};
+        (r.c || []).forEach((cell,i)=>{
+          obj[cols[i]] = cell && cell.v != null ? String(cell.v) : "";
+        });
+        return obj;
+      });
+      onRows(rows);
+    }catch(e){
+      showError("'" + tabName + "' 탭 데이터를 해석하지 못했습니다. 헤더(1행) 틀고정과 컬럼명을 확인해주세요.");
+      console.error(e);
+    }
+    delete window[cb];
+    script.remove();
+  };
+  const url = "https://docs.google.com/spreadsheets/d/" + SHEET_ID +
+              "/gviz/tq?headers=1&sheet=" + encodeURIComponent(tabName) +
+              "&tqx=out:json;responseHandler:" + cb;
+  const script = document.createElement("script");
+  script.src = url;
+  script.onerror = function(){
+    showError("'" + tabName + "' 탭을 불러오지 못했습니다. 시트 공유 설정(링크가 있는 모든 사용자 - 뷰어) 및 탭 이름을 확인해주세요.");
+  };
+  document.body.appendChild(script);
+}
+
+function showError(msg){
+  document.getElementById("status").innerHTML = "";
+  document.getElementById("results").innerHTML = '<div class="err-box">⚠️ ' + msg + '</div>';
+}
+
+function init(){
+  loadSheetTab(TAB_CODES, "codes", rows=>{
+    codeData = rows.map(r=>({
+      cat1: (r["Category 1"]||"").trim(),
+      cat2: (r["Category 2"]||"").trim(),
+      code: (r["Repair code"]||"").trim(),
+      en:   (r["Repair code description"]||"").trim(),
+      kr:   (r["Explanations(Kor)"]||"").trim(),
+      cost: (r["Cost"]||"").trim()
+    })).filter(r=>r.code);
+    loaded.codes = true;
+    afterLoad();
+  });
+  loadSheetTab(TAB_NOTES, "notes", rows=>{
+    noteData = rows.map(r=>({
+      keyword: (r["키워드"]||"").trim(),
+      content: (r["내용"]||"").trim()
+    })).filter(r=>r.keyword);
+    loaded.notes = true;
+    afterLoad();
+  });
+}
+
+function afterLoad(){
+  if(!loaded.codes || !loaded.notes) return;
+  document.getElementById("status").textContent = "";
+  render();
+}
+
+/* ============ 검색 ============ */
+const searchInput = document.getElementById("searchInput");
+const clearBtn = document.getElementById("clearBtn");
+
+searchInput.addEventListener("input", ()=>{
+  clearBtn.classList.toggle("show", searchInput.value.length>0);
+  render();
+});
+clearBtn.addEventListener("click", ()=>{
+  searchInput.value = "";
+  clearBtn.classList.remove("show");
+  render();
+  searchInput.focus();
+});
+
+function norm(s){ return (s||"").toLowerCase(); }
+function normNS(s){ return norm(s).replace(/\s+/g,""); } // 공백 무시 비교용
+
+// 안내문에서 실제 코드번호만 추출 (번호매기기 목록 "1. ...", "2) ..." 등은 제외)
+// 같은 코드번호를 카테고리가 다르게 쓰는 경우가 있으므로, 번호가 일치하는 항목을 전부 반환
+function extractCodeRefs(content, allCodes){
+  const found = [];
+  const seenLocal = new Set();
+  content.split(/\n/).forEach(line=>{
+    if(/^\s*\d+[\.\)]\s/.test(line)) return; // 목록 항목 줄은 건너뜀
+    const nums = line.match(/\d+/g) || [];
+    nums.forEach(num=>{
+      if(seenLocal.has(num)) return;
+      seenLocal.add(num);
+      allCodes.filter(c=>c.code===num).forEach(hit=> found.push(hit));
+    });
+  });
+  return found;
+}
+
+function render(){
+  if(!loaded.codes || !loaded.notes) return;
+  const q = searchInput.value.trim();
+  const resultsEl = document.getElementById("results");
+  const statusEl = document.getElementById("status");
+
+  if(!q){
+    resultsEl.innerHTML = "";
+    statusEl.textContent = codeData.length
+      ? "전체 코드 " + codeData.length + "개 · 검색어를 입력하면 관련 안내와 코드가 표시됩니다."
+      : "등록된 코드가 없습니다.";
+    return;
+  }
+
+  const qn = norm(q);
+  const qns = normNS(q);
+
+  // 1) 리페어 코드 탭 직접 매치 (코드번호 / 영문설명 / 한글설명, 공백 무시) — 전체 카테고리 대상
+  const directCodes = codeData.filter(c=>{
+    return norm(c.code)===qn || normNS(c.en).includes(qns) || normNS(c.kr).includes(qns);
+  });
+  const seen = new Set(directCodes.map(c=>c.cat1+"|"+c.code));
+
+  // 2) 키워드(비고) 탭 매치
+  const matchedNotes = noteData.filter(n=>{
+    const kn = normNS(n.keyword);
+    return kn.includes(qns) || qns.includes(kn);
+  });
+
+  // 3) 매치된 안내문 안에서 실제 언급된 코드번호만 추출 (목록번호 제외), 직접매치와 중복 제거
+  //    안내문은 카테고리를 명시하지 않으므로 전체 코드 중에서 번호가 일치하는 것을 모두 찾음
+  const relatedCodes = [];
+  matchedNotes.forEach(n=>{
+    extractCodeRefs(n.content, codeData).forEach(hit=>{
+      const key = hit.cat1+"|"+hit.code;
+      if(!seen.has(key)){
+        seen.add(key);
+        relatedCodes.push(hit);
+      }
+    });
+  });
+
+  const allCodes = directCodes.concat(relatedCodes);
+  const totalFound = allCodes.length + matchedNotes.length;
+
+  if(totalFound===0){
+    resultsEl.innerHTML = '<div class="empty-state">"' + escapeHtml(q) + '"에 대한 검색 결과가 없습니다.<br>다른 키워드로 검색해보세요.</div>';
+    statusEl.textContent = "";
+    return;
+  }
+
+  let html = "";
+
+  if(allCodes.length){
+    html += '<div class="section-label">리페어 코드</div>';
+    allCodes.forEach(c=> html += codeCardHtml(c));
+  }
+
+  if(matchedNotes.length){
+    html += '<div class="section-label">관련 안내</div>';
+    matchedNotes.forEach(n=>{
+      html += '<div class="note-card"><div class="note-kw">📌 ' + escapeHtml(n.keyword) + '</div>' +
+              '<div class="note-body">' + escapeHtml(n.content) + '</div></div>';
+    });
+  }
+
+  resultsEl.innerHTML = html;
+  statusEl.textContent = totalFound + "건 찾음";
+}
+
+function codeCardHtml(c){
+  let tags = "";
+  if(c.cat1) tags += '<span class="tag cat">' + escapeHtml(c.cat1) + '</span>';
+  if(c.cat2) tags += '<span class="tag">' + escapeHtml(c.cat2) + '</span>';
+  if(c.cost) tags += '<span class="tag cost">' + escapeHtml(c.cost) + '</span>';
+  return '<div class="code-card">' +
+    '<div class="code-badge">' + escapeHtml(c.code) + '</div>' +
+    '<div class="code-body">' +
+      '<div class="code-en">' + escapeHtml(c.en) + '</div>' +
+      (c.kr ? '<div class="code-kr">' + escapeHtml(c.kr) + '</div>' : '') +
+      (tags ? '<div class="code-tags">' + tags + '</div>' : '') +
+    '</div></div>';
+}
+
+function escapeHtml(s){
+  return (s||"").replace(/[&<>"']/g, m=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[m]));
+}
+
+/* ============ 전체 목록 토글 ============ */
+document.getElementById("toggleAllBtn").addEventListener("click", ()=>{
+  const block = document.getElementById("fullListBlock");
+  const btn = document.getElementById("toggleAllBtn");
+  const showing = block.style.display === "block";
+  if(showing){
+    block.style.display = "none";
+    btn.textContent = "전체 코드 목록 보기";
+    return;
+  }
+  const sorted = codeData.slice().sort((a,b)=>{
+    if(a.cat1 !== b.cat1) return a.cat1.localeCompare(b.cat1);
+    return (parseInt(a.code)||0) - (parseInt(b.code)||0);
+  });
+  block.innerHTML = sorted.length
+    ? sorted.map(codeCardHtml).join("")
+    : '<div class="empty-state">등록된 코드가 없습니다.</div>';
+  block.style.display = "block";
+  btn.textContent = "전체 코드 접기";
+});
+
+init();
+</script>
+</body>
+</html>
