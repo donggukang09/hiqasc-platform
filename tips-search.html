@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>업무 팁 검색 | HIQASC</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Manrope', sans-serif;
+    background: #2a2a2a;
+    color: #e0e0e0;
+    min-height: 100vh;
+    padding: 24px 16px 60px;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; }
+
+  .header { margin-bottom: 24px; }
+  .header h1 { font-size: 22px; font-weight: 800; color: #ffffff; margin-bottom: 4px; }
+  .header p { font-size: 13px; color: #999; }
+
+  .search-box {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  .search-box input {
+    flex: 1;
+    background: #353535;
+    border: 1px solid #4a4a4a;
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-size: 15px;
+    color: #e0e0e0;
+    font-family: 'Manrope', sans-serif;
+    outline: none;
+    transition: border-color .15s;
+  }
+  .search-box input:focus { border-color: #4a90e2; }
+  .search-box input::placeholder { color: #777; }
+
+  .status {
+    font-size: 13px;
+    color: #999;
+    margin-bottom: 14px;
+    min-height: 18px;
+  }
+  .status.err { color: #e57373; }
+
+  .result-card {
+    background: #353535;
+    border: 1px solid #4a4a4a;
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 12px;
+  }
+  .result-title-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+  }
+  .result-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #ffffff;
+  }
+  .result-category {
+    font-size: 11px;
+    font-weight: 600;
+    color: #4a90e2;
+    background: rgba(74,144,226,0.15);
+    padding: 3px 9px;
+    border-radius: 100px;
+  }
+  .result-content {
+    font-size: 14px;
+    line-height: 1.65;
+    color: #c8c8c8;
+    white-space: pre-wrap;
+  }
+  .result-date {
+    font-size: 11px;
+    color: #777;
+    margin-top: 10px;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #777;
+  }
+  .empty-state .icon { font-size: 36px; margin-bottom: 10px; }
+  .empty-state .msg { font-size: 14px; }
+
+  .loading {
+    text-align: center;
+    padding: 60px 20px;
+    color: #999;
+    font-size: 14px;
+  }
+
+  mark {
+    background: rgba(74,144,226,0.35);
+    color: #ffffff;
+    border-radius: 3px;
+    padding: 0 1px;
+  }
+
+  .result-content a {
+    color: #6fb1ff;
+    text-decoration: underline;
+    word-break: break-all;
+  }
+  .result-content a:hover {
+    color: #8ec2ff;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <h1>💡 업무 팁 검색</h1>
+    <p>키워드를 입력하면 관련된 팁을 찾아드려요 (띄어쓰기 상관없음)</p>
+  </div>
+
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="예: 교환 판정 기준" autocomplete="off">
+  </div>
+
+  <div class="status" id="status"></div>
+  <div id="results"></div>
+</div>
+
+<script>
+  const SHEET_ID = '1-Kuw1rB_7_3LwbqjNKRJvHASbfHQF-yk745mlI1suDo';
+  const SHEET_NAME = '업무팁';
+
+  const searchInput = document.getElementById('searchInput');
+  const statusEl = document.getElementById('status');
+  const resultsEl = document.getElementById('results');
+
+  let allTips = [];
+  let loaded = false;
+
+  function normalize(str) {
+    return (str || '').toString().replace(/\s+/g, '').toLowerCase();
+  }
+
+  function escapeHtml(str) {
+    return (str || '').toString()
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  const URL_REGEX = /(https?:\/\/[^\s]+)/g;
+
+  function processContent(text, query) {
+    if (!text) return '';
+    const parts = text.toString().split(URL_REGEX);
+    return parts.map(part => {
+      if (/^https?:\/\//.test(part)) {
+        // URL 끝에 붙은 문장부호(., ), 등)는 링크에서 제외
+        const trailingMatch = part.match(/[)\]\.,;:!?'"]+$/);
+        const trailing = trailingMatch ? trailingMatch[0] : '';
+        const cleanUrl = trailing ? part.slice(0, -trailing.length) : part;
+        const escapedUrl = escapeHtml(cleanUrl);
+        return `<a href="${escapedUrl}" target="_blank" rel="noopener noreferrer">${escapedUrl}</a>${escapeHtml(trailing)}`;
+      }
+      return highlight(part, query);
+    }).join('');
+  }
+
+  function highlight(text, query) {
+    if (!query) return escapeHtml(text);
+    const escaped = escapeHtml(text);
+    // 공백 무시하고 매칭시키기 위해 각 글자 사이에 선택적 공백을 허용하는 패턴 생성
+    const chars = query.replace(/\s+/g, '').split('');
+    if (chars.length === 0) return escaped;
+    const pattern = chars.map(c => c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('\\s*');
+    try {
+      const re = new RegExp(pattern, 'gi');
+      return escaped.replace(re, m => `<mark>${m}</mark>`);
+    } catch (e) {
+      return escaped;
+    }
+  }
+
+  function loadTips() {
+    statusEl.textContent = '';
+    resultsEl.innerHTML = '<div class="loading">불러오는 중...</div>';
+
+    const callbackName = 'tipsCb_' + Date.now();
+    window[callbackName] = function(json) {
+      try {
+        const rows = json.table.rows;
+        allTips = rows.map(r => {
+          const c = r.c;
+          return {
+            title: c[0] ? (c[0].v || '') : '',
+            content: c[1] ? (c[1].v || '') : '',
+            category: c[2] ? (c[2].v || '') : '',
+            date: c[3] ? (c[3].f || c[3].v || '') : ''
+          };
+        }).filter(t => t.title || t.content);
+        loaded = true;
+        resultsEl.innerHTML = '';
+        statusEl.textContent = `총 ${allTips.length}개의 팁이 등록되어 있어요. 검색어를 입력해보세요.`;
+        renderResults('');
+      } catch (e) {
+        statusEl.textContent = '데이터를 불러오는 중 오류가 발생했어요.';
+        statusEl.classList.add('err');
+      }
+      delete window[callbackName];
+      document.body.removeChild(script);
+    };
+
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json;responseHandler:${callbackName}&sheet=${encodeURIComponent(SHEET_NAME)}&headers=1`;
+    const script = document.createElement('script');
+    script.src = url;
+    script.onerror = function() {
+      statusEl.textContent = '시트를 불러올 수 없어요. 시트 공유 설정을 확인해주세요.';
+      statusEl.classList.add('err');
+      resultsEl.innerHTML = '';
+    };
+    document.body.appendChild(script);
+  }
+
+  function renderResults(query) {
+    if (!loaded) return;
+
+    const nq = normalize(query);
+
+    if (!nq) {
+      resultsEl.innerHTML = '';
+      return;
+    }
+
+    const matched = allTips.filter(t => {
+      return normalize(t.title).includes(nq) || normalize(t.content).includes(nq);
+    });
+
+    if (matched.length === 0) {
+      resultsEl.innerHTML = `
+        <div class="empty-state">
+          <div class="icon">🔍</div>
+          <div class="msg">'${escapeHtml(query)}'에 대한 검색 결과가 없어요.</div>
+        </div>`;
+      statusEl.textContent = `검색 결과 0건`;
+      statusEl.classList.remove('err');
+      return;
+    }
+
+    statusEl.textContent = `검색 결과 ${matched.length}건`;
+    statusEl.classList.remove('err');
+
+    resultsEl.innerHTML = matched.map(t => `
+      <div class="result-card">
+        <div class="result-title-row">
+          <div class="result-title">${highlight(t.title, query)}</div>
+          ${t.category ? `<div class="result-category">${escapeHtml(t.category)}</div>` : ''}
+        </div>
+        <div class="result-content">${processContent(t.content, query)}</div>
+        ${t.date ? `<div class="result-date">${escapeHtml(t.date)}</div>` : ''}
+      </div>
+    `).join('');
+  }
+
+  let debounceTimer;
+  searchInput.addEventListener('input', function() {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+      renderResults(searchInput.value.trim());
+    }, 150);
+  });
+
+  loadTips();
+</script>
+</body>
+</html>
