@@ -1136,6 +1136,43 @@
             .repaircode-text h3 { font-size: 14px; }
             .repaircode-cta { display: none; }
         }
+
+        .tips-banner {
+            margin: 0 auto 24px;
+            width: calc(100% - 60px); max-width: 1140px;
+            background: #353535;
+            border: 1px solid #4a4a4a;
+            border-radius: 16px;
+            padding: 18px 28px;
+            display: flex; align-items: center; gap: 18px;
+            cursor: pointer; transition: all 0.25s ease;
+        }
+        .tips-banner:hover {
+            border-color: #e8c547;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 28px rgba(232, 197, 71, 0.18);
+        }
+        .tips-icon-wrap {
+            width: 48px; height: 48px;
+            background: rgba(232, 197, 71, 0.12); border: 2px solid rgba(232, 197, 71, 0.3);
+            border-radius: 13px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px; flex-shrink: 0;
+        }
+        .tips-text { flex: 1; }
+        .tips-text h3 { font-size: 15px; font-weight: 800; color: #e8c547; margin: 0 0 4px; }
+        .tips-text p { font-size: 13.5px; color: #aaa; margin: 0; }
+        .tips-cta {
+            background: rgba(232, 197, 71, 0.12); color: #e8c547; border: 1px solid rgba(232, 197, 71, 0.3);
+            font-size: 12px; font-weight: 700; padding: 6px 14px; border-radius: 20px; flex-shrink: 0;
+        }
+        .tips-arrow { font-size: 18px; color: #e8c547; flex-shrink: 0; transition: transform 0.25s; }
+        .tips-banner:hover .tips-arrow { transform: translateX(4px); }
+        @media (max-width: 600px) {
+            .tips-banner { padding: 16px 18px; gap: 12px; }
+            .tips-text h3 { font-size: 14px; }
+            .tips-cta { display: none; }
+        }
     </style>
     <script>
     // 즉시 실행 — 인증 상태면 로그인 화면 깜빡임 방지
@@ -1266,6 +1303,19 @@
             </div>
             <div class="repaircode-cta">검색하기</div>
             <div class="repaircode-arrow">→</div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- TIPS SEARCH BANNER -->
+        <!-- ============================================ -->
+        <div class="tips-banner" onclick="goTeam('tips-search.html')">
+            <div class="tips-icon-wrap">💡</div>
+            <div class="tips-text">
+                <h3>업무 팁 검색</h3>
+                <p>수리 업무, 시스템 사용법 관련 키워드로 팁을 찾아보세요</p>
+            </div>
+            <div class="tips-cta">검색하기</div>
+            <div class="tips-arrow">→</div>
         </div>
 
         <!-- ============================================ -->
@@ -1460,6 +1510,11 @@
                         <div class="workspace-item-name">계정 · 업체 정보</div>
                         <div class="workspace-item-desc">업무용 사이트 계정<br>및 협력업체 연락처</div>
                     </div>
+                    <div class="workspace-item" onclick="goTeam('tips-search.html')">
+                        <div class="workspace-item-icon">💡</div>
+                        <div class="workspace-item-name">업무 팁 검색</div>
+                        <div class="workspace-item-desc">수리 업무·시스템 사용법<br>키워드로 팁 검색</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1548,6 +1603,7 @@
             { name: '자동 메일 발송', icon: '✉️', desc: '반송 입고·픽업폼 요청 메일 자동 작성 및 발송', url: 'auto-mail.html', team: '업무 지원', badge: 'support', iconClass: 'team-support', keywords: '메일,자동메일,반송,입고,픽업,폼,요청,mail,email,auto' },
             { name: '리페어 코드 검색', icon: '🔎', desc: '증상·키워드로 리페어 코드 즉시 검색', url: 'repair-code-search.html', team: '업무 지원', badge: 'support', iconClass: 'team-support', keywords: '리페어,코드,repair,code,NTF,이상없음,검색,증상,부품,수리코드' },
             { name: '계정 · 업체 정보', icon: '🔐', desc: '업무용 사이트 계정 및 협력업체 연락처', url: 'account-vault.html', team: '업무 지원', badge: 'support', iconClass: 'team-support', keywords: '계정,비밀번호,pw,협력업체,업체,연락처,담당자,vault' },
+            { name: '업무 팁 검색', icon: '💡', desc: '수리 업무·시스템 사용법 관련 키워드로 팁 검색', url: 'tips-search.html', team: '업무 지원', badge: 'support', iconClass: 'team-support', keywords: '팁,tips,업무팁,사용법,가이드,검색,교환판정,판정기준' },
             // === as-team.html — 데이터 분석 ===
             { name: '백로그 대시보드', icon: '📈', desc: '일간/주간 수리 백로그 현황', url: 'as-team.html#sec-data', page: 'backlog-dashboard.html', team: 'AS Team', badge: 'as', iconClass: 'team-as', keywords: '백로그,잔여,backlog' },
             { name: '모델 성취도 대시보드', icon: '✅', desc: '테크니션별 모델 수리 가능 현황 매트릭스', url: 'model-achievement.html', team: 'AS Team', badge: 'as', iconClass: 'team-as', keywords: '모델,성취도,매트릭스,교육,achievement' },
