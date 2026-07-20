@@ -107,6 +107,20 @@
   .score-pos{color:var(--ok);font-weight:800}
 
   .empty{text-align:center;color:var(--muted);padding:36px;font-size:14px}
+
+  /* 2차 비밀번호 잠금 */
+  #lock{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;
+        align-items:center;justify-content:center;padding:20px}
+  #lock .box{background:var(--card);border:1px solid var(--line);border-radius:14px;
+        padding:34px 30px;width:100%;max-width:360px;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,.07)}
+  #lock .ico{width:52px;height:52px;border-radius:14px;background:var(--accent-soft);color:var(--accent);
+        display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:24px}
+  #lock h3{font-size:17px;font-weight:800;margin-bottom:6px}
+  #lock p{font-size:13px;color:var(--muted);margin-bottom:20px}
+  #lock input{text-align:center;letter-spacing:2px;margin-bottom:10px}
+  #lock .err{font-size:12.5px;color:var(--danger);font-weight:700;min-height:18px;margin-bottom:8px}
+  #lock .btn-primary{width:100%;padding:11px}
+  #lock .back{margin-top:12px;font-size:12.5px;color:var(--muted);cursor:pointer;text-decoration:underline}
   .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);
     background:#2c2f33;color:#fff;padding:12px 22px;border-radius:10px;font-size:14px;font-weight:600;
     opacity:0;transition:.25s;z-index:99}
@@ -116,6 +130,20 @@
 </style>
 </head>
 <body>
+
+<!-- 2차 비밀번호 잠금 -->
+<div id="lock">
+  <div class="box">
+    <div class="ico">🔒</div>
+    <h3>2차 인증</h3>
+    <p>직원 이슈 관리는 별도 비밀번호가 필요합니다.</p>
+    <input type="password" id="lockPw" placeholder="비밀번호" autocomplete="off">
+    <div class="err" id="lockErr"></div>
+    <button class="btn btn-primary" onclick="unlock()">확인</button>
+    <div class="back" onclick="location.href='admin.html'">관리팀 페이지로 돌아가기</div>
+  </div>
+</div>
+
 <div class="wrap">
 
   <div class="top">
@@ -264,7 +292,12 @@
 const SHEET_ID   = '1cmMEbIkmEL629RT04hpUUgXddnSVLGo1YwRzBwfyzCY';
 const ISSUE_TAB  = '직원이슈';        // gid=1294106480 탭 이름
 const EMP_TAB    = '테크니션정보';     // gid=1733251406 탭 이름
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw82q1I41Eh-7tA-trqDXO2eps9ORFq6A71YlRxpma5_3tPe1Zm5q-CUa0nadlaLN6KPg/exec';   // ← 배포 후 URL 입력
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw82q1I41Eh-7tA-trqDXO2eps9ORFq6A71YlRxpma5_3tPe1Zm5q-CUa0nadlaLN6KPg/exec';
+
+/* ▼▼▼ 2차 비밀번호 — 변경하려면 아래 따옴표 안의 값만 수정 ▼▼▼ */
+const SECOND_PASSWORD = '$hiqasc$';
+/* ▲▲▲ 변경 후 GitHub에 업로드하면 즉시 적용됩니다 ▲▲▲ */
+const LOCK_KEY = 'hiqasc_issuelog_unlocked';
 
 const SEV_SCORE = { '경미':1, '보통':3, '중대':5 };
 const RECORDER  = sessionStorage.getItem('userName') || '관리자';
@@ -556,9 +589,38 @@ function resetForm() {
 }
 
 /* ===========================================================
+   2차 비밀번호
+   =========================================================== */
+let lockTries = 0;
+
+function unlock() {
+  const input = document.getElementById('lockPw');
+  if (input.value === SECOND_PASSWORD) {
+    sessionStorage.setItem(LOCK_KEY, 'true');
+    document.getElementById('lock').style.display = 'none';
+    initPage();
+    return;
+  }
+  lockTries++;
+  input.value = '';
+  if (lockTries >= 3) {
+    alert('비밀번호를 3회 잘못 입력했습니다.');
+    location.href = 'admin.html';
+    return;
+  }
+  document.getElementById('lockErr').textContent = `비밀번호가 올바르지 않습니다 (${lockTries}/3)`;
+  input.focus();
+}
+
+/* ===========================================================
    초기화
    =========================================================== */
-window.addEventListener('load', () => {
+let inited = false;
+
+function initPage() {
+  if (inited) return;
+  inited = true;
+
   document.getElementById('fDate').value = new Date().toISOString().slice(0, 10);
   loadEmployees();
   loadRecords();
@@ -575,6 +637,17 @@ window.addEventListener('load', () => {
 
   ['fTitle','fDetail','fAction','fRequest'].forEach(id =>
     document.getElementById(id).addEventListener('input', () => isDirty = true));
+}
+
+window.addEventListener('load', () => {
+  if (sessionStorage.getItem(LOCK_KEY) === 'true') {
+    document.getElementById('lock').style.display = 'none';
+    initPage();
+  } else {
+    const pw = document.getElementById('lockPw');
+    pw.focus();
+    pw.addEventListener('keydown', e => { if (e.key === 'Enter') unlock(); });
+  }
 });
 
 window.addEventListener('beforeunload', e => {
