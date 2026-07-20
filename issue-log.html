@@ -297,7 +297,6 @@ const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw82q1I41Eh-7tA
 /* ▼▼▼ 2차 비밀번호 — 변경하려면 아래 따옴표 안의 값만 수정 ▼▼▼ */
 const SECOND_PASSWORD = '$hiqasc$';
 /* ▲▲▲ 변경 후 GitHub에 업로드하면 즉시 적용됩니다 ▲▲▲ */
-const LOCK_KEY = 'hiqasc_issuelog_unlocked';
 
 const SEV_SCORE = { '경미':1, '보통':3, '중대':5 };
 const RECORDER  = sessionStorage.getItem('userName') || '관리자';
@@ -596,7 +595,6 @@ let lockTries = 0;
 function unlock() {
   const input = document.getElementById('lockPw');
   if (input.value === SECOND_PASSWORD) {
-    sessionStorage.setItem(LOCK_KEY, 'true');
     document.getElementById('lock').style.display = 'none';
     initPage();
     return;
@@ -640,14 +638,11 @@ function initPage() {
 }
 
 window.addEventListener('load', () => {
-  if (sessionStorage.getItem(LOCK_KEY) === 'true') {
-    document.getElementById('lock').style.display = 'none';
-    initPage();
-  } else {
-    const pw = document.getElementById('lockPw');
-    pw.focus();
-    pw.addEventListener('keydown', e => { if (e.key === 'Enter') unlock(); });
-  }
+  // 페이지에 들어올 때마다 항상 2차 인증 요구 (해제 상태를 저장하지 않음)
+  const pw = document.getElementById('lockPw');
+  pw.value = '';
+  pw.focus();
+  pw.addEventListener('keydown', e => { if (e.key === 'Enter') unlock(); });
 });
 
 window.addEventListener('beforeunload', e => {
