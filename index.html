@@ -1179,9 +1179,9 @@
     if (sessionStorage.getItem('hiqasc_authenticated') === 'true') {
         document.documentElement.classList.add('authenticated');
     }
-    // 인트로는 세션당 1회만 재생 (이미 로그인 상태면 표시 안 함)
-    if (sessionStorage.getItem('hiqasc_authenticated') === 'true' || sessionStorage.getItem('hiq_intro_played') === '1') {
-        document.documentElement.classList.add('intro-skip');
+    // 인트로는 세션당 1회만 재생 (재방문 시 애니메이션 없이 로고만 상단 고정)
+    if (sessionStorage.getItem('hiq_intro_played') === '1') {
+        document.documentElement.classList.add('intro-played', 'intro-docked');
     }
     </script>
     <style>
@@ -1209,13 +1209,12 @@
     /* ============================================ */
     .hiq-intro {
         position: fixed; inset: 0; z-index: 10000;
-        background: #2a2a2a;
+        background-color: #2a2a2a;
         display: flex; flex-direction: column;
         align-items: center; justify-content: center;
-        transition: opacity .55s ease;
+        transition: background-color .8s ease;
     }
-    .intro-skip .hiq-intro { display: none !important; }
-    .hiq-intro.gone { opacity: 0; pointer-events: none; }
+    .authenticated .hiq-intro { display: none !important; }
 
     .hiq-intro-bg {
         position: absolute; inset: 0; pointer-events: none;
@@ -1223,14 +1222,36 @@
             linear-gradient(rgba(74,144,226,.08) 1px, transparent 1px),
             linear-gradient(90deg, rgba(74,144,226,.08) 1px, transparent 1px);
         background-size: 40px 40px;
+        transition: opacity .8s ease;
     }
     .hiq-intro-vg {
         position: absolute; inset: 0; pointer-events: none;
         background: radial-gradient(circle at 50% 42%, transparent 0%, #2a2a2a 74%);
+        transition: opacity .8s ease;
     }
+
+    /* 인트로 → 로그인 상단 로고로 도킹 */
+    .hiq-intro-stage {
+        position: relative;
+        display: flex; flex-direction: column; align-items: center;
+        transform-origin: top center;
+        transition: transform .9s cubic-bezier(.19,1,.32,1);
+    }
+    .hiq-intro.docked { background-color: transparent; pointer-events: none; }
+    .hiq-intro.docked .hiq-intro-bg,
+    .hiq-intro.docked .hiq-intro-vg,
+    .hiq-intro.docked .hiq-intro-skip { opacity: 0; }
+    .hiq-intro.docked .hiq-intro-stage { transform: translateY(-23vh) scale(.62); }
+
+    /* 재방문(세션 내 2회차): 애니메이션 없이 즉시 도킹 상태 */
+    .intro-played .hiq-intro-stage { transition: none; }
+    .intro-played .hiq-intro .ia { animation: none !important; }
+    .intro-played .hiq-intro-bar { width: 150px; }
+    .intro-docked .login-overlay { padding-top: 170px; }
 
     .hiq-intro svg { overflow: visible; max-width: 92%; position: relative; }
     .hiq-intro .ia { animation-duration: 3.4s; animation-fill-mode: both; animation-timing-function: cubic-bezier(.19,1,.32,1); }
+    .hiq-intro-spark { opacity: 0; }
 
     @keyframes hqCapL { 0% { opacity:0; transform: translateX(-400px); } 18% { opacity:1; } 50% { transform: translateX(0); } 60% { transform: translateX(-7px); } 72%, 100% { opacity:1; transform: translateX(0); } }
     @keyframes hqCapR { 0% { opacity:0; transform: translateX(400px); } 18% { opacity:1; } 50% { transform: translateX(0); } 60% { transform: translateX(7px); } 72%, 100% { opacity:1; transform: translateX(0); } }
@@ -1269,6 +1290,7 @@
         <div class="hiq-intro-bg"></div>
         <div class="hiq-intro-vg"></div>
 
+        <div class="hiq-intro-stage">
         <svg width="360" height="130" viewBox="0 0 360 130">
             <g class="ia" style="animation-name:hqCapL" fill="none" stroke="#d99f6a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <ellipse cx="128" cy="104" rx="29" ry="6"/>
@@ -1288,7 +1310,7 @@
                 <path d="M261 104 L255 104 M260.3 105.5 L254.4 105.3 M258.2 106.9 L252.6 106.5 M254.8 108.3 L249.6 107.6 M250.2 109.5 L245.6 108.6 M244.6 110.5 L240.7 109.5 M238 111.4 L235 110.2 M230.7 112 L228.7 110.8 M223 112.4 L222 111.1 M215 112.5 L215 111.2 M207 112.4 L208 111.1 M199.3 112 L201.3 110.8 M192 111.4 L195 110.2 M185.4 110.5 L189.3 109.5 M179.8 109.5 L184.4 108.6 M175.2 108.3 L180.4 107.6 M171.8 106.9 L177.4 106.5 M169.7 105.5 L175.6 105.3 M169 104 L175 104" stroke-width="1.6"/>
             </g>
 
-            <g class="ia" style="animation-name:hqSpark;transform-origin:163px 108px">
+            <g class="ia hiq-intro-spark" style="animation-name:hqSpark;transform-origin:163px 108px">
                 <path d="M139 108 L187 108 M163 92 L163 124" stroke="#ffe4a3" stroke-width="1.2" opacity=".55" fill="none"/>
                 <circle cx="163" cy="108" r="2.8" fill="#fff0c8"/>
             </g>
@@ -1297,6 +1319,7 @@
         <div class="hiq-intro-name ia">HIQASC</div>
         <div class="hiq-intro-bar ia"></div>
         <div class="hiq-intro-sub ia">NESPRESSO AUTHORIZED SERVICE CENTER</div>
+        </div>
 
         <button class="hiq-intro-skip" id="hiqIntroSkip">SKIP</button>
     </div>
@@ -1305,18 +1328,24 @@
     (function () {
         var el = document.getElementById('hiqIntro');
         if (!el) return;
-        if (document.documentElement.classList.contains('intro-skip')) { el.remove(); return; }
+        var root = document.documentElement;
+
+        // 이미 재생된 세션이면 애니메이션 없이 도킹 상태로 시작
+        if (root.classList.contains('intro-played')) {
+            el.classList.add('docked');
+            return;
+        }
 
         var done = false;
-        function closeIntro() {
+        function dockIntro() {
             if (done) return;
             done = true;
             sessionStorage.setItem('hiq_intro_played', '1');
-            el.classList.add('gone');
-            setTimeout(function () { el.remove(); }, 600);
+            root.classList.add('intro-docked');
+            el.classList.add('docked');
         }
-        document.getElementById('hiqIntroSkip').addEventListener('click', closeIntro);
-        setTimeout(closeIntro, 3400);
+        document.getElementById('hiqIntroSkip').addEventListener('click', dockIntro);
+        setTimeout(dockIntro, 3400);
     })();
     </script>
 
@@ -2107,6 +2136,9 @@
         function enterHub() {
             document.getElementById('loginOverlay').style.display = 'none';
             document.getElementById('hubContent').classList.add('unlocked');
+            var _intro = document.getElementById('hiqIntro');
+            if (_intro) _intro.remove();
+            document.documentElement.classList.remove('intro-docked');
         }
 
         // 비밀번호 확인
