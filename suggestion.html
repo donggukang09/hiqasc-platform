@@ -3,392 +3,421 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>직원 제안 게시판 · HIQASC</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
+<title>직원 제안 게시판 | HIQASC</title>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script>
-// 인증 가드 — 로그인 안 됐으면 즉시 index로
-if (sessionStorage.getItem('hiqasc_authenticated') !== 'true') {
-    location.replace('index.html');
-}
+  // 로그인 가드 (렌더 전 차단)
+  (function () {
+    if (sessionStorage.getItem('hiqasc_authenticated') !== 'true') {
+      location.href = 'index.html';
+    }
+  })();
 </script>
 <style>
-:root{
-    --bg:#2a2a2a; --card:#353535; --border:#4a4a4a;
-    --text:#e0e0e0; --text-sub:#9a9a9a; --accent:#4a90e2;
-    --green:#3aa876; --orange:#e0913a; --red:#d9534f; --gold:#e8c46b;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-body{
-    font-family:'Manrope','Segoe UI',sans-serif;
-    background:var(--bg); color:var(--text);
-    min-height:100vh; padding:0 0 60px;
-}
-body::before{
-    content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
-    background-image:
-        linear-gradient(rgba(74,144,226,.05) 1px,transparent 1px),
-        linear-gradient(90deg,rgba(74,144,226,.05) 1px,transparent 1px);
-    background-size:40px 40px;
-}
-.wrap{position:relative; z-index:1; max-width:820px; margin:0 auto; padding:0 18px}
+  :root{
+    --bg:#f5f6f8; --card:#ffffff; --line:#e3e6ea; --text:#2c2f33; --muted:#7b8189;
+    --accent:#e8853a; --accent-soft:#fdf1e7;
+    --danger:#d9534f; --warn:#e0a33e; --ok:#4a9d5f; --info:#4a90e2; --secret:#c79a3a;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Manrope',-apple-system,sans-serif;background:var(--bg);color:var(--text);padding:24px;line-height:1.55}
+  .wrap{max-width:1240px;margin:0 auto}
 
-/* 헤더 */
-.top{
-    display:flex; align-items:center; gap:12px;
-    padding:22px 0 18px;
-}
-.back{
-    background:none; border:1px solid var(--border); border-radius:8px;
-    color:var(--text-sub); font-size:20px; width:40px; height:40px;
-    cursor:pointer; transition:.15s; flex-shrink:0;
-}
-.back:hover{color:var(--text); border-color:#6a6a6a}
-.top h1{font-size:20px; font-weight:700; letter-spacing:-.01em}
-.top .who{margin-left:auto; font-size:13px; color:var(--text-sub)}
-.top .who b{color:var(--accent); font-weight:600}
+  /* 헤더 */
+  .top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:22px;flex-wrap:wrap}
+  .title h1{font-size:24px;font-weight:800;letter-spacing:-.3px}
+  .title p{font-size:13px;color:var(--muted);margin-top:4px}
+  .title p b{color:var(--accent);font-weight:700}
+  .top-actions{display:flex;gap:8px;flex-wrap:wrap}
+  .btn{border:1px solid var(--line);background:#fff;color:var(--text);padding:9px 16px;border-radius:8px;
+       font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:.15s}
+  .btn:hover{border-color:var(--accent);color:var(--accent)}
+  .btn-primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn-primary:hover{background:#d5762c;border-color:#d5762c;color:#fff}
+  .btn-primary:disabled{opacity:.5;cursor:not-allowed}
 
-/* 탭 전환 */
-.tabs{display:flex; gap:8px; margin-bottom:18px}
-.tabs button{
-    flex:1; background:var(--card); border:1px solid var(--border); border-radius:10px;
-    color:var(--text-sub); font-family:inherit; font-size:14px; font-weight:600;
-    padding:12px; cursor:pointer; transition:.15s;
-}
-.tabs button.on{background:var(--accent); border-color:var(--accent); color:#fff}
+  /* 요약 */
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+  .stat .k{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.6px;text-transform:uppercase}
+  .stat .v{font-size:26px;font-weight:800;margin-top:6px}
+  .stat.wait .v{color:var(--danger)} .stat.prop .v{color:var(--info)}
+  .stat.hold .v{color:#8a72b0} .stat.done .v{color:var(--ok)}
 
-/* 카드 공통 */
-.card{
-    background:var(--card); border:1px solid var(--border); border-radius:14px;
-    padding:20px; margin-bottom:14px;
-}
-.card h2{font-size:15px; font-weight:700; margin-bottom:14px; color:var(--text)}
+  /* 카드 공통 */
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px;margin-bottom:18px}
+  .card h2{font-size:15px;font-weight:800;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+  .card h2::before{content:'';width:4px;height:15px;background:var(--accent);border-radius:2px}
 
-/* 폼 */
-label{display:block; font-size:13px; color:var(--text-sub); margin:0 0 6px 2px; font-weight:500}
-.field{margin-bottom:16px}
-input[type=text], textarea, select{
-    width:100%; background:#2f2f2f; border:1px solid var(--border); border-radius:9px;
-    color:var(--text); font-family:inherit; font-size:14px; padding:11px 13px;
-    transition:.15s;
-}
-input[type=text]:focus, textarea:focus, select:focus{
-    outline:none; border-color:var(--accent);
-}
-textarea{resize:vertical; min-height:120px; line-height:1.55}
-select{cursor:pointer}
+  /* 폼 */
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+  .field{display:flex;flex-direction:column;gap:6px}
+  .field.full{grid-column:1/-1}
+  label{font-size:12px;font-weight:700;color:var(--muted)}
+  input,select,textarea{font-family:inherit;font-size:13.5px;color:var(--text);background:#fff;
+    border:1px solid var(--line);border-radius:8px;padding:10px 12px;outline:none;transition:.15s;width:100%}
+  input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+  input:disabled{background:#f4f5f7;color:var(--muted);cursor:not-allowed}
+  textarea{resize:vertical;min-height:100px}
+  .form-foot{display:flex;justify-content:flex-end;align-items:center;gap:10px;margin-top:16px}
+  .hint{font-size:12px;color:var(--muted);margin-right:auto}
 
-.cats{display:flex; flex-wrap:wrap; gap:8px}
-.cats label{
-    margin:0; padding:8px 15px; border:1px solid var(--border); border-radius:20px;
-    background:#2f2f2f; color:var(--text-sub); font-size:13px; cursor:pointer; transition:.15s;
-    user-select:none;
-}
-.cats input{display:none}
-.cats input:checked + span{color:#fff}
-.cats label:has(input:checked){background:var(--accent); border-color:var(--accent)}
+  /* 비밀글 옵션 */
+  .secret-opt{grid-column:1/-1;display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+    background:#fdfaf3;border:1px solid #f0e4cd;border-radius:8px;padding:12px 14px}
+  .secret-opt .chk{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:700;color:#9a7420;cursor:pointer;user-select:none}
+  .secret-opt input[type=checkbox]{width:17px;height:17px;accent-color:var(--secret);cursor:pointer}
+  .secret-opt .pw{display:none;flex:1;min-width:180px}
+  .secret-opt.on .pw{display:block}
+  .secret-opt .note{font-size:12px;color:var(--muted)}
+  .secret-opt.on .note{display:none}
 
-/* 비밀글 */
-.secret-row{
-    display:flex; align-items:center; gap:10px; margin-bottom:14px;
-    padding:12px 14px; background:#2f2f2f; border:1px solid var(--border); border-radius:9px;
-}
-.secret-row input[type=checkbox]{width:18px; height:18px; accent-color:var(--accent); cursor:pointer}
-.secret-row label{margin:0; font-size:14px; color:var(--text); cursor:pointer; font-weight:500}
-.secret-row .hint{margin-left:auto; font-size:12px; color:var(--text-sub)}
-#secretPwField{display:none; margin-top:0}
+  /* 필터 */
+  .filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;align-items:end}
 
-.submit{
-    width:100%; background:var(--accent); border:none; border-radius:10px;
-    color:#fff; font-family:inherit; font-size:15px; font-weight:700;
-    padding:14px; cursor:pointer; transition:.15s;
-}
-.submit:hover{background:#3a7fd0}
-.submit:disabled{opacity:.5; cursor:default}
+  /* 목록 */
+  .list{display:flex;flex-direction:column;gap:12px}
+  .item{border:1px solid var(--line);border-left:4px solid var(--muted);border-radius:10px;background:#fff;overflow:hidden}
+  .item.st-접수{border-left-color:var(--danger)}
+  .item.st-검토중{border-left-color:var(--info)}
+  .item.st-보류{border-left-color:#8a72b0}
+  .item.st-반영{border-left-color:var(--ok)}
+  .item-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:14px 16px;cursor:pointer}
+  .item-head:hover{background:#fafbfc}
+  .subject{font-size:15px;font-weight:800;display:flex;align-items:center;gap:7px}
+  .subject .lk{color:var(--secret);font-size:13px}
+  .tag{font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px;background:#f0f2f4;color:var(--muted)}
+  .tag.cat{background:var(--accent-soft);color:var(--accent)}
+  .tag.st-접수{background:#fbeaea;color:var(--danger)}
+  .tag.st-검토중{background:#e7f0fb;color:var(--info)}
+  .tag.st-보류{background:#efeaf6;color:#7a5ca8}
+  .tag.st-반영{background:#e9f5ec;color:var(--ok)}
+  .tag.secret{background:#faf1da;color:#9a7420}
+  .meta{margin-left:auto;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:10px}
+  .chev{transition:.2s;color:var(--muted);font-size:12px}
+  .item.open .chev{transform:rotate(90deg)}
 
-/* 목록 */
-.item{
-    background:var(--card); border:1px solid var(--border); border-radius:12px;
-    padding:16px 18px; margin-bottom:12px; transition:.15s;
-}
-.item-head{display:flex; align-items:center; gap:9px; margin-bottom:8px; flex-wrap:wrap}
-.badge{font-size:11px; font-weight:700; padding:3px 9px; border-radius:6px; letter-spacing:.02em}
-.b-cat{background:rgba(74,144,226,.15); color:#7fb3ec}
-.b-접수{background:rgba(154,154,154,.15); color:#bdbdbd}
-.b-검토중{background:rgba(224,145,58,.15); color:var(--orange)}
-.b-반영{background:rgba(58,168,118,.18); color:#5fcfa0}
-.b-보류{background:rgba(217,83,79,.15); color:#e88a87}
-.item-title{font-size:15px; font-weight:700; color:var(--text); display:flex; align-items:center; gap:7px}
-.lock{color:var(--gold); font-size:13px}
-.item-meta{font-size:12px; color:var(--text-sub); margin-left:auto}
-.item-body{
-    font-size:14px; color:#cfcfcf; line-height:1.6; margin-top:10px;
-    white-space:pre-wrap; word-break:break-word;
-}
-.secret-locked{
-    margin-top:10px; padding:14px; border:1px dashed var(--border); border-radius:9px;
-    text-align:center; color:var(--text-sub); font-size:13px;
-}
-.secret-locked .unlock{
-    margin-top:10px; display:flex; gap:8px; justify-content:center;
-}
-.secret-locked input{max-width:180px; padding:8px 11px}
-.secret-locked button{
-    background:var(--gold); border:none; border-radius:8px; color:#2a2a2a;
-    font-weight:700; font-size:13px; padding:8px 16px; cursor:pointer; font-family:inherit;
-}
+  /* 상세(펼침) */
+  .detail{display:none;padding:0 16px 16px;border-top:1px solid var(--line)}
+  .item.open .detail{display:block}
+  .content-box{background:#fafbfc;border:1px solid var(--line);border-radius:8px;padding:13px;font-size:13.5px;white-space:pre-wrap;word-break:break-word;margin-top:14px}
 
-/* 관리자 상태 변경 */
-.admin-status{margin-top:12px; display:flex; align-items:center; gap:8px}
-.admin-status select{max-width:140px; padding:7px 10px; font-size:13px}
-.admin-status .tag{font-size:11px; color:var(--orange); font-weight:700}
+  /* 비밀글 잠금 (상세 내) */
+  .locked{margin-top:14px;background:#fdfaf3;border:1px dashed #e6d3a8;border-radius:8px;padding:16px;text-align:center}
+  .locked .lk-ico{font-size:22px}
+  .locked .lk-txt{font-size:13px;color:#9a7420;font-weight:600;margin:6px 0 12px}
+  .locked .lk-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+  .locked input{max-width:200px;text-align:center;letter-spacing:1px}
+  .locked .btn-primary{background:var(--secret);border-color:var(--secret)}
+  .locked .btn-primary:hover{background:#b3872f;border-color:#b3872f}
 
-.empty{text-align:center; color:var(--text-sub); padding:50px 0; font-size:14px}
-.loading{text-align:center; color:var(--text-sub); padding:50px 0; font-size:14px}
+  /* 관리자 상태 변경 */
+  .status-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px dashed var(--line)}
+  .status-row .lb{font-size:11px;font-weight:700;color:var(--accent)}
+  .status-row select{width:auto;min-width:130px}
 
-/* 토스트 */
-#toast{
-    position:fixed; left:50%; bottom:30px; transform:translateX(-50%) translateY(20px);
-    background:#1e1e1e; border:1px solid var(--border); color:var(--text);
-    padding:12px 22px; border-radius:10px; font-size:14px; opacity:0;
-    pointer-events:none; transition:.25s; z-index:100;
-}
-#toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
+  .empty{text-align:center;color:var(--muted);padding:36px;font-size:14px}
+
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);
+    background:#2c2f33;color:#fff;padding:12px 22px;border-radius:10px;font-size:14px;font-weight:600;opacity:0;transition:.25s;z-index:99}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  @media (max-width:640px){body{padding:14px}}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
+
 <div class="wrap">
-    <div class="top">
-        <button class="back" onclick="location.href='index.html'">←</button>
-        <h1>💡 직원 제안 게시판</h1>
-        <div class="who"><b id="whoName">-</b> 님</div>
+
+  <div class="top">
+    <div class="title">
+      <h1>직원 제안 게시판</h1>
+      <p>업무·복지·시설 등 개선 아이디어를 자유롭게 제안하세요 · 작성자 <b id="whoName">-</b></p>
     </div>
-
-    <div class="tabs">
-        <button id="tabWrite" class="on" onclick="switchTab('write')">✏️ 제안 작성</button>
-        <button id="tabList" onclick="switchTab('list')">📋 제안 목록</button>
+    <div class="top-actions">
+      <button class="btn" onclick="loadData()">새로고침</button>
+      <button class="btn" onclick="location.href='index.html'">메인</button>
     </div>
+  </div>
 
-    <!-- 작성 -->
-    <div id="panelWrite">
-        <div class="card">
-            <h2>새 제안 작성</h2>
+  <div class="stats">
+    <div class="stat"><div class="k">전체</div><div class="v" id="sTotal">-</div></div>
+    <div class="stat wait"><div class="k">접수</div><div class="v" id="sWait">-</div></div>
+    <div class="stat prop"><div class="k">검토중</div><div class="v" id="sProp">-</div></div>
+    <div class="stat hold"><div class="k">보류</div><div class="v" id="sHold">-</div></div>
+    <div class="stat done"><div class="k">반영</div><div class="v" id="sDone">-</div></div>
+  </div>
 
-            <div class="field">
-                <label>카테고리</label>
-                <div class="cats" id="cats">
-                    <label><input type="radio" name="cat" value="업무개선" checked><span>업무개선</span></label>
-                    <label><input type="radio" name="cat" value="복지"><span>복지</span></label>
-                    <label><input type="radio" name="cat" value="시설/장비"><span>시설/장비</span></label>
-                    <label><input type="radio" name="cat" value="기타"><span>기타</span></label>
-                </div>
-            </div>
-
-            <div class="field">
-                <label>제목</label>
-                <input type="text" id="title" maxlength="60" placeholder="제안 제목을 입력하세요">
-            </div>
-
-            <div class="field">
-                <label>내용</label>
-                <textarea id="content" placeholder="제안 내용을 자세히 적어주세요"></textarea>
-            </div>
-
-            <div class="secret-row">
-                <input type="checkbox" id="secret" onchange="toggleSecret()">
-                <label for="secret">🔒 비밀글로 작성</label>
-                <span class="hint">작성자 본인 · 관리자 · 비번 아는 사람만 열람</span>
-            </div>
-            <div class="field" id="secretPwField">
-                <label>열람 비밀번호</label>
-                <input type="text" id="secretPw" maxlength="20" placeholder="이 글을 열람할 비밀번호">
-            </div>
-
-            <button class="submit" id="submitBtn" onclick="submitSuggestion()">제안 등록</button>
-        </div>
+  <!-- 신규 등록 -->
+  <div class="card">
+    <h2>새 제안 작성</h2>
+    <div class="grid">
+      <div class="field">
+        <label>작성자</label>
+        <input type="text" id="fWriter" disabled>
+      </div>
+      <div class="field">
+        <label>분류</label>
+        <select id="fCategory">
+          <option>업무개선</option>
+          <option>복지</option>
+          <option>시설 · 장비</option>
+          <option>프로세스 · 절차</option>
+          <option>기타</option>
+        </select>
+      </div>
+      <div class="field full">
+        <label>제목 (한 줄 요약)</label>
+        <input type="text" id="fTitle" maxlength="60" placeholder="예: 휴게실 정수기 온수 기능 추가 요청">
+      </div>
+      <div class="field full">
+        <label>제안 내용</label>
+        <textarea id="fContent" placeholder="어떤 점을 개선하면 좋을지 구체적으로 작성해주세요"></textarea>
+      </div>
+      <div class="secret-opt" id="secretOpt">
+        <label class="chk"><input type="checkbox" id="fSecret" onchange="toggleSecret()">🔒 비밀글로 작성</label>
+        <span class="note">작성자 본인 · 관리자 · 비밀번호를 아는 사람만 내용을 볼 수 있습니다</span>
+        <input type="text" id="fSecretPw" class="pw" maxlength="20" placeholder="열람 비밀번호">
+      </div>
     </div>
-
-    <!-- 목록 -->
-    <div id="panelList" style="display:none">
-        <div id="listArea"><div class="loading">불러오는 중…</div></div>
+    <div class="form-foot">
+      <span class="hint">등록 시 상태는 '접수'로 시작합니다</span>
+      <button class="btn" onclick="resetForm()">지우기</button>
+      <button class="btn btn-primary" id="btnSave" onclick="saveItem()">등록</button>
     </div>
+  </div>
+
+  <!-- 필터 -->
+  <div class="card">
+    <h2>조회</h2>
+    <div class="filters">
+      <div class="field"><label>상태</label><select id="qStatus" onchange="render()"><option value="">전체</option><option>접수</option><option>검토중</option><option>보류</option><option>반영</option></select></div>
+      <div class="field"><label>분류</label><select id="qCategory" onchange="render()"><option value="">전체</option></select></div>
+      <div class="field"><label>검색어</label><input type="text" id="qText" oninput="render()" placeholder="제목·작성자"></div>
+    </div>
+  </div>
+
+  <!-- 목록 -->
+  <div class="card">
+    <h2>제안 목록 <span id="listCount" style="font-weight:600;color:var(--muted);font-size:13px"></span></h2>
+    <div class="list" id="list"><div class="empty">불러오는 중…</div></div>
+  </div>
 </div>
 
-<div id="toast"></div>
+<div class="toast" id="toast"></div>
 
 <script>
-/* ⚠️ 배포 후 아래 URL을 새 Apps Script /exec 주소로 교체하세요 */
+/* ===========================================================
+   설정
+   =========================================================== */
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz_8DDIPMjbK9YlieHsj9Xxc5yXk55bpPN1RRQ06DOIxQo8GyalxfF9UwM9oMxOicRn/exec';
 
 const ME = {
-    name: sessionStorage.getItem('userName') || '',
-    id:   sessionStorage.getItem('userId') || '',
-    isAdmin: sessionStorage.getItem('hiqasc_isAdmin') === 'true'
+  name: sessionStorage.getItem('userName') || '',
+  id:   sessionStorage.getItem('userId') || '',
+  isAdmin: sessionStorage.getItem('hiqasc_isAdmin') === 'true'
 };
+
+let ITEMS = [];
+let openRow = null;   // 펼쳐진 항목 유지
+let unlocked = {};    // 이번 세션에 비번으로 연 비밀글 내용 캐시 {row: content}
+
 document.getElementById('whoName').textContent = ME.name || '알 수 없음';
+document.getElementById('fWriter').value = ME.name || '';
 
-/* ---------- 탭 ---------- */
-function switchTab(t){
-    const w = t === 'write';
-    document.getElementById('panelWrite').style.display = w ? 'block' : 'none';
-    document.getElementById('panelList').style.display  = w ? 'none' : 'block';
-    document.getElementById('tabWrite').classList.toggle('on', w);
-    document.getElementById('tabList').classList.toggle('on', !w);
-    if (!w) loadList();
-}
-
-/* ---------- 비밀글 토글 ---------- */
-function toggleSecret(){
-    const on = document.getElementById('secret').checked;
-    document.getElementById('secretPwField').style.display = on ? 'block' : 'none';
-}
-
-/* ---------- 토스트 ---------- */
+/* ===========================================================
+   유틸
+   =========================================================== */
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 let toastTimer;
-function toast(msg){
-    const t = document.getElementById('toast');
-    t.textContent = msg; t.classList.add('show');
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(()=>t.classList.remove('show'), 2600);
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2600);}
+
+function toggleSecret(){
+  document.getElementById('secretOpt').classList.toggle('on', document.getElementById('fSecret').checked);
+}
+function resetForm(){
+  document.getElementById('fTitle').value='';
+  document.getElementById('fContent').value='';
+  document.getElementById('fSecretPw').value='';
+  document.getElementById('fSecret').checked=false;
+  toggleSecret();
 }
 
-/* ---------- 등록 ---------- */
-function submitSuggestion(){
-    if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE'){
-        toast('APPS_SCRIPT_URL이 설정되지 않았습니다'); return;
-    }
-    const title = document.getElementById('title').value.trim();
-    const content = document.getElementById('content').value.trim();
-    const cat = document.querySelector('input[name=cat]:checked').value;
-    const secret = document.getElementById('secret').checked;
-    const pw = document.getElementById('secretPw').value.trim();
-
-    if (!title){ toast('제목을 입력하세요'); return; }
-    if (!content){ toast('내용을 입력하세요'); return; }
-    if (secret && !pw){ toast('비밀글 열람 비밀번호를 입력하세요'); return; }
-
-    const btn = document.getElementById('submitBtn');
-    btn.disabled = true; btn.textContent = '등록 중…';
-
-    const body = new URLSearchParams({
-        action:'create', author:ME.name, userId:ME.id,
-        category:cat, title, content,
-        secret: secret ? '1':'0', password: secret ? pw : ''
-    });
-
-    fetch(APPS_SCRIPT_URL, {method:'POST', body})
-        .then(()=> {
-            toast('제안이 등록되었습니다 ✓');
-            document.getElementById('title').value='';
-            document.getElementById('content').value='';
-            document.getElementById('secretPw').value='';
-            document.getElementById('secret').checked=false;
-            toggleSecret();
-            btn.disabled=false; btn.textContent='제안 등록';
-            setTimeout(()=>switchTab('list'), 700);
-        })
-        .catch(()=>{
-            // no-cors라 응답을 못 읽어도 대개 성공 — 안내만
-            toast('제안이 등록되었습니다 ✓');
-            btn.disabled=false; btn.textContent='제안 등록';
-            setTimeout(()=>switchTab('list'), 700);
-        });
+/* ===========================================================
+   로드 (JSONP — 비밀글 내용/비번은 서버에서 마스킹됨)
+   =========================================================== */
+function loadData(){
+  document.getElementById('list').innerHTML='<div class="empty">불러오는 중…</div>';
+  const cb='sugcb_'+Date.now();
+  window[cb]=function(res){
+    delete window[cb]; s.remove();
+    ITEMS = (res && res.rows) ? res.rows : [];
+    buildCategoryFilter();
+    updateStats();
+    render();
+  };
+  const s=document.createElement('script');
+  s.src=APPS_SCRIPT_URL+'?callback='+cb+'&_='+Date.now();
+  s.onerror=function(){document.getElementById('list').innerHTML='<div class="empty">목록을 불러오지 못했습니다</div>';};
+  document.body.appendChild(s);
 }
 
-/* ---------- 목록 로드 (JSONP) ---------- */
-function loadList(){
-    document.getElementById('listArea').innerHTML = '<div class="loading">불러오는 중…</div>';
-    if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE'){
-        document.getElementById('listArea').innerHTML = '<div class="empty">APPS_SCRIPT_URL이 설정되지 않았습니다</div>';
-        return;
-    }
-    const cb = 'sugcb_' + Date.now();
-    window[cb] = function(res){
-        delete window[cb]; document.body.removeChild(s);
-        renderList(res && res.rows ? res.rows : []);
-    };
-    const s = document.createElement('script');
-    s.src = APPS_SCRIPT_URL + '?callback=' + cb + '&_=' + Date.now();
-    s.onerror = function(){
-        document.getElementById('listArea').innerHTML = '<div class="empty">목록을 불러오지 못했습니다</div>';
-    };
-    document.body.appendChild(s);
+function updateStats(){
+  const c={접수:0,검토중:0,보류:0,반영:0};
+  ITEMS.forEach(r=>{if(c[r.status]!==undefined)c[r.status]++;});
+  document.getElementById('sTotal').textContent=ITEMS.length;
+  document.getElementById('sWait').textContent=c.접수;
+  document.getElementById('sProp').textContent=c.검토중;
+  document.getElementById('sHold').textContent=c.보류;
+  document.getElementById('sDone').textContent=c.반영;
 }
 
-function esc(str){
-    return String(str||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function buildCategoryFilter(){
+  const sel=document.getElementById('qCategory');
+  const cur=sel.value;
+  const cats=[...new Set(ITEMS.map(r=>r.category).filter(Boolean))];
+  sel.innerHTML='<option value="">전체</option>'+cats.map(c=>`<option>${esc(c)}</option>`).join('');
+  sel.value=cur;
 }
 
-function renderList(rows){
-    const area = document.getElementById('listArea');
-    if (!rows.length){ area.innerHTML = '<div class="empty">아직 등록된 제안이 없습니다</div>'; return; }
-    rows.reverse(); // 최신순
-    area.innerHTML = rows.map(r=>{
-        const canSee = !r.secret || r.author === ME.name || ME.isAdmin;
-        let bodyHtml;
-        if (canSee){
-            bodyHtml = `<div class="item-body">${esc(r.content)}</div>`;
-        } else {
-            bodyHtml = `
-                <div class="secret-locked" id="lock-${r.row}">
-                    🔒 비밀글입니다. 비밀번호를 입력하세요.
-                    <div class="unlock">
-                        <input type="text" id="pw-${r.row}" placeholder="비밀번호">
-                        <button onclick="unlock(${r.row})">열람</button>
-                    </div>
-                </div>`;
-        }
-        const adminCtrl = ME.isAdmin ? `
-            <div class="admin-status">
-                <span class="tag">관리자</span>
-                <select onchange="setStatus(${r.row}, this.value)">
-                    ${['접수','검토중','반영','보류'].map(st=>
-                        `<option value="${st}" ${st===r.status?'selected':''}>${st}</option>`).join('')}
-                </select>
-            </div>` : '';
-        return `
-        <div class="item">
-            <div class="item-head">
-                <span class="badge b-cat">${esc(r.category)}</span>
-                <span class="badge b-${esc(r.status)}">${esc(r.status)}</span>
-                <span class="item-title">${r.secret?'<span class="lock">🔒</span>':''}${esc(r.title)}</span>
-                <span class="item-meta">${esc(r.author)} · ${esc(r.date)}</span>
-            </div>
-            ${bodyHtml}
-            ${adminCtrl}
+/* ===========================================================
+   렌더
+   =========================================================== */
+function render(){
+  const qs=document.getElementById('qStatus').value;
+  const qc=document.getElementById('qCategory').value;
+  const qt=document.getElementById('qText').value.trim().toLowerCase();
+
+  let rows=ITEMS.slice().reverse(); // 최신순
+  if(qs) rows=rows.filter(r=>r.status===qs);
+  if(qc) rows=rows.filter(r=>r.category===qc);
+  if(qt) rows=rows.filter(r=>(r.title+' '+r.author).toLowerCase().includes(qt));
+
+  const listEl=document.getElementById('list');
+  document.getElementById('listCount').textContent=`(${rows.length}건)`;
+  if(!rows.length){listEl.innerHTML='<div class="empty">해당하는 제안이 없습니다</div>';return;}
+
+  listEl.innerHTML=rows.map(r=>{
+    const canSee = !r.secret || r.author===ME.name || ME.isAdmin || unlocked[r.row]!==undefined;
+    const content = r.secret ? ((r.author===ME.name||ME.isAdmin) ? r.content : (unlocked[r.row]||'')) : r.content;
+
+    let detailInner;
+    if(canSee){
+      detailInner=`<div class="content-box">${esc(content)||'<span style="color:var(--muted)">(내용 없음)</span>'}</div>`;
+    }else{
+      detailInner=`
+        <div class="locked">
+          <div class="lk-ico">🔒</div>
+          <div class="lk-txt">비밀글입니다. 열람하려면 비밀번호를 입력하세요.</div>
+          <div class="lk-row">
+            <input type="text" id="pw-${r.row}" placeholder="비밀번호" onkeypress="if(event.key==='Enter')unlock(${r.row})">
+            <button class="btn btn-primary" onclick="unlock(${r.row})">열람</button>
+          </div>
         </div>`;
-    }).join('');
+    }
+
+    const adminCtrl = ME.isAdmin ? `
+      <div class="status-row">
+        <span class="lb">관리자 · 상태 변경</span>
+        <select onchange="setStatus(${r.row}, this.value)" onclick="event.stopPropagation()">
+          ${['접수','검토중','보류','반영'].map(st=>`<option ${st===r.status?'selected':''}>${st}</option>`).join('')}
+        </select>
+      </div>` : '';
+
+    const open = openRow===r.row ? ' open' : '';
+    return `
+    <div class="item st-${esc(r.status)}${open}" data-row="${r.row}">
+      <div class="item-head" onclick="toggleOpen(${r.row})">
+        <span class="subject">${r.secret?'<span class="lk">🔒</span>':''}${esc(r.title)}</span>
+        <span class="tag cat">${esc(r.category)}</span>
+        <span class="tag st-${esc(r.status)}">${esc(r.status)}</span>
+        ${r.secret?'<span class="tag secret">비밀글</span>':''}
+        <span class="meta">${esc(r.author)} · ${esc(r.date)}<span class="chev">▶</span></span>
+      </div>
+      <div class="detail">
+        ${detailInner}
+        ${adminCtrl}
+      </div>
+    </div>`;
+  }).join('');
 }
 
-/* ---------- 비밀글 열람 (Apps Script 검증) ---------- */
+function toggleOpen(row){
+  openRow = (openRow===row) ? null : row;
+  render();
+}
+
+/* ===========================================================
+   등록
+   =========================================================== */
+function saveItem(){
+  const title=document.getElementById('fTitle').value.trim();
+  const content=document.getElementById('fContent').value.trim();
+  const category=document.getElementById('fCategory').value;
+  const secret=document.getElementById('fSecret').checked;
+  const pw=document.getElementById('fSecretPw').value.trim();
+
+  if(!title){toast('제목을 입력하세요');return;}
+  if(!content){toast('내용을 입력하세요');return;}
+  if(secret&&!pw){toast('비밀글 열람 비밀번호를 입력하세요');return;}
+
+  const btn=document.getElementById('btnSave');
+  btn.disabled=true;btn.textContent='등록 중…';
+
+  const body=new URLSearchParams({
+    action:'create',author:ME.name,userId:ME.id,
+    category,title,content,
+    secret:secret?'1':'0',password:secret?pw:''
+  });
+
+  fetch(APPS_SCRIPT_URL,{method:'POST',body})
+    .then(finishSave).catch(finishSave);
+
+  function finishSave(){
+    toast('제안이 등록되었습니다 ✓');
+    resetForm();
+    btn.disabled=false;btn.textContent='등록';
+    setTimeout(loadData,600);
+  }
+}
+
+/* ===========================================================
+   비밀글 열람 (Apps Script 검증)
+   =========================================================== */
 function unlock(row){
-    const pw = document.getElementById('pw-'+row).value.trim();
-    if (!pw){ toast('비밀번호를 입력하세요'); return; }
-    const cb = 'vercb_' + Date.now();
-    window[cb] = function(res){
-        delete window[cb]; document.body.removeChild(s);
-        if (res && res.ok){
-            const box = document.getElementById('lock-'+row);
-            if (box) box.outerHTML = `<div class="item-body">${esc(res.content)}</div>`;
-        } else {
-            toast('비밀번호가 일치하지 않습니다');
-        }
-    };
-    // 검증은 민감정보이므로 JSONP(GET)로 verify 호출 → 비번 일치 시에만 내용 반환
-    const s = document.createElement('script');
-    s.src = APPS_SCRIPT_URL + '?callback=' + cb + '&action=verify&row=' + row +
-            '&password=' + encodeURIComponent(pw) + '&_=' + Date.now();
-    s.onerror = function(){ toast('확인에 실패했습니다'); };
-    document.body.appendChild(s);
+  const pw=document.getElementById('pw-'+row).value.trim();
+  if(!pw){toast('비밀번호를 입력하세요');return;}
+  const cb='vercb_'+Date.now();
+  window[cb]=function(res){
+    delete window[cb]; s.remove();
+    if(res&&res.ok){
+      unlocked[row]=res.content;
+      openRow=row;
+      render();
+    }else{
+      toast('비밀번호가 일치하지 않습니다');
+    }
+  };
+  const s=document.createElement('script');
+  s.src=APPS_SCRIPT_URL+'?callback='+cb+'&action=verify&row='+row+'&password='+encodeURIComponent(pw)+'&_='+Date.now();
+  s.onerror=function(){toast('확인에 실패했습니다');};
+  document.body.appendChild(s);
 }
 
-/* ---------- 관리자 상태 변경 ---------- */
-function setStatus(row, status){
-    const body = new URLSearchParams({action:'setStatus', row, status});
-    fetch(APPS_SCRIPT_URL, {method:'POST', body})
-        .then(()=>toast('상태가 변경되었습니다 ✓'))
-        .catch(()=>toast('상태가 변경되었습니다 ✓'));
+/* ===========================================================
+   관리자 상태 변경
+   =========================================================== */
+function setStatus(row,status){
+  const item=ITEMS.find(r=>r.row===row); if(item)item.status=status;
+  updateStats();
+  const body=new URLSearchParams({action:'setStatus',row,status});
+  fetch(APPS_SCRIPT_URL,{method:'POST',body})
+    .then(()=>toast('상태가 변경되었습니다 ✓'))
+    .catch(()=>toast('상태가 변경되었습니다 ✓'));
 }
+
+/* 시작 */
+loadData();
 </script>
 </body>
 </html>
