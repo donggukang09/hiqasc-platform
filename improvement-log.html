@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>업무 개선 제안 관리 | HIQASC</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script>
+  // 관리자 전용 가드 (렌더 전 차단)
+  (function () {
+    if (sessionStorage.getItem('hiqasc_authenticated') !== 'true') {
+      location.href = 'index.html';
+      return;
+    }
+    if (sessionStorage.getItem('hiqasc_isAdmin') !== 'true') {
+      alert('관리자만 접근할 수 있는 페이지입니다.');
+      location.href = 'index.html';
+    }
+  })();
+</script>
+<style>
+  :root{
+    --bg:#f5f6f8; --card:#ffffff; --line:#e3e6ea; --text:#2c2f33; --muted:#7b8189;
+    --accent:#e8853a; --accent-soft:#fdf1e7;
+    --danger:#d9534f; --warn:#e0a33e; --ok:#4a9d5f; --info:#4a90e2;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Manrope',-apple-system,sans-serif;background:var(--bg);color:var(--text);padding:24px;line-height:1.55}
+  .wrap{max-width:1240px;margin:0 auto}
+
+  /* 헤더 */
+  .top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:22px;flex-wrap:wrap}
+  .title h1{font-size:24px;font-weight:800;letter-spacing:-.3px}
+  .title p{font-size:13px;color:var(--muted);margin-top:4px}
+  .top-actions{display:flex;gap:8px;flex-wrap:wrap}
+  .btn{border:1px solid var(--line);background:#fff;color:var(--text);padding:9px 16px;border-radius:8px;
+       font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:.15s}
+  .btn:hover{border-color:var(--accent);color:var(--accent)}
+  .btn-primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn-primary:hover{background:#d5762c;border-color:#d5762c;color:#fff}
+  .btn-primary:disabled{opacity:.5;cursor:not-allowed}
+  .btn-sm{padding:6px 12px;font-size:12px}
+
+  /* 요약 */
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+  .stat .k{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.6px;text-transform:uppercase}
+  .stat .v{font-size:26px;font-weight:800;margin-top:6px}
+  .stat.wait .v{color:var(--danger)} .stat.prop .v{color:var(--info)}
+  .stat.hold .v{color:#8a72b0} .stat.done .v{color:var(--ok)}
+
+  /* 카드 공통 */
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px;margin-bottom:18px}
+  .card h2{font-size:15px;font-weight:800;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+  .card h2::before{content:'';width:4px;height:15px;background:var(--accent);border-radius:2px}
+
+  /* 폼 */
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+  .field{display:flex;flex-direction:column;gap:6px}
+  .field.full{grid-column:1/-1}
+  label{font-size:12px;font-weight:700;color:var(--muted)}
+  input,select,textarea{font-family:inherit;font-size:13.5px;color:var(--text);background:#fff;
+    border:1px solid var(--line);border-radius:8px;padding:10px 12px;outline:none;transition:.15s;width:100%}
+  input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+  textarea{resize:vertical;min-height:82px}
+  .form-foot{display:flex;justify-content:flex-end;align-items:center;gap:10px;margin-top:16px}
+  .hint{font-size:12px;color:var(--muted);margin-right:auto}
+
+  /* 필터 */
+  .filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;align-items:end}
+
+  /* 목록 */
+  .list{display:flex;flex-direction:column;gap:12px}
+  .item{border:1px solid var(--line);border-left:4px solid var(--muted);border-radius:10px;background:#fff;overflow:hidden}
+  .item.st-미전달{border-left-color:var(--danger)}
+  .item.st-제안중{border-left-color:var(--info)}
+  .item.st-보류{border-left-color:#8a72b0}
+  .item.st-처리완료{border-left-color:var(--ok)}
+  .item-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:14px 16px;cursor:pointer}
+  .item-head:hover{background:#fafbfc}
+  .subject{font-size:15px;font-weight:800}
+  .tag{font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px;background:#f0f2f4;color:var(--muted)}
+  .tag.cat{background:var(--accent-soft);color:var(--accent)}
+  .tag.p-높음{background:#fbeaea;color:var(--danger)}
+  .tag.p-보통{background:#fdf4e3;color:#b8811f}
+  .tag.p-낮음{background:#eef1f4;color:var(--muted)}
+  .tag.st-미전달{background:#fbeaea;color:var(--danger)}
+  .tag.st-제안중{background:#e7f0fb;color:var(--info)}
+  .tag.st-보류{background:#efeaf6;color:#7a5ca8}
+  .tag.st-처리완료{background:#e9f5ec;color:var(--ok)}
+  .meta{margin-left:auto;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:10px}
+  .chev{transition:.2s;color:var(--muted);font-size:12px}
+  .item.open .chev{transform:rotate(90deg)}
+
+  /* 상세(펼침) */
+  .detail{display:none;padding:0 16px 16px;border-top:1px solid var(--line)}
+  .item.open .detail{display:block}
+  .sec-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:14px 0 8px}
+  .first-content{background:#fafbfc;border:1px solid var(--line);border-radius:8px;padding:12px;font-size:13.5px;white-space:pre-wrap}
+  .first-content .byline{font-size:11.5px;color:var(--muted);margin-top:8px}
+
+  /* 타임라인 */
+  .timeline{display:flex;flex-direction:column;gap:8px}
+  .tl{display:flex;gap:10px}
+  .tl-dot{flex:0 0 auto;width:8px;height:8px;border-radius:50%;background:var(--accent);margin-top:7px}
+  .tl-body{flex:1;background:#fafbfc;border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+  .tl-body .txt{font-size:13.5px;white-space:pre-wrap}
+  .tl-body .byline{font-size:11.5px;color:var(--muted);margin-top:6px}
+
+  /* 처리결과 박스 */
+  .result-box{background:#e9f5ec;border:1px solid #bfe0c8;border-radius:8px;padding:12px}
+  .result-box .rk{font-size:11px;font-weight:700;color:var(--ok);margin-bottom:5px}
+  .result-box .rv{font-size:13.5px;white-space:pre-wrap}
+
+  /* 상세 액션 영역 */
+  .add-area{margin-top:12px;display:flex;flex-direction:column;gap:8px}
+  .add-row{display:grid;grid-template-columns:160px 1fr;gap:8px}
+  .status-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
+  .status-row select{width:auto;min-width:130px}
+
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left}
+  th{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+
+  .empty{text-align:center;color:var(--muted);padding:36px;font-size:14px}
+
+  /* 2차 비밀번호 잠금 */
+  #lock{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px}
+  #lock .box{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:34px 30px;width:100%;max-width:360px;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,.07)}
+  #lock .ico{width:52px;height:52px;border-radius:14px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:24px}
+  #lock h3{font-size:17px;font-weight:800;margin-bottom:6px}
+  #lock p{font-size:13px;color:var(--muted);margin-bottom:20px}
+  #lock input{text-align:center;letter-spacing:2px;margin-bottom:10px}
+  #lock .err{font-size:12.5px;color:var(--danger);font-weight:700;min-height:18px;margin-bottom:8px}
+  #lock .btn-primary{width:100%;padding:11px}
+  #lock .back{margin-top:12px;font-size:12.5px;color:var(--muted);cursor:pointer;text-decoration:underline}
+
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);
+    background:#2c2f33;color:#fff;padding:12px 22px;border-radius:10px;font-size:14px;font-weight:600;opacity:0;transition:.25s;z-index:99}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  @media (max-width:640px){body{padding:14px}.add-row{grid-template-columns:1fr}}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<!-- 2차 비밀번호 잠금 -->
+<div id="lock">
+  <div class="box">
+    <div class="ico">🔒</div>
+    <h3>2차 인증</h3>
+    <p>업무 개선 제안 관리는 별도 비밀번호가 필요합니다.</p>
+    <input type="password" id="lockPw" placeholder="비밀번호" autocomplete="off">
+    <div class="err" id="lockErr"></div>
+    <button class="btn btn-primary" onclick="unlock()">확인</button>
+    <div class="back" onclick="location.href='admin.html'">관리팀 페이지로 돌아가기</div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="top">
+    <div class="title">
+      <h1>업무 개선 제안 관리</h1>
+      <p>업무 중 발견한 개선 필요사항을 기록하고 원청 전달 상태를 관리합니다 · 관리자 전용</p>
+    </div>
+    <div class="top-actions">
+      <button class="btn" onclick="loadData()">새로고침</button>
+      <button class="btn" onclick="exportCsv()">CSV 내보내기</button>
+      <button class="btn" onclick="location.href='admin.html'">관리팀으로</button>
+      <button class="btn" onclick="location.href='index.html'">메인</button>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="k">전체</div><div class="v" id="sTotal">-</div></div>
+    <div class="stat wait"><div class="k">미전달</div><div class="v" id="sWait">-</div></div>
+    <div class="stat prop"><div class="k">제안중</div><div class="v" id="sProp">-</div></div>
+    <div class="stat hold"><div class="k">보류</div><div class="v" id="sHold">-</div></div>
+    <div class="stat done"><div class="k">처리완료</div><div class="v" id="sDone">-</div></div>
+  </div>
+
+  <!-- 신규 등록 -->
+  <div class="card">
+    <h2>새 개선 제안 등록</h2>
+    <div class="grid">
+      <div class="field">
+        <label>작성자</label>
+        <input type="text" id="fWriter" placeholder="이름 직접 입력">
+      </div>
+      <div class="field">
+        <label>분류</label>
+        <select id="fCategory">
+          <option>시스템 · 전산</option>
+          <option>프로세스 · 절차</option>
+          <option>물류 · 배송</option>
+          <option>부품 · 자재</option>
+          <option>정책 · 규정</option>
+          <option>교육 · 안내</option>
+          <option>설비 · 환경</option>
+          <option>기타</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>우선순위</label>
+        <select id="fPriority">
+          <option>높음</option><option selected>보통</option><option>낮음</option>
+        </select>
+      </div>
+      <div class="field full">
+        <label>제목 (한 줄 요약)</label>
+        <input type="text" id="fTitle" placeholder="예: SVC 시스템 출고 정보 마감 시간 단축 요청">
+      </div>
+      <div class="field full">
+        <label>개선 내용 / 제안</label>
+        <textarea id="fContent" placeholder="현재 어떤 점이 불편하거나 개선이 필요한지, 어떻게 바꾸면 좋을지 구체적으로 작성"></textarea>
+      </div>
+    </div>
+    <div class="form-foot">
+      <span class="hint">등록 시 상태는 '미전달'로 시작합니다</span>
+      <button class="btn" onclick="resetForm()">지우기</button>
+      <button class="btn btn-primary" id="btnSave" onclick="saveItem()">등록</button>
+    </div>
+  </div>
+
+  <!-- 필터 -->
+  <div class="card">
+    <h2>조회</h2>
+    <div class="filters">
+      <div class="field"><label>상태</label><select id="qStatus"><option value="">전체</option><option>미전달</option><option>제안중</option><option>보류</option><option>처리완료</option></select></div>
+      <div class="field"><label>분류</label><select id="qCategory"><option value="">전체</option></select></div>
+      <div class="field"><label>우선순위</label><select id="qPriority"><option value="">전체</option><option>높음</option><option>보통</option><option>낮음</option></select></div>
+      <div class="field"><label>검색어</label><input type="text" id="qText" placeholder="제목·내용"></div>
+    </div>
+  </div>
+
+  <!-- 목록 -->
+  <div class="card">
+    <h2>제안 목록 <span id="listCount" style="font-weight:600;color:var(--muted);font-size:13px"></span></h2>
+    <div class="list" id="list"><div class="empty">불러오는 중…</div></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===========================================================
+   설정
+   =========================================================== */
+const SHEET_ID  = '1_OCweVc-6Mzm0wi4vZW4AXmqvV4KMIWbHhGmmUyMw-4';
+const ITEM_TAB  = '개선건';     // 건별 1행
+const CMT_TAB   = '코멘트';     // 후속 코멘트
+
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwLdfd2jgZo84Omi1dQwRariq9Oz9sN9i0_YsJxKTBOf4_KpiI_UEE-DWZJWPpOkwLT/exec';
+
+/* ▼▼▼ 2차 비밀번호 — 변경하려면 아래 따옴표 안의 값만 수정 ▼▼▼ */
+const SECOND_PASSWORD = '$hiqasc$';
+/* ▲▲▲ 변경 후 GitHub에 업로드하면 즉시 적용됩니다 ▲▲▲ */
+
+let ITEMS = [];       // 개선건
+let COMMENTS = [];    // 코멘트
+let openId = null;    // 펼쳐진 항목 id 유지
+
+/* ===========================================================
+   gviz 유틸
+   =========================================================== */
+function gviz(tab, cb) {
+  const fn = 'cb_' + Math.random().toString(36).slice(2);
+  window[fn] = (res) => {
+    try {
+      const t = res.table || {};
+      const rows = (t.rows || []).map(r => (r.c || []).map(c => {
+        if (!c) return '';
+        if (c.f !== undefined && c.f !== null && c.f !== '') return String(c.f).trim();
+        if (c.v === null || c.v === undefined) return '';
+        if (typeof c.v === 'string' && /^Date\(/.test(c.v)) {
+          const p = c.v.match(/\d+/g).map(Number);
+          return `${p[0]}-${String(p[1]+1).padStart(2,'0')}-${String(p[2]).padStart(2,'0')}`;
+        }
+        return String(c.v).trim();
+      }));
+      cb(rows);
+    } catch (e) { console.error(e); cb([]); }
+    delete window[fn];
+    document.getElementById(fn)?.remove();
+  };
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq`
+            + `?sheet=${encodeURIComponent(tab)}&headers=1`
+            + `&tqx=out:json;responseHandler:${fn}`;
+  const s = document.createElement('script');
+  s.id = fn; s.src = url;
+  s.onerror = () => { cb([]); delete window[fn]; s.remove(); };
+  document.body.appendChild(s);
+}
+
+/* ===========================================================
+   로드
+   개선건: A건ID B등록일시 C작성자 D분류 E우선순위 F제목 G내용 H상태 I처리결과 J처리일
+   코멘트: A코멘트ID B건ID C작성일시 D작성자 E내용
+   =========================================================== */
+function loadData() {
+  document.getElementById('list').innerHTML = '<div class="empty">불러오는 중…</div>';
+  gviz(ITEM_TAB, (rows) => {
+    ITEMS = rows
+      .filter(r => (r[0] || '').trim() && (r[0] || '').trim() !== '건ID')
+      .map(r => ({
+        id: r[0], created: r[1], writer: r[2], category: r[3], priority: r[4] || '보통',
+        title: r[5], content: r[6], status: r[7] || '미전달', result: r[8] || '', resultDate: r[9] || ''
+      }))
+      .sort((a, b) => String(b.created).localeCompare(String(a.created)));
+
+    const cats = [...new Set(ITEMS.map(r => r.category).filter(Boolean))].sort();
+    document.getElementById('qCategory').innerHTML = '<option value="">전체</option>'
+      + cats.map(c => `<option>${esc(c)}</option>`).join('');
+
+    gviz(CMT_TAB, (crows) => {
+      COMMENTS = crows
+        .filter(r => (r[0] || '').trim() && (r[0] || '').trim() !== '코멘트ID')
+        .map(r => ({ id: r[0], itemId: r[1], created: r[2], writer: r[3], text: r[4] }))
+        .sort((a, b) => String(a.created).localeCompare(String(b.created)));
+      render();
+    });
+  });
+}
+
+/* ===========================================================
+   렌더
+   =========================================================== */
+function filtered() {
+  const s = v('qStatus'), c = v('qCategory'), p = v('qPriority'), q = v('qText').trim().toLowerCase();
+  return ITEMS.filter(it => {
+    if (s && it.status !== s) return false;
+    if (c && it.category !== c) return false;
+    if (p && it.priority !== p) return false;
+    if (q) {
+      const hay = ((it.title||'') + (it.content||'') + (it.result||'')).toLowerCase();
+      const inCmt = COMMENTS.filter(x => x.itemId === it.id).some(x => (x.text||'').toLowerCase().includes(q));
+      if (!hay.includes(q) && !inCmt) return false;
+    }
+    return true;
+  });
+}
+
+function render() {
+  document.getElementById('sTotal').textContent = ITEMS.length;
+  document.getElementById('sWait').textContent  = ITEMS.filter(i => i.status === '미전달').length;
+  document.getElementById('sProp').textContent  = ITEMS.filter(i => i.status === '제안중').length;
+  document.getElementById('sHold').textContent  = ITEMS.filter(i => i.status === '보류').length;
+  document.getElementById('sDone').textContent  = ITEMS.filter(i => i.status === '처리완료').length;
+
+  const data = filtered();
+  document.getElementById('listCount').textContent = `(${data.length}건)`;
+  const list = document.getElementById('list');
+
+  list.innerHTML = data.length ? data.map(it => {
+    const cmts = COMMENTS.filter(x => x.itemId === it.id);
+    const isOpen = openId === it.id;
+    return `
+    <div class="item st-${esc(it.status)} ${isOpen ? 'open' : ''}" data-id="${esc(it.id)}">
+      <div class="item-head" onclick="toggle('${esc(it.id)}')">
+        <span class="chev">▶</span>
+        <span class="subject">${esc(it.title || '(제목 없음)')}</span>
+        <span class="tag cat">${esc(it.category || '')}</span>
+        <span class="tag p-${esc(it.priority)}">${esc(it.priority)}</span>
+        <span class="tag st-${esc(it.status)}">${esc(it.status)}</span>
+        <span class="meta">
+          ${cmts.length ? `<span>💬 ${cmts.length}</span>` : ''}
+          <span>${esc(it.writer || '')} · ${esc(String(it.created).slice(0,10))}</span>
+        </span>
+      </div>
+      <div class="detail">
+        <div class="sec-label">최초 제안 내용</div>
+        <div class="first-content">${esc(it.content || '(내용 없음)')}
+          <div class="byline">${esc(it.writer || '')} · ${esc(it.created || '')}</div>
+        </div>
+
+        ${cmts.length ? `
+        <div class="sec-label">추가 내용 / 진행 기록</div>
+        <div class="timeline">
+          ${cmts.map(c => `
+            <div class="tl">
+              <div class="tl-dot"></div>
+              <div class="tl-body">
+                <div class="txt">${esc(c.text)}</div>
+                <div class="byline">${esc(c.writer)} · ${esc(c.created)}</div>
+              </div>
+            </div>`).join('')}
+        </div>` : ''}
+
+        ${it.result ? `
+        <div class="sec-label">처리 결과</div>
+        <div class="result-box">
+          <div class="rk">처리완료 · ${esc(it.resultDate || '')}</div>
+          <div class="rv">${esc(it.result)}</div>
+        </div>` : ''}
+
+        <!-- 내용 추가 (미전달/제안중/보류일 때) -->
+        ${it.status !== '처리완료' ? `
+        <div class="add-area">
+          <div class="sec-label" style="margin-bottom:2px">내용 추가</div>
+          <div class="add-row">
+            <input type="text" id="cw_${esc(it.id)}" placeholder="작성자 이름">
+            <textarea id="ct_${esc(it.id)}" placeholder="추가할 내용 / 진행 상황 (저장 시 날짜·작성자 자동 기록)" style="min-height:60px"></textarea>
+          </div>
+          <div style="text-align:right">
+            <button class="btn btn-primary btn-sm" onclick="addComment('${esc(it.id)}')">추가 저장</button>
+          </div>
+        </div>` : ''}
+
+        <!-- 상태 변경 -->
+        <div class="status-row">
+          <span class="sec-label" style="margin:0">상태 변경</span>
+          <select id="ss_${esc(it.id)}" onchange="onStatusSelect('${esc(it.id)}')">
+            ${['미전달','제안중','보류','처리완료'].map(s => `<option ${s===it.status?'selected':''}>${s}</option>`).join('')}
+          </select>
+          <div id="resultWrap_${esc(it.id)}" style="display:none;flex:1;min-width:240px">
+            <input type="text" id="rw_${esc(it.id)}" placeholder="처리자 이름" style="margin-bottom:6px">
+            <textarea id="rt_${esc(it.id)}" placeholder="원청 처리 결과 / 최종 정리 내용" style="min-height:56px"></textarea>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="applyStatus('${esc(it.id)}')">상태 적용</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('') : '<div class="empty">조건에 맞는 제안이 없습니다.</div>';
+
+  // 처리완료 선택 시 결과 입력창 노출 상태 복원
+  data.forEach(it => {
+    const sel = document.getElementById('ss_' + it.id);
+    if (sel) toggleResultWrap(it.id);
+  });
+}
+
+function toggle(id) { openId = (openId === id) ? null : id; render(); }
+
+/* ===========================================================
+   신규 등록
+   =========================================================== */
+function saveItem() {
+  if (!ready()) return;
+  const writer = v('fWriter').trim();
+  if (!writer)            return toast('작성자를 입력하세요');
+  if (!v('fTitle').trim())return toast('제목을 입력하세요');
+  if (!v('fContent').trim()) return toast('개선 내용을 입력하세요');
+
+  const payload = {
+    action: 'addItem',
+    id: 'IMP' + Date.now(),
+    writer, category: v('fCategory'), priority: v('fPriority'),
+    title: v('fTitle').trim(), content: v('fContent').trim(),
+    status: '미전달'
+  };
+  const btn = document.getElementById('btnSave');
+  btn.disabled = true; btn.textContent = '등록 중…';
+  post(payload, () => {
+    toast('개선 제안을 등록했습니다');
+    resetForm();
+    setTimeout(loadData, 1200);
+  }, () => toast('등록에 실패했습니다'))
+    .finally(() => { btn.disabled = false; btn.textContent = '등록'; });
+}
+
+/* ===========================================================
+   코멘트 추가
+   =========================================================== */
+function addComment(itemId) {
+  if (!ready()) return;
+  const writer = document.getElementById('cw_' + itemId).value.trim();
+  const text   = document.getElementById('ct_' + itemId).value.trim();
+  if (!writer) return toast('작성자를 입력하세요');
+  if (!text)   return toast('추가할 내용을 입력하세요');
+
+  post({
+    action: 'addComment',
+    id: 'CMT' + Date.now(),
+    itemId, writer, text
+  }, () => {
+    toast('내용을 추가했습니다');
+    openId = itemId;
+    setTimeout(loadData, 1200);
+  }, () => toast('추가에 실패했습니다'));
+}
+
+/* ===========================================================
+   상태 변경
+   =========================================================== */
+function onStatusSelect(id) { toggleResultWrap(id); }
+
+function toggleResultWrap(id) {
+  const sel = document.getElementById('ss_' + id);
+  const wrap = document.getElementById('resultWrap_' + id);
+  if (sel && wrap) wrap.style.display = (sel.value === '처리완료') ? 'block' : 'none';
+}
+
+function applyStatus(id) {
+  if (!ready()) return;
+  const status = document.getElementById('ss_' + id).value;
+  const payload = { action: 'status', id, status };
+
+  if (status === '처리완료') {
+    const rw = document.getElementById('rw_' + id).value.trim();
+    const rt = document.getElementById('rt_' + id).value.trim();
+    if (!rt) return toast('처리 결과 내용을 입력하세요');
+    payload.result = rt;
+    payload.resultWriter = rw;
+  }
+  openId = id;
+  post(payload, () => {
+    toast(`상태를 '${status}'로 변경했습니다`);
+    setTimeout(loadData, 1200);
+  }, () => toast('상태 변경에 실패했습니다'));
+}
+
+/* ===========================================================
+   POST 공통
+   =========================================================== */
+function post(payload, ok, fail) {
+  return fetch(APPS_SCRIPT_URL, {
+    method: 'POST', mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(payload)
+  }).then(() => ok && ok()).catch(() => fail && fail());
+}
+function ready() {
+  if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE') {
+    toast('Apps Script URL이 설정되지 않았습니다'); return false;
+  }
+  return true;
+}
+
+/* ===========================================================
+   CSV (원청 공유용)
+   =========================================================== */
+function exportCsv() {
+  const data = filtered();
+  if (!data.length) return toast('내보낼 제안이 없습니다');
+  const head = ['등록일','작성자','분류','우선순위','제목','개선내용','상태','처리결과','처리일','추가내용수'];
+  const lines = [head.join(',')].concat(data.map(it => {
+    const cnt = COMMENTS.filter(x => x.itemId === it.id).length;
+    return [it.created, it.writer, it.category, it.priority, it.title, it.content, it.status, it.result, it.resultDate, cnt]
+      .map(c => `"${String(c ?? '').replace(/"/g, '""')}"`).join(',');
+  }));
+  const blob = new Blob(['\uFEFF' + lines.join('\n')], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `업무개선제안_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+
+/* ===========================================================
+   보조
+   =========================================================== */
+function v(id) { return document.getElementById(id).value; }
+function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2600);
+}
+function resetForm() {
+  ['fTitle','fContent'].forEach(id => document.getElementById(id).value = '');
+}
+
+/* ===========================================================
+   2차 비밀번호
+   =========================================================== */
+let lockTries = 0;
+function unlock() {
+  const input = document.getElementById('lockPw');
+  if (input.value === SECOND_PASSWORD) {
+    document.getElementById('lock').style.display = 'none';
+    initPage();
+    return;
+  }
+  lockTries++;
+  input.value = '';
+  if (lockTries >= 3) { alert('비밀번호를 3회 잘못 입력했습니다.'); location.href = 'admin.html'; return; }
+  document.getElementById('lockErr').textContent = `비밀번호가 올바르지 않습니다 (${lockTries}/3)`;
+  input.focus();
+}
+
+/* ===========================================================
+   초기화
+   =========================================================== */
+let inited = false;
+function initPage() {
+  if (inited) return;
+  inited = true;
+  loadData();
+  ['qStatus','qCategory','qPriority'].forEach(id =>
+    document.getElementById(id).addEventListener('change', render));
+  document.getElementById('qText').addEventListener('input', render);
+}
+
+window.addEventListener('load', () => {
+  // 진입할 때마다 항상 2차 인증 요구 (해제 상태 저장하지 않음)
+  const pw = document.getElementById('lockPw');
+  pw.value = '';
+  pw.focus();
+  pw.addEventListener('keydown', e => { if (e.key === 'Enter') unlock(); });
+});
+</script>
+</body>
+</html>
