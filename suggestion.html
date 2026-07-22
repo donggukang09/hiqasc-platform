@@ -212,6 +212,9 @@
    =========================================================== */
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz_8DDIPMjbK9YlieHsj9Xxc5yXk55bpPN1RRQ06DOIxQo8GyalxfF9UwM9oMxOicRn/exec';
 
+/* 관리자 비밀글 열람 마스터 키 — Apps Script 의 ADMIN_KEY 와 반드시 동일 */
+const ADMIN_KEY = 'hiqasc-admin-2026';
+
 const ME = {
   name: sessionStorage.getItem('userName') || '',
   id:   sessionStorage.getItem('userId') || '',
@@ -257,7 +260,10 @@ function loadData(){
     render();
   };
   const s=document.createElement('script');
-  s.src=APPS_SCRIPT_URL+'?callback='+cb+'&_='+Date.now();
+  let url=APPS_SCRIPT_URL+'?callback='+cb+'&_='+Date.now();
+  if(ME.isAdmin) url+='&adminKey='+encodeURIComponent(ADMIN_KEY);
+  if(ME.name)    url+='&viewer='+encodeURIComponent(ME.name);
+  s.src=url;
   s.onerror=function(){document.getElementById('list').innerHTML='<div class="empty">목록을 불러오지 못했습니다</div>';};
   document.body.appendChild(s);
 }
@@ -298,8 +304,11 @@ function render(){
   if(!rows.length){listEl.innerHTML='<div class="empty">해당하는 제안이 없습니다</div>';return;}
 
   listEl.innerHTML=rows.map(r=>{
-    const canSee = !r.secret || r.author===ME.name || ME.isAdmin || unlocked[r.row]!==undefined;
-    const content = r.secret ? ((r.author===ME.name||ME.isAdmin) ? r.content : (unlocked[r.row]||'')) : r.content;
+    // 서버가 권한에 맞게 content를 내려줌: 비밀글인데 content가 비어있으면 잠금 상태
+    const hasContent = (r.content !== '' && r.content != null);
+    const unlockedContent = unlocked[r.row];
+    const canSee = !r.secret || hasContent || unlockedContent !== undefined;
+    const content = hasContent ? r.content : (unlockedContent || '');
 
     let detailInner;
     if(canSee){
