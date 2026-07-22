@@ -117,10 +117,31 @@
   .result-content a:hover {
     color: #8ec2ff;
   }
+
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #353535;
+    border: 1px solid #4a4a4a;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #ccc;
+    text-decoration: none;
+    margin-bottom: 18px;
+    transition: all .15s;
+  }
+  .back-btn:hover {
+    border-color: #4a90e2;
+    color: #4a90e2;
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
+  <a href="index.html" class="back-btn">← 메인으로</a>
   <div class="header">
     <h1>💡 업무 팁 검색</h1>
     <p>키워드를 입력하면 관련된 팁을 찾아드려요 (띄어쓰기 상관없음)</p>
