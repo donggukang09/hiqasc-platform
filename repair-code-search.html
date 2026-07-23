@@ -400,7 +400,7 @@ document.getElementById("toggleAllBtn").addEventListener("click", ()=>{
     return (parseInt(a.code)||0) - (parseInt(b.code)||0);
   });
   block.innerHTML = sorted.length
-    ? sorted.map(codeCardHtml).join("")
+    ? sorted.map(c=>codeCardHtml(c)).join("")
     : '<div class="empty-state">등록된 코드가 없습니다.</div>';
   block.style.display = "block";
   btn.textContent = "전체 코드 접기";
