@@ -4,499 +4,456 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>머신 사용법 안내 | HIQASC</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-primary: #0a0e1a;
-            --bg-secondary: #111827;
-            --bg-card: #1a2235;
-            --bg-card-hover: #1e2a42;
-            --border-color: #2a3a5c;
-            --border-hover: #3b82f6;
-            --text-primary: #e2e8f0;
-            --text-secondary: #94a3b8;
-            --text-muted: #64748b;
-            --accent-blue: #3b82f6;
-            --accent-blue-light: #60a5fa;
-            --accent-gradient: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
-            --accent-original: #c084fc;
-            --accent-vertuo: #34d399;
-            --accent-milk: #fb923c;
-            --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.3);
-            --shadow-card-hover: 0 8px 32px rgba(59, 130, 246, 0.15);
-            --radius: 12px;
+            /* Espresso surfaces */
+            --bg:        #16110d;
+            --bg-2:      #1b1510;
+            --surface:   #221b14;
+            --surface-2: #2c2219;
+            --line:      #382e24;
+            --line-soft: rgba(255, 255, 255, 0.055);
+
+            /* Warm foam text */
+            --text:   #f1e8dc;
+            --text-2: #b6a794;
+            --text-3: #857566;
+
+            /* Crema gold — the one bold accent */
+            --crema:   #d8a24c;
+            --crema-2: #ecc478;
+
+            /* Coffee-line tints */
+            --original: #d9954f;  /* caramel  */
+            --vertuo:   #c85f3c;  /* roasted brick */
+            --milk:     #c9b691;  /* milk foam */
+
+            --radius: 14px;
+            --font-kr: 'Noto Sans KR', sans-serif;
+            --font-lat: 'Space Grotesk', 'Noto Sans KR', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
 
         body {
-            font-family: 'Noto Sans KR', sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
+            font-family: var(--font-kr);
+            background:
+                radial-gradient(900px 500px at 82% -10%, rgba(216, 162, 76, 0.10), transparent 60%),
+                radial-gradient(700px 460px at -5% 0%, rgba(200, 95, 60, 0.07), transparent 55%),
+                var(--bg);
+            background-attachment: fixed;
+            color: var(--text);
             min-height: 100vh;
             line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* Header */
+        ::selection { background: rgba(216, 162, 76, 0.28); color: #fff; }
+
+        /* ===== Header ===== */
         .page-header {
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
-            border-bottom: 1px solid var(--border-color);
-            padding: 28px 32px;
+            border-bottom: 1px solid var(--line);
+            padding: 30px 32px 26px;
             position: sticky;
             top: 0;
             z-index: 100;
-            backdrop-filter: blur(12px);
+            background: linear-gradient(180deg, rgba(27, 21, 16, 0.96) 0%, rgba(22, 17, 13, 0.9) 100%);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+        }
+        .page-header::after {
+            content: '';
+            position: absolute;
+            left: 0; right: 0; bottom: -1px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--crema), transparent);
+            opacity: 0.55;
         }
 
         .header-content {
-            max-width: 1400px;
+            max-width: 1360px;
             margin: 0 auto;
             display: flex;
-            align-items: center;
+            align-items: flex-end;
             justify-content: space-between;
             flex-wrap: wrap;
-            gap: 16px;
+            gap: 18px;
         }
 
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
+        .header-left { display: flex; flex-direction: column; gap: 12px; }
 
         .back-btn {
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            gap: 6px;
-            padding: 8px 14px;
-            background: rgba(59, 130, 246, 0.1);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            color: var(--text-secondary);
+            gap: 7px;
+            padding: 6px 12px 6px 9px;
+            width: fit-content;
+            background: transparent;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            color: var(--text-2);
             text-decoration: none;
-            font-size: 13px;
-            transition: all 0.2s;
+            font-family: var(--font-mono);
+            font-size: 11.5px;
+            letter-spacing: 0.02em;
+            transition: all 0.2s ease;
             cursor: pointer;
         }
-
         .back-btn:hover {
-            background: rgba(59, 130, 246, 0.2);
-            border-color: var(--accent-blue);
-            color: var(--text-primary);
+            border-color: var(--crema);
+            color: var(--crema-2);
+            background: rgba(216, 162, 76, 0.06);
         }
+        .back-btn svg { width: 14px; height: 14px; }
 
-        .page-title {
+        .eyebrow {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            letter-spacing: 0.32em;
+            text-transform: uppercase;
+            color: var(--crema);
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 9px;
+        }
+        .eyebrow::before {
+            content: '';
+            width: 22px; height: 1px;
+            background: var(--crema);
+            opacity: 0.7;
         }
 
         .page-title h1 {
-            font-size: 22px;
-            font-weight: 700;
-            background: linear-gradient(135deg, #e2e8f0, #93c5fd);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            font-family: var(--font-kr);
+            font-size: 30px;
+            font-weight: 800;
+            letter-spacing: -0.01em;
+            color: var(--text);
+            line-height: 1.15;
         }
-
-        .page-title .badge {
-            font-size: 11px;
-            padding: 3px 10px;
-            background: rgba(59, 130, 246, 0.15);
-            border: 1px solid rgba(59, 130, 246, 0.3);
-            border-radius: 20px;
-            color: var(--accent-blue-light);
-            font-weight: 500;
-        }
+        .page-title h1 .accent { color: var(--crema-2); }
 
         /* Search */
-        .search-box {
-            position: relative;
-            width: 320px;
-        }
-
+        .search-box { position: relative; width: 340px; max-width: 100%; }
         .search-box input {
             width: 100%;
-            padding: 10px 16px 10px 40px;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            color: var(--text-primary);
-            font-family: 'Noto Sans KR', sans-serif;
+            padding: 12px 16px 12px 42px;
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            color: var(--text);
+            font-family: var(--font-kr);
             font-size: 14px;
             outline: none;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
         }
-
         .search-box input:focus {
-            border-color: var(--accent-blue);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            border-color: var(--crema);
+            box-shadow: 0 0 0 3px rgba(216, 162, 76, 0.13);
+            background: var(--surface-2);
         }
-
-        .search-box input::placeholder {
-            color: var(--text-muted);
-        }
-
+        .search-box input::placeholder { color: var(--text-3); }
         .search-icon {
-            position: absolute;
-            left: 12px;
-            top: 50%;
+            position: absolute; left: 14px; top: 50%;
             transform: translateY(-50%);
-            color: var(--text-muted);
+            color: var(--text-3);
             pointer-events: none;
         }
-
         .search-clear {
-            position: absolute;
-            right: 10px;
-            top: 50%;
+            position: absolute; right: 10px; top: 50%;
             transform: translateY(-50%);
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            cursor: pointer;
-            font-size: 16px;
-            display: none;
-            padding: 4px;
-            line-height: 1;
+            background: none; border: none;
+            color: var(--text-3);
+            cursor: pointer; font-size: 17px;
+            display: none; padding: 4px; line-height: 1;
         }
+        .search-clear.visible { display: block; }
+        .search-clear:hover { color: var(--text); }
 
-        .search-clear.visible {
-            display: block;
-        }
-
-        /* Category Filter Tabs */
+        /* ===== Filter Tabs ===== */
         .filter-bar {
-            max-width: 1400px;
-            margin: 24px auto 0;
+            max-width: 1360px;
+            margin: 26px auto 0;
             padding: 0 32px;
             display: flex;
-            gap: 10px;
+            gap: 9px;
             flex-wrap: wrap;
         }
-
         .filter-tab {
-            padding: 8px 20px;
-            border-radius: 24px;
+            padding: 8px 16px;
+            border-radius: 999px;
+            font-family: var(--font-lat);
             font-size: 13px;
             font-weight: 500;
-            border: 1px solid var(--border-color);
+            border: 1px solid var(--line);
             background: transparent;
-            color: var(--text-secondary);
+            color: var(--text-2);
             cursor: pointer;
-            transition: all 0.25s;
-            font-family: 'Noto Sans KR', sans-serif;
+            transition: all 0.22s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
         }
-
         .filter-tab:hover {
-            border-color: var(--accent-blue);
-            color: var(--text-primary);
-            background: rgba(59, 130, 246, 0.08);
+            border-color: var(--crema);
+            color: var(--text);
+            background: rgba(216, 162, 76, 0.06);
         }
-
         .filter-tab.active {
-            background: var(--accent-blue);
-            border-color: var(--accent-blue);
-            color: #fff;
+            background: var(--crema);
+            border-color: var(--crema);
+            color: #1a130a;
+            font-weight: 600;
         }
-
         .filter-tab .count {
-            display: inline-block;
-            margin-left: 6px;
-            padding: 1px 7px;
-            border-radius: 10px;
+            font-family: var(--font-mono);
             font-size: 11px;
-            background: rgba(255, 255, 255, 0.15);
+            padding: 1px 7px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.08);
+            color: inherit;
         }
+        .filter-tab.active .count { background: rgba(26, 19, 10, 0.18); }
 
-        .filter-tab.active .count {
-            background: rgba(255, 255, 255, 0.25);
+        /* ===== Info Banner ===== */
+        .info-banner { max-width: 1360px; margin: 22px auto 0; padding: 0 32px; }
+        .info-banner-inner {
+            background: linear-gradient(135deg, rgba(216, 162, 76, 0.08), rgba(216, 162, 76, 0.02));
+            border: 1px solid rgba(216, 162, 76, 0.18);
+            border-radius: 12px;
+            padding: 13px 18px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 13px;
+            color: var(--text-2);
         }
+        .info-banner-icon { flex-shrink: 0; width: 18px; height: 18px; color: var(--crema); }
+        .info-banner-inner a { color: var(--crema-2); text-decoration: none; border-bottom: 1px solid rgba(236, 196, 120, 0.35); }
+        .info-banner-inner a:hover { border-bottom-color: var(--crema-2); }
 
-        /* Main Content */
-        .main-content {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 28px 32px 60px;
-        }
+        /* ===== Main ===== */
+        .main-content { max-width: 1360px; margin: 0 auto; padding: 34px 32px 72px; }
 
-        /* Section */
-        .section {
-            margin-bottom: 40px;
-        }
+        .section { margin-bottom: 46px; }
+        .section:last-of-type { margin-bottom: 0; }
+        .section.original { --tint: var(--original); }
+        .section.vertuo   { --tint: var(--vertuo); }
+        .section.milk     { --tint: var(--milk); }
 
         .section-header {
             display: flex;
             align-items: center;
-            gap: 12px;
-            margin-bottom: 20px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid rgba(42, 58, 92, 0.5);
+            gap: 14px;
+            margin-bottom: 22px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--line);
+            position: relative;
         }
-
-        .section-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
+        .section-header::before {
+            content: '';
+            position: absolute;
+            left: 0; bottom: -1px;
+            width: 64px; height: 2px;
+            background: var(--tint);
+            border-radius: 2px;
+        }
+        .section-marker {
+            width: 13px; height: 22px;
+            border-radius: 4px;
+            background: var(--tint);
+            box-shadow: 0 0 14px -2px var(--tint);
             flex-shrink: 0;
         }
-
-        .section-dot.original { background: var(--accent-original); }
-        .section-dot.vertuo { background: var(--accent-vertuo); }
-        .section-dot.milk { background: var(--accent-milk); }
-
         .section-title {
-            font-size: 17px;
-            font-weight: 600;
-            color: var(--text-primary);
+            font-family: var(--font-kr);
+            font-size: 19px;
+            font-weight: 700;
+            color: var(--text);
         }
-
-        .section-count {
-            font-size: 12px;
-            color: var(--text-muted);
+        .section-meta {
             margin-left: auto;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--text-3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            letter-spacing: 0.06em;
         }
+        .section-meta .range-code {
+            color: var(--tint);
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+        .section-meta .sep { opacity: 0.4; }
 
-        /* Card Grid */
+        /* ===== Card Grid ===== */
         .card-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(228px, 1fr));
             gap: 16px;
         }
 
-        /* Machine Card */
         .machine-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
+            --tint: var(--crema);
+            position: relative;
+            background: var(--surface);
+            border: 1px solid var(--line);
             border-radius: var(--radius);
-            padding: 0;
+            padding: 20px 20px 18px;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             text-decoration: none;
             color: inherit;
             display: flex;
             flex-direction: column;
+            gap: 16px;
             overflow: hidden;
-            position: relative;
+            transition: transform 0.28s cubic-bezier(0.34, 1.3, 0.5, 1),
+                        border-color 0.28s ease,
+                        background 0.28s ease,
+                        box-shadow 0.28s ease;
         }
+        .machine-card.original { --tint: var(--original); }
+        .machine-card.vertuo   { --tint: var(--vertuo); }
+        .machine-card.milk     { --tint: var(--milk); }
 
-        .machine-card:hover {
-            border-color: var(--border-hover);
-            background: var(--bg-card-hover);
-            box-shadow: var(--shadow-card-hover);
-            transform: translateY(-3px);
-        }
-
-        .machine-card::after {
+        /* crema bar */
+        .machine-card::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
+            top: 0; left: 0; right: 0;
             height: 3px;
-            background: transparent;
-            transition: background 0.3s;
+            background: var(--tint);
+            transform: scaleX(0.28);
+            transform-origin: left;
+            opacity: 0.6;
+            transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.32s ease;
+        }
+        .machine-card:hover {
+            transform: translateY(-4px);
+            border-color: color-mix(in srgb, var(--tint) 55%, var(--line));
+            background: var(--surface-2);
+            box-shadow: 0 16px 34px -18px rgba(0, 0, 0, 0.75),
+                        0 0 0 1px color-mix(in srgb, var(--tint) 22%, transparent);
+        }
+        .machine-card:hover::before { transform: scaleX(1); opacity: 1; }
+        .machine-card:focus-visible {
+            outline: 2px solid var(--crema);
+            outline-offset: 2px;
         }
 
-        .machine-card.original:hover::after { background: var(--accent-original); }
-        .machine-card.vertuo:hover::after { background: var(--accent-vertuo); }
-        .machine-card.milk:hover::after { background: var(--accent-milk); }
-
-        .card-icon-area {
+        .card-top {
             display: flex;
             align-items: center;
-            justify-content: flex-end;
-            height: 36px;
-            background: linear-gradient(180deg, rgba(30, 42, 66, 0.5) 0%, transparent 100%);
-            position: relative;
-            padding: 0 10px;
+            justify-content: space-between;
         }
-
-        .card-type-badge {
+        .card-icon {
+            width: 44px; height: 44px;
+            border-radius: 11px;
+            display: grid;
+            place-items: center;
+            color: var(--tint);
+            background: color-mix(in srgb, var(--tint) 13%, transparent);
+            border: 1px solid color-mix(in srgb, var(--tint) 22%, transparent);
+            transition: transform 0.28s ease;
+        }
+        .machine-card:hover .card-icon { transform: rotate(-6deg) scale(1.04); }
+        .card-icon svg { width: 28px; height: 28px; }
+        .range-tag {
+            font-family: var(--font-mono);
             font-size: 10px;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.12em;
             text-transform: uppercase;
-            margin-top: 10px;
-        }
-
-        .card-type-badge.original {
-            background: rgba(192, 132, 252, 0.15);
-            color: var(--accent-original);
-            border: 1px solid rgba(192, 132, 252, 0.2);
-        }
-
-        .card-type-badge.vertuo {
-            background: rgba(52, 211, 153, 0.15);
-            color: var(--accent-vertuo);
-            border: 1px solid rgba(52, 211, 153, 0.2);
-        }
-
-        .card-type-badge.milk {
-            background: rgba(251, 146, 60, 0.15);
-            color: var(--accent-milk);
-            border: 1px solid rgba(251, 146, 60, 0.2);
-        }
-
-        .card-body {
-            padding: 16px 18px 18px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
+            color: var(--tint);
+            padding: 3px 8px;
+            border-radius: 6px;
+            background: color-mix(in srgb, var(--tint) 10%, transparent);
         }
 
         .card-name {
-            font-size: 15px;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 4px;
-            line-height: 1.4;
+            font-family: var(--font-kr);
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--text);
+            line-height: 1.35;
+            letter-spacing: -0.01em;
         }
 
-        .card-code {
-            font-size: 12px;
-            color: var(--text-muted);
-            font-family: 'Consolas', 'Monaco', monospace;
-            letter-spacing: 0.5px;
-            margin-bottom: 12px;
-        }
-
-        .card-link-hint {
+        .card-cta {
             margin-top: auto;
             display: flex;
             align-items: center;
-            gap: 6px;
-            font-size: 12px;
-            color: var(--accent-blue-light);
-            opacity: 0;
-            transform: translateX(-4px);
-            transition: all 0.3s;
+            gap: 7px;
+            font-family: var(--font-lat);
+            font-size: 12.5px;
+            font-weight: 500;
+            color: var(--text-2);
+            transition: color 0.24s ease, gap 0.24s ease;
         }
+        .machine-card:hover .card-cta { color: var(--tint); gap: 11px; }
+        .card-cta svg { width: 15px; height: 15px; transition: transform 0.24s ease; }
+        .machine-card:hover .card-cta svg { transform: translate(2px, -2px); }
 
-        .machine-card:hover .card-link-hint {
-            opacity: 1;
-            transform: translateX(0);
-        }
-
-        .card-link-hint svg {
-            width: 14px;
-            height: 14px;
-        }
-
-        /* No Results */
+        /* ===== No Results ===== */
         .no-results {
             display: none;
             text-align: center;
-            padding: 60px 20px;
-            color: var(--text-muted);
+            padding: 72px 20px;
+            color: var(--text-3);
         }
-
-        .no-results.visible {
-            display: block;
-        }
-
+        .no-results.visible { display: block; }
         .no-results-icon {
-            font-size: 48px;
-            margin-bottom: 16px;
-            opacity: 0.5;
+            width: 52px; height: 52px;
+            margin: 0 auto 18px;
+            color: var(--text-3);
+            opacity: 0.6;
         }
+        .no-results-text { font-size: 16px; font-weight: 600; color: var(--text-2); margin-bottom: 6px; }
+        .no-results-sub { font-size: 13px; }
 
-        .no-results-text {
-            font-size: 15px;
-            margin-bottom: 8px;
-        }
-
-        .no-results-sub {
-            font-size: 13px;
-            color: var(--text-muted);
-        }
-
-        /* Info Banner */
-        .info-banner {
-            max-width: 1400px;
-            margin: 20px auto 0;
-            padding: 0 32px;
-        }
-
-        .info-banner-inner {
-            background: linear-gradient(135deg, rgba(30, 58, 95, 0.4) 0%, rgba(37, 99, 235, 0.08) 100%);
-            border: 1px solid rgba(59, 130, 246, 0.15);
-            border-radius: 10px;
-            padding: 14px 20px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 13px;
-            color: var(--text-secondary);
-        }
-
-        .info-banner-icon {
-            flex-shrink: 0;
-            width: 20px;
-            height: 20px;
-            color: var(--accent-blue-light);
-        }
-
-        .info-banner-inner a {
-            color: var(--accent-blue-light);
-            text-decoration: none;
-        }
-
-        .info-banner-inner a:hover {
-            text-decoration: underline;
-        }
-
-        /* Responsive */
+        /* ===== Responsive ===== */
         @media (max-width: 768px) {
-            .page-header { padding: 20px 16px; }
-            .header-content { flex-direction: column; align-items: flex-start; }
+            .page-header { padding: 22px 18px 20px; }
+            .header-content { align-items: stretch; }
             .search-box { width: 100%; }
-            .filter-bar { padding: 0 16px; margin-top: 16px; }
-            .main-content { padding: 20px 16px 40px; }
-            .info-banner { padding: 0 16px; }
-            .card-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
-            .page-title h1 { font-size: 18px; }
+            .page-title h1 { font-size: 24px; }
+            .filter-bar { padding: 0 18px; margin-top: 18px; }
+            .info-banner { padding: 0 18px; }
+            .main-content { padding: 26px 18px 52px; }
+            .card-grid { grid-template-columns: repeat(auto-fill, minmax(158px, 1fr)); gap: 12px; }
         }
-
         @media (max-width: 480px) {
-            .card-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-            .card-body { padding: 12px 14px 14px; }
-            .card-name { font-size: 13px; }
+            .card-grid { grid-template-columns: repeat(2, 1fr); gap: 11px; }
+            .machine-card { padding: 15px 15px 14px; gap: 12px; }
+            .card-name { font-size: 15px; }
+            .card-icon { width: 38px; height: 38px; }
+            .card-icon svg { width: 25px; height: 25px; }
+            .section-title { font-size: 17px; }
         }
 
-        /* Animation */
-        .section {
-            animation: fadeInUp 0.4s ease-out backwards;
+        /* ===== Motion ===== */
+        .section { animation: rise 0.5s ease-out backwards; }
+        .section:nth-of-type(2) { animation-delay: 0.08s; }
+        .section:nth-of-type(3) { animation-delay: 0.16s; }
+        .machine-card { animation: rise 0.42s ease-out backwards; }
+        @keyframes rise {
+            from { opacity: 0; transform: translateY(14px); }
+            to   { opacity: 1; transform: translateY(0); }
         }
-
-        .section:nth-child(2) { animation-delay: 0.1s; }
-        .section:nth-child(3) { animation-delay: 0.2s; }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(16px);
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
             }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .machine-card {
-            animation: cardFadeIn 0.3s ease-out backwards;
-        }
-
-        @keyframes cardFadeIn {
-            from { opacity: 0; transform: scale(0.96); }
-            to { opacity: 1; transform: scale(1); }
+            .machine-card:hover { transform: none; }
         }
     </style>
 </head>
@@ -507,18 +464,18 @@
         <div class="header-content">
             <div class="header-left">
                 <a class="back-btn" onclick="history.back()">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
-                    돌아가기
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+                    BACK
                 </a>
                 <div class="page-title">
-                    <h1>머신 사용법 안내</h1>
-                    <span class="badge">네스프레소 공식</span>
+                    <span class="eyebrow">Nespresso · 공식 가이드</span>
+                    <h1>머신 <span class="accent">사용법</span> 안내</h1>
                 </div>
             </div>
             <div class="search-box">
                 <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                <input type="text" id="searchInput" placeholder="머신명 또는 모델코드 검색..." autocomplete="off">
-                <button class="search-clear" id="searchClear">&times;</button>
+                <input type="text" id="searchInput" placeholder="머신명 검색..." autocomplete="off">
+                <button class="search-clear" id="searchClear" aria-label="검색어 지우기">&times;</button>
             </div>
         </div>
     </header>
@@ -527,7 +484,7 @@
     <div class="info-banner">
         <div class="info-banner-inner">
             <svg class="info-banner-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-            <span>각 머신 카드를 클릭하면 <a href="https://www.nespresso.com/kr/ko/technical-support-usage" target="_blank">네스프레소 공식 기술지원</a> 페이지의 해당 머신 사용법으로 이동합니다.</span>
+            <span>각 머신 카드를 클릭하면 <a href="https://www.nespresso.com/kr/ko/technical-support-usage" target="_blank" rel="noopener">네스프레소 공식 기술지원</a> 페이지의 해당 머신 사용법으로 이동합니다.</span>
         </div>
     </div>
 
@@ -543,38 +500,38 @@
     <div class="main-content">
 
         <!-- 오리지널 머신 -->
-        <div class="section" data-category="original" id="sectionOriginal">
+        <div class="section original" data-category="original" id="sectionOriginal">
             <div class="section-header">
-                <div class="section-dot original"></div>
+                <span class="section-marker"></span>
                 <h2 class="section-title">오리지널 머신</h2>
-                <span class="section-count" id="originalCount"></span>
+                <span class="section-meta"><span class="range-code">Original</span><span class="sep">/</span><span id="originalCount"></span></span>
             </div>
             <div class="card-grid" id="gridOriginal"></div>
         </div>
 
         <!-- 버츄오 머신 -->
-        <div class="section" data-category="vertuo" id="sectionVertuo">
+        <div class="section vertuo" data-category="vertuo" id="sectionVertuo">
             <div class="section-header">
-                <div class="section-dot vertuo"></div>
+                <span class="section-marker"></span>
                 <h2 class="section-title">버츄오 머신</h2>
-                <span class="section-count" id="vertuoCount"></span>
+                <span class="section-meta"><span class="range-code">Vertuo</span><span class="sep">/</span><span id="vertuoCount"></span></span>
             </div>
             <div class="card-grid" id="gridVertuo"></div>
         </div>
 
         <!-- 밀크 디바이스 -->
-        <div class="section" data-category="milk" id="sectionMilk">
+        <div class="section milk" data-category="milk" id="sectionMilk">
             <div class="section-header">
-                <div class="section-dot milk"></div>
+                <span class="section-marker"></span>
                 <h2 class="section-title">밀크 디바이스</h2>
-                <span class="section-count" id="milkCount"></span>
+                <span class="section-meta"><span class="range-code">Milk</span><span class="sep">/</span><span id="milkCount"></span></span>
             </div>
             <div class="card-grid" id="gridMilk"></div>
         </div>
 
         <!-- No Results -->
         <div class="no-results" id="noResults">
-            <div class="no-results-icon">—</div>
+            <svg class="no-results-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
             <div class="no-results-text">검색 결과가 없습니다</div>
             <div class="no-results-sub">다른 키워드로 검색해 보세요</div>
         </div>
@@ -594,6 +551,7 @@
             { name: '크리아티스타 플러스', category: 'original', link: 'https://www.nespresso.com/kr/ko/technical-support-usage#!/Creatista/instructions' },
 
             // 버츄오 머신
+            { name: '버츄오 업', category: 'vertuo', link: 'https://www.nespresso.com/kr/ko/technical-support-usage#!/Vertuo-Up/instructions' },
             { name: '버츄오 팝', category: 'vertuo', link: 'https://www.nespresso.com/kr/ko/technical-support-usage#!/Vertuo-POP/instructions' },
             { name: '버츄오 팝+', category: 'vertuo', link: 'https://www.nespresso.com/kr/ko/technical-support-usage#!/Vertuo-POP-Plus/instructions' },
             { name: '버츄오 플러스', category: 'vertuo', link: 'https://www.nespresso.com/kr/ko/technical-support-usage#!/VertuoPlus/instructions' },
@@ -608,6 +566,36 @@
             { name: '나모포머', category: 'milk', link: 'https://www.nespresso.com/kr/ko/technical-support-usage#!/Nano-Foamer/instructions' },
         ];
 
+        // ===== Icons =====
+        // 오리지널 캡슐 — 인트로 애니메이션 도형과 동일
+        const ICON_ORIGINAL = '<svg viewBox="96 56 64 64" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+            '<ellipse cx="128" cy="104" rx="29" ry="6"/>' +
+            '<path d="M102 104 A26 6 0 0 0 154 104"/>' +
+            '<path d="M102 104 L111 71"/>' +
+            '<path d="M145 71 L154 104"/>' +
+            '<ellipse cx="128" cy="71" rx="17" ry="5"/>' +
+            '<ellipse cx="128" cy="69.5" rx="6" ry="2.2" stroke-width="1.6"/>' +
+            '<path d="M115 74 L108 99 M119 75.5 L113 100 M123 76 L118 100" stroke-width="1" opacity=".5"/>' +
+            '</svg>';
+
+        // 버츄오 캡슐 — 인트로 애니메이션 도형과 동일 (선 굵기만 크기 비율 보정)
+        const ICON_VERTUO = '<svg viewBox="165 39 100 100" fill="none" stroke="currentColor" stroke-width="3.1" stroke-linecap="round" stroke-linejoin="round">' +
+            '<path d="M176 104 A39 39 0 0 1 254 104"/>' +
+            '<ellipse cx="215" cy="104" rx="46" ry="8.5"/>' +
+            '<ellipse cx="215" cy="104" rx="40" ry="7.2" stroke-width="2.2" opacity=".8"/>' +
+            '<path d="M215 66 L215 103 M201 68 Q195 88 191 102 M229 68 Q235 88 239 102 M188 74 Q179 90 177 100 M242 74 Q251 90 253 100" stroke-width="2.35" opacity=".85"/>' +
+            '<path d="M261 104 L255 104 M260.3 105.5 L254.4 105.3 M258.2 106.9 L252.6 106.5 M254.8 108.3 L249.6 107.6 M250.2 109.5 L245.6 108.6 M244.6 110.5 L240.7 109.5 M238 111.4 L235 110.2 M230.7 112 L228.7 110.8 M223 112.4 L222 111.1 M215 112.5 L215 111.2 M207 112.4 L208 111.1 M199.3 112 L201.3 110.8 M192 111.4 L195 110.2 M185.4 110.5 L189.3 109.5 M179.8 109.5 L184.4 108.6 M175.2 108.3 L180.4 107.6 M171.8 106.9 L177.4 106.5 M169.7 105.5 L175.6 105.3 M169 104 L175 104" stroke-width="2.5"/>' +
+            '</svg>';
+
+        // 밀크 디바이스 — 게이블탑 우유팩 (동일 라인아트 스타일)
+        const ICON_MILK = '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+            '<path d="M15 27 L15 52 A3 3 0 0 0 18 55 L46 55 A3 3 0 0 0 49 52 L49 27"/>' +
+            '<path d="M15 27 L24 14 L40 14 L49 27 Z"/>' +
+            '<path d="M24 14 L24 9 L40 9 L40 14"/>' +
+            '<path d="M15 40 L49 40" stroke-width="1" opacity=".5"/>' +
+            '</svg>';
+        const ARROW = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg>';
+
         // ===== Render Cards =====
         function createCard(machine) {
             const card = document.createElement('a');
@@ -618,25 +606,21 @@
             card.dataset.name = machine.name.toLowerCase();
             card.dataset.category = machine.category;
 
-            const categoryLabel = { original: 'OL', vertuo: 'VL', milk: 'MILK' };
+            const rangeLabel = { original: 'Original', vertuo: 'Vertuo', milk: 'Milk' };
+            const iconMap = { original: ICON_ORIGINAL, vertuo: ICON_VERTUO, milk: ICON_MILK };
+            const icon = iconMap[machine.category];
 
             card.innerHTML = `
-                <div class="card-icon-area">
-                    <span class="card-type-badge ${machine.category}">${categoryLabel[machine.category]}</span>
+                <div class="card-top">
+                    <span class="card-icon">${icon}</span>
+                    <span class="range-tag">${rangeLabel[machine.category]}</span>
                 </div>
-                <div class="card-body">
-                    <div class="card-name">${machine.name}</div>
-                    <div class="card-link-hint">
-                        <span>사용법 보기</span>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                    </div>
-                </div>
+                <div class="card-name">${machine.name}</div>
+                <div class="card-cta"><span>사용법 보기</span>${ARROW}</div>
             `;
 
-            // Apply staggered animation
             const index = machines.indexOf(machine);
             card.style.animationDelay = `${(index % 12) * 0.03}s`;
-
             return card;
         }
 
@@ -646,13 +630,8 @@
                 vertuo: document.getElementById('gridVertuo'),
                 milk: document.getElementById('gridMilk'),
             };
-
             Object.values(grids).forEach(g => g.innerHTML = '');
-
-            machines.forEach(m => {
-                grids[m.category].appendChild(createCard(m));
-            });
-
+            machines.forEach(m => grids[m.category].appendChild(createCard(m)));
             updateCounts();
         }
 
@@ -665,14 +644,13 @@
             document.getElementById('countVertuo').textContent = counts.vertuo;
             document.getElementById('countMilk').textContent = counts.milk;
 
-            document.getElementById('originalCount').textContent = `${counts.original}개 머신`;
-            document.getElementById('vertuoCount').textContent = `${counts.vertuo}개 머신`;
-            document.getElementById('milkCount').textContent = `${counts.milk}개 제품`;
+            document.getElementById('originalCount').textContent = `${counts.original}대`;
+            document.getElementById('vertuoCount').textContent = `${counts.vertuo}대`;
+            document.getElementById('milkCount').textContent = `${counts.milk}개`;
         }
 
         // ===== Filter =====
         let currentFilter = 'all';
-
         document.querySelectorAll('.filter-tab').forEach(tab => {
             tab.addEventListener('click', () => {
                 document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
@@ -685,12 +663,10 @@
         // ===== Search =====
         const searchInput = document.getElementById('searchInput');
         const searchClear = document.getElementById('searchClear');
-
         searchInput.addEventListener('input', () => {
             searchClear.classList.toggle('visible', searchInput.value.length > 0);
             applyFilters();
         });
-
         searchClear.addEventListener('click', () => {
             searchInput.value = '';
             searchClear.classList.remove('visible');
@@ -706,25 +682,17 @@
 
             cards.forEach(card => {
                 const matchCategory = currentFilter === 'all' || card.dataset.category === currentFilter;
-                const matchSearch = !query || 
-                    card.dataset.name.includes(query);
-
+                const matchSearch = !query || card.dataset.name.includes(query);
                 const visible = matchCategory && matchSearch;
                 card.style.display = visible ? '' : 'none';
-
-                if (visible) {
-                    visibleCounts[card.dataset.category]++;
-                    totalVisible++;
-                }
+                if (visible) { visibleCounts[card.dataset.category]++; totalVisible++; }
             });
 
-            // Show/hide sections
             ['original', 'vertuo', 'milk'].forEach(cat => {
                 const section = document.querySelector(`.section[data-category="${cat}"]`);
                 section.style.display = visibleCounts[cat] > 0 ? '' : 'none';
             });
 
-            // No results
             document.getElementById('noResults').classList.toggle('visible', totalVisible === 0);
         }
 
