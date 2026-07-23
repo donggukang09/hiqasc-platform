@@ -227,7 +227,12 @@ const MODELS = [
 
   document.getElementById('procImg').src='data:image/jpeg;base64,'+IMG[2];
 
-  select(0);
+  // 딥링크: guide-cleanup-service.html?m=vertuo-up  (또는 #vertuo-up)
+  var norm=function(s){ return decodeURIComponent(s||'').toLowerCase().replace(/[^a-z0-9]/g,''); };
+  var key=norm(new URLSearchParams(location.search).get('m') || location.hash.replace('#',''));
+  var idx=key ? MODELS.findIndex(function(m){ return norm(m.name)===key; }) : -1;
+
+  select(idx>-1 ? idx : 0);
 })();
 </script>
 
