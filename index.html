@@ -1210,6 +1210,75 @@
             .machine-text h3 { font-size: 14px; }
             .machine-cta { display: none; }
         }
+
+        /* ============================================ */
+        /* 부품 입력 오류 검출 배너 */
+        /* ============================================ */
+        .audit-banner {
+            margin: 0 auto 24px;
+            width: calc(100% - 60px); max-width: 1140px;
+            background: #353535;
+            border: 1px solid #4a4a4a;
+            border-radius: 16px;
+            padding: 18px 28px;
+            display: flex; align-items: center; gap: 18px;
+            cursor: pointer; transition: all 0.25s ease;
+        }
+        .audit-banner:hover {
+            border-color: #56c596;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 28px rgba(86, 197, 150, 0.18);
+        }
+        .audit-icon-wrap {
+            width: 48px; height: 48px;
+            background: rgba(86, 197, 150, 0.12); border: 2px solid rgba(86, 197, 150, 0.3);
+            border-radius: 13px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px; flex-shrink: 0;
+        }
+        .audit-text { flex: 1; }
+        .audit-text h3 { font-size: 15px; font-weight: 800; color: #56c596; margin: 0 0 4px; }
+        .audit-text p { font-size: 13.5px; color: #aaa; margin: 0; }
+        .audit-cta {
+            background: rgba(86, 197, 150, 0.12); color: #56c596; border: 1px solid rgba(86, 197, 150, 0.3);
+            font-size: 12px; font-weight: 700; padding: 6px 14px; border-radius: 20px; flex-shrink: 0;
+        }
+        .audit-arrow { font-size: 18px; color: #56c596; flex-shrink: 0; transition: transform 0.25s; }
+        .audit-banner:hover .audit-arrow { transform: translateX(4px); }
+        @media (max-width: 600px) {
+            .audit-banner { padding: 16px 18px; gap: 12px; }
+            .audit-text h3 { font-size: 14px; }
+            .audit-cta { display: none; }
+        }
+
+        /* ============================================ */
+        /* 바로가기 2열 행 (배너 그룹) */
+        /* ============================================ */
+        .banner-row {
+            margin: 0 auto 24px;
+            width: calc(100% - 60px); max-width: 1140px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+            align-items: stretch;
+        }
+        /* 행 안에서는 배너가 셀 전체를 채우도록 개별 여백·폭 해제 */
+        .banner-row > * {
+            width: 100%;
+            max-width: none;
+            margin: 0;
+        }
+        /* 2열에서는 설명 문구가 길어 CTA 배지는 숨김 */
+        .banner-row .repaircode-cta,
+        .banner-row .tips-cta,
+        .banner-row .machine-cta,
+        .banner-row .audit-cta { display: none; }
+
+        @media (max-width: 900px) {
+            .banner-row { grid-template-columns: 1fr; gap: 0; }
+            .banner-row > * { margin-bottom: 24px; }
+            .banner-row > *:last-child { margin-bottom: 0; }
+        }
     </style>
     <script>
     // 즉시 실행 — 인증 상태면 로그인 화면 깜빡임 방지
@@ -1495,42 +1564,53 @@
         </div>
 
         <!-- ============================================ -->
-        <!-- REPAIR CODE SEARCH BANNER -->
+        <!-- 바로가기 1행: 리페어 코드 검색 · 업무 팁 검색 -->
         <!-- ============================================ -->
-        <div class="repaircode-banner" onclick="goTeam('repair-code-search.html')">
-            <div class="repaircode-icon-wrap">🔎</div>
-            <div class="repaircode-text">
-                <h3>리페어 코드 검색</h3>
-                <p>증상·키워드로 리페어 코드를 바로 찾아보세요 (B2C · B2B · Milk Device)</p>
+        <div class="banner-row">
+            <div class="repaircode-banner" onclick="goTeam('repair-code-search.html')">
+                <div class="repaircode-icon-wrap">🔎</div>
+                <div class="repaircode-text">
+                    <h3>리페어 코드 검색</h3>
+                    <p>증상·키워드로 리페어 코드 즉시 검색</p>
+                </div>
+                <div class="repaircode-cta">검색하기</div>
+                <div class="repaircode-arrow">→</div>
             </div>
-            <div class="repaircode-cta">검색하기</div>
-            <div class="repaircode-arrow">→</div>
+
+            <div class="tips-banner" onclick="goTeam('tips-search.html')">
+                <div class="tips-icon-wrap">💡</div>
+                <div class="tips-text">
+                    <h3>업무 팁 검색</h3>
+                    <p>수리 업무·시스템 사용법 팁 검색</p>
+                </div>
+                <div class="tips-cta">검색하기</div>
+                <div class="tips-arrow">→</div>
+            </div>
         </div>
 
         <!-- ============================================ -->
-        <!-- TIPS SEARCH BANNER -->
+        <!-- 바로가기 2행: 머신 사용법 안내 · 부품 입력 오류 검출 -->
         <!-- ============================================ -->
-        <div class="tips-banner" onclick="goTeam('tips-search.html')">
-            <div class="tips-icon-wrap">💡</div>
-            <div class="tips-text">
-                <h3>업무 팁 검색</h3>
-                <p>수리 업무, 시스템 사용법 관련 키워드로 팁을 찾아보세요</p>
+        <div class="banner-row">
+            <div class="machine-banner" onclick="goTeam('nespresso-machine-guide.html')">
+                <div class="machine-icon-wrap">☕</div>
+                <div class="machine-text">
+                    <h3>머신 사용법 안내</h3>
+                    <p>오리지널·버츄오·밀크 디바이스 모델별 가이드</p>
+                </div>
+                <div class="machine-cta">보러가기</div>
+                <div class="machine-arrow">→</div>
             </div>
-            <div class="tips-cta">검색하기</div>
-            <div class="tips-arrow">→</div>
-        </div>
 
-        <!-- ============================================ -->
-        <!-- MACHINE GUIDE BANNER -->
-        <!-- ============================================ -->
-        <div class="machine-banner" onclick="goTeam('nespresso-machine-guide.html')">
-            <div class="machine-icon-wrap">☕</div>
-            <div class="machine-text">
-                <h3>머신 사용법 안내</h3>
-                <p>오리지널·버츄오·밀크 디바이스 모델별 공식 사용법 바로가기</p>
+            <div class="audit-banner" onclick="goTeam('repair-error-audit.html')">
+                <div class="audit-icon-wrap">🩺</div>
+                <div class="audit-text">
+                    <h3>부품 입력 오류 검출</h3>
+                    <p>부품·리페어코드 불일치 자동 탐지</p>
+                </div>
+                <div class="audit-cta">검출하기</div>
+                <div class="audit-arrow">→</div>
             </div>
-            <div class="machine-cta">보러가기</div>
-            <div class="machine-arrow">→</div>
         </div>
 
         <!-- ============================================ -->
