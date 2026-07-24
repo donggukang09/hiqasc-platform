@@ -1730,10 +1730,10 @@
                         <div class="workspace-item-name">창고 대시보드</div>
                         <div class="workspace-item-desc">창고 사용 현황<br>실시간 모니터링</div>
                     </div>
-                    <div class="workspace-item" onclick="goTeam('consumables-inventory.html')">
+                    <div class="workspace-item" onclick="goTeam('supplies-hub.html')">
                         <div class="workspace-item-icon">🧰</div>
-                        <div class="workspace-item-name">소모품 재고</div>
-                        <div class="workspace-item-desc">실시간 소모품<br>재고 현황 조회</div>
+                        <div class="workspace-item-name">소모품 신청 및 재고</div>
+                        <div class="workspace-item-desc">소모품 신청 및<br>실시간 재고 현황 조회</div>
                     </div>
                     <div class="workspace-item" onclick="goTeam('parts-search.html')">
                         <div class="workspace-item-icon">🔍</div>
@@ -1893,7 +1893,7 @@
             { name: '재입고 분석', icon: '🔄', desc: '재입고 현황 및 원인 분석 대시보드', url: 'reinput-analysis-v2.html', team: '데이터 센터', badge: 'data', iconClass: 'team-data', keywords: '재입고,reinput,재수리,반복,분석,원인' },
             // === index.html — 재고 관리 센터 ===
             { name: '창고 대시보드', icon: '🏭', desc: '창고 사용 현황 실시간 모니터링', url: 'warehouse-dashboard.html', team: '재고 관리', badge: 'inventory', iconClass: 'team-inventory', keywords: '창고,warehouse,사용현황' },
-            { name: '소모품 재고', icon: '🧰', desc: '실시간 소모품 재고 현황 조회', url: 'consumables-inventory.html', team: '재고 관리', badge: 'inventory', iconClass: 'team-inventory', keywords: '소모품,재고,consumables,inventory' },
+            { name: '소모품 신청 및 재고', icon: '🧰', desc: '소모품 신청 및 실시간 재고 현황 조회', url: 'supplies-hub.html', team: '재고 관리', badge: 'inventory', iconClass: 'team-inventory', keywords: '소모품,신청,재고,리스트,supplies,request,consumables,inventory' },
             { name: '부품 검색', icon: '🔍', desc: '부품 위치 검색 에어리어 맵 안내', url: 'parts-search.html', team: '재고 관리', badge: 'inventory', iconClass: 'team-inventory', keywords: '부품,검색,위치,에어리어,맵,parts,search' },
             { name: '부품 입력 오류 검출', icon: '🩺', desc: '부품/리페어코드 불일치 자동 탐지', url: 'repair-error-audit.html', team: '재고 관리', badge: 'inventory', iconClass: 'team-inventory', keywords: '오류,검출,수리,부품,리페어코드,NTF,미입력,오입력,audit,error,qc' },
             // === index.html — 업무 지원 센터 ===
@@ -1922,7 +1922,6 @@
             { name: '통화요청 관리 시스템', icon: '📊', desc: '통화요청 현황 조회 및 관리', url: 'https://script.google.com/macros/s/AKfycbzQ5ROrUuCrBRU24UN__FuD94UJnVgiZRDozlGF7OOc8cGmsppvbqXbz8u0G5WqkglR0A/exec', team: 'AS Team', badge: 'as', iconClass: 'team-as', external: true, keywords: '통화요청,관리,콜,call,management' },
             { name: '문서 출력 시스템', icon: '🖨️', desc: '보상판매 문서 생성 및 출력', url: 'document-output-main.html', team: 'AS Team', badge: 'as', iconClass: 'team-as', keywords: '문서,출력,보상판매,document,output' },
             { name: '알림 시스템', icon: '🔔', desc: '긴급 알림 팝업 출력', url: 'alert-system.html', team: 'AS Team', badge: 'as', iconClass: 'team-as', keywords: '알림,알람,팝업,alert,notification' },
-            { name: '소모품 신청', icon: '🎁', desc: '필요한 소모품 신청 및 관리', url: 'supplies-request.html', team: 'AS Team', badge: 'as', iconClass: 'team-as', keywords: '소모품,신청,supplies,request' },
             { name: '소모품 재고 리스트', icon: '📦', desc: '실시간 소모품 재고 현황 조회', url: 'consumables-inventory.html', team: 'AS Team', badge: 'as', iconClass: 'team-as', keywords: '소모품,재고,리스트,consumables' },
             // === as-team.html — 정보 관리 ===
             { name: '위키 시스템', icon: '📚', desc: '수리 매뉴얼, 증상별 해결 방법', url: 'wiki-system.html', team: 'AS Team', badge: 'as', iconClass: 'team-as', keywords: '위키,매뉴얼,증상,해결,wiki' },
