@@ -44,6 +44,14 @@
             text-align: center; outline: none; transition: border-color 0.3s;
         }
         .name-input:focus { border-color: var(--accent); }
+        .name-input.locked {
+            border-color: var(--accent); color: var(--accent); font-weight: 700;
+            cursor: default; opacity: 0.95;
+        }
+        .name-hint {
+            display: none; font-size: 0.82em; color: var(--text2);
+            margin: -12px 0 18px; text-align: center;
+        }
 
         /* 퀴즈 화면 */
         .quiz-screen { display: none; }
@@ -153,10 +161,11 @@
         <h2>📝 HIQASC 업무 퀴즈</h2>
         <p>
             네스프레소 AS 업무 관련 퀴즈입니다<br>
-            4지선다 · 문제당 10초 제한<br>
+            4지선다 · 문제당 30초 제한<br>
             도전해보세요! 🏆
         </p>
         <input class="name-input" id="playerName" placeholder="이름을 입력하세요" maxlength="10">
+        <div class="name-hint" id="nameHint"></div>
         <br>
         <button class="start-btn" onclick="startQuiz()">퀴즈 시작!</button>
         <div class="ranking-section" id="startRanking">
@@ -178,7 +187,7 @@
                     <circle class="timer-bg" cx="30" cy="30" r="26"/>
                     <circle class="timer-fill" id="timerFill" cx="30" cy="30" r="26"/>
                 </svg>
-                <div class="timer-text" id="timerText">10</div>
+                <div class="timer-text" id="timerText">30</div>
             </div>
         </div>
         <div class="question-card">
@@ -215,9 +224,9 @@
 const QUIZ_SHEET_ID = '1Lq551ZVQjhSlDThkBG1pEllfNKegtYZSFClvVbuma6U';
 const QUIZ_TAB = '퀴즈';
 const RANKING_TAB = '랭킹';
-// Apps Script URL — 랭킹 저장용 (배포 후 여기에 붙여넣기)
-const RANKING_SCRIPT_URL = '';
-const TIME_LIMIT = 10; // 문제당 초
+// Apps Script URL — 랭킹 저장용
+const RANKING_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwEZR81fDc5wb8sOulY7vuL5-y8G-VduaLYypCxjEUJm-SmXDumm9bbhuTB_9_dqju5cQ/exec';
+const TIME_LIMIT = 30; // 문제당 초
 const TIMER_CIRCUMFERENCE = 163; // 2 * PI * 26
 
 // ============================================
@@ -522,9 +531,10 @@ function saveRanking(score, total, time) {
     };
 
     if (RANKING_SCRIPT_URL) {
+        // mode:'no-cors' 에서는 Content-Type 헤더가 허용되지 않으므로 지정하지 않음
+        // (Apps Script 는 e.postData.contents 로 본문을 그대로 읽음)
         fetch(RANKING_SCRIPT_URL, {
             method: 'POST', mode: 'no-cors',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(record)
         }).then(function() {
             setTimeout(function() { loadRanking('resultRankingList'); }, 1500);
@@ -546,14 +556,39 @@ function goHome() {
 // ============================================
 loadRanking('startRankingList');
 
-// 이전 이름 복원
-var savedName = localStorage.getItem('quiz_player_name');
-if (savedName) document.getElementById('playerName').value = savedName;
+// ============================================
+// 이름 설정 — 로그인 정보 연동
+// index.html 로그인 시 sessionStorage 에 userName 이 저장됨
+// (같은 사이트이므로 별도 로그인 없이 그대로 사용 가능)
+// ============================================
+(function initPlayerName() {
+    var input = document.getElementById('playerName');
+    var hint  = document.getElementById('nameHint');
+    var isAuthed  = sessionStorage.getItem('hiqasc_authenticated') === 'true';
+    var isAdmin   = sessionStorage.getItem('hiqasc_isAdmin') === 'true';
+    var loginName = sessionStorage.getItem('userName');
 
-// 이름 저장
-document.getElementById('playerName').addEventListener('change', function() {
-    localStorage.setItem('quiz_player_name', this.value);
-});
+    if (isAuthed && loginName && !isAdmin) {
+        // 개인 PIN 로그인 → 본인 이름 고정 (대리 응시 방지)
+        input.value = loginName;
+        input.readOnly = true;
+        input.classList.add('locked');
+        hint.textContent = '🔒 로그인 정보로 자동 입력되었습니다';
+        hint.style.display = 'block';
+        return;
+    }
+
+    // 관리자 계정이거나 비로그인 상태 → 직접 입력
+    var savedName = localStorage.getItem('quiz_player_name');
+    if (savedName) input.value = savedName;
+    if (isAdmin) {
+        hint.textContent = '관리자 계정입니다. 랭킹에 기록할 이름을 입력하세요.';
+        hint.style.display = 'block';
+    }
+    input.addEventListener('change', function() {
+        localStorage.setItem('quiz_player_name', this.value);
+    });
+})();
 </script>
 </body>
 </html>
