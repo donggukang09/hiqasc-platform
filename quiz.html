@@ -162,6 +162,7 @@
         <p>
             네스프레소 AS 업무 관련 퀴즈입니다<br>
             4지선다 · 문제당 30초 제한<br>
+            <strong>1인 1회만 응시 가능</strong>합니다<br>
             도전해보세요! 🏆
         </p>
         <input class="name-input" id="playerName" placeholder="이름을 입력하세요" maxlength="10">
@@ -208,7 +209,7 @@
             <div><div class="result-stat-value" id="resultWrong">0</div>오답</div>
             <div><div class="result-stat-value" id="resultTime">0초</div>소요시간</div>
         </div>
-        <button class="start-btn" onclick="startQuiz()" style="margin-top:16px">다시 도전!</button>
+        <button class="start-btn" id="retryBtn" onclick="startQuiz()" style="margin-top:16px">다시 도전!</button>
         <button class="start-btn" onclick="goHome()" style="margin-top:10px;background:#555">메인으로</button>
         <div class="ranking-section">
             <div class="ranking-title">🏆 TOP 10 랭킹</div>
@@ -227,6 +228,12 @@ const RANKING_TAB = '랭킹';
 // Apps Script URL — 랭킹 저장용
 const RANKING_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwEZR81fDc5wb8sOulY7vuL5-y8G-VduaLYypCxjEUJm-SmXDumm9bbhuTB_9_dqju5cQ/exec';
 const TIME_LIMIT = 30; // 문제당 초
+
+// ── 응시 횟수 제한 (Apps Script 의 동일 설정과 맞춰주세요) ──
+// ONE_ATTEMPT_ONLY : true = 1인 1회 제한
+// ATTEMPT_PERIOD   : 'once' = 1회만 / 'daily' = 하루 1회
+const ONE_ATTEMPT_ONLY = true;
+const ATTEMPT_PERIOD   = 'once';
 const TIMER_CIRCUMFERENCE = 163; // 2 * PI * 26
 
 // ============================================
@@ -332,12 +339,81 @@ function loadRanking(targetEl) {
 }
 
 // ============================================
+// 응시 이력 확인 (시작 전 차단 — 최종 차단은 Apps Script)
+// ============================================
+function todayStr() {
+    var d = new Date();
+    return d.getFullYear() + '-' +
+           ('0' + (d.getMonth() + 1)).slice(-2) + '-' +
+           ('0' + d.getDate()).slice(-2);
+}
+
+// '2026. 7. 24', 'Date(2026,6,24)' 등을 YYYY-MM-DD 로 통일
+function normalizeDate(cell) {
+    if (!cell) return '';
+    var v = String(cell.f || cell.v || '');
+    var dm = v.match(/^Date\((\d+),(\d+),(\d+)/);
+    if (dm) {
+        return dm[1] + '-' + ('0' + (parseInt(dm[2], 10) + 1)).slice(-2) +
+                       '-' + ('0' + parseInt(dm[3], 10)).slice(-2);
+    }
+    var m = v.match(/(\d{4})\D+(\d{1,2})\D+(\d{1,2})/);
+    if (m) return m[1] + '-' + ('0' + m[2]).slice(-2) + '-' + ('0' + m[3]).slice(-2);
+    return v.trim();
+}
+
+function checkAlreadyPlayed(name, callback) {
+    if (!ONE_ATTEMPT_ONLY) { callback(false); return; }
+
+    var safe = name.replace(/'/g, "''");
+    var query = "SELECT A,B WHERE B = '" + safe + "'";
+
+    loadGviz(QUIZ_SHEET_ID, RANKING_TAB, query, 'dupCb').then(function(r) {
+        var rows = (r.table && r.table.rows) ? r.table.rows : [];
+        if (rows.length === 0) { callback(false); return; }
+
+        if (ATTEMPT_PERIOD === 'daily') {
+            var today = todayStr();
+            callback(rows.some(function(row) {
+                return row.c && normalizeDate(row.c[0]) === today;
+            }));
+        } else {
+            callback(true);
+        }
+    }).catch(function() {
+        // 조회 실패 시에는 응시를 막지 않음 (저장 단계에서 Apps Script 가 최종 차단)
+        callback(false);
+    });
+}
+
+// ============================================
 // 퀴즈 시작
 // ============================================
 function startQuiz() {
     playerNameValue = document.getElementById('playerName').value.trim();
     if (!playerNameValue) { alert('이름을 입력해주세요!'); return; }
 
+    var btns = document.querySelectorAll('.start-btn');
+    btns.forEach(function(b) { b.disabled = true; });
+    var mainBtn = btns[0];
+    var originalLabel = mainBtn ? mainBtn.textContent : '';
+    if (mainBtn) mainBtn.textContent = '응시 이력 확인 중...';
+
+    checkAlreadyPlayed(playerNameValue, function(played) {
+        btns.forEach(function(b) { b.disabled = false; });
+        if (mainBtn) mainBtn.textContent = originalLabel;
+
+        if (played) {
+            alert(ATTEMPT_PERIOD === 'daily'
+                ? '오늘은 이미 응시하셨습니다.\n내일 다시 도전해주세요!'
+                : '이미 응시하신 기록이 있습니다.\n퀴즈는 1인 1회만 응시할 수 있습니다.');
+            return;
+        }
+        beginQuiz();
+    });
+}
+
+function beginQuiz() {
     document.getElementById('startScreen').style.display = 'none';
     document.getElementById('resultScreen').style.display = 'none';
     document.getElementById('quizScreen').style.display = 'block';
@@ -555,6 +631,12 @@ function goHome() {
 // 초기 로드
 // ============================================
 loadRanking('startRankingList');
+
+// 1회 제한 모드에서는 '다시 도전!' 버튼을 노출하지 않음
+if (ONE_ATTEMPT_ONLY && ATTEMPT_PERIOD === 'once') {
+    var retryBtn = document.getElementById('retryBtn');
+    if (retryBtn) retryBtn.style.display = 'none';
+}
 
 // ============================================
 // 이름 설정 — 로그인 정보 연동
