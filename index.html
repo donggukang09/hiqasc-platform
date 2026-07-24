@@ -2611,7 +2611,10 @@
   // 허브에서만 호출됨. "오늘 하루 보지 않기" 처리 후 표시
   window.__showVertuoUpPopup = function(){
     if(shown) return;
-    if(window.__quizPending) return;   // 퀴즈 팝업이 먼저 노출됨
+    if(window.__quizPending){                        // 퀴즈 팝업이 먼저 노출됨
+      if(window.__showQuizPopup) window.__showQuizPopup();
+      return;
+    }
     if(localStorage.getItem(userKey()) === todayStr()) return;
     shown = true;
     setTimeout(function(){ modal.classList.add('show'); }, 600);
