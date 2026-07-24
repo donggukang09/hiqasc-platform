@@ -161,7 +161,7 @@
         <h2>📝 HIQASC 업무 퀴즈</h2>
         <p>
             네스프레소 AS 업무 관련 퀴즈입니다<br>
-            4지선다 · 문제당 30초 제한<br>
+            4지선다 · 문제당 20초 제한<br>
             <strong>1인 1회만 응시 가능</strong>합니다<br>
             도전해보세요! 🏆
         </p>
@@ -188,7 +188,7 @@
                     <circle class="timer-bg" cx="30" cy="30" r="26"/>
                     <circle class="timer-fill" id="timerFill" cx="30" cy="30" r="26"/>
                 </svg>
-                <div class="timer-text" id="timerText">30</div>
+                <div class="timer-text" id="timerText">20</div>
             </div>
         </div>
         <div class="question-card">
@@ -227,7 +227,7 @@ const QUIZ_TAB = '퀴즈';
 const RANKING_TAB = '랭킹';
 // Apps Script URL — 랭킹 저장용
 const RANKING_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwEZR81fDc5wb8sOulY7vuL5-y8G-VduaLYypCxjEUJm-SmXDumm9bbhuTB_9_dqju5cQ/exec';
-const TIME_LIMIT = 30; // 문제당 초
+const TIME_LIMIT = 20; // 문제당 초
 
 // ── 응시 횟수 제한 (Apps Script 의 동일 설정과 맞춰주세요) ──
 // ONE_ATTEMPT_ONLY : true = 1인 1회 제한
