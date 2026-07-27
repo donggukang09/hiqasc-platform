@@ -146,6 +146,242 @@
             box-shadow: 0 4px 12px rgba(155, 89, 182, 0.4);
         }
 
+        .mail-request-btn {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .mail-request-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(230, 126, 34, 0.4);
+        }
+
+        /* ===== 소모품 신청 메일 모달 ===== */
+        .mail-modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            padding: 30px 15px;
+            overflow-y: auto;
+        }
+
+        .mail-modal {
+            background: #1e1e1e;
+            border: 1px solid #3a3a3a;
+            border-radius: 14px;
+            max-width: 900px;
+            margin: 0 auto;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.6);
+            overflow: hidden;
+        }
+
+        .mail-modal-header {
+            background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
+            padding: 20px 26px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .mail-modal-header h2 {
+            color: #fff;
+            font-size: 1.25em;
+        }
+
+        .mail-modal-close {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: #fff;
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            line-height: 1;
+        }
+
+        .mail-modal-close:hover {
+            background: rgba(255, 255, 255, 0.35);
+        }
+
+        .mail-modal-body {
+            padding: 24px 26px;
+        }
+
+        .mail-info {
+            background: #2a2a2a;
+            border-left: 4px solid #e67e22;
+            border-radius: 6px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            color: #b0b0b0;
+            line-height: 1.6;
+        }
+
+        .mail-info strong { color: #e0e0e0; }
+
+        .mail-section-title {
+            color: #e0e0e0;
+            font-size: 15px;
+            font-weight: 700;
+            margin: 4px 0 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .request-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 8px;
+        }
+
+        .request-table th {
+            background: #2a2a2a;
+            color: #a0a0a0;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 10px 8px;
+            text-align: left;
+            border-bottom: 1px solid #3a3a3a;
+        }
+
+        .request-table th.center { text-align: center; }
+
+        .request-table td {
+            padding: 8px;
+            border-bottom: 1px solid #2f2f2f;
+            font-size: 13px;
+            color: #e0e0e0;
+            vertical-align: middle;
+        }
+
+        .request-table td.center { text-align: center; }
+
+        .request-table tr:hover td { background: #242424; }
+
+        .request-check {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #e67e22;
+        }
+
+        .qty-input, .note-input, .name-input {
+            width: 100%;
+            padding: 7px 9px;
+            background: #2a2a2a;
+            border: 1px solid #3a3a3a;
+            border-radius: 6px;
+            color: #e0e0e0;
+            font-size: 13px;
+            transition: border-color 0.2s;
+        }
+
+        .qty-input:focus, .note-input:focus, .name-input:focus {
+            outline: none;
+            border-color: #e67e22;
+        }
+
+        .qty-input { text-align: center; }
+
+        .cat-divider td {
+            background: #262626;
+            color: #808080;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 6px 8px;
+        }
+
+        .del-row-btn {
+            background: #3a2a2a;
+            border: 1px solid #5a3a3a;
+            color: #e74c3c;
+            width: 30px;
+            height: 30px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 15px;
+            line-height: 1;
+            transition: all 0.2s;
+        }
+
+        .del-row-btn:hover { background: #4a2a2a; }
+
+        .add-row-btn {
+            background: #2a2a2a;
+            border: 1px dashed #4a4a4a;
+            color: #a0a0a0;
+            padding: 10px;
+            border-radius: 8px;
+            width: 100%;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.2s;
+            margin-top: 6px;
+        }
+
+        .add-row-btn:hover {
+            border-color: #e67e22;
+            color: #e67e22;
+        }
+
+        .mail-modal-footer {
+            border-top: 1px solid #3a3a3a;
+            padding: 18px 26px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .mail-cancel-btn {
+            padding: 12px 24px;
+            background: #2a2a2a;
+            border: 1px solid #4a4a4a;
+            color: #b0b0b0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .mail-cancel-btn:hover { background: #333; color: #fff; }
+
+        .mail-send-btn {
+            padding: 12px 28px;
+            background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .mail-send-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(39, 174, 96, 0.4);
+        }
+
+        .free-section {
+            margin-top: 26px;
+        }
+
         /* 카테고리 필터 */
         .category-bar {
             background: #1e1e1e;
@@ -447,6 +683,7 @@
                 >
             </div>
             <button class="refresh-btn" onclick="loadInventory()">🔄 새로고침</button>
+            <button class="mail-request-btn" onclick="openMailModal()">📧 소모품 신청 메일 보내기</button>
             <a href="https://docs.google.com/spreadsheets/d/1vfnyawoFJnxFODMpmk_iGGwEOfTo0duc1-8VUyPyjcA/edit#gid=SHEET_GID" 
                class="sheet-link-btn" 
                target="_blank">
@@ -524,6 +761,59 @@
         <div class="footer">
             <p>© 2025 HIQASC Inventory System. All rights reserved.</p>
             <p class="developer-tag">DEVELOPED BY DONGGU KANG</p>
+        </div>
+    </div>
+
+    <!-- ===== 소모품 신청 메일 모달 ===== -->
+    <div class="mail-modal-overlay" id="mailModal">
+        <div class="mail-modal">
+            <div class="mail-modal-header">
+                <h2>📧 프리굿 및 소모품 신청</h2>
+                <button class="mail-modal-close" onclick="closeMailModal()">×</button>
+            </div>
+            <div class="mail-modal-body">
+                <div class="mail-info">
+                    <strong>받는 사람:</strong> 김찬우 · 강동구 · 이선제 · 안정용 (4명 고정)<br>
+                    신청할 품목을 체크하고 <strong>필요 수량</strong>과 <strong>비고</strong>를 입력하세요. 리스트에 없는 품목은 아래 직접 입력란에 추가할 수 있습니다.
+                </div>
+
+                <div class="mail-section-title">📦 재고 품목에서 선택</div>
+                <table class="request-table">
+                    <thead>
+                        <tr>
+                            <th class="center" style="width: 44px;">선택</th>
+                            <th>내용</th>
+                            <th class="center" style="width: 130px;">수량</th>
+                            <th style="width: 240px;">비고</th>
+                        </tr>
+                    </thead>
+                    <tbody id="mailItemBody">
+                        <!-- 재고 품목이 여기에 생성됩니다 -->
+                    </tbody>
+                </table>
+
+                <div class="free-section">
+                    <div class="mail-section-title">✏️ 직접 입력 (리스트에 없는 품목)</div>
+                    <table class="request-table">
+                        <thead>
+                            <tr>
+                                <th>내용</th>
+                                <th class="center" style="width: 130px;">수량</th>
+                                <th style="width: 200px;">비고</th>
+                                <th class="center" style="width: 44px;">삭제</th>
+                            </tr>
+                        </thead>
+                        <tbody id="freeItemBody">
+                            <!-- 직접 입력 행 -->
+                        </tbody>
+                    </table>
+                    <button class="add-row-btn" onclick="addFreeRow()">+ 직접 입력 항목 추가</button>
+                </div>
+            </div>
+            <div class="mail-modal-footer">
+                <button class="mail-cancel-btn" onclick="closeMailModal()">취소</button>
+                <button class="mail-send-btn" onclick="sendRequestMail()">📤 메일 작성하기</button>
+            </div>
         </div>
     </div>
 
@@ -807,6 +1097,165 @@
             document.getElementById('normalItems').textContent = normal;
             document.getElementById('lowItems').textContent = low;
         }
+
+        // ===== 소모품 신청 메일 =====
+        const MAIL_RECIPIENTS = [
+            'chanj.kim@hiqasc.kr',
+            'donggu.kang@hiqasc.kr',
+            'seonj.lee@hiqasc.kr',
+            'Jungyoung.an@hiqasc.kr'
+        ];
+        const MAIL_SUBJECT = '프리굿 및 소모품 요청 내용 전달드립니다.';
+        const MAIL_INTRO = '안녕하세요.\n이번달 프리굿 및 소모품 요청 내용 전달드립니다.';
+
+        let freeRowSeq = 0;
+
+        // 모달 열기
+        function openMailModal() {
+            if (allData.length === 0) {
+                alert('재고 데이터가 로드되지 않았습니다. 먼저 새로고침 후 다시 시도해주세요.');
+                return;
+            }
+            buildMailItemList();
+            // 직접 입력란 초기화 (빈 행 1개)
+            document.getElementById('freeItemBody').innerHTML = '';
+            freeRowSeq = 0;
+            addFreeRow();
+            document.getElementById('mailModal').style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+
+        // 모달 닫기
+        function closeMailModal() {
+            document.getElementById('mailModal').style.display = 'none';
+            document.body.style.overflow = '';
+        }
+
+        // 재고 품목 리스트 생성 (카테고리별 그룹)
+        function buildMailItemList() {
+            const tbody = document.getElementById('mailItemBody');
+            tbody.innerHTML = '';
+
+            let lastCategory = null;
+            allData.forEach((item, idx) => {
+                if (item.category !== lastCategory) {
+                    lastCategory = item.category;
+                    const divider = document.createElement('tr');
+                    divider.className = 'cat-divider';
+                    divider.innerHTML = `<td colspan="4">📂 ${item.category}</td>`;
+                    tbody.appendChild(divider);
+                }
+
+                const label = item.spec ? `${item.name} (${item.spec})` : item.name;
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="center">
+                        <input type="checkbox" class="request-check" id="chk-${idx}" onchange="toggleQtyFocus(${idx})">
+                    </td>
+                    <td>${label}</td>
+                    <td class="center">
+                        <input type="number" min="0" class="qty-input" id="qty-${idx}" placeholder="수량">
+                    </td>
+                    <td>
+                        <input type="text" class="note-input" id="note-${idx}" placeholder="비고">
+                    </td>
+                `;
+                row.dataset.label = label;
+                tbody.appendChild(row);
+            });
+        }
+
+        // 체크 시 수량칸 포커스
+        function toggleQtyFocus(idx) {
+            const chk = document.getElementById(`chk-${idx}`);
+            if (chk.checked) {
+                document.getElementById(`qty-${idx}`).focus();
+            }
+        }
+
+        // 직접 입력 행 추가
+        function addFreeRow() {
+            const tbody = document.getElementById('freeItemBody');
+            const id = freeRowSeq++;
+            const row = document.createElement('tr');
+            row.id = `free-row-${id}`;
+            row.innerHTML = `
+                <td><input type="text" class="name-input" id="free-name-${id}" placeholder="품목명 입력"></td>
+                <td class="center"><input type="number" min="0" class="qty-input" id="free-qty-${id}" placeholder="수량"></td>
+                <td><input type="text" class="note-input" id="free-note-${id}" placeholder="비고"></td>
+                <td class="center"><button class="del-row-btn" onclick="removeFreeRow(${id})">×</button></td>
+            `;
+            tbody.appendChild(row);
+        }
+
+        // 직접 입력 행 삭제
+        function removeFreeRow(id) {
+            const row = document.getElementById(`free-row-${id}`);
+            if (row) row.remove();
+        }
+
+        // 메일 작성 (mailto)
+        function sendRequestMail() {
+            const requests = [];
+
+            // 1) 체크된 재고 품목 수집
+            allData.forEach((item, idx) => {
+                const chk = document.getElementById(`chk-${idx}`);
+                if (chk && chk.checked) {
+                    const qty = document.getElementById(`qty-${idx}`).value.trim();
+                    const note = document.getElementById(`note-${idx}`).value.trim();
+                    const label = item.spec ? `${item.name} (${item.spec})` : item.name;
+                    requests.push({ name: label, qty: qty, note: note });
+                }
+            });
+
+            // 2) 직접 입력 품목 수집
+            document.querySelectorAll('#freeItemBody tr').forEach(row => {
+                const nameEl = row.querySelector('.name-input');
+                if (!nameEl) return;
+                const name = nameEl.value.trim();
+                if (!name) return;
+                const qty = row.querySelector('.qty-input').value.trim();
+                const note = row.querySelector('.note-input').value.trim();
+                requests.push({ name: name, qty: qty, note: note });
+            });
+
+            if (requests.length === 0) {
+                alert('신청할 품목을 하나 이상 선택하거나 입력해주세요.');
+                return;
+            }
+
+            // 수량 누락 확인
+            const missingQty = requests.filter(r => !r.qty);
+            if (missingQty.length > 0) {
+                const names = missingQty.map(r => `· ${r.name}`).join('\n');
+                if (!confirm(`아래 품목의 수량이 비어 있습니다. 그대로 진행할까요?\n\n${names}`)) {
+                    return;
+                }
+            }
+
+            // 본문 구성
+            let body = MAIL_INTRO + '\n\n';
+            body += '─────────────────────────\n';
+            requests.forEach((r, i) => {
+                let line = `${i + 1}. ${r.name}  |  수량: ${r.qty || '-'}`;
+                if (r.note) line += `  |  비고: ${r.note}`;
+                body += line + '\n';
+            });
+            body += '─────────────────────────\n\n';
+            body += '감사합니다.';
+
+            const mailto = `mailto:${MAIL_RECIPIENTS.join(',')}`
+                + `?subject=${encodeURIComponent(MAIL_SUBJECT)}`
+                + `&body=${encodeURIComponent(body)}`;
+
+            window.location.href = mailto;
+        }
+
+        // 오버레이 클릭 시 닫기
+        document.getElementById('mailModal').addEventListener('click', function(e) {
+            if (e.target === this) closeMailModal();
+        });
     </script>
 </body>
 </html>
