@@ -138,9 +138,33 @@
   .modal-cancel{background:#eef1f5;color:var(--text-sub);}
   .modal-confirm{background:var(--accent);color:#fff;}
   .modal-confirm:disabled{opacity:.6;cursor:default;}
+
+  /* 페이지 진입 2차 비밀번호 게이트 */
+  #pageGate{
+    position:fixed;inset:0;background:var(--bg);z-index:9999;
+    display:flex;align-items:center;justify-content:center;padding:16px;
+  }
+  #pageGate .modal{max-width:340px;}
+  #pageGate h3{display:flex;align-items:center;gap:8px;}
+  body.gate-locked .wrap{display:none;}
 </style>
 </head>
-<body>
+<body class="gate-locked">
+
+<!-- 페이지 진입 2차 비밀번호 게이트 -->
+<div id="pageGate">
+  <div class="modal">
+    <h3>🔐 2차 인증</h3>
+    <p>계정 · 업체 정보 페이지는 별도 암호가 필요합니다.</p>
+    <input type="password" id="pageGateInput" placeholder="2차 비밀번호" autocomplete="off">
+    <div class="modal-err" id="pageGateErr"></div>
+    <div class="modal-actions">
+      <button class="modal-cancel" id="pageGateBackBtn">메인으로</button>
+      <button class="modal-confirm" id="pageGateBtn">확인</button>
+    </div>
+  </div>
+</div>
+
 <div class="wrap">
 
   <a class="back-home" href="index.html">← 메인으로</a>
@@ -208,6 +232,7 @@ const SHEET_ID = '1sLbWDXv4k4FgraO-RTp9efMQNbCCiRfaQeUcKNgdED0';           // �
 const LIST_TAB_NAME = '계정목록';                 // 사이트명 | URL | 아이디 | 비고
 const PARTNER_TAB_NAME = '협력업체';               // 업체명 | 담당자 | 연락처 | 이메일 | 비고 (같은 시트, 보안과 무관한 정보)
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwNrw1q2Tg41KMx9WVzRGPfDh2kwL6feriJAfV8usa9qVuoTyT9HEkbdnB_UTvqi57S/exec'; // Code.gs 배포 URL
+const SECOND_PASSWORD = '$hiqasc$';               // 페이지 진입 2차 비밀번호 (매 접속 시 입력, 저장 안 함)
 
 /* ============ 상태 ============ */
 let siteData = [];
@@ -459,7 +484,29 @@ function renderPartners(){
 
 document.getElementById('partnerSearchInput').addEventListener('input', renderPartners);
 
-loadSiteList();
+/* ============ 페이지 진입 2차 비밀번호 게이트 ============ */
+function unlockPage(){
+  const input = document.getElementById('pageGateInput');
+  const err = document.getElementById('pageGateErr');
+  if(input.value !== SECOND_PASSWORD){
+    err.textContent = '비밀번호가 올바르지 않습니다.';
+    input.value = '';
+    input.focus();
+    return;
+  }
+  document.getElementById('pageGate').remove();
+  document.body.classList.remove('gate-locked');
+  loadSiteList();
+}
+
+document.getElementById('pageGateBtn').addEventListener('click', unlockPage);
+document.getElementById('pageGateInput').addEventListener('keydown', e=>{
+  if(e.key === 'Enter') unlockPage();
+});
+document.getElementById('pageGateBackBtn').addEventListener('click', ()=>{
+  location.href = 'index.html';
+});
+document.getElementById('pageGateInput').focus();
 </script>
 </body>
 </html>
