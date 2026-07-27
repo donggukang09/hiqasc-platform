@@ -812,7 +812,7 @@
             </div>
             <div class="mail-modal-footer">
                 <button class="mail-cancel-btn" onclick="closeMailModal()">취소</button>
-                <button class="mail-send-btn" onclick="sendRequestMail()">📤 메일 작성하기</button>
+                <button class="mail-send-btn" onclick="sendRequestMail()">📤 신청 메일 발송</button>
             </div>
         </div>
     </div>
@@ -1099,6 +1099,9 @@
         }
 
         // ===== 소모품 신청 메일 =====
+        // 소모품 신청 전용 Apps Script (오토메일과 별개, hiqasc@gmail.com 계정 발송)
+        const SUPPLY_MAIL_URL = 'https://script.google.com/macros/s/AKfycbxpO_mHkvHcSvXVRHnZqUhxTA45gfwP7E5j6XzVOgd3gftrm1ZslTwFgIqPDxMb4d9X/exec';
+
         const MAIL_RECIPIENTS = [
             'chanj.kim@hiqasc.kr',
             'donggu.kang@hiqasc.kr',
@@ -1106,7 +1109,13 @@
             'Jungyoung.an@hiqasc.kr'
         ];
         const MAIL_SUBJECT = '프리굿 및 소모품 요청 내용 전달드립니다.';
-        const MAIL_INTRO = '안녕하세요.\n이번달 프리굿 및 소모품 요청 내용 전달드립니다.';
+        const MAIL_INTRO = '안녕하세요.<br>이번달 프리굿 및 소모품 요청 내용 전달드립니다.';
+
+        // 메일 본문 표 스타일 (Outlook 호환)
+        const M_TABLE = 'border-collapse:collapse;border:1px solid #000000;font-family:Arial,\'Malgun Gothic\',sans-serif;font-size:13px;';
+        const M_TH = 'border:1px solid #000000;padding:8px 12px;background:#f2f2f2;font-weight:bold;text-align:center;';
+        const M_TD = 'border:1px solid #000000;padding:8px 12px;text-align:left;';
+        const M_TD_C = 'border:1px solid #000000;padding:8px 12px;text-align:center;';
 
         let freeRowSeq = 0;
 
@@ -1194,7 +1203,15 @@
             if (row) row.remove();
         }
 
-        // 메일 작성 (mailto)
+        // HTML 이스케이프
+        function escHtml(s) {
+            return String(s)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+        }
+
+        // 메일 발송 (서버 발송 - hiqasc@gmail.com 계정)
         function sendRequestMail() {
             const requests = [];
 
@@ -1234,22 +1251,70 @@
                 }
             }
 
-            // 본문 구성
-            let body = MAIL_INTRO + '\n\n';
-            body += '─────────────────────────\n';
+            if (!SUPPLY_MAIL_URL || SUPPLY_MAIL_URL === 'YOUR_APPS_SCRIPT_URL_HERE') {
+                alert('메일 서버(Apps Script) URL이 설정되지 않았습니다.\n관리자에게 문의해주세요.');
+                return;
+            }
+
+            // 발송 확인
+            if (!confirm(`아래 ${requests.length}건을 신청 메일로 발송합니다.\n\n받는 사람: 김찬우, 강동구, 이선제, 안정용\n\n발송하시겠습니까?`)) {
+                return;
+            }
+
+            // HTML 본문 구성 (표 형태)
+            let rowsHtml = '';
             requests.forEach((r, i) => {
-                let line = `${i + 1}. ${r.name}  |  수량: ${r.qty || '-'}`;
-                if (r.note) line += `  |  비고: ${r.note}`;
-                body += line + '\n';
+                rowsHtml += `<tr>
+                    <td style="${M_TD_C}">${i + 1}</td>
+                    <td style="${M_TD}">${escHtml(r.name)}</td>
+                    <td style="${M_TD_C}">${escHtml(r.qty || '-')}</td>
+                    <td style="${M_TD}">${escHtml(r.note || '')}</td>
+                </tr>`;
             });
-            body += '─────────────────────────\n\n';
-            body += '감사합니다.';
 
-            const mailto = `mailto:${MAIL_RECIPIENTS.join(',')}`
-                + `?subject=${encodeURIComponent(MAIL_SUBJECT)}`
-                + `&body=${encodeURIComponent(body)}`;
+            const bodyHtml = `
+                <div style="font-family:Arial,'Malgun Gothic',sans-serif;font-size:14px;color:#222;line-height:1.6;">
+                    <p style="margin-bottom:16px;">${MAIL_INTRO}</p>
+                    <table style="${M_TABLE}">
+                        <tr>
+                            <th style="${M_TH}width:40px;">No</th>
+                            <th style="${M_TH}">내용</th>
+                            <th style="${M_TH}width:80px;">수량</th>
+                            <th style="${M_TH}width:200px;">비고</th>
+                        </tr>
+                        ${rowsHtml}
+                    </table>
+                    <p style="margin-top:18px;">감사합니다.</p>
+                </div>
+            `;
 
-            window.location.href = mailto;
+            const payload = {
+                to: MAIL_RECIPIENTS.join(','),
+                cc: '',
+                subject: MAIL_SUBJECT,
+                bodyHtml: bodyHtml
+            };
+
+            const btn = document.querySelector('.mail-send-btn');
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = '발송 중...';
+
+            fetch(SUPPLY_MAIL_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify(payload)
+            }).then(() => {
+                btn.disabled = false;
+                btn.textContent = originalText;
+                alert('✅ 소모품 신청 메일이 발송되었습니다.');
+                closeMailModal();
+            }).catch(() => {
+                btn.disabled = false;
+                btn.textContent = originalText;
+                alert('❌ 발송 중 오류가 발생했습니다. 다시 시도해주세요.');
+            });
         }
 
         // 오버레이 클릭 시 닫기
