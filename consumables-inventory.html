@@ -773,7 +773,7 @@
             </div>
             <div class="mail-modal-body">
                 <div class="mail-info">
-                    <strong>받는 사람:</strong> 김찬우 · 강동구 · 이선제 · 안정용 (4명 고정)<br>
+                    <strong>받는 사람:</strong> 강동구 <span style="color:#e67e22;">(테스트 중 — 현재 강동구님만 수신)</span><br>
                     신청할 품목을 체크하고 <strong>필요 수량</strong>과 <strong>비고</strong>를 입력하세요. 리스트에 없는 품목은 아래 직접 입력란에 추가할 수 있습니다.
                 </div>
 
@@ -1103,10 +1103,13 @@
         const SUPPLY_MAIL_URL = 'https://script.google.com/macros/s/AKfycbxpO_mHkvHcSvXVRHnZqUhxTA45gfwP7E5j6XzVOgd3gftrm1ZslTwFgIqPDxMb4d9X/exec';
 
         const MAIL_RECIPIENTS = [
-            'chanj.kim@hiqasc.kr',
-            'donggu.kang@hiqasc.kr',
-            'seonj.lee@hiqasc.kr',
-            'Jungyoung.an@hiqasc.kr'
+            // ===== 테스트 중: 강동구만 수신 =====
+            'donggu.kang@hiqasc.kr'
+            // ===== 테스트 완료 후 아래 주석 해제하고 위 줄 삭제 =====
+            // 'chanj.kim@hiqasc.kr',
+            // 'donggu.kang@hiqasc.kr',
+            // 'seonj.lee@hiqasc.kr',
+            // 'Jungyoung.an@hiqasc.kr'
         ];
         const MAIL_SUBJECT = '프리굿 및 소모품 요청 내용 전달드립니다.';
         const MAIL_INTRO = '안녕하세요.<br>이번달 프리굿 및 소모품 요청 내용 전달드립니다.';
@@ -1257,7 +1260,7 @@
             }
 
             // 발송 확인
-            if (!confirm(`아래 ${requests.length}건을 신청 메일로 발송합니다.\n\n받는 사람: 김찬우, 강동구, 이선제, 안정용\n\n발송하시겠습니까?`)) {
+            if (!confirm(`아래 ${requests.length}건을 신청 메일로 발송합니다.\n\n[테스트] 받는 사람: 강동구\n\n발송하시겠습니까?`)) {
                 return;
             }
 
@@ -1317,10 +1320,8 @@
             });
         }
 
-        // 오버레이 클릭 시 닫기
-        document.getElementById('mailModal').addEventListener('click', function(e) {
-            if (e.target === this) closeMailModal();
-        });
+        // 바깥 영역 클릭으로는 닫히지 않음 (작성 중 실수 방지)
+        // 닫으려면 상단 × 버튼 또는 취소 버튼 사용
     </script>
 </body>
 </html>
