@@ -46,6 +46,11 @@ h1{font-size:1.75rem;font-weight:600;letter-spacing:-.02em;line-height:1.25}
   background:var(--card);color:var(--ink);border-radius:3px;cursor:pointer}
 .src button:hover{border-color:var(--ink);background:var(--ink);color:var(--paper2)}
 
+.dropwarn{margin:-14px 0 26px;padding:14px 17px;background:var(--warn-bg);
+  border-left:4px solid var(--warn);border-radius:0 3px 3px 0;font-size:.95rem;
+  color:var(--warn);line-height:1.65}
+.dropwarn code{font-family:"IBM Plex Mono",monospace;font-weight:600;
+  background:rgba(122,82,9,.12);padding:1px 5px;border-radius:3px}
 .field label{display:block;font-size:.88rem;font-weight:500;letter-spacing:.04em;
   color:var(--ink2);margin-bottom:9px}
 input{width:100%;font-family:"IBM Plex Mono",monospace;font-size:1.7rem;font-weight:600;
@@ -147,6 +152,7 @@ footer{margin-top:50px;padding-top:16px;border-top:1.5px solid var(--rule);
 </header>
 
 <div class="src" id="src"><span class="dot"></span><span id="srcTxt">규칙표 불러오는 중…</span></div>
+<div class="dropwarn" id="dropWarn" style="display:none"></div>
 
 <div class="field">
   <label for="sn">시리얼 번호</label>
@@ -223,11 +229,15 @@ function pad(v,len){
   const s=String(v??"").trim();
   return /^\d+$/.test(s) ? s.padStart(len,"0") : s.toUpperCase();
 }
+let DROPPED = 0;
 function parse(r){
   if(!r||!r.table||!r.table.rows) throw new Error("empty");
   const cell=(c)=> c==null ? "" : String(c.f ?? c.v ?? "").trim();
-  const out=r.table.rows.map(row=>(row.c||[]).map(cell))
-    .filter(c=>c[0]&&c[1]&&c[2])
+  const raw=r.table.rows.map(row=>(row.c||[]).map(cell));
+  /* Machine ID는 있는데 모델코드/색상코드가 비어 오는 행 = 구글이 열 타입을 숫자로
+     잡아 문자 섞인 코드를 버린 경우. 몇 건인지 세어 화면에 알린다. */
+  DROPPED = raw.filter(c=>c[2]&&(!c[0]||!c[1])).length;
+  const out=raw.filter(c=>c[0]&&c[1]&&c[2])
     .map(c=>[pad(c[0],3),pad(c[1],2),c[2],c[3]||"",c[4]||"",c[5]||"",c[6]||"",+c[7]||0,+c[8]||100,c[9]||""]);
   if(!out.length) throw new Error("empty");
   return out;
@@ -242,6 +252,12 @@ function apply(list,live){
   document.getElementById("srcTxt").innerHTML = live
     ? `구글 시트 [${esc(TAB)}] 연결됨 · 규칙 ${list.length}건 &nbsp;<a href="${SHEET_URL}" target="_blank" rel="noopener">시트 열기</a> &nbsp;<button type="button" id="rl">다시 읽기</button>`
     : `시트를 못 읽어 내장 백업 사용 중 · 규칙 ${list.length}건 &nbsp;<button type="button" id="rl">다시 시도</button>`;
+  const warn=document.getElementById("dropWarn");
+  if(live && DROPPED>0){
+    src.className="src back";
+    warn.style.display="block";
+    warn.innerHTML = `<b>${DROPPED}건이 누락된 채로 읽혔습니다.</b> 구글이 색상코드 열을 숫자 열로 판정해서 <code>2K</code>·<code>0A</code>·<code>1M</code>처럼 문자가 섞인 코드를 빈 값으로 내보내고 있습니다.<br>시트에서 <b>A·B 두 열을 선택 → 서식 → 숫자 → 일반 텍스트</b>로 바꾸고 데이터를 다시 붙여넣은 뒤 [다시 읽기]를 누르세요.`;
+  } else { warn.style.display="none"; }
   document.getElementById("cnt").textContent=`(${list.length}건)`;
   paint(document.getElementById("q").value);
   const sn=document.getElementById("sn").value; if(sn) lookup(sn);
