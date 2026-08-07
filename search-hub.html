@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<!-- Version: 1.0.0 | Updated: 2026-08-07 | 업무용 검색기 허브 -->
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>업무용 검색기 | HIQASC</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family:'Segoe UI','Malgun Gothic',sans-serif;
+  background:#2a2a2a; color:#e0e0e0; min-height:100vh;
+  padding:0 0 60px;
+}
+.topbar {
+  background:#333; border-bottom:1px solid #4a4a4a;
+  padding:14px 30px; display:flex; align-items:center; gap:14px;
+  position:sticky; top:0; z-index:10;
+}
+.back {
+  background:#3f3f3f; border:1px solid #555; color:#ccc;
+  font-family:inherit; font-size:13px; font-weight:600;
+  padding:7px 14px; border-radius:8px; cursor:pointer; transition:all .2s;
+}
+.back:hover { background:#4a4a4a; color:#fff; border-color:#666; }
+.topbar-title { font-size:14px; font-weight:700; color:#9a9a9a; letter-spacing:.02em; }
+
+.wrap { max-width:1140px; margin:0 auto; padding:0 30px; }
+
+.head { padding:44px 0 30px; border-bottom:1px solid #3d3d3d; margin-bottom:34px; }
+.head .eyebrow {
+  font-size:12px; font-weight:700; letter-spacing:.16em;
+  color:#56ccb2; text-transform:uppercase; margin-bottom:10px;
+}
+.head h1 { font-size:30px; font-weight:800; color:#fff; margin-bottom:10px; letter-spacing:-.02em; }
+.head p { font-size:15px; color:#9a9a9a; line-height:1.7; }
+
+.grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:20px; }
+
+.card {
+  background:#353535; border:1px solid #4a4a4a; border-radius:16px;
+  padding:26px 24px 24px; cursor:pointer; transition:all .25s ease;
+  display:flex; flex-direction:column;
+}
+.card:hover { transform:translateY(-3px); }
+.card-icon {
+  width:52px; height:52px; border-radius:14px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:24px; margin-bottom:16px;
+}
+.card h2 { font-size:18px; font-weight:800; margin-bottom:8px; }
+.card p { font-size:14px; color:#a5a5a5; line-height:1.65; margin-bottom:16px; flex:1; }
+.tags { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:18px; }
+.tags span {
+  font-size:11.5px; font-weight:600; color:#c5c5c5;
+  background:#3f3f3f; border:1px solid #505050;
+  padding:4px 10px; border-radius:20px;
+}
+.go {
+  display:flex; align-items:center; justify-content:space-between;
+  font-size:13px; font-weight:700; padding-top:14px; border-top:1px solid #444;
+}
+.go .arrow { transition:transform .25s; font-size:16px; }
+.card:hover .go .arrow { transform:translateX(4px); }
+
+/* 리페어 코드 — 주황 */
+.c-repair .card-icon { background:rgba(242,153,74,.12); border:2px solid rgba(242,153,74,.3); }
+.c-repair h2, .c-repair .go { color:#f2994a; }
+.c-repair:hover { border-color:#f2994a; box-shadow:0 10px 30px rgba(242,153,74,.18); }
+
+/* 업무 팁 — 노랑 */
+.c-tips .card-icon { background:rgba(232,197,71,.12); border:2px solid rgba(232,197,71,.3); }
+.c-tips h2, .c-tips .go { color:#e8c547; }
+.c-tips:hover { border-color:#e8c547; box-shadow:0 10px 30px rgba(232,197,71,.18); }
+
+/* 머신 시리얼 — 청록 */
+.c-serial .card-icon { background:rgba(86,204,178,.12); border:2px solid rgba(86,204,178,.3); }
+.c-serial h2, .c-serial .go { color:#56ccb2; }
+.c-serial:hover { border-color:#56ccb2; box-shadow:0 10px 30px rgba(86,204,178,.18); }
+
+footer {
+  max-width:1140px; margin:50px auto 0; padding:18px 30px 0;
+  border-top:1px solid #3d3d3d;
+  display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;
+  font-size:11.5px; letter-spacing:.12em; color:#6a6a6a;
+}
+@media (max-width:600px) {
+  .topbar { padding:12px 18px; }
+  .wrap, footer { padding-left:18px; padding-right:18px; }
+  .head { padding:32px 0 24px; }
+  .head h1 { font-size:24px; }
+  .grid { grid-template-columns:1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <button class="back" onclick="goHome()">← 홈</button>
+  <span class="topbar-title">업무용 검색기</span>
+</div>
+
+<div class="wrap">
+  <div class="head">
+    <div class="eyebrow">Search Tools</div>
+    <h1>업무용 검색기</h1>
+    <p>현장에서 바로 찾아 쓰는 검색 도구 모음입니다.</p>
+  </div>
+
+  <div class="grid">
+
+    <div class="card c-repair" onclick="go('repair-code-search.html')">
+      <div class="card-icon">🔎</div>
+      <h2>리페어 코드 검색</h2>
+      <p>증상이나 키워드를 넣으면 해당하는 리페어 코드를 바로 찾습니다. 이상없음·동파·누액처럼 판단이 갈리는 케이스의 입력 기준도 함께 나옵니다.</p>
+      <div class="tags"><span>B2C</span><span>B2B</span><span>Milk Device</span></div>
+      <div class="go"><span>검색하기</span><span class="arrow">→</span></div>
+    </div>
+
+    <div class="card c-tips" onclick="go('tips-search.html')">
+      <div class="card-icon">💡</div>
+      <h2>업무 팁 검색</h2>
+      <p>수리 업무와 시스템 사용법에 관한 팁을 키워드로 찾습니다. 교환 대상 판정 기준, 반송 처리, 픽업폼 요청 같은 절차 안내가 들어 있습니다.</p>
+      <div class="tags"><span>수리</span><span>가이드</span><span>판정 기준</span></div>
+      <div class="go"><span>검색하기</span><span class="arrow">→</span></div>
+    </div>
+
+    <div class="card c-serial" onclick="go('serial-search.html')">
+      <div class="card-icon">🏷️</div>
+      <h2>머신 시리얼 조회기</h2>
+      <p>시리얼 번호만 넣으면 Model line·Model·International Machine ID를 판독합니다. 생산일자와 색상코드가 자리별로 함께 표시됩니다.</p>
+      <div class="tags"><span>ORIGINAL</span><span>VERTUO</span><span>B2B</span></div>
+      <div class="go"><span>조회하기</span><span class="arrow">→</span></div>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  <span>DEVELOPED BY DONGGU KANG</span>
+  <span>HIQASC AS TEAM</span>
+</footer>
+
+<script>
+function go(url){ window.location.href = url; }
+function goHome(){
+  if (history.length > 1) history.back();
+  else window.location.href = 'index.html';
+}
+</script>
+</body>
+</html>
