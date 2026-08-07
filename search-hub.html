@@ -23,6 +23,7 @@ body {
   background:#3f3f3f; border:1px solid #555; color:#ccc;
   font-family:inherit; font-size:13px; font-weight:600;
   padding:7px 14px; border-radius:8px; cursor:pointer; transition:all .2s;
+  text-decoration:none; display:inline-block; line-height:1.4;
 }
 .back:hover { background:#4a4a4a; color:#fff; border-color:#666; }
 .topbar-title { font-size:14px; font-weight:700; color:#9a9a9a; letter-spacing:.02em; }
@@ -98,7 +99,7 @@ footer {
 <body>
 
 <div class="topbar">
-  <button class="back" onclick="goHome()">← 홈</button>
+  <a class="back" href="index.html">← 홈</a>
   <span class="topbar-title">업무용 검색기</span>
 </div>
 
@@ -145,10 +146,7 @@ footer {
 
 <script>
 function go(url){ window.location.href = url; }
-function goHome(){
-  if (history.length > 1) history.back();
-  else window.location.href = 'index.html';
-}
+function goHome(){ window.location.href = 'index.html'; }
 </script>
 </body>
 </html>
