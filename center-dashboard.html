@@ -57,6 +57,9 @@ tbody tr:hover{background:#f9fafb}
 @keyframes spin{to{transform:rotate(360deg)}}
 .loading-text{margin-top:16px;color:#6b7280;font-size:14px;font-weight:500}
 .error-msg{background:#fef2f2;border:1px solid #fecaca;color:#dc2626;padding:12px 16px;border-radius:8px;margin-bottom:16px;font-size:13px}
+.train-toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.train-toolbar input{padding:8px 14px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;min-width:220px}
+.train-empty{text-align:center;color:#9ca3af;padding:32px;font-size:13px}
 @media(max-width:768px){.sidebar{display:none}.main{margin-left:0;padding:16px}.charts{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
@@ -72,6 +75,10 @@ tbody tr:hover{background:#f9fafb}
     <div class="nav-item" onclick="nav('complaint',this)"><span class="nav-icon">📞</span>CM 컴플레인</div>
     <div class="nav-item" onclick="nav('damage',this)"><span class="nav-icon">📦</span>손상/기타</div>
     <div class="nav-item" onclick="nav('trends',this)"><span class="nav-icon">📈</span>3개월 추이</div>
+  </div>
+  <div class="nav-group">
+    <div class="nav-label">운영</div>
+    <div class="nav-item" onclick="nav('training',this)"><span class="nav-icon">🎓</span>교육 콘텐츠</div>
   </div>
   <div class="sidebar-footer"><p>DEVELOPED BY DONGGU KANG</p></div>
 </div>
@@ -138,21 +145,32 @@ tbody tr:hover{background:#f9fafb}
       <div class="card"><h3>오류 유형별 추이</h3><div class="chart-wrap"><canvas id="trFault"></canvas></div></div>
     </div>
   </div>
+
+  <div id="training" class="section">
+    <div class="stats" id="trnStats"></div>
+    <div class="card">
+      <div class="train-toolbar">
+        <h3 style="margin-bottom:0">교육 이력</h3>
+        <input type="text" id="trnSearch" placeholder="🔍 제목/장소/진행자/내용 검색" oninput="rTrn()">
+      </div>
+      <table><thead><tr><th style="width:100px">날짜</th><th style="width:200px">제목</th><th style="width:120px">장소</th><th style="width:100px">진행자</th><th style="width:70px">참여자</th><th>내용</th></tr></thead><tbody id="trnTable"></tbody></table>
+    </div>
+  </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
 const SHEET_ID='1g6dYQMD8za-E2LWjaeYIGZ93xoJ_Mn_klyhKCN9J3qk';
-const TABS=['DefectParts','TechnicianFault','CMComplaint','Damage','Summary'];
+const TABS=['DefectParts','TechnicianFault','CMComplaint','Damage','Summary','Training'];
 const C={blue:'#3b82f6',red:'#ef4444',amber:'#f59e0b',green:'#10b981',purple:'#8b5cf6',pink:'#ec4899',indigo:'#6366f1',teal:'#14b8a6',orange:'#f97316',gray:'#6b7280',blueA:'rgba(59,130,246,.12)',redA:'rgba(239,68,68,.12)',amberA:'rgba(245,158,11,.12)',greenA:'rgba(16,185,129,.12)',purpleA:'rgba(139,92,246,.12)'};
 const PAL=[C.blue,C.purple,C.teal,C.pink,C.amber,C.orange,C.indigo,C.red,C.green,C.gray];
-let DB={DefectParts:[],TechnicianFault:[],CMComplaint:[],Damage:[],Summary:[]};
+let DB={DefectParts:[],TechnicianFault:[],CMComplaint:[],Damage:[],Summary:[],Training:[]};
 let charts={};let allMonths=[];
 
 function loadTab(tab){
   return new Promise((res,rej)=>{
     const cb='cb_'+tab+'_'+Date.now();
-    const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=responseHandler:${cb}&sheet=${encodeURIComponent(tab)}`;
+    const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=responseHandler:${cb}&sheet=${encodeURIComponent(tab)}&headers=1`;
     window[cb]=function(resp){
       try{
         const t=resp.table;const h=t.cols.map(c=>c.label||c.id);
@@ -181,7 +199,7 @@ async function loadAllData(){
     if(allMonths.length>0)sel.value=allMonths[allMonths.length-1];
     render();
   }catch(e){
-    document.getElementById('errorBox').innerHTML=`<div class="error-msg">❌ 데이터 로드 실패: ${e.message}<br><br>해결 방법:<br>1. Google Sheets → 공유 → "링크가 있는 모든 사용자"를 "뷰어"로 설정<br>2. 시트 탭 이름이 DefectParts, TechnicianFault, CMComplaint, Damage, Summary인지 확인</div>`;
+    document.getElementById('errorBox').innerHTML=`<div class="error-msg">❌ 데이터 로드 실패: ${e.message}<br><br>해결 방법:<br>1. Google Sheets → 공유 → "링크가 있는 모든 사용자"를 "뷰어"로 설정<br>2. 시트 탭 이름이 DefectParts, TechnicianFault, CMComplaint, Damage, Summary, Training인지 확인</div>`;
   }
   document.getElementById('loader').style.display='none';
 }
@@ -198,7 +216,7 @@ function mc(id,type,labels,ds,opts={}){
 
 function render(){
   const m=document.getElementById('monthSel').value;
-  rOv(m);rDp(m);rTf(m);rCm(m);rDm(m);rTr();
+  rOv(m);rDp(m);rTf(m);rCm(m);rDm(m);rTr();rTrn();
 }
 
 function rOv(m){
@@ -307,7 +325,27 @@ function rTr(){
   mc('trFault','line',allMonths,et.map((e,i)=>({label:e,data:allMonths.map(mo=>DB.TechnicianFault.filter(r=>r['월']===mo&&r['오류내용']===e).reduce((s,r)=>s+Number(r['발생횟수']||0),0)),borderColor:PAL[i],backgroundColor:'transparent',tension:.4,borderWidth:2,pointRadius:4})));
 }
 
-const titles={overview:'📊 센터 개요',defect:'🔧 부품불량 분석',fault:'⚠️ 테크니션 폴트',complaint:'📞 CM 컴플레인',damage:'📦 손상/기타',trends:'📈 3개월 추이'};
+function rTrn(){
+  const q=(document.getElementById('trnSearch')?.value||'').trim().toLowerCase();
+  let rows=[...DB.Training];
+  rows=rows.filter(r=>r['날짜']||r['제목']||r['내용']);
+  if(q){rows=rows.filter(r=>['제목','내용','장소','진행자'].some(k=>String(r[k]||'').toLowerCase().includes(q)))}
+  rows.sort((a,b)=>String(b['날짜']||'').localeCompare(String(a['날짜']||'')));
+  const all=DB.Training.filter(r=>r['날짜']||r['제목']||r['내용']);
+  const total=all.length;
+  const now=new Date();const ym=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+  const thisMonth=all.filter(r=>String(r['날짜']||'').startsWith(ym)).length;
+  const totalAttendees=all.reduce((s,r)=>s+Number(r['참여자']||0),0);
+  const latest=[...all].filter(r=>r['날짜']).sort((a,b)=>String(b['날짜']||'').localeCompare(String(a['날짜']||'')))[0];
+  document.getElementById('trnStats').innerHTML=`
+    <div class="stat" style="border-left-color:${C.indigo}"><div class="stat-label">총 교육 건수</div><div class="stat-val">${total}</div></div>
+    <div class="stat purple"><div class="stat-label">이번 달 교육</div><div class="stat-val">${thisMonth}</div><div class="stat-sub">${now.getFullYear()}년 ${now.getMonth()+1}월 기준</div></div>
+    <div class="stat" style="border-left-color:${C.orange}"><div class="stat-label">누적 참여 인원</div><div class="stat-val">${totalAttendees}</div><div class="stat-sub">명</div></div>
+    <div class="stat" style="border-left-color:${C.teal}"><div class="stat-label">최근 교육</div><div class="stat-val" style="font-size:16px">${latest?latest['날짜']:'-'}</div><div class="stat-sub">${latest?(latest['제목']||''):'등록된 교육 없음'}</div></div>`;
+  document.getElementById('trnTable').innerHTML=rows.length?rows.map(r=>`<tr><td style="white-space:nowrap;font-weight:600">${r['날짜']||''}</td><td><strong>${r['제목']||''}</strong></td><td>${r['장소']||''}</td><td>${r['진행자']||''}</td><td style="text-align:center">${r['참여자']||''}</td><td>${String(r['내용']||'').replace(/\n/g,'<br>')}</td></tr>`).join(''):`<tr><td colspan="6"><div class="train-empty">등록된 교육 내용이 없습니다. Google Sheets의 Training 탭에 날짜/제목/장소/진행자/참여자/내용을 입력하면 여기에 표시됩니다.</div></td></tr>`;
+}
+
+const titles={overview:'📊 센터 개요',defect:'🔧 부품불량 분석',fault:'⚠️ 테크니션 폴트',complaint:'📞 CM 컴플레인',damage:'📦 손상/기타',trends:'📈 3개월 추이',training:'🎓 교육 콘텐츠'};
 function nav(id,el){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
