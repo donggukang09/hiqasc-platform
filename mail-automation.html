@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <title>메일 자동화 시스템 - HIQASC</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
+            background: #2a2a2a;
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+
+        /* 헤더 */
+        .top-header {
+            background: #1e1e1e;
+            border-bottom: 1px solid #3a3a3a;
+            padding: 16px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .top-header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .top-header-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .top-header-title {
+            font-size: 1.2em;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .top-header-sub {
+            font-size: 0.8em;
+            color: #808080;
+            margin-top: 2px;
+        }
+
+        .top-header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-date {
+            font-size: 0.85em;
+            color: #808080;
+        }
+
+        .back-btn {
+            background: #353535;
+            border: 1px solid #4a4a4a;
+            color: #a0a0a0;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.85em;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover {
+            background: #4a4a4a;
+            color: #ffffff;
+        }
+
+        /* 컨텐츠 */
+        .content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 24px;
+        }
+
+        /* 섹션 */
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 1.2em;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 20px;
+            padding-left: 14px;
+            border-left: 4px solid #9b59b6;
+        }
+
+        /* 카드 그리드 */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: #353535;
+            border: 1px solid #4a4a4a;
+            border-radius: 12px;
+            padding: 24px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+            border-color: #9b59b6;
+        }
+
+        .card-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+            font-size: 24px;
+        }
+
+        .card-icon svg {
+            width: 24px;
+            height: 24px;
+            fill: #ffffff;
+        }
+
+        .card-title {
+            font-size: 1.05em;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 8px;
+        }
+
+        .card-description {
+            font-size: 0.85em;
+            color: #a0a0a0;
+            line-height: 1.6;
+            margin-bottom: 14px;
+        }
+
+        .card-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 0.75em;
+            font-weight: 600;
+        }
+
+        .card-badge.active {
+            background: rgba(155, 89, 182, 0.15);
+            border: 1px solid rgba(155, 89, 182, 0.3);
+            color: #9b59b6;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 30px;
+            color: #505050;
+            font-size: 0.8em;
+        }
+
+        .footer .developer-tag {
+            margin-top: 6px;
+            font-weight: 600;
+            color: #9b59b6;
+        }
+
+        @media (max-width: 768px) {
+            .top-header { padding: 14px 16px; flex-wrap: wrap; gap: 10px; }
+            .content { padding: 20px 12px; }
+            .cards-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 헤더 -->
+    <div class="top-header">
+        <div class="top-header-left">
+            <div class="top-header-icon">📧</div>
+            <div>
+                <div class="top-header-title">메일 자동화 시스템</div>
+                <div class="top-header-sub">반송·출고·통화요청 메일 자동 발송 모음</div>
+            </div>
+        </div>
+        <div class="top-header-right">
+            <span class="header-date" id="currentDate"></span>
+            <a href="index.html" class="back-btn">🏠 메인으로</a>
+        </div>
+    </div>
+
+    <!-- 컨텐츠 -->
+    <div class="content">
+
+        <div class="section">
+            <h2 class="section-title">📧 메일 자동화 도구</h2>
+            <div class="cards-grid">
+
+                <!-- 반송 입고 · 픽업폼 요청 -->
+                <div class="card" onclick="openApp('returnPickupMail')">
+                    <div class="card-icon">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M20 15.5c-1.25 0-2.45-.2-3.57-.57-.35-.11-.74-.03-1.02.24l-2.2 2.2c-2.83-1.44-5.15-3.75-6.59-6.59l2.2-2.21c.28-.26.36-.65.25-1C8.7 6.45 8.5 5.25 8.5 4c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1 0 9.39 7.61 17 17 17 .55 0 1-.45 1-1v-3.5c0-.55-.45-1-1-1z"/>
+                        </svg>
+                    </div>
+                    <h3 class="card-title">반송 입고 · 픽업폼 요청</h3>
+                    <p class="card-description">
+                        회원번호·시리얼 등 정보를 입력하면 반송 입고 또는
+                        픽업폼 요청 메일을 자동으로 작성해서 발송합니다.
+                    </p>
+                    <span class="card-badge active">운영중</span>
+                </div>
+
+                <!-- 출고 리스트 발송 -->
+                <div class="card" onclick="openApp('outboundInvoiceMail')">
+                    <div class="card-icon">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                        </svg>
+                    </div>
+                    <h3 class="card-title">출고 리스트 발송</h3>
+                    <p class="card-description">
+                        출고 파일과 운송장 파일을 업로드하면 송장번호를
+                        자동 매칭해서 리스트를 만들고, 바로 메일로 발송합니다.
+                    </p>
+                    <span class="card-badge active">운영중</span>
+                </div>
+
+                <!-- 통화요청 파일 자동 생성 -->
+                <div class="card" onclick="openApp('callRequestMail')">
+                    <div class="card-icon">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M20 15.5c-1.25 0-2.45-.2-3.57-.57-.35-.11-.74-.03-1.02.24l-2.2 2.2c-2.83-1.44-5.15-3.75-6.59-6.59l2.2-2.21c.28-.26.36-.65.25-1C8.7 6.45 8.5 5.25 8.5 4c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1 0 9.39 7.61 17 17 17 .55 0 1-.45 1-1v-3.5c0-.55-.45-1-1-1z"/>
+                        </svg>
+                    </div>
+                    <h3 class="card-title">통화요청 파일 자동 생성</h3>
+                    <p class="card-description">
+                        로우데이터와 콜센터 파일을 업로드하면 자동으로
+                        병합·분류하고, 통화요청건 리스트를 메일로 발송합니다.
+                    </p>
+                    <span class="card-badge active">운영중</span>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p>&copy; 2025 HIQASC Repair Team Management Platform. All rights reserved.</p>
+        <p class="developer-tag">DEVELOPED BY DONGGU KANG</p>
+    </div>
+
+    <script>
+        const APP_URLS = {
+            returnPickupMail: 'https://donggukang09.github.io/hiqasc-platform/auto-mail.html',
+            outboundInvoiceMail: 'https://donggukang09.github.io/hiqasc-platform/invoice-list-mail.html',
+            callRequestMail: 'https://donggukang09.github.io/hiqasc-platform/call-request-system.html'
+        };
+
+        function openApp(appName) {
+            if (APP_URLS[appName]) {
+                window.location.href = APP_URLS[appName];
+            }
+        }
+
+        function updateDate() {
+            const now = new Date();
+            const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+            document.getElementById('currentDate').textContent = now.toLocaleDateString('ko-KR', options);
+        }
+
+        window.addEventListener('load', updateDate);
+    </script>
+    <script src="hiq-notification.js?v=2"></script>
+</body>
+</html>
