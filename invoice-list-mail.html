@@ -344,7 +344,7 @@
 
   <header class="page-head">
     <h1>송장번호 매칭 시스템</h1>
-    <p>출고 파일과 운송장 발송 파일을 업로드하면 픽업넘버 기준으로 자동 매칭하여 송장번호를 채운 엑셀 파일을 생성합니다. 결과는 직접 수정하거나 행을 삭제한 뒤 다운로드할 수 있습니다.</p>
+    <p>출고 파일과 운송장 발송 파일을 업로드하면 고객명(BOX번호) 기준으로 자동 매칭하여 송장번호를 채운 엑셀 파일을 생성합니다. 결과는 직접 수정하거나 행을 삭제한 뒤 다운로드할 수 있습니다.</p>
   </header>
 
   <div class="panel">
@@ -353,13 +353,13 @@
       <div class="dropzone" id="dz1">
         <input type="file" id="file1" accept=".xlsx,.xls" />
         <div class="dz-title">① 출고 파일 (1번)</div>
-        <div class="dz-sub">B열 송장번호 / C열 픽업넘버 포함 파일</div>
+        <div class="dz-sub">B열 송장번호 · C열 픽업넘버 · E열 고객명(BOX번호) 포함 파일</div>
         <div class="dz-file" id="dz1-name"></div>
       </div>
       <div class="dropzone" id="dz2">
         <input type="file" id="file2" accept=".xlsx,.xls" />
         <div class="dz-title">② 운송장 발송 파일 (2번)</div>
-        <div class="dz-sub">D열 운송장번호 / E열 고객주문번호 포함 파일</div>
+        <div class="dz-sub">D열 운송장번호 / L열 수취인회사명 포함 파일</div>
         <div class="dz-file" id="dz2-name"></div>
       </div>
     </div>
@@ -394,8 +394,9 @@
 
     <div class="msg error" id="errMsg"></div>
     <p class="hint">
-      2번 파일의 <b>운송장번호(D열)</b>, <b>고객주문번호(E열)</b>가 텍스트 형식이어도 자동으로 숫자로 변환하여 매칭합니다.
-      1번 파일의 <b>픽업넘버(C열)</b>가 숫자가 아니거나(예: B260819001) 2번 파일에서 매칭되는 값을 찾지 못하면 선택한 문구로 표시됩니다.
+      매칭은 1번 파일의 <b>고객명(BOX번호)(E열)</b>과 2번 파일의 <b>수취인회사명(L열)</b>을 텍스트로 비교해서 이루어집니다.
+      2번 파일의 <b>운송장번호(D열)</b>가 텍스트 형식이어도 자동으로 숫자로 변환합니다.
+      1번 파일의 <b>고객명(BOX번호)(E열)</b>이 2번 파일에서 매칭되는 값을 찾지 못하면 선택한 문구로 표시됩니다.
       1번 파일의 <b>송장번호(B열)</b>에 이미 <b>'하이큐'</b>라고 적혀 있는 행은 매칭 대상에서 제외되어 결과 목록에 아예 나타나지 않습니다.
     </p>
   </div>
@@ -1454,6 +1455,16 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     return digits;
   }
 
+  // Normalize a raw cell value into a canonical text key for name/company matching
+  // (trims, collapses internal whitespace, case-insensitive), or null if empty.
+  function normalizeTextKey(val){
+    if (val === null || val === undefined) return null;
+    var s = String(val).trim();
+    if (s === '') return null;
+    s = s.replace(/\s+/g, ' ').toLowerCase();
+    return s;
+  }
+
   function cellText(cell){
     if (!cell) return null;
     var v = cell.value;
@@ -1541,16 +1552,17 @@ https://github.com/nodeca/pako/blob/main/LICENSE
 
       var col1_invoice = findHeaderCol(ws1, '송장번호') || 2;
       var col1_pickup   = findHeaderCol(ws1, '픽업넘버') || 3;
+      var col1_matchname = findHeaderCol(ws1, '고객명(BOX번호)') || 5;
       var col2_tracking = findHeaderCol(ws2, '운송장번호') || 4;
-      var col2_order     = findHeaderCol(ws2, '고객주문번호') || 5;
+      var col2_matchname = findHeaderCol(ws2, '수취인회사명') || 12;
 
       var lookup = {};
       var dupKeys = {};
       ws2.eachRow({ includeEmpty:false }, function(row, rowNumber){
         if (rowNumber === 1) return;
-        var orderRaw = cellText(row.getCell(col2_order));
+        var nameRaw = cellText(row.getCell(col2_matchname));
         var trackRaw = cellText(row.getCell(col2_tracking));
-        var key = normalizeKey(orderRaw);
+        var key = normalizeTextKey(nameRaw);
         if (key === null) return;
         var trackKey = normalizeKey(trackRaw);
         var trackVal = trackKey !== null ? Number(trackKey) : trackRaw;
@@ -1573,7 +1585,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
           return; // 송장번호에 '하이큐'가 적혀 있으면 목록에서 완전히 제외
         }
         var pickupRaw = cellText(row.getCell(col1_pickup));
-        var key = normalizeKey(pickupRaw);
+        var matchNameRaw = cellText(row.getCell(col1_matchname));
+        var key = normalizeTextKey(matchNameRaw);
         var hit = (key !== null && lookup.hasOwnProperty(key)) ? lookup[key] : undefined;
         dataRows.push({
           excelRow: rowNumber,
@@ -1609,7 +1622,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         notes.push('송장번호에 \'' + EXCLUDE_MARK + '\'가 적혀 있어 목록에서 제외한 건: ' + excludedCount + '건');
       }
       if (Object.keys(dupKeys).length > 0){
-        notes.push('2번 파일의 고객주문번호 중 서로 다른 운송장번호로 중복된 값이 ' + Object.keys(dupKeys).length + '건 있어 마지막 값으로 매칭했습니다.');
+        notes.push('2번 파일의 수취인회사명 중 서로 다른 운송장번호로 중복된 값이 ' + Object.keys(dupKeys).length + '건 있어 마지막 값으로 매칭했습니다.');
       }
       if (notes.length > 0){
         showError('참고: ' + notes.join(' / '));
