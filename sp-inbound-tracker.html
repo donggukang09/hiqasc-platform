@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SP입고 관리 | HIQASC</title>
+<style>
+  :root{
+    --bg:#f5f6f8;
+    --card:#ffffff;
+    --border:#e5e7eb;
+    --text:#1f2328;
+    --text-sub:#6b7280;
+    --blue:#2563eb;
+    --blue-dark:#1d4ed8;
+    --blue-bg:#eff4ff;
+    --green:#16a34a;
+    --red:#dc2626;
+    --yellow:#fbbf24;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Malgun Gothic","Apple SD Gothic Neo",Arial,sans-serif;
+    line-height:1.5;
+  }
+  .wrap{max-width:1100px;margin:0 auto;padding:32px 20px 60px;}
+  header{margin-bottom:28px;}
+  h1{font-size:26px;font-weight:700;margin:0 0 8px;}
+  header p{color:var(--text-sub);font-size:14px;margin:0;}
+
+  .card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:24px;
+    margin-bottom:24px;
+    box-shadow:0 1px 2px rgba(0,0,0,.03);
+  }
+  .card-title{
+    display:flex;align-items:center;gap:10px;
+    font-size:16px;font-weight:700;margin-bottom:18px;
+  }
+  .badge{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:24px;height:24px;border-radius:50%;
+    background:var(--blue);color:#fff;font-size:13px;font-weight:700;flex-shrink:0;
+  }
+
+  /* form */
+  .form-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:14px;
+  }
+  .field{display:flex;flex-direction:column;gap:6px;}
+  .field.full{grid-column:1 / -1;}
+  .field label{font-size:12px;font-weight:600;color:var(--text-sub);}
+  .field input, .field select{
+    padding:10px 12px;
+    border:1px solid var(--border);
+    border-radius:10px;
+    font-size:14px;
+    background:#fff;
+    color:var(--text);
+    font-family:inherit;
+  }
+  .field input:focus, .field select:focus{
+    outline:none;border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-bg);
+  }
+  .form-actions{display:flex;align-items:center;gap:12px;margin-top:16px;}
+  .btn{
+    border:none;border-radius:10px;padding:11px 20px;font-size:14px;font-weight:600;
+    cursor:pointer;font-family:inherit;transition:opacity .15s;
+  }
+  .btn:hover{opacity:.88;}
+  .btn:disabled{opacity:.5;cursor:not-allowed;}
+  .btn-primary{background:var(--blue);color:#fff;}
+  .btn-secondary{background:#f3f4f6;color:var(--text);}
+  .btn-sm{padding:6px 12px;font-size:12.5px;border-radius:8px;}
+  #formMsg{font-size:13px;font-weight:600;}
+  #formMsg.ok{color:var(--green);}
+  #formMsg.err{color:var(--red);}
+
+  /* calendar */
+  .cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+  .cal-nav{display:flex;align-items:center;gap:14px;}
+  .cal-nav button{
+    border:1px solid var(--border);background:#fff;border-radius:8px;
+    width:32px;height:32px;cursor:pointer;font-size:15px;color:var(--text-sub);
+  }
+  .cal-nav button:hover{background:#f3f4f6;}
+  .cal-title{font-size:16px;font-weight:700;min-width:100px;text-align:center;}
+  .cal-today-btn{border:1px solid var(--border);background:#fff;border-radius:8px;padding:6px 12px;font-size:12.5px;cursor:pointer;color:var(--text-sub);}
+  .cal-today-btn:hover{background:#f3f4f6;}
+
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
+  .cal-dow{text-align:center;font-size:12px;font-weight:700;color:var(--text-sub);padding:4px 0 8px;}
+  .cal-dow.sun{color:var(--red);}
+  .cal-dow.sat{color:var(--blue);}
+  .cal-cell{
+    min-height:74px;border:1px solid var(--border);border-radius:10px;
+    padding:8px;position:relative;background:#fff;
+  }
+  .cal-cell.empty{background:transparent;border-color:transparent;}
+  .cal-cell.has-data{cursor:pointer;background:var(--blue-bg);border-color:#c7d9ff;}
+  .cal-cell.has-data:hover{background:#e2ebff;}
+  .cal-cell.today{outline:2px solid var(--blue);outline-offset:-2px;}
+  .cal-daynum{font-size:12.5px;font-weight:600;color:var(--text-sub);}
+  .cal-cell.today .cal-daynum{color:var(--blue);}
+  .cal-count{
+    position:absolute;bottom:8px;right:8px;
+    background:var(--blue);color:#fff;font-size:11px;font-weight:700;
+    border-radius:10px;padding:2px 7px;
+  }
+
+  /* search */
+  .search-grid{
+    display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:14px;
+  }
+  .search-grid .field label{font-size:11px;}
+  .search-grid .field input, .search-grid .field select{padding:8px 10px;font-size:13px;}
+
+  /* table */
+  .table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:12px;}
+  table{width:100%;border-collapse:collapse;font-size:13px;min-width:1000px;}
+  th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;}
+  th{background:#fafafa;font-weight:700;color:var(--text-sub);font-size:12px;position:sticky;top:0;}
+  tbody tr:hover{background:#fafbff;}
+  td.wrap-cell{white-space:normal;max-width:220px;}
+  .empty-row td{text-align:center;color:var(--text-sub);padding:30px;}
+  .list-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;font-size:13px;color:var(--text-sub);}
+
+  /* modal */
+  .modal-overlay{
+    display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);
+    align-items:center;justify-content:center;z-index:100;padding:20px;
+  }
+  .modal-overlay.open{display:flex;}
+  .modal{
+    background:#fff;border-radius:16px;max-width:560px;width:100%;
+    max-height:80vh;display:flex;flex-direction:column;overflow:hidden;
+  }
+  .modal-head{
+    padding:18px 22px;border-bottom:1px solid var(--border);
+    display:flex;justify-content:space-between;align-items:center;
+  }
+  .modal-head h3{margin:0;font-size:16px;}
+  .modal-close{border:none;background:none;font-size:20px;cursor:pointer;color:var(--text-sub);line-height:1;}
+  .modal-body{padding:18px 22px;overflow-y:auto;}
+  .modal-item{
+    border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:10px;font-size:13px;
+  }
+  .modal-item div{margin-bottom:3px;}
+  .modal-item b{color:var(--text-sub);font-weight:600;display:inline-block;min-width:78px;}
+  .modal-foot{padding:14px 22px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;}
+  #copyText{position:absolute;left:-9999px;top:-9999px;}
+
+  .toast{
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:#1f2328;color:#fff;padding:10px 18px;border-radius:10px;
+    font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:200;
+  }
+  .toast.show{opacity:1;}
+
+  @media (max-width:760px){
+    .form-grid{grid-template-columns:repeat(2,1fr);}
+    .search-grid{grid-template-columns:repeat(2,1fr);}
+    table{min-width:800px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>📦 SP입고 관리</h1>
+    <p>회원 물통 등 셀러블 파츠가 별도로 입고될 때 기록하고 검색하는 도구입니다.</p>
+  </header>
+
+  <!-- 1. 입력 폼 -->
+  <section class="card">
+    <div class="card-title"><span class="badge">1</span> 입고 등록</div>
+    <div class="form-grid">
+      <div class="field">
+        <label>입고일자</label>
+        <input type="date" id="f_date">
+      </div>
+      <div class="field">
+        <label>송장번호</label>
+        <input type="text" id="f_invoice" placeholder="송장번호">
+      </div>
+      <div class="field">
+        <label>픽업넘버</label>
+        <input type="text" id="f_pickup" placeholder="픽업넘버">
+      </div>
+      <div class="field">
+        <label>회원번호</label>
+        <input type="text" id="f_memberId" placeholder="회원번호">
+      </div>
+      <div class="field">
+        <label>고객명</label>
+        <input type="text" id="f_name" placeholder="고객명">
+      </div>
+      <div class="field">
+        <label>고객휴대폰</label>
+        <input type="text" id="f_phone" placeholder="010-0000-0000">
+      </div>
+      <div class="field full">
+        <label>주소</label>
+        <input type="text" id="f_address" placeholder="주소">
+      </div>
+      <div class="field">
+        <label>머신모델</label>
+        <input type="text" id="f_machine" placeholder="머신모델">
+      </div>
+      <div class="field">
+        <label>입고구성품 또는 시리얼번호</label>
+        <input type="text" id="f_items" placeholder="예: 물통, 시리얼번호 등">
+      </div>
+      <div class="field">
+        <label>담당자</label>
+        <input type="text" id="f_manager" placeholder="담당자 이름">
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-primary" id="saveBtn" onclick="saveEntry()">저장</button>
+      <button class="btn btn-secondary" onclick="clearForm()">초기화</button>
+      <span id="formMsg"></span>
+    </div>
+  </section>
+
+  <!-- 2. 캘린더 플래너 -->
+  <section class="card">
+    <div class="card-title"><span class="badge">2</span> 입고 플래너</div>
+    <div class="cal-head">
+      <div class="cal-nav">
+        <button onclick="changeMonth(-1)">‹</button>
+        <div class="cal-title" id="calTitle"></div>
+        <button onclick="changeMonth(1)">›</button>
+      </div>
+      <button class="cal-today-btn" onclick="goToday()">오늘</button>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+  </section>
+
+  <!-- 3. 검색 + 리스트 -->
+  <section class="card">
+    <div class="card-title"><span class="badge">3</span> 전체 내역 · 검색</div>
+    <div class="search-grid">
+      <div class="field">
+        <label>입고날짜</label>
+        <input type="date" id="s_date" oninput="renderList()">
+      </div>
+      <div class="field">
+        <label>송장번호</label>
+        <input type="text" id="s_invoice" oninput="renderList()">
+      </div>
+      <div class="field">
+        <label>픽업넘버</label>
+        <input type="text" id="s_pickup" oninput="renderList()">
+      </div>
+      <div class="field">
+        <label>회원번호</label>
+        <input type="text" id="s_memberId" oninput="renderList()">
+      </div>
+      <div class="field">
+        <label>고객명</label>
+        <input type="text" id="s_name" oninput="renderList()">
+      </div>
+      <div class="field">
+        <label>담당자</label>
+        <input type="text" id="s_manager" oninput="renderList()">
+      </div>
+    </div>
+    <div class="form-actions" style="margin:0 0 14px;">
+      <button class="btn btn-secondary btn-sm" onclick="clearSearch()">검색 초기화</button>
+      <button class="btn btn-secondary btn-sm" onclick="loadData()">🔄 새로고침</button>
+    </div>
+    <div class="list-meta">
+      <span id="listCount">0건</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>입고일자</th><th>송장번호</th><th>픽업넘버</th><th>회원번호</th><th>고객명</th>
+            <th>고객휴대폰</th><th>주소</th><th>머신모델</th><th>입고구성품/시리얼</th><th>담당자</th>
+          </tr>
+        </thead>
+        <tbody id="listBody">
+          <tr class="empty-row"><td colspan="10">불러오는 중...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+<!-- 날짜별 상세 모달 -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modalTitle"></h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-foot">
+      <button class="btn btn-secondary btn-sm" onclick="copyDayRecords()">📋 전체 복사</button>
+      <button class="btn btn-primary btn-sm" onclick="closeModal()">닫기</button>
+    </div>
+  </div>
+</div>
+
+<textarea id="copyText"></textarea>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================== 설정 ================== */
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwOBDZsDsCwRn5EsvZvUqwIJZXJT75iaIhd1Lf6XtOmqNqQnO4vovDj-_IUFI3Fb27Q/exec';
+
+/* ================== 상태 ================== */
+let allRows = [];          // 시트에서 불러온 전체 데이터
+let calYear, calMonth;     // 캘린더가 보여주는 연/월 (month: 0-11)
+let modalDateStr = null;
+
+function todayStr(){
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const dd = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${dd}`;
+}
+
+/* ================== 초기화 ================== */
+function initCalendarToToday(){
+  const d = new Date();
+  calYear = d.getFullYear();
+  calMonth = d.getMonth();
+}
+
+window.addEventListener('DOMContentLoaded', ()=>{
+  document.getElementById('f_date').value = todayStr();
+  initCalendarToToday();
+  renderCalendar();
+  loadData();
+});
+
+/* ================== 데이터 로드 ================== */
+async function loadData(){
+  document.getElementById('listBody').innerHTML = '<tr class="empty-row"><td colspan="10">불러오는 중...</td></tr>';
+  try{
+    const res = await fetch(APPS_SCRIPT_URL, {method:'GET'});
+    const data = await res.json();
+    if(data.status !== 'ok') throw new Error(data.message || '불러오기 실패');
+    allRows = data.rows || [];
+    renderCalendar();
+    renderList();
+  }catch(err){
+    document.getElementById('listBody').innerHTML =
+      `<tr class="empty-row"><td colspan="10">불러오기 실패: ${escapeHtml(String(err.message||err))}</td></tr>`;
+  }
+}
+
+/* ================== 저장 ================== */
+async function saveEntry(){
+  const payload = {
+    date: document.getElementById('f_date').value.trim(),
+    invoice: document.getElementById('f_invoice').value.trim(),
+    pickup: document.getElementById('f_pickup').value.trim(),
+    memberId: document.getElementById('f_memberId').value.trim(),
+    name: document.getElementById('f_name').value.trim(),
+    phone: document.getElementById('f_phone').value.trim(),
+    address: document.getElementById('f_address').value.trim(),
+    machine: document.getElementById('f_machine').value.trim(),
+    items: document.getElementById('f_items').value.trim(),
+    manager: document.getElementById('f_manager').value.trim()
+  };
+
+  if(!payload.date){
+    setFormMsg('입고일자를 입력해주세요.', false);
+    return;
+  }
+  if(!payload.invoice && !payload.pickup && !payload.memberId && !payload.name){
+    setFormMsg('송장번호/픽업넘버/회원번호/고객명 중 최소 1개는 입력해주세요.', false);
+    return;
+  }
+
+  const btn = document.getElementById('saveBtn');
+  btn.disabled = true;
+  setFormMsg('저장 중...', true);
+
+  try{
+    const res = await fetch(APPS_SCRIPT_URL, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if(data.status !== 'ok') throw new Error(data.message || '저장 실패');
+    setFormMsg('저장되었습니다.', true);
+    clearForm(true);
+    await loadData();
+    showToast('저장되었습니다.');
+  }catch(err){
+    setFormMsg('저장 실패: ' + (err.message||err), false);
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+function setFormMsg(text, ok){
+  const el = document.getElementById('formMsg');
+  el.textContent = text;
+  el.className = ok ? 'ok' : 'err';
+}
+
+function clearForm(keepMsg){
+  ['f_invoice','f_pickup','f_memberId','f_name','f_phone','f_address','f_machine','f_items','f_manager'].forEach(id=>{
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('f_date').value = todayStr();
+  if(!keepMsg) setFormMsg('', true);
+}
+
+/* ================== 캘린더 ================== */
+function changeMonth(delta){
+  calMonth += delta;
+  if(calMonth < 0){ calMonth = 11; calYear--; }
+  if(calMonth > 11){ calMonth = 0; calYear++; }
+  renderCalendar();
+}
+function goToday(){
+  initCalendarToToday();
+  renderCalendar();
+}
+
+function countByDate(){
+  const map = {};
+  allRows.forEach(r=>{
+    if(!r.date) return;
+    map[r.date] = (map[r.date]||0) + 1;
+  });
+  return map;
+}
+
+function renderCalendar(){
+  document.getElementById('calTitle').textContent = `${calYear}년 ${calMonth+1}월`;
+  const grid = document.getElementById('calGrid');
+  grid.innerHTML = '';
+
+  const dowNames = ['일','월','화','수','목','금','토'];
+  dowNames.forEach((d,i)=>{
+    const el = document.createElement('div');
+    el.className = 'cal-dow' + (i===0?' sun':'') + (i===6?' sat':'');
+    el.textContent = d;
+    grid.appendChild(el);
+  });
+
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+  const counts = countByDate();
+  const today = todayStr();
+
+  for(let i=0;i<firstDay;i++){
+    const el = document.createElement('div');
+    el.className = 'cal-cell empty';
+    grid.appendChild(el);
+  }
+
+  for(let day=1; day<=daysInMonth; day++){
+    const m = String(calMonth+1).padStart(2,'0');
+    const d = String(day).padStart(2,'0');
+    const dateStr = `${calYear}-${m}-${d}`;
+    const cnt = counts[dateStr] || 0;
+
+    const cell = document.createElement('div');
+    cell.className = 'cal-cell' + (cnt>0 ? ' has-data' : '') + (dateStr===today ? ' today' : '');
+    cell.innerHTML = `<div class="cal-daynum">${day}</div>` + (cnt>0 ? `<div class="cal-count">${cnt}</div>` : '');
+    if(cnt>0){
+      cell.onclick = ()=> openDayModal(dateStr);
+    }
+    grid.appendChild(cell);
+  }
+}
+
+function openDayModal(dateStr){
+  modalDateStr = dateStr;
+  const records = allRows.filter(r=>r.date === dateStr);
+  document.getElementById('modalTitle').textContent = `${dateStr} 입고 내역 (${records.length}건)`;
+
+  const body = document.getElementById('modalBody');
+  body.innerHTML = records.map(r=>`
+    <div class="modal-item">
+      <div><b>송장번호</b> ${escapeHtml(r.invoice||'-')}</div>
+      <div><b>픽업넘버</b> ${escapeHtml(r.pickup||'-')}</div>
+      <div><b>회원번호</b> ${escapeHtml(r.memberId||'-')}</div>
+      <div><b>고객명</b> ${escapeHtml(r.name||'-')}</div>
+      <div><b>고객휴대폰</b> ${escapeHtml(r.phone||'-')}</div>
+      <div><b>주소</b> ${escapeHtml(r.address||'-')}</div>
+      <div><b>머신모델</b> ${escapeHtml(r.machine||'-')}</div>
+      <div><b>구성품/시리얼</b> ${escapeHtml(r.items||'-')}</div>
+      <div><b>담당자</b> ${escapeHtml(r.manager||'-')}</div>
+    </div>
+  `).join('') || '<p style="color:#6b7280;font-size:13px;">데이터가 없습니다.</p>';
+
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeModal(){
+  document.getElementById('modalOverlay').classList.remove('open');
+  modalDateStr = null;
+}
+
+function copyDayRecords(){
+  if(!modalDateStr) return;
+  const records = allRows.filter(r=>r.date === modalDateStr);
+  const text = `[${modalDateStr} SP입고 내역 (${records.length}건)]\n\n` + records.map((r,i)=>
+    `${i+1}. 송장번호: ${r.invoice||'-'} / 픽업넘버: ${r.pickup||'-'} / 회원번호: ${r.memberId||'-'}\n` +
+    `   고객명: ${r.name||'-'} / 휴대폰: ${r.phone||'-'}\n` +
+    `   주소: ${r.address||'-'}\n` +
+    `   머신모델: ${r.machine||'-'} / 구성품·시리얼: ${r.items||'-'}\n` +
+    `   담당자: ${r.manager||'-'}`
+  ).join('\n\n');
+  copyToClipboard(text);
+}
+
+function copyToClipboard(text){
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(()=>showToast('복사되었습니다.'))
+      .catch(()=>fallbackCopy(text));
+  }else{
+    fallbackCopy(text);
+  }
+}
+function fallbackCopy(text){
+  const ta = document.getElementById('copyText');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.left = '0';
+  ta.style.top = '0';
+  ta.focus();
+  ta.select();
+  try{
+    document.execCommand('copy');
+    showToast('복사되었습니다.');
+  }catch(e){
+    showToast('복사에 실패했습니다.');
+  }
+  ta.style.position = 'absolute';
+  ta.style.left = '-9999px';
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 1800);
+}
+
+/* ================== 리스트 / 검색 ================== */
+function clearSearch(){
+  ['s_date','s_invoice','s_pickup','s_memberId','s_name','s_manager'].forEach(id=>document.getElementById(id).value='');
+  renderList();
+}
+
+function renderList(){
+  const sDate = document.getElementById('s_date').value.trim();
+  const sInvoice = document.getElementById('s_invoice').value.trim().toLowerCase();
+  const sPickup = document.getElementById('s_pickup').value.trim().toLowerCase();
+  const sMemberId = document.getElementById('s_memberId').value.trim().toLowerCase();
+  const sName = document.getElementById('s_name').value.trim().toLowerCase();
+  const sManager = document.getElementById('s_manager').value.trim().toLowerCase();
+
+  let filtered = allRows.filter(r=>{
+    if(sDate && r.date !== sDate) return false;
+    if(sInvoice && !(r.invoice||'').toLowerCase().includes(sInvoice)) return false;
+    if(sPickup && !(r.pickup||'').toLowerCase().includes(sPickup)) return false;
+    if(sMemberId && !(r.memberId||'').toLowerCase().includes(sMemberId)) return false;
+    if(sName && !(r.name||'').toLowerCase().includes(sName)) return false;
+    if(sManager && !(r.manager||'').toLowerCase().includes(sManager)) return false;
+    return true;
+  });
+
+  // 최신 입고일자 우선, 동일 날짜면 시트 순서 최신 우선
+  filtered = filtered.slice().sort((a,b)=>{
+    if(a.date !== b.date) return a.date < b.date ? 1 : -1;
+    return (b.rowIndex||0) - (a.rowIndex||0);
+  });
+
+  document.getElementById('listCount').textContent = `${filtered.length}건`;
+
+  const body = document.getElementById('listBody');
+  if(filtered.length === 0){
+    body.innerHTML = '<tr class="empty-row"><td colspan="10">조건에 맞는 데이터가 없습니다.</td></tr>';
+    return;
+  }
+  body.innerHTML = filtered.map(r=>`
+    <tr>
+      <td>${escapeHtml(r.date||'')}</td>
+      <td>${escapeHtml(r.invoice||'')}</td>
+      <td>${escapeHtml(r.pickup||'')}</td>
+      <td>${escapeHtml(r.memberId||'')}</td>
+      <td>${escapeHtml(r.name||'')}</td>
+      <td>${escapeHtml(r.phone||'')}</td>
+      <td class="wrap-cell">${escapeHtml(r.address||'')}</td>
+      <td>${escapeHtml(r.machine||'')}</td>
+      <td class="wrap-cell">${escapeHtml(r.items||'')}</td>
+      <td>${escapeHtml(r.manager||'')}</td>
+    </tr>
+  `).join('');
+}
+
+function escapeHtml(str){
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+document.getElementById('modalOverlay').addEventListener('click', (e)=>{
+  if(e.target.id === 'modalOverlay') closeModal();
+});
+</script>
+</body>
+</html>
