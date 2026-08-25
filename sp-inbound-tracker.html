@@ -27,9 +27,15 @@
     line-height:1.5;
   }
   .wrap{max-width:1100px;margin:0 auto;padding:32px 20px 60px;}
-  header{margin-bottom:28px;}
+  header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:28px;}
   h1{font-size:26px;font-weight:700;margin:0 0 8px;}
   header p{color:var(--text-sub);font-size:14px;margin:0;}
+  .btn-home{
+    flex-shrink:0;border:1px solid var(--border);background:#fff;color:var(--text);
+    border-radius:10px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;
+    font-family:inherit;white-space:nowrap;
+  }
+  .btn-home:hover{background:#f3f4f6;}
 
   .card{
     background:var(--card);
@@ -175,8 +181,11 @@
 <body>
 <div class="wrap">
   <header>
-    <h1>📦 SP입고 관리</h1>
-    <p>회원 물통 등 셀러블 파츠가 별도로 입고될 때 기록하고 검색하는 도구입니다.</p>
+    <div>
+      <h1>📦 SP입고 관리</h1>
+      <p>회원 물통 등 셀러블 파츠가 별도로 입고될 때 기록하고 검색하는 도구입니다.</p>
+    </div>
+    <button class="btn-home" onclick="location.href='index.html'">🏠 메인으로</button>
   </header>
 
   <!-- 1. 입력 폼 -->
