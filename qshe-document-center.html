@@ -183,6 +183,94 @@ table.data-table tr:hover td { background:#3a3a3a; }
 .attend-table input { width:100%; }
 .inline-edit input, .inline-edit select { padding:6px 8px; font-size:0.85em; }
 
+/* 표 안의 클래스 없는 입력칸(구급함/OJT/인벤토리/참석자) 기본 스타일 */
+.tool-view input, .tool-view select, .tool-view textarea {
+    font-family: inherit; font-size: 0.86em; padding: 7px 9px; border-radius: 6px;
+    border: 1px solid #4a4a4a; background: #2a2a2a; color: #e0e0e0;
+}
+.tool-view input:focus, .tool-view select:focus, .tool-view textarea:focus {
+    outline: none; border-color: #e67e22; box-shadow: 0 0 0 2px rgba(230,126,34,0.15);
+}
+
+/* ══════════════════════════════════════════════════════
+   문서 모드(doc-mode) — 체크리스트·문서 화면 전용 라이트 테마
+   허브 화면(카드 모아보기)은 기존 다크 테마 그대로 유지
+   ══════════════════════════════════════════════════════ */
+body.doc-mode { background: #eef0f2; }
+
+body.doc-mode .setup-banner { background:#fdecea; border-color:#f3c6c0; color:#b3261e; }
+body.doc-mode .setup-banner code { background:#f3f1ec; color:#c2660f; }
+
+body.doc-mode .tool-title { color:#1f2328; }
+body.doc-mode .tool-desc { color:#5b6572; }
+body.doc-mode .tool-tag { background:rgba(194,102,15,0.1); border-color:rgba(194,102,15,0.28); color:#c2660f; }
+
+body.doc-mode .tool-head .back-btn { background:#ffffff; border:1px solid #d8dade; color:#4b5563; }
+body.doc-mode .tool-head .back-btn:hover { background:#f7f7f5; color:#c2660f; border-color:#c2660f; }
+
+body.doc-mode .panel { background:#ffffff; border:1px solid #e3e5e9; box-shadow:0 1px 3px rgba(20,20,20,0.05); }
+body.doc-mode .panel-title { color:#1f2328; }
+
+body.doc-mode .form-group label { color:#6b7280; }
+body.doc-mode .form-group input, body.doc-mode .form-group select, body.doc-mode .form-group textarea,
+body.doc-mode .tool-view input, body.doc-mode .tool-view select, body.doc-mode .tool-view textarea {
+    background:#f8f8f6; border:1px solid #d8dade; color:#22252a;
+}
+body.doc-mode .form-group input:focus, body.doc-mode .form-group select:focus, body.doc-mode .form-group textarea:focus,
+body.doc-mode .tool-view input:focus, body.doc-mode .tool-view select:focus, body.doc-mode .tool-view textarea:focus {
+    border-color:#c2660f; box-shadow:0 0 0 3px rgba(194,102,15,0.12);
+}
+
+body.doc-mode .btn-primary { background:linear-gradient(135deg,#d9730d,#b85c07); color:#fff; }
+body.doc-mode .btn-primary:hover { box-shadow:0 4px 14px rgba(217,115,13,0.3); }
+body.doc-mode .btn-secondary { background:#f4f4f2; border:1px solid #d8dade; color:#4b5563; }
+body.doc-mode .btn-secondary:hover { border-color:#c2660f; color:#c2660f; }
+body.doc-mode .btn-danger { border-color:rgba(192,57,43,0.35); color:#c0392b; }
+body.doc-mode .btn-danger:hover { background:rgba(192,57,43,0.08); }
+
+body.doc-mode .status-msg.ok { background:#eafaf1; color:#1f7a45; }
+body.doc-mode .status-msg.err { background:#fdecea; color:#c0392b; }
+
+body.doc-mode table.data-table th { color:#8a8f98; border-bottom:1px solid #e3e5e9; }
+body.doc-mode table.data-table td { border-bottom:1px solid #eceef0; color:#2b2e33; }
+body.doc-mode table.data-table tr:hover td { background:#f7f7f5; }
+
+body.doc-mode .badge-ok { background:#eafaf1; color:#1f7a45; border-color:#bfe8cf; }
+body.doc-mode .badge-bad { background:#fdecea; color:#c0392b; border-color:#f3c6c0; }
+body.doc-mode .badge-warn { background:#fff6e2; color:#96690a; border-color:#f3dfa8; }
+body.doc-mode .badge-mute { background:#f1f1ef; color:#8a8f98; border-color:#dfe1e4; }
+body.doc-mode .badge-info { background:#eef1f4; color:#475569; border-color:#d7dbe0; }
+
+body.doc-mode .checklist-item { background:#fbfbf9; border:1px solid #e3e5e9; }
+body.doc-mode .checklist-item-name { color:#2b2e33; }
+body.doc-mode .seg-btn { background:#f4f4f2; border-color:#d8dade; color:#8a8f98; }
+body.doc-mode .seg-btn.sel-ok { background:#eafaf1; border-color:#27ae60; color:#1f7a45; }
+body.doc-mode .seg-btn.sel-bad { background:#fdecea; border-color:#e74c3c; color:#c0392b; }
+
+body.doc-mode .chapter-head { border-bottom:2px solid #e3e5e9; }
+body.doc-mode .chapter-head h4 { color:#c2660f; }
+body.doc-mode .chapter-count, body.doc-mode .chev { color:#9aa0a8; }
+
+body.doc-mode .stat-box { background:#ffffff; border:1px solid #e3e5e9; }
+body.doc-mode .stat-box .num { color:#1f2328; }
+body.doc-mode .stat-box .lbl { color:#8a8f98; }
+body.doc-mode .stat-box.accent .num { color:#c2660f; }
+body.doc-mode .stat-box.good .num { color:#1f7a45; }
+body.doc-mode .stat-box.bad .num { color:#c0392b; }
+
+body.doc-mode .doc-panel { background:#ffffff; border:1px solid #e3e5e9; color:#33363b; }
+body.doc-mode .doc-panel h1 { color:#1f2328; }
+body.doc-mode .doc-panel h2 { color:#c2660f; border-top-color:#eceef0; }
+body.doc-mode .doc-panel p, body.doc-mode .doc-panel li { color:#3c3f45; }
+body.doc-mode .doc-panel .doc-note { color:#6b7280; background:#f7f7f5; border-left-color:#c2660f; }
+body.doc-mode .doc-meta { color:#8a8f98; }
+
+body.doc-mode .detail-toggle { color:#b5651d; }
+body.doc-mode .detail-row td { background:#f7f7f5 !important; }
+
+body.doc-mode .footer { color:#9aa0a8; }
+body.doc-mode .footer .developer-tag { color:#c2660f; }
+
 @media (max-width: 768px) {
     .top-header { padding: 14px 16px; flex-wrap: wrap; gap: 10px; }
     .content { padding: 20px 12px; }
@@ -778,6 +866,7 @@ function openTool(key) {
     document.querySelectorAll('.tool-view').forEach(function (v) { v.style.display = 'none'; });
     const el = document.getElementById('tool-' + key);
     if (el) el.style.display = 'block';
+    document.body.classList.add('doc-mode'); // 체크리스트/문서 화면 = 라이트(문서) 테마
     window.scrollTo(0, 0);
     if (TOOL_LOADERS[key]) TOOL_LOADERS[key]();
 }
@@ -785,6 +874,7 @@ function openTool(key) {
 function backToHub() {
     document.getElementById('hub-view').style.display = 'block';
     document.querySelectorAll('.tool-view').forEach(function (v) { v.style.display = 'none'; });
+    document.body.classList.remove('doc-mode'); // 허브 화면 = 기존 다크 테마
     window.scrollTo(0, 0);
 }
 
