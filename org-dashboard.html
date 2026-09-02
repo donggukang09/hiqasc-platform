@@ -542,7 +542,7 @@ document.addEventListener('click',e=>{if(!e.target.closest('.ms-wrap'))closeDD()
 
 /* ═══════ OVERVIEW ═══════ */
 function renderOverview(){
-  const total=1+DATA.teams.reduce((s,t)=>s+1+t.members.length,0);
+  const total=DATA.teams.reduce((s,t)=>s+1+t.members.length,0);
   const totalTasks=DATA.teams.reduce((s,t)=>s+t.tasks.length,0);
   const covered=DATA.teams.reduce((s,t)=>s+t.tasks.filter(tk=>tk.backups&&tk.backups.length>0).length,0);
   const covPct=totalTasks?Math.round(covered/totalTasks*100):0;
