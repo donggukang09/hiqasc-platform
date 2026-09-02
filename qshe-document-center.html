@@ -1,0 +1,1625 @@
+<!DOCTYPE html>
+<!-- Version: 1.0.0 | HiQASC 문서함 · 체크리스트 관리 -->
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>문서함 · 체크리스트 관리 - HIQASC</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
+    background: #2a2a2a;
+    color: #e0e0e0;
+    min-height: 100vh;
+}
+
+.top-header {
+    background: #1e1e1e;
+    border-bottom: 1px solid #3a3a3a;
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky; top: 0; z-index: 50;
+}
+.top-header-left { display: flex; align-items: center; gap: 14px; }
+.top-header-icon {
+    width: 40px; height: 40px;
+    background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center; font-size: 20px;
+}
+.top-header-title { font-size: 1.2em; font-weight: 700; color: #ffffff; }
+.top-header-sub { font-size: 0.8em; color: #808080; margin-top: 2px; }
+.top-header-right { display: flex; align-items: center; gap: 12px; }
+.header-date { font-size: 0.85em; color: #808080; }
+.back-btn {
+    background: #353535; border: 1px solid #4a4a4a; color: #a0a0a0;
+    padding: 8px 16px; border-radius: 8px; font-size: 0.85em; font-weight: 600;
+    cursor: pointer; text-decoration: none; transition: all 0.3s; display:inline-block;
+}
+.back-btn:hover { background: #4a4a4a; color: #ffffff; }
+
+.content { max-width: 1200px; margin: 0 auto; padding: 30px 24px; }
+
+.section { margin-bottom: 40px; }
+.section-title {
+    font-size: 1.2em; font-weight: 700; color: #ffffff;
+    margin-bottom: 6px; padding-left: 14px; border-left: 4px solid #e67e22;
+}
+.section-sub { font-size: 0.82em; color: #808080; margin: 0 0 20px 18px; }
+
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.card {
+    background: #353535; border: 1px solid #4a4a4a; border-radius: 12px;
+    padding: 24px; cursor: pointer; transition: all 0.3s; position: relative;
+}
+.card:hover { transform: translateY(-4px); box-shadow: 0 8px 30px rgba(0,0,0,0.4); border-color: #e67e22; }
+.card-icon {
+    width: 48px; height: 48px;
+    background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 16px; font-size: 24px;
+}
+.card-title { font-size: 1.05em; font-weight: 700; color: #ffffff; margin-bottom: 8px; }
+.card-description { font-size: 0.85em; color: #a0a0a0; line-height: 1.6; margin-bottom: 14px; }
+.card-badge {
+    display: inline-block; padding: 4px 12px; border-radius: 6px;
+    font-size: 0.75em; font-weight: 600;
+}
+.card-badge.active { background: rgba(230,126,34,0.15); border: 1px solid rgba(230,126,34,0.3); color: #e67e22; }
+.card-badge.doc { background: rgba(74,144,226,0.15); border: 1px solid rgba(74,144,226,0.3); color: #4a90e2; }
+
+.footer { text-align: center; padding: 30px; color: #505050; font-size: 0.8em; }
+.footer .developer-tag { margin-top: 6px; font-weight: 600; color: #e67e22; }
+
+/* ── 설정 배너 ── */
+.setup-banner {
+    background: rgba(231,76,60,0.12); border: 1px solid rgba(231,76,60,0.35);
+    color: #ff8a75; padding: 14px 18px; border-radius: 10px; font-size: 0.85em;
+    margin-bottom: 24px; line-height: 1.6; display: none;
+}
+.setup-banner code { background: #1e1e1e; padding: 2px 6px; border-radius: 4px; color: #e67e22; }
+
+/* ── 공용 툴뷰 ── */
+.tool-view { display: none; }
+.tool-head { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:24px; flex-wrap:wrap; }
+.tool-title { font-size: 1.35em; font-weight: 700; color:#fff; margin-bottom:6px; }
+.tool-desc { font-size: 0.85em; color:#a0a0a0; line-height:1.6; max-width: 760px; }
+.tool-tag { display:inline-block; margin-top:8px; font-size:0.75em; color:#e67e22; background:rgba(230,126,34,0.12); border:1px solid rgba(230,126,34,0.3); padding:3px 10px; border-radius:6px; }
+
+.panel { background:#353535; border:1px solid #4a4a4a; border-radius:12px; padding:24px; margin-bottom:24px; }
+.panel-title { font-size:1em; font-weight:700; color:#fff; margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+
+.form-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap:16px; margin-bottom:16px; }
+.form-group { margin-bottom: 0; }
+.form-group.full { grid-column: 1 / -1; }
+.form-group label { display:block; font-size:0.8em; font-weight:600; color:#a0a0a0; margin-bottom:6px; letter-spacing:0.3px; }
+.form-group input, .form-group select, .form-group textarea {
+    width:100%; background:#2a2a2a; border:1px solid #4a4a4a; border-radius:8px;
+    padding:10px 12px; color:#e0e0e0; font-family:inherit; font-size:0.92em; transition:border-color .2s;
+}
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    outline:none; border-color:#e67e22; box-shadow:0 0 0 3px rgba(230,126,34,0.15);
+}
+.form-group textarea { resize:vertical; min-height:64px; }
+
+.btn { padding:10px 18px; border-radius:8px; border:none; font-family:inherit; font-size:0.88em; font-weight:700; cursor:pointer; transition:all .2s; }
+.btn-primary { background:linear-gradient(135deg,#e67e22,#d35400); color:#fff; }
+.btn-primary:hover { transform:translateY(-1px); box-shadow:0 4px 15px rgba(230,126,34,0.4); }
+.btn-primary:disabled { opacity:.5; cursor:not-allowed; transform:none; box-shadow:none; }
+.btn-secondary { background:#2a2a2a; border:1px solid #4a4a4a; color:#c0c0c0; }
+.btn-secondary:hover { border-color:#e67e22; color:#e67e22; }
+.btn-danger { background:transparent; border:1px solid rgba(231,76,60,0.4); color:#e74c3c; }
+.btn-danger:hover { background:rgba(231,76,60,0.12); }
+.btn-sm { padding:6px 12px; font-size:0.78em; border-radius:6px; }
+
+.status-msg { margin-top:12px; padding:10px 14px; border-radius:8px; font-size:0.88em; display:none; }
+.status-msg.ok { display:block; background:rgba(39,174,96,0.15); color:#27ae60; }
+.status-msg.err { display:block; background:rgba(231,76,60,0.15); color:#e74c3c; }
+
+table.data-table { width:100%; border-collapse:collapse; font-size:0.85em; }
+table.data-table th { text-align:left; color:#808080; font-weight:600; font-size:0.82em; padding:10px 10px; border-bottom:1px solid #4a4a4a; white-space:nowrap; }
+table.data-table td { padding:10px 10px; border-bottom:1px solid #3a3a3a; color:#d0d0d0; vertical-align:top; }
+table.data-table tr:hover td { background:#3a3a3a; }
+.table-wrap { overflow-x:auto; }
+
+.badge { display:inline-block; padding:3px 10px; border-radius:6px; font-size:0.76em; font-weight:700; white-space:nowrap; }
+.badge-ok { background:rgba(39,174,96,0.15); color:#27ae60; border:1px solid rgba(39,174,96,0.3); }
+.badge-bad { background:rgba(231,76,60,0.15); color:#e74c3c; border:1px solid rgba(231,76,60,0.3); }
+.badge-warn { background:rgba(243,156,18,0.15); color:#f39c12; border:1px solid rgba(243,156,18,0.3); }
+.badge-mute { background:rgba(128,128,128,0.15); color:#909090; border:1px solid rgba(128,128,128,0.3); }
+.badge-info { background:rgba(74,144,226,0.15); color:#4a90e2; border:1px solid rgba(74,144,226,0.3); }
+
+.checklist-item { border:1px solid #4a4a4a; border-radius:10px; padding:14px 16px; margin-bottom:10px; background:#2f2f2f; }
+.checklist-item-head { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
+.checklist-item-name { font-size:0.9em; color:#e0e0e0; flex:1; min-width:200px; }
+.seg { display:flex; gap:6px; }
+.seg-btn { padding:6px 14px; border-radius:6px; border:1px solid #4a4a4a; background:#2a2a2a; color:#a0a0a0; font-size:0.8em; font-weight:600; cursor:pointer; transition:all .15s; }
+.seg-btn.sel-ok { background:rgba(39,174,96,0.18); border-color:#27ae60; color:#27ae60; }
+.seg-btn.sel-bad { background:rgba(231,76,60,0.18); border-color:#e74c3c; color:#e74c3c; }
+.checklist-item-extra { margin-top:12px; display:none; grid-template-columns: repeat(auto-fit,minmax(160px,1fr)); gap:10px; }
+.checklist-item-extra.show { display:grid; }
+.chapter-block { margin-bottom:22px; }
+.chapter-head { display:flex; align-items:center; gap:10px; cursor:pointer; padding:10px 4px; border-bottom:2px solid #4a4a4a; margin-bottom:12px; }
+.chapter-head h4 { color:#e67e22; font-size:0.95em; }
+.chapter-count { margin-left:auto; font-size:0.78em; color:#808080; }
+.chev { transition:transform .2s; color:#808080; }
+.chapter-block.collapsed .chapter-body { display:none; }
+.chapter-block.collapsed .chev { transform:rotate(-90deg); }
+
+.stat-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:14px; margin-bottom:22px; }
+.stat-box { background:#2f2f2f; border:1px solid #4a4a4a; border-radius:10px; padding:16px; text-align:center; }
+.stat-box .num { font-size:1.6em; font-weight:800; color:#fff; }
+.stat-box .lbl { font-size:0.76em; color:#909090; margin-top:4px; }
+.stat-box.accent .num { color:#e67e22; }
+.stat-box.good .num { color:#27ae60; }
+.stat-box.bad .num { color:#e74c3c; }
+
+.doc-panel { background:#353535; border:1px solid #4a4a4a; border-radius:12px; padding:32px; line-height:1.85; font-size:0.92em; color:#d0d0d0; }
+.doc-panel h1 { font-size:1.3em; color:#fff; margin-bottom:4px; }
+.doc-panel h2 { font-size:1.02em; color:#e67e22; margin:26px 0 10px; padding-top:10px; border-top:1px solid #3f3f3f; }
+.doc-panel h2:first-of-type { border-top:none; padding-top:0; margin-top:10px; }
+.doc-panel p, .doc-panel li { color:#c4c4c4; }
+.doc-panel ul, .doc-panel ol { margin-left:22px; margin-bottom:6px; }
+.doc-panel .doc-note { font-size:0.82em; color:#909090; background:#2a2a2a; border-left:3px solid #e67e22; padding:10px 14px; border-radius:6px; margin:14px 0; }
+.doc-meta { font-size:0.8em; color:#808080; margin-bottom:20px; }
+
+.detail-toggle { color:#4a90e2; cursor:pointer; font-size:0.82em; font-weight:600; }
+.detail-row { display:none; }
+.detail-row.show { display:table-row; }
+.detail-row td { background:#2a2a2a !important; }
+
+.attend-table input { width:100%; }
+.inline-edit input, .inline-edit select { padding:6px 8px; font-size:0.85em; }
+
+@media (max-width: 768px) {
+    .top-header { padding: 14px 16px; flex-wrap: wrap; gap: 10px; }
+    .content { padding: 20px 12px; }
+    .cards-grid { grid-template-columns: 1fr; }
+    .form-grid { grid-template-columns: 1fr; }
+    .tool-head { flex-direction:column; }
+}
+</style>
+</head>
+<body>
+
+<div class="top-header">
+    <div class="top-header-left">
+        <div class="top-header-icon">📋</div>
+        <div>
+            <div class="top-header-title">문서함 · 체크리스트 관리</div>
+            <div class="top-header-sub">QSHE 점검 기록 및 기준문서 게시</div>
+        </div>
+    </div>
+    <div class="top-header-right">
+        <span class="header-date" id="currentDate"></span>
+        <a href="admin.html" class="back-btn">⚙️ Admin으로</a>
+    </div>
+</div>
+
+<div class="content">
+
+<div class="setup-banner" id="setupBanner">
+    ⚠️ 아직 저장소(Google Sheets + Apps Script)가 연결되지 않았습니다. 이 파일 상단 스크립트의
+    <code>APPS_SCRIPT_URL</code> 값을 배포한 웹앱 URL로 교체해야 입력/저장/이력 조회가 동작합니다.
+</div>
+
+<!-- ══════════════ HUB VIEW ══════════════ -->
+<div id="hub-view">
+
+    <div class="section">
+        <h2 class="section-title">🦺 안전 점검</h2>
+        <p class="section-sub">정기적으로 점검하고 이력을 남겨야 하는 체크리스트</p>
+        <div class="cards-grid">
+            <div class="card" onclick="openTool('5s')">
+                <div class="card-icon">🧹</div>
+                <h3 class="card-title">5S 정기점검표</h3>
+                <p class="card-description">현장 정리·정돈·청소 상태를 월 1회 이상 점검하고 기록합니다.</p>
+                <span class="card-badge active">기록형 · 월 1회</span>
+            </div>
+            <div class="card" onclick="openTool('firstaid')">
+                <div class="card-icon">🩹</div>
+                <h3 class="card-title">구급함 점검표</h3>
+                <p class="card-description">구급함 비치 품목의 수량·유효기한·상태를 점검하고 기록합니다.</p>
+                <span class="card-badge active">기록형 · 월 1회</span>
+            </div>
+            <div class="card" onclick="openTool('firedrill')">
+                <div class="card-icon">🔥</div>
+                <h3 class="card-title">화재대피훈련 계획·결과보고서</h3>
+                <p class="card-description">화재대피훈련 계획, 절차 수행 결과, 참석자 명단을 기록합니다.</p>
+                <span class="card-badge active">기록형</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2 class="section-title">🎓 교육 관리</h2>
+        <p class="section-sub">직원별 교육 이력을 등록하고 이어서 관리</p>
+        <div class="cards-grid">
+            <div class="card" onclick="openTool('ojt')">
+                <div class="card-icon">📚</div>
+                <h3 class="card-title">신입 OJT 체크리스트</h3>
+                <p class="card-description">신입직원 현장교육 12개 항목의 이수 여부를 인당 기록·관리합니다.</p>
+                <span class="card-badge active">기록형 · 인당 관리</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2 class="section-title">🚨 안전사고 관리</h2>
+        <p class="section-sub">사고·아차사고 발생 시 즉시 보고 및 이력 관리</p>
+        <div class="cards-grid">
+            <div class="card" onclick="openTool('incident')">
+                <div class="card-icon">🚧</div>
+                <h3 class="card-title">사고 · 아차사고 보고서</h3>
+                <p class="card-description">발생 경위·원인분석·재발방지대책을 기록하고 연도별 현황을 자동 집계합니다.</p>
+                <span class="card-badge active">기록형 · 발생 시마다</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2 class="section-title">🔍 QSHE 자체점검</h2>
+        <p class="section-sub">Nespresso After Sales Assessment Tool 기준 61개 항목 자체점검</p>
+        <div class="cards-grid">
+            <div class="card" onclick="openTool('qshe')">
+                <div class="card-icon">🔍</div>
+                <h3 class="card-title">QSHE 자체점검 결과보고서</h3>
+                <p class="card-description">6개 챕터 · 61개 항목을 회차별로 점검하고 결과·개선조치를 추적합니다.</p>
+                <span class="card-badge active">기록형 · 회차별</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2 class="section-title">📁 문서함 (기준문서 · 게시자료)</h2>
+        <p class="section-sub">입력이 아닌 게시·조회 위주의 기준문서 및 유지관리 목록</p>
+        <div class="cards-grid">
+            <div class="card" onclick="openTool('inventory')">
+                <div class="card-icon">🧰</div>
+                <h3 class="card-title">공구·장비 인벤토리</h3>
+                <p class="card-description">보유 공구·장비 목록(위험성평가 부속서). 수량·비고를 직접 편집합니다.</p>
+                <span class="card-badge doc">게시+편집</span>
+            </div>
+            <div class="card" onclick="openTool('matrix')">
+                <div class="card-icon">🗂️</div>
+                <h3 class="card-title">QSHE & 기술 교육 매트릭스</h3>
+                <p class="card-description">직무별 필수 QSHE/기술 교육 계획 기준문서입니다.</p>
+                <span class="card-badge doc">게시문서</span>
+            </div>
+            <div class="card" onclick="openTool('procedure')">
+                <div class="card-icon">📄</div>
+                <h3 class="card-title">사고 및 아차사고 보고 절차서</h3>
+                <p class="card-description">보고 절차·조사·재발방지 프로세스 기준문서 (연도별 현황 자동 반영).</p>
+                <span class="card-badge doc">게시문서</span>
+            </div>
+        </div>
+    </div>
+
+</div>
+<!-- ══════════════ /HUB VIEW ══════════════ -->
+
+<!-- ══════ TOOL: 5S 정기점검표 ══════ -->
+<div id="tool-5s" class="tool-view">
+    <div class="tool-head">
+        <div>
+            <div class="tool-title">🧹 5S 정기점검표</div>
+            <div class="tool-desc">현장 정리·정돈·청소·표준화·생활화(5S) 상태를 점검합니다. ※ 1.70(5S 활동) 항목 증빙자료 — 월 1회 이상 점검 권장, 점검 후 사진 첨부 권장.</div>
+        </div>
+        <button class="back-btn" onclick="backToHub()">← 목록으로</button>
+    </div>
+
+    <div class="panel">
+        <div class="panel-title">📝 새 점검 등록</div>
+        <div class="form-grid">
+            <div class="form-group"><label>점검일자</label><input type="date" id="s5_date"></div>
+            <div class="form-group"><label>점검구역</label><input type="text" id="s5_area" placeholder="예: 수리작업장 / 부품창고 / 접수구역 등"></div>
+            <div class="form-group"><label>점검자</label><input type="text" id="s5_inspector" placeholder="점검자 이름"></div>
+        </div>
+        <div id="s5_items"></div>
+        <div class="form-group full" style="margin-top:8px;">
+            <label>종합 비고</label>
+            <textarea id="s5_note" placeholder="전체 총평 또는 특이사항"></textarea>
+        </div>
+        <button class="btn btn-primary" id="s5_saveBtn" onclick="save5S()" style="margin-top:14px;">💾 점검 결과 저장</button>
+        <div class="status-msg" id="s5_status"></div>
+    </div>
+
+    <div class="panel">
+        <div class="panel-title">📜 점검 이력</div>
+        <div class="table-wrap">
+        <table class="data-table">
+            <thead><tr><th>점검일자</th><th>점검구역</th><th>점검자</th><th>미흡</th><th>비고</th><th></th></tr></thead>
+            <tbody id="s5_history"><tr><td colspan="6" style="color:#808080;">불러오는 중...</td></tr></tbody>
+        </table>
+        </div>
+    </div>
+</div>
+
+<!-- ══════ TOOL: 구급함 점검표 ══════ -->
+<div id="tool-firstaid" class="tool-view">
+    <div class="tool-head">
+        <div>
+            <div class="tool-title">🩹 구급함(First Aid Kit) 점검표</div>
+            <div class="tool-desc">※ 2.50(응급처치) 항목 증빙자료. 월 1회 이상 점검 권장, 유효기한 경과 물품은 즉시 교체.</div>
+        </div>
+        <button class="back-btn" onclick="backToHub()">← 목록으로</button>
+    </div>
+
+    <div class="panel">
+        <div class="panel-title">📝 새 점검 등록</div>
+        <div class="form-grid">
+            <div class="form-group"><label>점검일자</label><input type="date" id="fa_date"></div>
+            <div class="form-group"><label>점검자</label><input type="text" id="fa_inspector" placeholder="점검자 이름"></div>
+            <div class="form-group"><label>구급함 위치</label><input type="text" id="fa_loc" placeholder="예: 수리작업장 벽면"></div>
+        </div>
+        <div class="table-wrap">
+        <table class="data-table" id="fa_table">
+            <thead><tr><th>품목</th><th>기준수량</th><th>현재수량</th><th>유효기한</th><th>상태</th><th>비고</th></tr></thead>
+            <tbody id="fa_items"></tbody>
+        </table>
+        </div>
+        <div class="form-group full" style="margin-top:14px;">
+            <label>비고(전체)</label>
+            <textarea id="fa_note" placeholder="교체/보충 필요 사항 등"></textarea>
+        </div>
+        <button class="btn btn-primary" id="fa_saveBtn" onclick="saveFirstAid()" style="margin-top:14px;">💾 점검 결과 저장</button>
+        <div class="status-msg" id="fa_status"></div>
+    </div>
+
+    <div class="panel">
+        <div class="panel-title">📜 점검 이력</div>
+        <div class="table-wrap">
+        <table class="data-table">
+            <thead><tr><th>점검일자</th><th>점검자</th><th>위치</th><th>교체필요</th><th>비고</th><th></th></tr></thead>
+            <tbody id="fa_history"><tr><td colspan="6" style="color:#808080;">불러오는 중...</td></tr></tbody>
+        </table>
+        </div>
+    </div>
+</div>
+
+<!-- ══════ TOOL: 화재대피훈련 계획·결과보고서 ══════ -->
+<div id="tool-firedrill" class="tool-view">
+    <div class="tool-head">
+        <div>
+            <div class="tool-title">🔥 화재대피훈련 계획 및 결과보고서</div>
+            <div class="tool-desc">※ 1.90(사고 및 위기관리), 1.80(BCP), 2.60(화재위험 관리) 항목 공용 증빙자료.</div>
+        </div>
+        <button class="back-btn" onclick="backToHub()">← 목록으로</button>
+    </div>
+
+    <div class="panel">
+        <div class="panel-title">📝 새 훈련 등록</div>
+        <div class="form-grid">
+            <div class="form-group"><label>훈련일시</label><input type="date" id="fd_date"></div>
+            <div class="form-group"><label>훈련 대상</label><input type="text" id="fd_target" value="HiQASC 전 직원"></div>
+            <div class="form-group"><label>집결지</label><input type="text" id="fd_gather" placeholder="예: 건물 앞 주차장"></div>
+            <div class="form-group"><label>훈련 진행자</label><input type="text" id="fd_leader" placeholder="진행자 이름"></div>
+            <div class="form-group full"><label>훈련 시나리오</label><input type="text" id="fd_scenario" value="화재 발생 - 경보 → 초기소화 → 대피 → 집결지 인원확인"></div>
+        </div>
+
+        <div class="panel-title" style="margin-top:8px;">훈련 절차 체크리스트</div>
+        <div id="fd_items"></div>
+
+        <div class="form-group full" style="margin-top:8px;">
+            <label>훈련 결과 및 개선사항</label>
+            <textarea id="fd_result" placeholder="훈련 총평, 미흡사항, 개선계획 등"></textarea>
+        </div>
+
+        <div class="panel-title" style="margin-top:18px; display:flex; justify-content:space-between; align-items:center;">
+            <span>참석자 명단</span>
+            <button class="btn btn-secondary btn-sm" onclick="addAttendeeRow()">+ 인원 추가</button>
+        </div>
+        <div class="table-wrap">
+        <table class="data-table attend-table">
+            <thead><tr><th style="width:60px;">연번</th><th>소속</th><th>성명</th><th style="width:50px;"></th></tr></thead>
+            <tbody id="fd_attendees"></tbody>
+        </table>
+        </div>
+
+        <button class="btn btn-primary" id="fd_saveBtn" onclick="saveFireDrill()" style="margin-top:14px;">💾 훈련 결과 저장</button>
+        <div class="status-msg" id="fd_status"></div>
+    </div>
+
+    <div class="panel">
+        <div class="panel-title">📜 훈련 이력</div>
+        <div class="table-wrap">
+        <table class="data-table">
+            <thead><tr><th>훈련일시</th><th>대상</th><th>진행자</th><th>참석인원</th><th></th></tr></thead>
+            <tbody id="fd_history"><tr><td colspan="5" style="color:#808080;">불러오는 중...</td></tr></tbody>
+        </table>
+        </div>
+    </div>
+</div>
+
+<!-- ══════ TOOL: 신입 OJT 체크리스트 ══════ -->
+<div id="tool-ojt" class="tool-view">
+    <div class="tool-head">
+        <div>
+            <div class="tool-title">📚 신입직원 OJT(현장교육) 체크리스트</div>
+            <div class="tool-desc">전 항목 완료 후 현장 업무(단독 수리작업) 투입. 완료된 체크리스트는 개인 교육기록으로 보관됩니다.</div>
+        </div>
+        <button class="back-btn" onclick="backToHub()">← 목록으로</button>
+    </div>
+
+    <div class="panel">
+        <div class="panel-title" style="justify-content:space-between; display:flex;">
+            <span>👤 등록된 신입직원</span>
+            <button class="btn btn-secondary btn-sm" onclick="newOJT()">+ 신규 등록</button>
+        </div>
+        <div class="table-wrap">
+        <table class="data-table">
+            <thead><tr><th>성명</th><th>직무</th><th>입사일</th><th>진행률</th><th>완료여부</th><th></th></tr></thead>
+            <tbody id="ojt_list"><tr><td colspan="6" style="color:#808080;">불러오는 중...</td></tr></tbody>
+        </table>
+        </div>
+    </div>
+
+    <div class="panel">
+        <div class="panel-title" id="ojt_formTitle">📝 신입직원 등록</div>
+        <div class="form-grid">
+            <div class="form-group"><label>성명</label><input type="text" id="ojt_name" placeholder="이름"></div>
+            <div class="form-group"><label>입사일</label><input type="date" id="ojt_join"></div>
+            <div class="form-group"><label>직무</label><input type="text" id="ojt_role" placeholder="예: 수리기술자"></div>
+        </div>
+        <div class="table-wrap">
+        <table class="data-table">
+            <thead><tr><th style="width:36px;">No</th><th>교육 항목</th><th style="width:140px;">교육일자</th><th style="width:140px;">교육 담당자</th><th style="width:140px;">확인(성명)</th><th>비고</th></tr></thead>
+            <tbody id="ojt_items"></tbody>
+        </table>
+        </div>
+        <button class="btn btn-primary" id="ojt_saveBtn" onclick="saveOJT()" style="margin-top:14px;">💾 저장</button>
+        <div class="status-msg" id="ojt_status"></div>
+    </div>
+</div>
+
+<!-- ══════ TOOL: 사고 · 아차사고 보고서 ══════ -->
+<div id="tool-incident" class="tool-view">
+    <div class="tool-head">
+        <div>
+            <div class="tool-title">🚧 사고 · 아차사고 보고서</div>
+            <div class="tool-desc">발생 즉시 관리자에게 구두 보고 후, 24시간 이내 본 양식을 작성합니다. 보고 절차 원문은 문서함의 "사고 및 아차사고 보고 절차서"를 참고하세요.</div>
+        </div>
+        <button class="back-btn" onclick="backToHub()">← 목록으로</button>
+    </div>
+
+    <div class="panel">
+        <div class="panel-title">📝 새 보고서 작성</div>
+        <div class="form-grid">
+            <div class="form-group"><label>발생일시</label><input type="date" id="inc_date"></div>
+            <div class="form-group"><label>발생장소</label><input type="text" id="inc_place" placeholder="예: 수리작업장"></div>
+            <div class="form-group"><label>관련자(부상자/목격자)</label><input type="text" id="inc_people"></div>
+            <div class="form-group">
+                <label>구분</label>
+                <select id="inc_type"><option value="사고">사고(부상 발생)</option><option value="아차사고">아차사고(부상 없음)</option></select>
+            </div>
+            <div class="form-group"><label>부상 정도(해당 시)</label><input type="text" id="inc_injury"></div>
+            <div class="form-group">
+                <label>조치 완료여부</label>
+                <select id="inc_status"><option value="완료">완료</option><option value="진행중">진행중</option><option value="미완료">미완료</option></select>
+            </div>
+            <div class="form-group full"><label>사고 경위</label><textarea id="inc_desc" placeholder="발생 경위를 상세히 작성"></textarea></div>
+            <div class="form-group full"><label>초기 조치 내용</label><textarea id="inc_first"></textarea></div>
+            <div class="form-group full"><label>원인 분석</label><textarea id="inc_cause" placeholder="직접원인(불안전한 행동/상태) / 근본원인(관리적 요인)"></textarea></div>
+            <div class="form-group full"><label>재발방지 대책</label><textarea id="inc_prevent"></textarea></div>
+            <div class="form-group"><label>보고자</label><input type="text" id="inc_reporter"></div>
+            <div class="form-group"><label>보고일자</label><input type="date" id="inc_reportdate"></div>
+        </div>
+        <button class="btn btn-primary" id="inc_saveBtn" onclick="saveIncident()">💾 보고서 저장</button>
+        <div class="status-msg" id="inc_status"></div>
+    </div>
+
+    <div class="panel">
+        <div class="panel-title">📊 사고/아차사고 발생 현황 (연도별)</div>
+        <div class="table-wrap">
+        <table class="data-table">
+            <thead><tr><th>연도</th><th>사고 건수</th><th>아차사고 건수</th><th>비고</th></tr></thead>
+            <tbody id="inc_stats"><tr><td colspan="4" style="color:#808080;">불러오는 중...</td></tr></tbody>
+        </table>
+        </div>
+    </div>
+
+    <div class="panel">
+        <div class="panel-title">📜 보고서 이력</div>
+        <div class="table-wrap">
+        <table class="data-table">
+            <thead><tr><th>발생일시</th><th>장소</th><th>구분</th><th>완료여부</th><th>보고자</th><th></th></tr></thead>
+            <tbody id="inc_history"><tr><td colspan="6" style="color:#808080;">불러오는 중...</td></tr></tbody>
+        </table>
+        </div>
+    </div>
+</div>
+
+<!-- ══════ TOOL: QSHE 자체점검 (61개 항목) ══════ -->
+<div id="tool-qshe" class="tool-view">
+    <div class="tool-head">
+        <div>
+            <div class="tool-title">🔍 QSHE 자체점검 결과보고서</div>
+            <div class="tool-desc">점검 기준: Nespresso After Sales Assessment Tool V5 Checklist · 점검 대상: HiQASC (경기도 성남시 분당구). 6개 챕터 · 61개 항목을 회차별로 점검·기록합니다.</div>
+        </div>
+        <button class="back-btn" onclick="backToHub()">← 목록으로</button>
+    </div>
+
+    <div class="panel">
+        <div class="panel-title">🗂️ 점검 회차</div>
+        <div class="form-grid">
+            <div class="form-group"><label>점검회차명</label><input type="text" id="qshe_round" placeholder="예: 2026년 자체점검"></div>
+            <div class="form-group"><label>점검 실시일</label><input type="date" id="qshe_execdate"></div>
+            <div class="form-group"><label>점검 실시자</label><input type="text" id="qshe_executor"></div>
+            <div class="form-group"><label>정식 점검(외부) 예정일</label><input type="date" id="qshe_extdate"></div>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="btn btn-secondary btn-sm" onclick="loadRoundQshe()">📂 이 회차 불러오기</button>
+            <button class="btn btn-secondary btn-sm" onclick="newRoundQshe()">🆕 새 회차로 시작(빈 양식)</button>
+        </div>
+        <div id="qshe_roundList" style="margin-top:14px; display:flex; gap:8px; flex-wrap:wrap;"></div>
+    </div>
+
+    <div class="stat-row">
+        <div class="stat-box accent"><div class="num" id="qshe_stat_total">61</div><div class="lbl">전체 항목</div></div>
+        <div class="stat-box good"><div class="num" id="qshe_stat_ok">0</div><div class="lbl">적합</div></div>
+        <div class="stat-box"><div class="num" id="qshe_stat_improve">0</div><div class="lbl">개선필요</div></div>
+        <div class="stat-box bad"><div class="num" id="qshe_stat_bad">0</div><div class="lbl">부적합</div></div>
+        <div class="stat-box"><div class="num" id="qshe_stat_pending">61</div><div class="lbl">미입력</div></div>
+    </div>
+
+    <div class="panel">
+        <div class="panel-title">✅ 항목별 점검</div>
+        <div id="qshe_chapters"></div>
+        <button class="btn btn-primary" id="qshe_saveBtn" onclick="saveQshe()" style="margin-top:16px;">💾 이 회차 전체 저장</button>
+        <div class="status-msg" id="qshe_status"></div>
+    </div>
+</div>
+
+<!-- ══════ TOOL: 공구·장비 인벤토리 ══════ -->
+<div id="tool-inventory" class="tool-view">
+    <div class="tool-head">
+        <div>
+            <div class="tool-title">🧰 보유 공구·장비 인벤토리</div>
+            <div class="tool-desc">※ 2.10(안전보건 위험성평가) 항목 부속서. "수량" 열은 실제 보유 수량으로 채워주세요. 목록에 없는 공구/장비는 아래에서 추가할 수 있습니다.</div>
+        </div>
+        <button class="back-btn" onclick="backToHub()">← 목록으로</button>
+    </div>
+
+    <div class="panel">
+        <div class="panel-title">➕ 새 공구/장비 추가</div>
+        <div class="form-grid">
+            <div class="form-group"><label>구분</label><input id="inv_new_cat" placeholder="예: 수공구"></div>
+            <div class="form-group"><label>명칭</label><input id="inv_new_name" placeholder="공구/장비명"></div>
+            <div class="form-group"><label>수량</label><input id="inv_new_qty" placeholder="예: 3"></div>
+            <div class="form-group"><label>점검주기</label><input id="inv_new_cycle" placeholder="예: 수시 육안점검"></div>
+            <div class="form-group full"><label>사용 목적</label><input id="inv_new_purpose"></div>
+            <div class="form-group full"><label>관련 위험요소</label><input id="inv_new_risk"></div>
+            <div class="form-group full"><label>예방조치/PPE</label><input id="inv_new_prevent"></div>
+            <div class="form-group full"><label>비고</label><input id="inv_new_note"></div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="addInventoryItem()">추가</button>
+        <div class="status-msg" id="inv_status"></div>
+    </div>
+
+    <div class="panel">
+        <div class="panel-title">📋 인벤토리 목록 (직접 편집 가능, 변경 후 각 행의 💾 클릭)</div>
+        <div class="table-wrap">
+        <table class="data-table inline-edit">
+            <thead><tr><th>구분</th><th>명칭</th><th style="width:70px;">수량</th><th>사용목적</th><th>관련위험요소</th><th>예방조치/PPE</th><th>점검주기</th><th>비고</th><th></th></tr></thead>
+            <tbody id="inv_list"><tr><td colspan="9" style="color:#808080;">불러오는 중...</td></tr></tbody>
+        </table>
+        </div>
+    </div>
+</div>
+
+<!-- ══════ TOOL: 교육 매트릭스(게시문서) ══════ -->
+<div id="tool-matrix" class="tool-view">
+    <div class="tool-head">
+        <div>
+            <div class="tool-title">🗂️ QSHE & 기술 교육 매트릭스</div>
+            <div class="tool-desc">기준문서 · 게시 전용 — 신입 OJT/연간 교육 계획 수립 시 참조합니다.</div>
+        </div>
+        <button class="back-btn" onclick="backToHub()">← 목록으로</button>
+    </div>
+    <div class="doc-panel">
+        <h1>HiQASC QSHE & 기술 교육 매트릭스</h1>
+        <div class="doc-meta">※ 1.50(직원 교육훈련) 항목 — 직무별 필수 QSHE/기술 교육 계획. 실시 결과는 마감회의 자료(참석자 서명 포함)로 대체.</div>
+        <div class="table-wrap">
+        <table class="data-table" id="matrix_table"></table>
+        </div>
+        <div class="doc-note">신입 직원 교육은 "교육 관리 &gt; 신입 OJT 체크리스트"에서 개인별로 기록·관리합니다.</div>
+    </div>
+</div>
+
+<!-- ══════ TOOL: 사고및아차사고 보고절차서(게시문서) ══════ -->
+<div id="tool-procedure" class="tool-view">
+    <div class="tool-head">
+        <div>
+            <div class="tool-title">📄 사고 및 아차사고 보고 절차서</div>
+            <div class="tool-desc">기준문서 · 게시 전용 — 실제 사고/아차사고 발생 시 보고서 작성은 "안전사고 관리 &gt; 사고·아차사고 보고서"를 이용하세요.</div>
+        </div>
+        <button class="back-btn" onclick="backToHub()">← 목록으로</button>
+    </div>
+    <div class="doc-panel">
+        <h1>사고 및 아차사고 보고 절차서</h1>
+        <div class="doc-meta">주식회사 하이큐시스템 / HiQASC</div>
+
+        <h2>1. 목적</h2>
+        <p>본 절차서는 HiQASC 작업장 내에서 발생할 수 있는 안전사고 및 아차사고(부상으로 이어지지 않았으나 위험했던 상황)를 신속히 보고·조사하고, 재발 방지 대책을 마련하기 위한 절차를 정한다.</p>
+
+        <h2>2. 적용 범위</h2>
+        <p>본 절차서는 HiQASC의 수리작업장, 부품창고, 사무공간에서 발생하는 모든 사고 및 아차사고에 적용된다.</p>
+
+        <h2>3. 용어 정의</h2>
+        <ul>
+            <li><b>사고(Accident)</b>: 업무 중 발생하여 부상, 물적 손실 등 실제 피해가 발생한 사건</li>
+            <li><b>아차사고(Near-miss)</b>: 부상이나 손실로 이어지지는 않았으나, 상황에 따라 사고로 이어질 수 있었던 위험한 사건</li>
+        </ul>
+
+        <h2>4. 보고 절차</h2>
+        <ol>
+            <li>사고/아차사고 발생 즉시 발견자 또는 당사자는 관리자(센터장 또는 지정 안전관리 담당)에게 구두로 즉시 보고한다.</li>
+            <li>부상이 있는 경우, 즉시 응급처치를 시행하고 필요 시 119 신고 및 병원 이송을 우선한다.</li>
+            <li>상황 안정 후 24시간 이내에 "사고/아차사고 보고서"(안전사고 관리 메뉴)를 작성한다.</li>
+            <li>중대재해에 해당할 수 있는 경우, 중대재해처벌법 관련 별도 대응절차를 함께 따른다.</li>
+        </ol>
+
+        <h2>5. 조사 및 원인분석</h2>
+        <ul>
+            <li>관리자는 보고서를 바탕으로 발생 경위와 원인을 조사한다.</li>
+            <li>필요 시 관련자 인터뷰, 현장 확인, 사진 촬영 등을 통해 사실관계를 파악한다.</li>
+            <li>원인은 직접원인(불안전한 행동/상태)과 근본원인(관리적 요인)을 함께 분석한다.</li>
+        </ul>
+
+        <h2>6. 재발방지 대책 및 후속조치</h2>
+        <ul>
+            <li>조사 결과를 바탕으로 재발방지 대책을 수립하고 담당자·완료기한을 지정한다.</li>
+            <li>동일·유사 위험이 있는 다른 작업구역에도 대책을 확대 적용할지 검토한다.</li>
+            <li>대책 이행 결과는 완료 시까지 추적 관리한다.</li>
+        </ul>
+
+        <h2>7. 공유 및 교육</h2>
+        <ul>
+            <li>사고/아차사고 발생 시 전 직원에게 사실관계와 재발방지 대책을 공유한다(조회, 게시 등).</li>
+            <li>중요한 교훈(Lessons Learned)은 안전교육 자료에 반영한다.</li>
+        </ul>
+
+        <h2>8. 기록 보관</h2>
+        <p>작성된 사고/아차사고 보고서는 발생일로부터 최소 3년간 보관하며, 관련 문서관리 체계(1.40)에 따라 관리한다.</p>
+
+        <h2>9. 사고/아차사고 발생 현황 (연도별) — 실시간 집계</h2>
+        <div class="table-wrap">
+        <table class="data-table">
+            <thead><tr><th>연도</th><th>사고 건수</th><th>아차사고 건수</th><th>비고</th></tr></thead>
+            <tbody id="proc_stats"><tr><td colspan="4" style="color:#808080;">불러오는 중...</td></tr></tbody>
+        </table>
+        </div>
+
+        <h2>10. 승인</h2>
+        <div class="table-wrap">
+        <table class="data-table">
+            <thead><tr><th>작성</th><th>검토</th><th>검토</th><th>승인</th></tr></thead>
+            <tbody><tr><td>센터장 (서명)</td><td>상무 (서명)</td><td>부사장 (서명)</td><td>사장 (서명)</td></tr></tbody>
+        </table>
+        </div>
+
+        <div class="doc-note">별첨. 사고/아차사고 보고서 양식은 발생 시마다 "안전사고 관리 &gt; 사고·아차사고 보고서" 메뉴에서 작성합니다.</div>
+    </div>
+</div>
+
+
+</div>
+
+<div class="footer">
+    <p>&copy; 2026 HIQASC Repair Team Management Platform. All rights reserved.</p>
+    <p class="developer-tag">DEVELOPED BY DONGGU KANG</p>
+</div>
+
+<script>
+/* ════════════════════════════════════════════════
+   설정: Apps Script 웹앱 URL (배포 후 아래 값을 교체하세요)
+   ════════════════════════════════════════════════ */
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz37ibgP8xruhPV46Fd-uI9kCh0PFS5UOiI-URPqW90eCTSI0xde_2t9PU81XSFPOAX/exec';
+
+function isConfigured() {
+    return APPS_SCRIPT_URL && APPS_SCRIPT_URL.indexOf('https://script.google.com') === 0;
+}
+
+async function apiGet(sheet, params) {
+    if (!isConfigured()) throw new Error('저장소 미연결(APPS_SCRIPT_URL 미설정)');
+    const qs = new URLSearchParams(Object.assign({ sheet: sheet }, params || {})).toString();
+    const res = await fetch(APPS_SCRIPT_URL + '?' + qs);
+    const json = await res.json();
+    if (json.status !== 'ok') throw new Error(json.message || '조회 실패');
+    return json;
+}
+
+async function apiPost(body) {
+    if (!isConfigured()) throw new Error('저장소 미연결(APPS_SCRIPT_URL 미설정)');
+    const res = await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(body)
+    });
+    const json = await res.json();
+    if (json.status !== 'ok') throw new Error(json.message || '저장 실패');
+    return json;
+}
+
+function esc(s) {
+    if (s === undefined || s === null) return '';
+    return String(s).replace(/[&<>"']/g, function (c) {
+        return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c];
+    });
+}
+
+function todayStr() {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+function updateDate() {
+    const now = new Date();
+    const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+    document.getElementById('currentDate').textContent = now.toLocaleDateString('ko-KR', options);
+}
+
+const TOOL_LOADERS = {};
+
+function openTool(key) {
+    document.getElementById('hub-view').style.display = 'none';
+    document.querySelectorAll('.tool-view').forEach(function (v) { v.style.display = 'none'; });
+    const el = document.getElementById('tool-' + key);
+    if (el) el.style.display = 'block';
+    window.scrollTo(0, 0);
+    if (TOOL_LOADERS[key]) TOOL_LOADERS[key]();
+}
+
+function backToHub() {
+    document.getElementById('hub-view').style.display = 'block';
+    document.querySelectorAll('.tool-view').forEach(function (v) { v.style.display = 'none'; });
+    window.scrollTo(0, 0);
+}
+
+window.addEventListener('load', function () {
+    updateDate();
+    if (!isConfigured()) {
+        document.getElementById('setupBanner').style.display = 'block';
+    }
+    if (sessionStorage.getItem('hiqasc_authenticated') !== 'true') {
+        window.location.href = 'index.html';
+    }
+});
+</script>
+<script>
+/* ════════════ 공용: 체크리스트/이력 헬퍼 ════════════ */
+function setItemResult(prefix, idx, val, showExtraOnBad) {
+    const item = document.getElementById(prefix + '_item_' + idx);
+    if (!item) return;
+    item.dataset.result = val;
+    const goodVals = ['양호', '완료', '적합'];
+    item.querySelectorAll('.seg-btn').forEach(function (b) {
+        b.classList.remove('sel-ok', 'sel-bad');
+        if (b.textContent.trim() === val) b.classList.add(goodVals.indexOf(val) !== -1 ? 'sel-ok' : 'sel-bad');
+    });
+    if (showExtraOnBad) {
+        const extra = document.getElementById(prefix + '_extra_' + idx);
+        if (extra) extra.classList.toggle('show', goodVals.indexOf(val) === -1);
+    }
+}
+
+async function deleteRecord(sheet, id, reloadFn, label) {
+    if (!confirm((label || '이 기록을') + ' 삭제하시겠습니까? 되돌릴 수 없습니다.')) return;
+    try {
+        await apiPost({ sheet: sheet, action: 'delete', id: id });
+        reloadFn();
+    } catch (err) {
+        alert('삭제 실패: ' + err.message);
+    }
+}
+
+function toggleDetail(id) {
+    const row = document.getElementById(id);
+    if (row) row.classList.toggle('show');
+}
+
+function showStatus(elId, ok, msg) {
+    const el = document.getElementById(elId);
+    el.className = 'status-msg ' + (ok ? 'ok' : 'err');
+    el.textContent = msg;
+    if (ok) setTimeout(function () { el.style.display = 'none'; }, 4000);
+}
+
+/* ════════════ 5S 정기점검표 ════════════ */
+const ITEMS_5S = [
+    { g:'1S 정리(Sort)', t:'불필요한 물품(사용하지 않는 부품/기계/포장재 등)이 작업장에 방치되어 있지 않다' },
+    { g:'1S 정리(Sort)', t:'통로 및 비상구에 장애물이 없다' },
+    { g:'2S 정돈(Set in order)', t:'공구/기계/부속품마다 지정된 보관 위치가 표시되어 있다' },
+    { g:'2S 정돈(Set in order)', t:'부품 재고가 SKU별로 라벨링되어 있어 찾기 쉽다(FIFO 관리 포함)' },
+    { g:'2S 정돈(Set in order)', t:'PPE(보호구) 보관장소가 정해져 있고 접근이 용이하다' },
+    { g:'3S 청소(Shine)', t:'작업대·바닥·선반이 청결하게 유지되고 있다' },
+    { g:'3S 청소(Shine)', t:'청소 담당 및 주기가 정해져 있다(청소 프로그램과 연계)' },
+    { g:'4S 표준화(Standardize)', t:'5S 기준(사진 등)이 현장에 게시되어 있어 누구나 비교 확인할 수 있다' },
+    { g:'4S 표준화(Standardize)', t:'신규 입사자도 5S 기준을 인지하고 있다(OJT 반영 여부)' },
+    { g:'5S 생활화(Sustain)', t:'정기 5S 점검이 실제로 이루어지고 있다(본 점검표 이력 존재)' },
+    { g:'5S 생활화(Sustain)', t:'직원 인터뷰 시 5S의 의미와 필요성을 설명할 수 있다' }
+];
+
+function render5SItems() {
+    document.getElementById('s5_items').innerHTML = ITEMS_5S.map(function (it, i) {
+        return '<div class="checklist-item" id="s5_item_' + i + '" data-result="">' +
+            '<div class="checklist-item-head">' +
+            '<div class="checklist-item-name"><span class="badge badge-info" style="margin-right:8px;">' + esc(it.g) + '</span>' + esc(it.t) + '</div>' +
+            '<div class="seg">' +
+            '<button type="button" class="seg-btn" onclick="setItemResult(\'s5\',' + i + ',\'양호\',true)">양호</button>' +
+            '<button type="button" class="seg-btn" onclick="setItemResult(\'s5\',' + i + ',\'미흡\',true)">미흡</button>' +
+            '</div></div>' +
+            '<div class="checklist-item-extra" id="s5_extra_' + i + '">' +
+            '<div class="form-group"><label>조치사항</label><input id="s5_action_' + i + '" placeholder="조치사항"></div>' +
+            '<div class="form-group"><label>담당자</label><input id="s5_owner_' + i + '" placeholder="담당자"></div>' +
+            '<div class="form-group"><label>조치완료일</label><input type="date" id="s5_due_' + i + '"></div>' +
+            '</div></div>';
+    }).join('');
+}
+
+async function save5S() {
+    const date = document.getElementById('s5_date').value;
+    const area = document.getElementById('s5_area').value.trim();
+    const inspector = document.getElementById('s5_inspector').value.trim();
+    if (!date || !area || !inspector) { showStatus('s5_status', false, '점검일자·점검구역·점검자는 필수입니다.'); return; }
+    const results = ITEMS_5S.map(function (it, i) {
+        return {
+            g: it.g, t: it.t,
+            result: document.getElementById('s5_item_' + i).dataset.result || '',
+            action: document.getElementById('s5_action_' + i).value.trim(),
+            owner: document.getElementById('s5_owner_' + i).value.trim(),
+            due: document.getElementById('s5_due_' + i).value
+        };
+    });
+    const btn = document.getElementById('s5_saveBtn');
+    btn.disabled = true;
+    try {
+        await apiPost({ sheet: '5S점검', action: 'add', data: {
+            '점검일자': date, '점검구역': area, '점검자': inspector,
+            '결과JSON': JSON.stringify(results), '종합비고': document.getElementById('s5_note').value.trim()
+        }});
+        showStatus('s5_status', true, '✅ 저장되었습니다.');
+        document.getElementById('s5_area').value = '';
+        document.getElementById('s5_note').value = '';
+        render5SItems();
+        loadHistory5S();
+    } catch (err) {
+        showStatus('s5_status', false, '❌ 저장 실패: ' + err.message);
+    }
+    btn.disabled = false;
+}
+
+async function loadHistory5S() {
+    const tbody = document.getElementById('s5_history');
+    tbody.innerHTML = '<tr><td colspan="6" style="color:#808080;">불러오는 중...</td></tr>';
+    try {
+        const json = await apiGet('5S점검');
+        const rows = json.rows.sort(function (a, b) { return (b['점검일자']||'').localeCompare(a['점검일자']||''); });
+        if (rows.length === 0) { tbody.innerHTML = '<tr><td colspan="6" style="color:#808080;">등록된 이력이 없습니다.</td></tr>'; return; }
+        tbody.innerHTML = rows.map(function (r, idx) {
+            let results = [];
+            try { results = JSON.parse(r['결과JSON'] || '[]'); } catch (e) {}
+            const badCount = results.filter(function (x) { return x.result === '미흡'; }).length;
+            const detailId = 's5_detail_' + idx;
+            const detail = results.map(function (x) {
+                return '<div style="margin-bottom:6px;"><span class="badge ' + (x.result === '미흡' ? 'badge-bad' : (x.result === '양호' ? 'badge-ok' : 'badge-mute')) + '">' + esc(x.result || '미기록') + '</span> ' + esc(x.t) +
+                    (x.result === '미흡' ? '<br><span style="color:#909090;font-size:0.85em;">↳ 조치: ' + esc(x.action||'-') + ' / 담당: ' + esc(x.owner||'-') + ' / 완료예정: ' + esc(x.due||'-') + '</span>' : '') + '</div>';
+            }).join('');
+            return '<tr>' +
+                '<td>' + esc(r['점검일자']) + '</td><td>' + esc(r['점검구역']) + '</td><td>' + esc(r['점검자']) + '</td>' +
+                '<td>' + (badCount > 0 ? '<span class="badge badge-bad">' + badCount + '건</span>' : '<span class="badge badge-ok">없음</span>') + '</td>' +
+                '<td style="max-width:200px;">' + esc(r['종합비고'] || '-') + '</td>' +
+                '<td style="white-space:nowrap;"><span class="detail-toggle" onclick="toggleDetail(\'' + detailId + '\')">상세</span> · <span class="detail-toggle" style="color:#e74c3c;" onclick="deleteRecord(\'5S점검\',\'' + r.id + '\',loadHistory5S)">삭제</span></td>' +
+                '</tr>' +
+                '<tr class="detail-row" id="' + detailId + '"><td colspan="6">' + detail + '</td></tr>';
+        }).join('');
+    } catch (err) {
+        tbody.innerHTML = '<tr><td colspan="6" style="color:#e74c3c;">불러오기 실패: ' + esc(err.message) + '</td></tr>';
+    }
+}
+
+/* ════════════ 구급함 점검표 ════════════ */
+const ITEMS_FIRSTAID = [
+    { name:'소독약(과산화수소/포비돈 등)', qty:'1' }, { name:'밴드(대일밴드류)', qty:'20매' },
+    { name:'거즈/붕대', qty:'5개' }, { name:'반창고(테이프)', qty:'1롤' },
+    { name:'삼각건', qty:'1' }, { name:'가위', qty:'1' }, { name:'핀셋', qty:'1' },
+    { name:'일회용 장갑', qty:'10매' }, { name:'화상연고', qty:'1' }, { name:'진통제(상비약)', qty:'1' },
+    { name:'체온계', qty:'1' }, { name:'얼음팩(냉찜질팩)', qty:'1' }
+];
+
+function renderFirstAidItems() {
+    document.getElementById('fa_items').innerHTML = ITEMS_FIRSTAID.map(function (it, i) {
+        return '<tr><td>' + esc(it.name) + '</td><td>' + esc(it.qty) + '</td>' +
+            '<td><input id="fa_cur_' + i + '" placeholder="현재수량" style="width:90px;"></td>' +
+            '<td><input type="date" id="fa_exp_' + i + '" style="width:140px;"></td>' +
+            '<td><select id="fa_stat_' + i + '"><option value="양호">양호</option><option value="교체필요">교체필요</option></select></td>' +
+            '<td><input id="fa_rmk_' + i + '" placeholder="비고"></td></tr>';
+    }).join('');
+}
+
+async function saveFirstAid() {
+    const date = document.getElementById('fa_date').value;
+    const inspector = document.getElementById('fa_inspector').value.trim();
+    const loc = document.getElementById('fa_loc').value.trim();
+    if (!date || !inspector) { showStatus('fa_status', false, '점검일자·점검자는 필수입니다.'); return; }
+    const items = ITEMS_FIRSTAID.map(function (it, i) {
+        return {
+            name: it.name, qty: it.qty,
+            cur: document.getElementById('fa_cur_' + i).value.trim(),
+            exp: document.getElementById('fa_exp_' + i).value,
+            status: document.getElementById('fa_stat_' + i).value,
+            remark: document.getElementById('fa_rmk_' + i).value.trim()
+        };
+    });
+    const btn = document.getElementById('fa_saveBtn');
+    btn.disabled = true;
+    try {
+        await apiPost({ sheet: '구급함점검', action: 'add', data: {
+            '점검일자': date, '점검자': inspector, '위치': loc,
+            '결과JSON': JSON.stringify(items), '비고': document.getElementById('fa_note').value.trim()
+        }});
+        showStatus('fa_status', true, '✅ 저장되었습니다.');
+        document.getElementById('fa_note').value = '';
+        renderFirstAidItems();
+        loadHistoryFirstAid();
+    } catch (err) {
+        showStatus('fa_status', false, '❌ 저장 실패: ' + err.message);
+    }
+    btn.disabled = false;
+}
+
+async function loadHistoryFirstAid() {
+    const tbody = document.getElementById('fa_history');
+    tbody.innerHTML = '<tr><td colspan="6" style="color:#808080;">불러오는 중...</td></tr>';
+    try {
+        const json = await apiGet('구급함점검');
+        const rows = json.rows.sort(function (a, b) { return (b['점검일자']||'').localeCompare(a['점검일자']||''); });
+        if (rows.length === 0) { tbody.innerHTML = '<tr><td colspan="6" style="color:#808080;">등록된 이력이 없습니다.</td></tr>'; return; }
+        tbody.innerHTML = rows.map(function (r, idx) {
+            let items = [];
+            try { items = JSON.parse(r['결과JSON'] || '[]'); } catch (e) {}
+            const needCount = items.filter(function (x) { return x.status === '교체필요'; }).length;
+            const detailId = 'fa_detail_' + idx;
+            const detail = items.map(function (x) {
+                return '<div style="margin-bottom:4px;"><span class="badge ' + (x.status === '교체필요' ? 'badge-bad' : 'badge-ok') + '">' + esc(x.status) + '</span> ' + esc(x.name) + ' — 현재 ' + esc(x.cur||'-') + ' / 기준 ' + esc(x.qty) + ' / 유효기한 ' + esc(x.exp||'-') + (x.remark ? ' / ' + esc(x.remark) : '') + '</div>';
+            }).join('');
+            return '<tr><td>' + esc(r['점검일자']) + '</td><td>' + esc(r['점검자']) + '</td><td>' + esc(r['위치']||'-') + '</td>' +
+                '<td>' + (needCount > 0 ? '<span class="badge badge-bad">' + needCount + '건</span>' : '<span class="badge badge-ok">없음</span>') + '</td>' +
+                '<td style="max-width:200px;">' + esc(r['비고']||'-') + '</td>' +
+                '<td style="white-space:nowrap;"><span class="detail-toggle" onclick="toggleDetail(\'' + detailId + '\')">상세</span> · <span class="detail-toggle" style="color:#e74c3c;" onclick="deleteRecord(\'구급함점검\',\'' + r.id + '\',loadHistoryFirstAid)">삭제</span></td></tr>' +
+                '<tr class="detail-row" id="' + detailId + '"><td colspan="6">' + detail + '</td></tr>';
+        }).join('');
+    } catch (err) {
+        tbody.innerHTML = '<tr><td colspan="6" style="color:#e74c3c;">불러오기 실패: ' + esc(err.message) + '</td></tr>';
+    }
+}
+
+/* ════════════ 화재대피훈련 계획·결과보고서 ════════════ */
+const FIREDRILL_PROCS = [
+    '화재 경보(비상벨) 작동 확인', '"불이야" 육성 전파 및 초기 대응', '119 신고 절차 시연(모의)',
+    '전기 스위치(분전반) 차단 시연', '출입문 개폐(손잡이 확인) 및 대피로 확보', '낮은 자세로 이동, 승강기 미사용 확인',
+    '집결지(현장 사진 참조) 이동 및 인원 집결', '인원 점검(참석/불참 확인) 및 미대피자 확인 절차', '훈련 종료 후 소감 공유 및 미흡사항 논의'
+];
+let fdAttendeeSeq = 0;
+
+function renderFireDrillItems() {
+    document.getElementById('fd_items').innerHTML = FIREDRILL_PROCS.map(function (t, i) {
+        return '<div class="checklist-item" id="fd_item_' + i + '" data-result="">' +
+            '<div class="checklist-item-head">' +
+            '<div class="checklist-item-name">' + (i + 1) + '. ' + esc(t) + '</div>' +
+            '<div class="seg">' +
+            '<button type="button" class="seg-btn" onclick="setItemResult(\'fd\',' + i + ',\'완료\',false)">완료</button>' +
+            '<button type="button" class="seg-btn" onclick="setItemResult(\'fd\',' + i + ',\'미흡\',false)">미흡</button>' +
+            '</div></div>' +
+            '<div class="checklist-item-extra show">' +
+            '<div class="form-group"><label>소요시간</label><input id="fd_time_' + i + '" placeholder="예: 2분"></div>' +
+            '<div class="form-group"><label>확인자</label><input id="fd_checker_' + i + '" placeholder="확인자"></div>' +
+            '<div class="form-group"><label>비고</label><input id="fd_remark_' + i + '" placeholder="비고"></div>' +
+            '</div></div>';
+    }).join('');
+}
+
+function addAttendeeRow() {
+    fdAttendeeSeq++;
+    const tbody = document.getElementById('fd_attendees');
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td class="fd-seq">' + (tbody.children.length + 1) + '</td>' +
+        '<td><input placeholder="소속"></td><td><input placeholder="성명"></td>' +
+        '<td><button class="btn btn-danger btn-sm" onclick="this.closest(\'tr\').remove(); renumberAttendees();">✕</button></td>';
+    tbody.appendChild(tr);
+}
+function renumberAttendees() {
+    document.querySelectorAll('#fd_attendees tr').forEach(function (tr, i) {
+        tr.querySelector('.fd-seq').textContent = i + 1;
+    });
+}
+
+async function saveFireDrill() {
+    const date = document.getElementById('fd_date').value;
+    const leader = document.getElementById('fd_leader').value.trim();
+    if (!date) { showStatus('fd_status', false, '훈련일시는 필수입니다.'); return; }
+    const procs = FIREDRILL_PROCS.map(function (t, i) {
+        return {
+            t: t, result: document.getElementById('fd_item_' + i).dataset.result || '',
+            time: document.getElementById('fd_time_' + i).value.trim(),
+            checker: document.getElementById('fd_checker_' + i).value.trim(),
+            remark: document.getElementById('fd_remark_' + i).value.trim()
+        };
+    });
+    const attendees = Array.from(document.querySelectorAll('#fd_attendees tr')).map(function (tr) {
+        const inputs = tr.querySelectorAll('input');
+        return { dept: inputs[0].value.trim(), name: inputs[1].value.trim() };
+    }).filter(function (a) { return a.dept || a.name; });
+    const btn = document.getElementById('fd_saveBtn');
+    btn.disabled = true;
+    try {
+        await apiPost({ sheet: '화재훈련', action: 'add', data: {
+            '훈련일시': date, '시나리오': document.getElementById('fd_scenario').value.trim(),
+            '훈련대상': document.getElementById('fd_target').value.trim(), '집결지': document.getElementById('fd_gather').value.trim(),
+            '진행자': leader, '절차JSON': JSON.stringify(procs), '참석자JSON': JSON.stringify(attendees),
+            '결과및개선사항': document.getElementById('fd_result').value.trim()
+        }});
+        showStatus('fd_status', true, '✅ 저장되었습니다.');
+        document.getElementById('fd_result').value = '';
+        renderFireDrillItems();
+        loadHistoryFireDrill();
+    } catch (err) {
+        showStatus('fd_status', false, '❌ 저장 실패: ' + err.message);
+    }
+    btn.disabled = false;
+}
+
+async function loadHistoryFireDrill() {
+    const tbody = document.getElementById('fd_history');
+    tbody.innerHTML = '<tr><td colspan="5" style="color:#808080;">불러오는 중...</td></tr>';
+    try {
+        const json = await apiGet('화재훈련');
+        const rows = json.rows.sort(function (a, b) { return (b['훈련일시']||'').localeCompare(a['훈련일시']||''); });
+        if (rows.length === 0) { tbody.innerHTML = '<tr><td colspan="5" style="color:#808080;">등록된 이력이 없습니다.</td></tr>'; return; }
+        tbody.innerHTML = rows.map(function (r, idx) {
+            let attendees = [], procs = [];
+            try { attendees = JSON.parse(r['참석자JSON'] || '[]'); } catch (e) {}
+            try { procs = JSON.parse(r['절차JSON'] || '[]'); } catch (e) {}
+            const detailId = 'fd_detail_' + idx;
+            const procDetail = procs.map(function (p) {
+                return '<div style="margin-bottom:4px;"><span class="badge ' + (p.result === '미흡' ? 'badge-bad' : 'badge-ok') + '">' + esc(p.result||'-') + '</span> ' + esc(p.t) + (p.remark ? ' — ' + esc(p.remark) : '') + '</div>';
+            }).join('');
+            const attDetail = attendees.length ? ('<div style="margin-top:8px;color:#909090;">참석자: ' + attendees.map(function(a){return esc(a.dept)+' '+esc(a.name);}).join(', ') + '</div>') : '';
+            const resultNote = r['결과및개선사항'] ? '<div style="margin-top:8px;color:#c4c4c4;">결과/개선: ' + esc(r['결과및개선사항']) + '</div>' : '';
+            return '<tr><td>' + esc(r['훈련일시']) + '</td><td>' + esc(r['훈련대상']||'-') + '</td><td>' + esc(r['진행자']||'-') + '</td>' +
+                '<td>' + attendees.length + '명</td>' +
+                '<td style="white-space:nowrap;"><span class="detail-toggle" onclick="toggleDetail(\'' + detailId + '\')">상세</span> · <span class="detail-toggle" style="color:#e74c3c;" onclick="deleteRecord(\'화재훈련\',\'' + r.id + '\',loadHistoryFireDrill)">삭제</span></td></tr>' +
+                '<tr class="detail-row" id="' + detailId + '"><td colspan="5">' + procDetail + attDetail + resultNote + '</td></tr>';
+        }).join('');
+    } catch (err) {
+        tbody.innerHTML = '<tr><td colspan="5" style="color:#e74c3c;">불러오기 실패: ' + esc(err.message) + '</td></tr>';
+    }
+}
+
+TOOL_LOADERS['5s'] = loadHistory5S;
+TOOL_LOADERS['firstaid'] = loadHistoryFirstAid;
+TOOL_LOADERS['firedrill'] = loadHistoryFireDrill;
+
+window.addEventListener('load', function () {
+    document.getElementById('s5_date').value = todayStr();
+    document.getElementById('fa_date').value = todayStr();
+    document.getElementById('fd_date').value = todayStr();
+    render5SItems();
+    renderFirstAidItems();
+    renderFireDrillItems();
+    addAttendeeRow();
+});
+</script>
+<script>
+/* ════════════ 신입 OJT 체크리스트 ════════════ */
+const OJT_ITEMS = [
+    '회사 소개 및 조직도, 근무규정 안내', 'QSHE 정책 및 안전수칙 개요', '개인보호구(PPE) 지급 및 착용법',
+    '화학물질(SDS) 및 유해물질 취급수칙', '화재/비상시 대응요령(BCP 포함)', '5S 및 현장 정리정돈 기준',
+    '서비스 매뉴얼 기반 진단/수리 절차', '전기안전시험(PE/절연) 절차', 'SVC 시스템 사용법(접수/부품/이력관리)',
+    '고객정보(개인정보) 취급수칙', '청소·디스케일링 절차', '업무 개시 전 최종 확인(현장 배치)'
+];
+let ojtEditId = null;
+let ojtCache = [];
+
+function renderOJTItems(prefill) {
+    document.getElementById('ojt_items').innerHTML = OJT_ITEMS.map(function (t, i) {
+        const p = (prefill && prefill[i]) ? prefill[i] : {};
+        return '<tr><td>' + (i + 1) + '</td><td>' + esc(t) + '</td>' +
+            '<td><input type="date" id="ojt_date_' + i + '" value="' + esc(p.date||'') + '"></td>' +
+            '<td><input id="ojt_trainer_' + i + '" value="' + esc(p.trainer||'') + '" placeholder="담당자"></td>' +
+            '<td><input id="ojt_confirm_' + i + '" value="' + esc(p.confirmer||'') + '" placeholder="확인자명"></td>' +
+            '<td><input id="ojt_remark_' + i + '" value="' + esc(p.remark||'') + '" placeholder="비고"></td></tr>';
+    }).join('');
+}
+
+function newOJT() {
+    ojtEditId = null;
+    document.getElementById('ojt_formTitle').textContent = '📝 신입직원 등록';
+    document.getElementById('ojt_name').value = '';
+    document.getElementById('ojt_join').value = todayStr();
+    document.getElementById('ojt_role').value = '';
+    renderOJTItems();
+    document.getElementById('ojt_name').scrollIntoView({ behavior:'smooth', block:'center' });
+}
+
+function loadEmployeeOJT(id) {
+    const rec = ojtCache.find(function (r) { return r.id === id; });
+    if (!rec) return;
+    ojtEditId = id;
+    document.getElementById('ojt_formTitle').textContent = '📝 "' + esc(rec['성명']) + '" 이어서 작성';
+    document.getElementById('ojt_name').value = rec['성명'] || '';
+    document.getElementById('ojt_join').value = rec['입사일'] || '';
+    document.getElementById('ojt_role').value = rec['직무'] || '';
+    let items = [];
+    try { items = JSON.parse(rec['항목JSON'] || '[]'); } catch (e) {}
+    renderOJTItems(items);
+    document.getElementById('ojt_name').scrollIntoView({ behavior:'smooth', block:'center' });
+}
+
+async function saveOJT() {
+    const name = document.getElementById('ojt_name').value.trim();
+    if (!name) { showStatus('ojt_status', false, '성명은 필수입니다.'); return; }
+    const items = OJT_ITEMS.map(function (t, i) {
+        return {
+            t: t, date: document.getElementById('ojt_date_' + i).value,
+            trainer: document.getElementById('ojt_trainer_' + i).value.trim(),
+            confirmer: document.getElementById('ojt_confirm_' + i).value.trim(),
+            remark: document.getElementById('ojt_remark_' + i).value.trim()
+        };
+    });
+    const filled = items.filter(function (it) { return it.confirmer; }).length;
+    const status = filled === OJT_ITEMS.length ? '완료' : (filled > 0 ? '진행중' : '미시작');
+    const data = {
+        '성명': name, '입사일': document.getElementById('ojt_join').value, '직무': document.getElementById('ojt_role').value.trim(),
+        '항목JSON': JSON.stringify(items), '완료여부': status
+    };
+    const btn = document.getElementById('ojt_saveBtn');
+    btn.disabled = true;
+    try {
+        if (ojtEditId) {
+            await apiPost({ sheet: 'OJT', action: 'update', id: ojtEditId, data: data });
+        } else {
+            const res = await apiPost({ sheet: 'OJT', action: 'add', data: data });
+            ojtEditId = res.id;
+        }
+        showStatus('ojt_status', true, '✅ 저장되었습니다. (' + status + ')');
+        loadOJTList();
+    } catch (err) {
+        showStatus('ojt_status', false, '❌ 저장 실패: ' + err.message);
+    }
+    btn.disabled = false;
+}
+
+async function loadOJTList() {
+    const tbody = document.getElementById('ojt_list');
+    tbody.innerHTML = '<tr><td colspan="6" style="color:#808080;">불러오는 중...</td></tr>';
+    try {
+        const json = await apiGet('OJT');
+        ojtCache = json.rows;
+        const rows = ojtCache.slice().sort(function (a, b) { return (b['입사일']||'').localeCompare(a['입사일']||''); });
+        if (rows.length === 0) { tbody.innerHTML = '<tr><td colspan="6" style="color:#808080;">등록된 신입직원이 없습니다. \'+ 신규 등록\'으로 시작하세요.</td></tr>'; return; }
+        tbody.innerHTML = rows.map(function (r) {
+            let items = [];
+            try { items = JSON.parse(r['항목JSON'] || '[]'); } catch (e) {}
+            const filled = items.filter(function (it) { return it.confirmer; }).length;
+            const badgeCls = r['완료여부'] === '완료' ? 'badge-ok' : (r['완료여부'] === '진행중' ? 'badge-warn' : 'badge-mute');
+            return '<tr><td>' + esc(r['성명']) + '</td><td>' + esc(r['직무']||'-') + '</td><td>' + esc(r['입사일']||'-') + '</td>' +
+                '<td>' + filled + ' / ' + OJT_ITEMS.length + '</td>' +
+                '<td><span class="badge ' + badgeCls + '">' + esc(r['완료여부']||'미시작') + '</span></td>' +
+                '<td style="white-space:nowrap;"><span class="detail-toggle" onclick="loadEmployeeOJT(\'' + r.id + '\')">이어서 작성</span> · <span class="detail-toggle" style="color:#e74c3c;" onclick="deleteRecord(\'OJT\',\'' + r.id + '\',loadOJTList)">삭제</span></td></tr>';
+        }).join('');
+    } catch (err) {
+        tbody.innerHTML = '<tr><td colspan="6" style="color:#e74c3c;">불러오기 실패: ' + esc(err.message) + '</td></tr>';
+    }
+}
+
+/* ════════════ 사고 · 아차사고 보고서 ════════════ */
+async function saveIncident() {
+    const date = document.getElementById('inc_date').value;
+    const desc = document.getElementById('inc_desc').value.trim();
+    if (!date || !desc) { showStatus('inc_status', false, '발생일시·사고 경위는 필수입니다.'); return; }
+    const data = {
+        '발생일시': date, '발생장소': document.getElementById('inc_place').value.trim(),
+        '관련자': document.getElementById('inc_people').value.trim(), '구분': document.getElementById('inc_type').value,
+        '경위': desc, '부상정도': document.getElementById('inc_injury').value.trim(),
+        '초기조치': document.getElementById('inc_first').value.trim(), '원인분석': document.getElementById('inc_cause').value.trim(),
+        '재발방지대책': document.getElementById('inc_prevent').value.trim(), '조치완료여부': document.getElementById('inc_status').value,
+        '보고자': document.getElementById('inc_reporter').value.trim(), '보고일자': document.getElementById('inc_reportdate').value
+    };
+    const btn = document.getElementById('inc_saveBtn');
+    btn.disabled = true;
+    try {
+        await apiPost({ sheet: '사고아차사고', action: 'add', data: data });
+        showStatus('inc_status', true, '✅ 저장되었습니다.');
+        ['inc_place','inc_people','inc_injury','inc_desc','inc_first','inc_cause','inc_prevent'].forEach(function(id){ document.getElementById(id).value=''; });
+        loadIncidentAll();
+    } catch (err) {
+        showStatus('inc_status', false, '❌ 저장 실패: ' + err.message);
+    }
+    btn.disabled = false;
+}
+
+async function loadIncidentAll() {
+    const statTbody = document.getElementById('inc_stats');
+    const histTbody = document.getElementById('inc_history');
+    statTbody.innerHTML = '<tr><td colspan="4" style="color:#808080;">불러오는 중...</td></tr>';
+    histTbody.innerHTML = '<tr><td colspan="6" style="color:#808080;">불러오는 중...</td></tr>';
+    try {
+        const json = await apiGet('사고아차사고');
+        const rows = json.rows;
+        const byYear = {};
+        rows.forEach(function (r) {
+            const y = (r['발생일시'] || '').slice(0, 4) || '미상';
+            if (!byYear[y]) byYear[y] = { acc: 0, near: 0 };
+            if (r['구분'] === '사고') byYear[y].acc++; else if (r['구분'] === '아차사고') byYear[y].near++;
+        });
+        const years = Object.keys(byYear).sort().reverse();
+        if (years.length === 0) {
+            const y = new Date().getFullYear();
+            statTbody.innerHTML = '<tr><td>' + y + '</td><td>0</td><td>0</td><td>현재까지 발생 없음</td></tr>';
+        } else {
+            statTbody.innerHTML = years.map(function (y) {
+                const v = byYear[y];
+                const note = (v.acc + v.near) === 0 ? '발생 없음' : '';
+                return '<tr><td>' + y + '</td><td>' + v.acc + '</td><td>' + v.near + '</td><td>' + note + '</td></tr>';
+            }).join('');
+        }
+        const sorted = rows.slice().sort(function (a, b) { return (b['발생일시']||'').localeCompare(a['발생일시']||''); });
+        if (sorted.length === 0) { histTbody.innerHTML = '<tr><td colspan="6" style="color:#808080;">등록된 보고서가 없습니다.</td></tr>'; return; }
+        histTbody.innerHTML = sorted.map(function (r, idx) {
+            const detailId = 'inc_detail_' + idx;
+            const badgeCls = r['조치완료여부'] === '완료' ? 'badge-ok' : (r['조치완료여부'] === '진행중' ? 'badge-warn' : 'badge-bad');
+            const typeBadge = r['구분'] === '사고' ? 'badge-bad' : 'badge-warn';
+            const detail = '<div style="color:#c4c4c4; line-height:1.7;">' +
+                '<b>관련자:</b> ' + esc(r['관련자']||'-') + (r['부상정도'] ? ' / <b>부상정도:</b> ' + esc(r['부상정도']) : '') + '<br>' +
+                '<b>경위:</b> ' + esc(r['경위']) + '<br>' +
+                '<b>초기조치:</b> ' + esc(r['초기조치']||'-') + '<br>' +
+                '<b>원인분석:</b> ' + esc(r['원인분석']||'-') + '<br>' +
+                '<b>재발방지대책:</b> ' + esc(r['재발방지대책']||'-') + '<br>' +
+                '<b>보고자/보고일자:</b> ' + esc(r['보고자']||'-') + ' / ' + esc(r['보고일자']||'-') + '</div>';
+            return '<tr><td>' + esc(r['발생일시']) + '</td><td>' + esc(r['발생장소']||'-') + '</td>' +
+                '<td><span class="badge ' + typeBadge + '">' + esc(r['구분']) + '</span></td>' +
+                '<td><span class="badge ' + badgeCls + '">' + esc(r['조치완료여부']) + '</span></td>' +
+                '<td>' + esc(r['보고자']||'-') + '</td>' +
+                '<td style="white-space:nowrap;"><span class="detail-toggle" onclick="toggleDetail(\'' + detailId + '\')">상세</span> · <span class="detail-toggle" style="color:#e74c3c;" onclick="deleteRecord(\'사고아차사고\',\'' + r.id + '\',loadIncidentAll)">삭제</span></td></tr>' +
+                '<tr class="detail-row" id="' + detailId + '"><td colspan="6">' + detail + '</td></tr>';
+        }).join('');
+    } catch (err) {
+        statTbody.innerHTML = '<tr><td colspan="4" style="color:#e74c3c;">불러오기 실패</td></tr>';
+        histTbody.innerHTML = '<tr><td colspan="6" style="color:#e74c3c;">불러오기 실패: ' + esc(err.message) + '</td></tr>';
+    }
+}
+
+TOOL_LOADERS['ojt'] = loadOJTList;
+TOOL_LOADERS['incident'] = loadIncidentAll;
+
+window.addEventListener('load', function () {
+    document.getElementById('ojt_join').value = todayStr();
+    renderOJTItems();
+    document.getElementById('inc_date').value = todayStr();
+    document.getElementById('inc_reportdate').value = todayStr();
+});
+</script>
+<script>
+/* ════════════ QSHE 자체점검 (61개 항목) ════════════ */
+const QSHE_ITEMS = [
+    {ch:'1) 경영 및 교육훈련', code:'1.10', name:'인권 및 윤리적 측면'},
+    {ch:'1) 경영 및 교육훈련', code:'1.20', name:'QSHE 정책'},
+    {ch:'1) 경영 및 교육훈련', code:'1.30', name:'컴플라이언스 요구사항'},
+    {ch:'1) 경영 및 교육훈련', code:'1.40', name:'문서 및 기록관리'},
+    {ch:'1) 경영 및 교육훈련', code:'1.50', name:'직원 교육훈련'},
+    {ch:'1) 경영 및 교육훈련', code:'1.60', name:'자체 점검(Self-Assessment) 계획'},
+    {ch:'1) 경영 및 교육훈련', code:'1.70', name:'5S 활동'},
+    {ch:'1) 경영 및 교육훈련', code:'1.80', name:'사업연속성계획(BCP)'},
+    {ch:'1) 경영 및 교육훈련', code:'1.90', name:'사고 및 위기관리'},
+    {ch:'1) 경영 및 교육훈련', code:'1.10(2)', name:'Q-SHE 목표 정렬'},
+    {ch:'1) 경영 및 교육훈련', code:'1.11', name:'성과지표(KPI) 리뷰'},
+    {ch:'1) 경영 및 교육훈련', code:'1.12', name:'인력 및 생산성'},
+    {ch:'1) 경영 및 교육훈련', code:'1.13', name:'기록관리(이력데이터)'},
+    {ch:'1) 경영 및 교육훈련', code:'1.14', name:'현지 특별 요구사항'},
+    {ch:'2) 안전 및 보건', code:'2.10', name:'안전보건 위험성평가'},
+    {ch:'2) 안전 및 보건', code:'2.20', name:'개인보호구(PPE)'},
+    {ch:'2) 안전 및 보건', code:'2.30', name:'사고·아차사고 보고 및 공유'},
+    {ch:'2) 안전 및 보건', code:'2.40', name:'안전행동 및 문화'},
+    {ch:'2) 안전 및 보건', code:'2.50', name:'응급처치(First Aid)'},
+    {ch:'2) 안전 및 보건', code:'2.60', name:'화재위험 관리'},
+    {ch:'2) 안전 및 보건', code:'2.70', name:'사다리/고소작업'},
+    {ch:'2) 안전 및 보건', code:'2.80', name:'하역장·주차장 관리'},
+    {ch:'2) 안전 및 보건', code:'2.90', name:'인간공학(운반/자세)'},
+    {ch:'2) 안전 및 보건', code:'2.10(2)', name:'보관구역 안전(랙/선반)'},
+    {ch:'2) 안전 및 보건', code:'2.11', name:'유해화학물질 관리'},
+    {ch:'2) 안전 및 보건', code:'2.12', name:'기계 위험성'},
+    {ch:'3) 품질 및 식품안전', code:'3.10', name:'개인위생 및 건강'},
+    {ch:'3) 품질 및 식품안전', code:'3.20', name:'오염 방지'},
+    {ch:'3) 품질 및 식품안전', code:'3.30', name:'용수(물) 관리'},
+    {ch:'3) 품질 및 식품안전', code:'3.40', name:'방충방서 관리(IPM)'},
+    {ch:'3) 품질 및 식품안전', code:'3.50', name:'입고 시 방충 방지'},
+    {ch:'3) 품질 및 식품안전', code:'3.60', name:'추적성(Traceability)'},
+    {ch:'3) 품질 및 식품안전', code:'3.70', name:'청소 프로그램'},
+    {ch:'3) 품질 및 식품안전', code:'3.80', name:'세정제 및 도구 관리'},
+    {ch:'4) 수리 프로세스', code:'4.10', name:'입고 기계 관리'},
+    {ch:'4) 수리 프로세스', code:'4.20', name:'추적성 및 수리데이터'},
+    {ch:'4) 수리 프로세스', code:'4.30', name:'고객 접수구역'},
+    {ch:'4) 수리 프로세스', code:'4.40', name:'작업대(워크스테이션)'},
+    {ch:'4) 수리 프로세스', code:'4.50', name:'고장진단 및 수리'},
+    {ch:'4) 수리 프로세스', code:'4.60', name:'예방정비 및 소프트웨어'},
+    {ch:'4) 수리 프로세스', code:'4.70', name:'공구 및 시험장비'},
+    {ch:'4) 수리 프로세스', code:'4.80', name:'기능 및 전기안전시험'},
+    {ch:'4) 수리 프로세스', code:'4.90', name:'세정 및 스케일 제거'},
+    {ch:'4) 수리 프로세스', code:'4.10(운송준비)', name:'운송 준비'},
+    {ch:'4) 수리 프로세스', code:'4.11', name:'기기보호재(디스포박스 등)'},
+    {ch:'4) 수리 프로세스', code:'4.12', name:'고장/수리 정보(IT연동)'},
+    {ch:'4) 수리 프로세스', code:'4.13', name:'수리보증 및 개선'},
+    {ch:'4) 수리 프로세스', code:'4.14', name:'대여기(Loan Machine) 관리'},
+    {ch:'4) 수리 프로세스', code:'4.15', name:'복장 규정'},
+    {ch:'5) 운영 및 창고관리', code:'5.10', name:'입고 검수 관리'},
+    {ch:'5) 운영 및 창고관리', code:'5.20', name:'입고 프로세스 및 보관구역 관리'},
+    {ch:'5) 운영 및 창고관리', code:'5.30', name:'보관 조건'},
+    {ch:'5) 운영 및 창고관리', code:'5.40', name:'보관조건 모니터링'},
+    {ch:'5) 운영 및 창고관리', code:'5.50', name:'네스프레소 재고관리 및 실사'},
+    {ch:'5) 운영 및 창고관리', code:'5.60', name:'불량품 및 재활용 구역'},
+    {ch:'5) 운영 및 창고관리', code:'5.70', name:'부품 발주'},
+    {ch:'5) 운영 및 창고관리', code:'5.80', name:'부품 재고 수준'},
+    {ch:'6) 환경 및 폐기물 관리', code:'6.10', name:'재활용 및 폐기물 관리'},
+    {ch:'6) 환경 및 폐기물 관리', code:'6.20', name:'네스프레소 캡슐 재활용'},
+    {ch:'6) 환경 및 폐기물 관리', code:'6.30', name:'유해물질 폐기'},
+    {ch:'6) 환경 및 폐기물 관리', code:'6.40', name:'환경성과 관리'}
+];
+
+function renderQshe(prefillRows) {
+    const chapters = [];
+    QSHE_ITEMS.forEach(function (it, i) {
+        let grp = chapters.find(function (c) { return c.ch === it.ch; });
+        if (!grp) { grp = { ch: it.ch, idxs: [] }; chapters.push(grp); }
+        grp.idxs.push(i);
+    });
+    document.getElementById('qshe_chapters').innerHTML = chapters.map(function (grp, gi) {
+        const itemsHtml = grp.idxs.map(function (i) {
+            const it = QSHE_ITEMS[i];
+            const p = (prefillRows && prefillRows[i]) || {};
+            const r = p['점검결과'] || '';
+            return '<div class="checklist-item" id="qshe_item_' + i + '">' +
+                '<div class="checklist-item-head">' +
+                '<div class="checklist-item-name"><span class="badge badge-info" style="margin-right:8px;">' + esc(it.code) + '</span>' + esc(it.name) + '</div>' +
+                '<select id="qshe_result_' + i + '" onchange="onQsheResultChange(' + i + ')" style="width:140px;">' +
+                '<option value="">선택</option>' +
+                '<option value="적합"' + (r==='적합'?' selected':'') + '>적합</option>' +
+                '<option value="개선필요"' + (r==='개선필요'?' selected':'') + '>개선필요</option>' +
+                '<option value="부적합"' + (r==='부적합'?' selected':'') + '>부적합</option>' +
+                '<option value="해당없음"' + (r==='해당없음'?' selected':'') + '>해당없음</option>' +
+                '</select></div>' +
+                '<div class="checklist-item-extra' + ((r==='개선필요'||r==='부적합')?' show':'') + '" id="qshe_extra_' + i + '">' +
+                '<div class="form-group full"><label>발견사항</label><textarea id="qshe_finding_' + i + '" oninput="updateQsheSummary()">' + esc(p['발견사항']||'') + '</textarea></div>' +
+                '<div class="form-group full"><label>개선조치(Action Plan)</label><textarea id="qshe_action_' + i + '">' + esc(p['개선조치']||'') + '</textarea></div>' +
+                '<div class="form-group"><label>담당자</label><input id="qshe_owner_' + i + '" value="' + esc(p['담당자']||'') + '"></div>' +
+                '<div class="form-group"><label>완료예정일</label><input type="date" id="qshe_due_' + i + '" value="' + esc(p['완료예정일']||'') + '"></div>' +
+                '<div class="form-group"><label>완료여부</label><select id="qshe_done_' + i + '">' +
+                '<option value="미완료"' + ((!p['완료여부']||p['완료여부']==='미완료')?' selected':'') + '>미완료</option>' +
+                '<option value="진행중"' + (p['완료여부']==='진행중'?' selected':'') + '>진행중</option>' +
+                '<option value="완료"' + (p['완료여부']==='완료'?' selected':'') + '>완료</option>' +
+                '</select></div></div></div>';
+        }).join('');
+        return '<div class="chapter-block" id="qshe_chapter_' + gi + '">' +
+            '<div class="chapter-head" onclick="this.parentElement.classList.toggle(\'collapsed\')">' +
+            '<span class="chev">▾</span><h4>' + esc(grp.ch) + '</h4><span class="chapter-count">' + grp.idxs.length + '개 항목</span></div>' +
+            '<div class="chapter-body">' + itemsHtml + '</div></div>';
+    }).join('');
+    updateQsheSummary();
+}
+
+function onQsheResultChange(i) {
+    const val = document.getElementById('qshe_result_' + i).value;
+    document.getElementById('qshe_extra_' + i).classList.toggle('show', val === '개선필요' || val === '부적합');
+    updateQsheSummary();
+}
+
+function updateQsheSummary() {
+    const counts = { '적합':0, '개선필요':0, '부적합':0, '해당없음':0, '미입력':0 };
+    QSHE_ITEMS.forEach(function (it, i) {
+        const el = document.getElementById('qshe_result_' + i);
+        const v = el ? el.value : '';
+        if (v && counts[v] !== undefined) counts[v]++; else counts['미입력']++;
+    });
+    document.getElementById('qshe_stat_total').textContent = QSHE_ITEMS.length;
+    document.getElementById('qshe_stat_ok').textContent = counts['적합'];
+    document.getElementById('qshe_stat_improve').textContent = counts['개선필요'];
+    document.getElementById('qshe_stat_bad').textContent = counts['부적합'];
+    document.getElementById('qshe_stat_pending').textContent = counts['미입력'];
+}
+
+function newRoundQshe() {
+    renderQshe();
+    document.getElementById('qshe_round').focus();
+    showStatus('qshe_status', true, '새 회차 양식이 준비되었습니다. 회차명을 입력하고 저장하세요.');
+}
+
+function loadRoundFromChip(btn) {
+    document.getElementById('qshe_round').value = btn.dataset.round;
+    loadRoundQshe();
+}
+
+async function loadRoundQshe() {
+    const round = document.getElementById('qshe_round').value.trim();
+    if (!round) { showStatus('qshe_status', false, '불러올 회차명을 입력하세요.'); return; }
+    try {
+        const json = await apiGet('QSHE자체점검', { round: round });
+        if (json.rows.length === 0) { showStatus('qshe_status', false, '"' + round + '" 회차 데이터가 없습니다. 새 회차로 시작하세요.'); renderQshe(); return; }
+        const prefillRows = QSHE_ITEMS.map(function (_, i) { return json.rows[i] || {}; });
+        renderQshe(prefillRows);
+        showStatus('qshe_status', true, '✅ "' + round + '" 회차를 불러왔습니다.');
+    } catch (err) {
+        showStatus('qshe_status', false, '❌ 불러오기 실패: ' + err.message);
+    }
+}
+
+async function listRoundsQshe() {
+    const box = document.getElementById('qshe_roundList');
+    try {
+        const json = await apiGet('QSHE자체점검', { rounds: '1' });
+        if (!json.rounds || json.rounds.length === 0) { box.innerHTML = '<span style="color:#808080;font-size:0.82em;">저장된 회차가 아직 없습니다.</span>'; return; }
+        box.innerHTML = '<span style="color:#808080;font-size:0.82em;align-self:center;">저장된 회차:</span>' + json.rounds.map(function (r) {
+            return '<button type="button" class="btn btn-secondary btn-sm" data-round="' + esc(r) + '" onclick="loadRoundFromChip(this)">' + esc(r) + '</button>';
+        }).join('');
+    } catch (err) {
+        box.innerHTML = '';
+    }
+}
+
+async function saveQshe() {
+    const round = document.getElementById('qshe_round').value.trim();
+    if (!round) { showStatus('qshe_status', false, '점검회차명은 필수입니다.'); return; }
+    const items = QSHE_ITEMS.map(function (it, i) {
+        return {
+            '챕터': it.ch, '코드': it.code, '항목명': it.name,
+            '점검결과': document.getElementById('qshe_result_' + i).value,
+            '발견사항': document.getElementById('qshe_finding_' + i).value.trim(),
+            '개선조치': document.getElementById('qshe_action_' + i).value.trim(),
+            '담당자': document.getElementById('qshe_owner_' + i).value.trim(),
+            '완료예정일': document.getElementById('qshe_due_' + i).value,
+            '완료여부': document.getElementById('qshe_done_' + i).value
+        };
+    });
+    const btn = document.getElementById('qshe_saveBtn');
+    btn.disabled = true;
+    try {
+        await apiPost({ sheet: 'QSHE자체점검', action: 'bulkSaveQshe', round: round, items: items });
+        showStatus('qshe_status', true, '✅ "' + round + '" 회차 61개 항목이 저장되었습니다.');
+        listRoundsQshe();
+    } catch (err) {
+        showStatus('qshe_status', false, '❌ 저장 실패: ' + err.message);
+    }
+    btn.disabled = false;
+}
+
+TOOL_LOADERS['qshe'] = function () { listRoundsQshe(); };
+
+window.addEventListener('load', function () {
+    renderQshe();
+    document.getElementById('qshe_execdate').value = todayStr();
+});
+</script>
+<script>
+/* ════════════ 공구·장비 인벤토리 ════════════ */
+function invRowHtml(r) {
+    const id = r.id;
+    function f(field) { return '<input value="' + esc(r[field]||'') + '" id="inv_' + id + '_' + field + '">'; }
+    return '<tr>' +
+        '<td>' + f('구분') + '</td><td>' + f('명칭') + '</td><td style="width:70px;">' + f('수량') + '</td>' +
+        '<td>' + f('사용목적') + '</td><td>' + f('관련위험요소') + '</td><td>' + f('예방조치') + '</td>' +
+        '<td>' + f('점검주기') + '</td><td>' + f('비고') + '</td>' +
+        '<td style="white-space:nowrap;"><button class="btn btn-secondary btn-sm" onclick="saveInventoryRow(\'' + id + '\')">💾</button> ' +
+        '<button class="btn btn-danger btn-sm" onclick="deleteRecord(\'공구장비인벤토리\',\'' + id + '\',loadInventory)">✕</button></td></tr>';
+}
+
+async function loadInventory() {
+    const tbody = document.getElementById('inv_list');
+    tbody.innerHTML = '<tr><td colspan="9" style="color:#808080;">불러오는 중...</td></tr>';
+    try {
+        const json = await apiGet('공구장비인벤토리');
+        if (json.rows.length === 0) { tbody.innerHTML = '<tr><td colspan="9" style="color:#808080;">등록된 항목이 없습니다.</td></tr>'; return; }
+        tbody.innerHTML = json.rows.map(invRowHtml).join('');
+    } catch (err) {
+        tbody.innerHTML = '<tr><td colspan="9" style="color:#e74c3c;">불러오기 실패: ' + esc(err.message) + '</td></tr>';
+    }
+}
+
+async function saveInventoryRow(id) {
+    const fields = ['구분','명칭','수량','사용목적','관련위험요소','예방조치','점검주기','비고'];
+    const data = {};
+    fields.forEach(function (f) { data[f] = document.getElementById('inv_' + id + '_' + f).value.trim(); });
+    try {
+        await apiPost({ sheet: '공구장비인벤토리', action: 'update', id: id, data: data });
+        showStatus('inv_status', true, '✅ 저장되었습니다.');
+    } catch (err) {
+        showStatus('inv_status', false, '❌ 저장 실패: ' + err.message);
+    }
+}
+
+async function addInventoryItem() {
+    const data = {
+        '구분': document.getElementById('inv_new_cat').value.trim(),
+        '명칭': document.getElementById('inv_new_name').value.trim(),
+        '수량': document.getElementById('inv_new_qty').value.trim(),
+        '사용목적': document.getElementById('inv_new_purpose').value.trim(),
+        '관련위험요소': document.getElementById('inv_new_risk').value.trim(),
+        '예방조치': document.getElementById('inv_new_prevent').value.trim(),
+        '점검주기': document.getElementById('inv_new_cycle').value.trim(),
+        '비고': document.getElementById('inv_new_note').value.trim()
+    };
+    if (!data['명칭']) { showStatus('inv_status', false, '명칭은 필수입니다.'); return; }
+    try {
+        await apiPost({ sheet: '공구장비인벤토리', action: 'add', data: data });
+        ['inv_new_cat','inv_new_name','inv_new_qty','inv_new_purpose','inv_new_risk','inv_new_prevent','inv_new_cycle','inv_new_note'].forEach(function(id){ document.getElementById(id).value=''; });
+        showStatus('inv_status', true, '✅ 추가되었습니다.');
+        loadInventory();
+    } catch (err) {
+        showStatus('inv_status', false, '❌ 추가 실패: ' + err.message);
+    }
+}
+
+/* ════════════ 교육 매트릭스 (게시문서) ════════════ */
+const TRAINING_MATRIX = [
+    { cat:'안전보건', name:'위험성평가/PPE/기본안전수칙', target:'전 직원', cycle:'연 1회 + 신규입사시', confirm:'참석자 서명(마감회의 자료 첨부)' },
+    { cat:'안전보건', name:'화학물질(SDS)/유해물질 취급', target:'수리기술자, 창고관리자', cycle:'연 1회', confirm:'참석자 서명' },
+    { cat:'안전보건', name:'전기안전(감전/접지) 및 전기시험(PE/절연)', target:'수리기술자', cycle:'연 1회', confirm:'참석자 서명 + 실기 확인' },
+    { cat:'안전보건', name:'화재예방 및 소화기 사용법', target:'전 직원', cycle:'연 1회', confirm:'참석자 서명' },
+    { cat:'품질/식품안전', name:'개인위생 및 오염방지', target:'전 직원', cycle:'연 1회', confirm:'참석자 서명' },
+    { cat:'품질/식품안전', name:'방충방서(IPM) 기본수칙', target:'입고/창고 담당자', cycle:'연 1회', confirm:'참석자 서명' },
+    { cat:'기술', name:'서비스 매뉴얼 기반 진단/수리 절차', target:'수리기술자', cycle:'신규입사시 + 신모델 출시시', confirm:'참석자 서명 + 실기 확인' },
+    { cat:'기술', name:'SVC 시스템 사용법(접수/부품/이력관리)', target:'전 직원(업무 관련자)', cycle:'신규입사시', confirm:'참석자 서명' },
+    { cat:'기술', name:'고객정보/개인정보 취급수칙', target:'접수/CS 담당자', cycle:'연 1회', confirm:'참석자 서명' },
+    { cat:'5S/현장관리', name:'5S 활동 및 현장정리정돈', target:'전 직원', cycle:'연 1회', confirm:'참석자 서명' }
+];
+
+function renderMatrix() {
+    const table = document.getElementById('matrix_table');
+    table.innerHTML = '<thead><tr><th>구분</th><th>교육명</th><th>교육대상(직무)</th><th>교육주기</th><th>이수확인 방법</th></tr></thead>' +
+        '<tbody>' + TRAINING_MATRIX.map(function (r) {
+            return '<tr><td>' + esc(r.cat) + '</td><td>' + esc(r.name) + '</td><td>' + esc(r.target) + '</td><td>' + esc(r.cycle) + '</td><td>' + esc(r.confirm) + '</td></tr>';
+        }).join('') + '</tbody>';
+}
+
+/* ════════════ 사고보고 절차서(게시문서) 연도별 현황 ════════════ */
+async function loadProcedureStats() {
+    const tbody = document.getElementById('proc_stats');
+    tbody.innerHTML = '<tr><td colspan="4" style="color:#808080;">불러오는 중...</td></tr>';
+    try {
+        const json = await apiGet('사고아차사고');
+        const byYear = {};
+        json.rows.forEach(function (r) {
+            const y = (r['발생일시'] || '').slice(0, 4) || '미상';
+            if (!byYear[y]) byYear[y] = { acc: 0, near: 0 };
+            if (r['구분'] === '사고') byYear[y].acc++; else if (r['구분'] === '아차사고') byYear[y].near++;
+        });
+        const years = Object.keys(byYear).sort().reverse();
+        if (years.length === 0) {
+            tbody.innerHTML = '<tr><td>' + new Date().getFullYear() + '</td><td>0</td><td>0</td><td>현재까지 발생 없음</td></tr>';
+        } else {
+            tbody.innerHTML = years.map(function (y) {
+                const v = byYear[y];
+                return '<tr><td>' + y + '</td><td>' + v.acc + '</td><td>' + v.near + '</td><td>' + ((v.acc+v.near)===0?'발생 없음':'') + '</td></tr>';
+            }).join('');
+        }
+    } catch (err) {
+        tbody.innerHTML = '<tr><td colspan="4" style="color:#e74c3c;">불러오기 실패(저장소 미연결 시 표시되지 않을 수 있습니다)</td></tr>';
+    }
+}
+
+TOOL_LOADERS['inventory'] = loadInventory;
+TOOL_LOADERS['matrix'] = renderMatrix;
+TOOL_LOADERS['procedure'] = loadProcedureStats;
+</script>
+</body>
+</html>
