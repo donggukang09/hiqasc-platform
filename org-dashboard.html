@@ -779,15 +779,15 @@ function renderReport(){
     <!-- 일반 이슈 -->
     <div style="margin-bottom:40px;">
       <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:16px;display:flex;align-items:center;gap:8px;">
-        <span style="background:var(--as-soft);color:var(--as-deep);padding:4px 12px;border-radius:8px;font-size:12px;font-weight:700;">내부 이슈</span>
-        센터 내부 문제 발생 시
+        <span style="background:var(--as-soft);color:var(--as-deep);padding:4px 12px;border-radius:8px;font-size:12px;font-weight:700;">CASE 1</span>
+        내부 이슈 (센터 내 문제)
       </div>
       <div style="display:flex;align-items:center;gap:0;flex-wrap:wrap;">
-        <div class="rp-node rp-team"><i class="fas fa-users"></i><div>팀원</div><div class="rp-sub">이슈 발생 / 보고</div></div>
+        <div class="rp-node rp-team"><i class="fas fa-user-group"></i><div>팀원</div><div class="rp-sub">이슈 발생 · 보고</div></div>
         <div class="rp-arrow"><i class="fas fa-arrow-right"></i></div>
-        <div class="rp-node rp-lead"><i class="fas fa-user-tie"></i><div>각 팀장</div><div class="rp-sub">1차 판단 / 조치</div></div>
+        <div class="rp-node rp-lead"><i class="fas fa-user-shield"></i><div>각 팀장</div><div class="rp-sub">1차 판단 · 조치</div></div>
         <div class="rp-arrow"><i class="fas fa-arrow-right"></i></div>
-        <div class="rp-node rp-center"><i class="fas fa-crown"></i><div>센터장</div><div class="rp-sub">김찬우</div></div>
+        <div class="rp-node rp-center"><i class="fas fa-user-gear"></i><div>센터장</div><div class="rp-sub">${esc(DATA.centerHead.name)}</div></div>
         <div class="rp-arrow"><i class="fas fa-arrow-right"></i></div>
         <div class="rp-node rp-hq"><i class="fas fa-building"></i><div>HIQ SYSTEM HQ</div><div class="rp-sub">최종 보고</div></div>
       </div>
@@ -796,28 +796,30 @@ function renderReport(){
     <!-- 업무 이슈 -->
     <div style="margin-bottom:20px;">
       <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:16px;display:flex;align-items:center;gap:8px;">
-        <span style="background:var(--support-soft);color:var(--support-deep);padding:4px 12px;border-radius:8px;font-size:12px;font-weight:700;">업무 이슈</span>
-        수리 / 서비스 품질 문제 발생 시
+        <span style="background:var(--support-soft);color:var(--support-deep);padding:4px 12px;border-radius:8px;font-size:12px;font-weight:700;">CASE 2</span>
+        업무 이슈 (수리 · 서비스 품질)
       </div>
       <div style="display:flex;align-items:center;gap:0;flex-wrap:wrap;">
-        <div class="rp-node rp-team"><i class="fas fa-users"></i><div>팀원</div><div class="rp-sub">이슈 발생 / 보고</div></div>
+        <div class="rp-node rp-team"><i class="fas fa-user-group"></i><div>팀원</div><div class="rp-sub">이슈 발생 · 보고</div></div>
         <div class="rp-arrow"><i class="fas fa-arrow-right"></i></div>
-        <div class="rp-node rp-lead"><i class="fas fa-user-tie"></i><div>각 팀장</div><div class="rp-sub">1차 판단 / 조치</div></div>
+        <div class="rp-node rp-lead"><i class="fas fa-user-shield"></i><div>각 팀장</div><div class="rp-sub">1차 판단 · 조치</div></div>
         <div class="rp-arrow"><i class="fas fa-arrow-right"></i></div>
         <div style="display:flex;flex-direction:column;gap:8px;">
           <div style="display:flex;align-items:center;gap:0;">
-            <div class="rp-node rp-center"><i class="fas fa-crown"></i><div>센터장</div><div class="rp-sub">김찬우</div></div>
+            <div class="rp-node rp-center"><i class="fas fa-user-gear"></i><div>센터장</div><div class="rp-sub">${esc(DATA.centerHead.name)}</div></div>
             <div class="rp-arrow"><i class="fas fa-arrow-right"></i></div>
             <div class="rp-node rp-hq"><i class="fas fa-building"></i><div>HIQ SYSTEM HQ</div><div class="rp-sub">최종 결과 보고</div></div>
           </div>
           <div style="display:flex;align-items:center;gap:0;">
-            <div class="rp-node rp-tqm"><i class="fas fa-clipboard-check"></i><div>TQM</div><div class="rp-sub">Nespresso 품질팀</div></div>
+            <div class="rp-node rp-tqm"><i class="fas fa-clipboard-check"></i><div>TQM</div><div class="rp-sub">Nespresso 품질관리</div></div>
           </div>
         </div>
       </div>
-      <div style="margin-top:12px;padding:12px 16px;background:rgba(243,156,18,.08);border:1px solid rgba(243,156,18,.2);border-radius:10px;font-size:12px;color:var(--text-dim);">
+      <div style="margin-top:14px;padding:14px 18px;background:rgba(243,156,18,.08);border:1px solid rgba(243,156,18,.2);border-radius:10px;font-size:13px;color:var(--text-dim);line-height:1.6;">
         <i class="fas fa-info-circle" style="color:var(--warning);margin-right:6px;"></i>
-        업무 이슈 시 팀장은 <b style="color:var(--text);">센터장</b>과 <b style="color:var(--text);">TQM(Nespresso)</b> 양쪽에 동시 보고. 센터장이 최종 결과를 HIQ SYSTEM HQ에 보고.
+        업무 이슈 발생 시 팀장은 <b style="color:var(--text);">센터장</b>과 <b style="color:var(--text);">TQM (Nespresso)</b> 양쪽에 동시 보고합니다.<br>
+        <i class="fas fa-info-circle" style="color:var(--warning);margin-right:6px;opacity:0;"></i>
+        센터장이 최종 결과를 <b style="color:var(--text);">HIQ SYSTEM HQ</b>에 보고합니다.
       </div>
     </div>
   </div>`;
@@ -901,14 +903,44 @@ function saveMemberChanges(){
   showToast('인원 변경사항이 저장되었습니다');
 }
 
-/* 센터장 연락처 수정 */
+/* 센터장 정보 수정 모달 */
 function editCenterHead(){
-  const name=prompt('센터장 이름:',DATA.centerHead.name);
-  if(name===null)return;
-  const phone=prompt('센터장 연락처:',DATA.centerHead.phone||'');
-  if(phone===null)return;
-  DATA.centerHead.name=name;
-  DATA.centerHead.phone=phone;
+  let h=`<div class="modal-backdrop show" id="memberModal" onclick="if(event.target===this)closeMemberModal()">
+    <div style="background:#1e1e1e;border:1px solid var(--border);border-radius:16px;padding:28px;width:92%;max-width:480px;box-shadow:var(--shadow-lg);">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border);">
+        <div style="font-size:17px;font-weight:700;display:flex;align-items:center;gap:10px;">
+          <span style="background:var(--admin);color:#fff;padding:4px 12px;border-radius:8px;font-size:12px;">센터장</span> 정보 수정
+        </div>
+        <button onclick="closeMemberModal()" style="width:32px;height:32px;border-radius:8px;border:none;background:var(--card);color:var(--text-dim);cursor:pointer;display:flex;align-items:center;justify-content:center;"><i class="fas fa-times"></i></button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--text-dim);margin-bottom:6px;">이름</div>
+          <input class="inline-input" id="chName" value="${esc(DATA.centerHead.name)}" placeholder="이름">
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--text-dim);margin-bottom:6px;">역할</div>
+          <input class="inline-input" id="chRole" value="${esc(DATA.centerHead.role)}" placeholder="역할">
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--text-dim);margin-bottom:6px;">연락처</div>
+          <input class="inline-input" id="chPhone" value="${esc(DATA.centerHead.phone||'')}" placeholder="010-0000-0000">
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
+        <button class="btn" onclick="closeMemberModal()">취소</button>
+        <button class="btn btn-primary" onclick="saveCenterHead()"><i class="fas fa-check"></i> 저장</button>
+      </div>
+    </div>
+  </div>`;
+  document.body.insertAdjacentHTML('beforeend',h);
+}
+
+function saveCenterHead(){
+  DATA.centerHead.name=document.getElementById('chName').value.trim()||DATA.centerHead.name;
+  DATA.centerHead.role=document.getElementById('chRole').value.trim()||DATA.centerHead.role;
+  DATA.centerHead.phone=document.getElementById('chPhone').value.trim();
+  closeMemberModal();
   renderAll();
   manualSave();
   showToast('센터장 정보가 저장되었습니다');
