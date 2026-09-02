@@ -371,6 +371,29 @@ html,body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(-
 .toast{position:fixed;bottom:24px;right:24px;padding:14px 22px;background:#1e1e1e;border:1px solid var(--success);border-radius:10px;color:var(--success);font-size:13px;font-weight:600;box-shadow:var(--shadow-lg);display:flex;align-items:center;gap:8px;transform:translateY(80px);opacity:0;transition:all .3s;z-index:2000;}
 .toast.show{transform:translateY(0);opacity:1;}
 
+/* Reporting Chain */
+.rp-node{
+  background:var(--card);border:2px solid var(--border);
+  border-radius:12px;padding:14px 18px;text-align:center;
+  min-width:120px;font-size:13px;font-weight:600;color:var(--text);
+}
+.rp-node i{font-size:24px;display:block;margin-bottom:8px;}
+.rp-sub{font-size:11px;color:var(--text-dim);font-weight:400;margin-top:4px;}
+.rp-node.rp-team{border-color:var(--as);background:var(--as-soft);}
+.rp-node.rp-team i{color:var(--as);}
+.rp-node.rp-lead{border-color:var(--support);background:var(--support-soft);}
+.rp-node.rp-lead i{color:var(--support);}
+.rp-node.rp-center{border-color:var(--admin);background:var(--admin-soft);}
+.rp-node.rp-center i{color:var(--admin);}
+.rp-node.rp-hq{border-color:#e74c3c;background:rgba(231,76,60,.1);}
+.rp-node.rp-hq i{color:#e74c3c;}
+.rp-node.rp-tqm{border-color:var(--b2b);background:var(--b2b-soft);}
+.rp-node.rp-tqm i{color:var(--b2b);}
+.rp-arrow{padding:0 12px;color:var(--text-muted);font-size:18px;display:flex;align-items:center;}
+
+/* Modal backdrop for member management */
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:1000;backdrop-filter:blur(4px);}
+
 @media(max-width:1100px){
   .header{padding:14px 20px;}
   .tab-nav{padding:0 20px;}
@@ -406,12 +429,14 @@ html,body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(-
   <button class="tab-btn active" data-tab="overview"><i class="fas fa-chart-pie"></i>&nbsp; 전체 현황</button>
   <button class="tab-btn" data-tab="orgchart"><i class="fas fa-sitemap"></i>&nbsp; 조직도</button>
   <button class="tab-btn" data-tab="tasks"><i class="fas fa-list-check"></i>&nbsp; 업무 & 대체인력</button>
+  <button class="tab-btn" data-tab="report"><i class="fas fa-arrow-up-right-dots"></i>&nbsp; 보고 체계</button>
 </div>
 
 <div class="main">
   <div class="tab-content active" id="tab-overview"></div>
   <div class="tab-content" id="tab-orgchart"></div>
   <div class="tab-content" id="tab-tasks"></div>
+  <div class="tab-content" id="tab-report"></div>
 </div>
 
 <div class="toast" id="toast"><i class="fas fa-check-circle"></i><span id="toastMsg"></span></div>
@@ -461,9 +486,29 @@ function getPersonTasks(name){
   });});
   return{assigned,backup};
 }
+function getPersonPhone(name){
+  if(DATA.centerHead.name===name) return DATA.centerHead.phone||'';
+  for(const t of DATA.teams){
+    if(t.lead.name===name) return t.lead.phone||'';
+    for(const m of t.members){
+      if(m.name===name) return m.phone||'';
+    }
+  }
+  return '';
+}
+
 function hoverHTML(name,role,dir){
+  const phone=getPersonPhone(name);
   const{assigned,backup}=getPersonTasks(name);
   let h=`<div class="phover ${dir||'up'}"><div class="ph-name">${esc(name)}<span>${esc(role||'')}</span></div>`;
+  // 연락처 (가장 먼저)
+  if(phone){
+    h+=`<div class="ph-section"><div class="ph-label"><i class="fas fa-phone"></i> 연락처</div>`;
+    h+=`<div class="ph-item" style="font-size:13px;font-weight:600;color:#4ade80;"><i class="fas fa-mobile-screen-button" style="margin-right:4px;"></i> ${esc(phone)}</div></div>`;
+  } else {
+    h+=`<div class="ph-section"><div class="ph-label"><i class="fas fa-phone"></i> 연락처</div>`;
+    h+=`<div class="ph-empty">미등록</div></div>`;
+  }
   h+=`<div class="ph-section"><div class="ph-label"><i class="fas fa-user"></i> 담당 업무 (${assigned.length})</div>`;
   if(assigned.length)assigned.forEach(a=>h+=`<div class="ph-item"><span class="ph-dot" style="background:${a.color}"></span>${esc(a.task)}</div>`);
   else h+=`<div class="ph-empty">없음</div>`;
@@ -564,17 +609,19 @@ function renderOrgChart(){
   h+=`<div class="org-head-row"><div class="onode head" id="orgHead">
     ${hoverHTML(DATA.centerHead.name,DATA.centerHead.role,'down')}
     <div class="oname">${DATA.centerHead.name}</div><div class="orole">${DATA.centerHead.role}</div>
+    ${editMode?`<button class="btn btn-sm" style="margin-top:8px;font-size:11px;" onclick="event.stopPropagation();editCenterHead()"><i class="fas fa-pen"></i> 수정</button>`:''}
   </div></div>`;
 
   // Teams
   h+=`<div class="org-teams-row" id="orgTeamsRow">`;
   vt.forEach((t,i)=>{
+    const ti=DATA.teams.indexOf(t);
     const mc=t.members.length;
     const sizeClass=mc>8?'wide':mc>3?'medium':'narrow';
     const gridClass=mc>8?'cols4':mc>3?'cols3':'cols2';
 
     h+=`<div class="org-branch ${sizeClass}">`;
-    h+=`<div class="team-tag ${t.id}">${t.name}</div>`;
+    h+=`<div class="team-tag ${t.id}">${t.name}${editMode?` <button class="btn btn-sm" style="font-size:10px;padding:2px 8px;margin-left:6px;" onclick="openMemberModal(${ti})"><i class="fas fa-users-gear"></i> 인원관리</button>`:''}</div>`;
     h+=`<div class="onode lead-${t.id}" id="orgLead_${i}">
       ${hoverHTML(t.lead.name,t.lead.role,'down')}
       <div class="oname">${t.lead.name}</div><div class="orole">${t.lead.role}</div>
@@ -721,7 +768,151 @@ function renderTasks(){
 function addTask(ti){DATA.teams[ti].tasks.push({task:'새 업무',assignees:[],backups:[],priority:'mid',note:''});renderTasks();scheduleSave();}
 function delTask(ti,ki){if(confirm('삭제하시겠습니까?')){DATA.teams[ti].tasks.splice(ki,1);renderTasks();showToast('삭제 완료');scheduleSave();}}
 
-function renderAll(){renderOverview();renderOrgChart();renderTasks();}
+function renderAll(){renderOverview();renderOrgChart();renderTasks();renderReport();}
+
+/* ═══════ 보고 체계 ═══════ */
+function renderReport(){
+  let h=`
+  <div class="info-box" style="padding:40px;">
+    <div class="section-title" style="margin-bottom:30px;"><i class="fas fa-arrow-up-right-dots" style="color:var(--as)"></i> HIQASC 보고 체계</div>
+
+    <!-- 일반 이슈 -->
+    <div style="margin-bottom:40px;">
+      <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:16px;display:flex;align-items:center;gap:8px;">
+        <span style="background:var(--as-soft);color:var(--as-deep);padding:4px 12px;border-radius:8px;font-size:12px;font-weight:700;">내부 이슈</span>
+        센터 내부 문제 발생 시
+      </div>
+      <div style="display:flex;align-items:center;gap:0;flex-wrap:wrap;">
+        <div class="rp-node rp-team"><i class="fas fa-users"></i><div>팀원</div><div class="rp-sub">이슈 발생 / 보고</div></div>
+        <div class="rp-arrow"><i class="fas fa-arrow-right"></i></div>
+        <div class="rp-node rp-lead"><i class="fas fa-user-tie"></i><div>각 팀장</div><div class="rp-sub">1차 판단 / 조치</div></div>
+        <div class="rp-arrow"><i class="fas fa-arrow-right"></i></div>
+        <div class="rp-node rp-center"><i class="fas fa-crown"></i><div>센터장</div><div class="rp-sub">김찬우</div></div>
+        <div class="rp-arrow"><i class="fas fa-arrow-right"></i></div>
+        <div class="rp-node rp-hq"><i class="fas fa-building"></i><div>HIQ SYSTEM HQ</div><div class="rp-sub">최종 보고</div></div>
+      </div>
+    </div>
+
+    <!-- 업무 이슈 -->
+    <div style="margin-bottom:20px;">
+      <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:16px;display:flex;align-items:center;gap:8px;">
+        <span style="background:var(--support-soft);color:var(--support-deep);padding:4px 12px;border-radius:8px;font-size:12px;font-weight:700;">업무 이슈</span>
+        수리 / 서비스 품질 문제 발생 시
+      </div>
+      <div style="display:flex;align-items:center;gap:0;flex-wrap:wrap;">
+        <div class="rp-node rp-team"><i class="fas fa-users"></i><div>팀원</div><div class="rp-sub">이슈 발생 / 보고</div></div>
+        <div class="rp-arrow"><i class="fas fa-arrow-right"></i></div>
+        <div class="rp-node rp-lead"><i class="fas fa-user-tie"></i><div>각 팀장</div><div class="rp-sub">1차 판단 / 조치</div></div>
+        <div class="rp-arrow"><i class="fas fa-arrow-right"></i></div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;align-items:center;gap:0;">
+            <div class="rp-node rp-center"><i class="fas fa-crown"></i><div>센터장</div><div class="rp-sub">김찬우</div></div>
+            <div class="rp-arrow"><i class="fas fa-arrow-right"></i></div>
+            <div class="rp-node rp-hq"><i class="fas fa-building"></i><div>HIQ SYSTEM HQ</div><div class="rp-sub">최종 결과 보고</div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:0;">
+            <div class="rp-node rp-tqm"><i class="fas fa-clipboard-check"></i><div>TQM</div><div class="rp-sub">Nespresso 품질팀</div></div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:12px;padding:12px 16px;background:rgba(243,156,18,.08);border:1px solid rgba(243,156,18,.2);border-radius:10px;font-size:12px;color:var(--text-dim);">
+        <i class="fas fa-info-circle" style="color:var(--warning);margin-right:6px;"></i>
+        업무 이슈 시 팀장은 <b style="color:var(--text);">센터장</b>과 <b style="color:var(--text);">TQM(Nespresso)</b> 양쪽에 동시 보고. 센터장이 최종 결과를 HIQ SYSTEM HQ에 보고.
+      </div>
+    </div>
+  </div>`;
+
+  document.getElementById('tab-report').innerHTML=h;
+}
+
+/* ═══════ 인원 관리 모달 ═══════ */
+function openMemberModal(teamIdx){
+  const team=DATA.teams[teamIdx];
+  let h=`<div class="modal-backdrop show" id="memberModal" onclick="if(event.target===this)closeMemberModal()">
+    <div style="background:#1e1e1e;border:1px solid var(--border);border-radius:16px;padding:28px;width:92%;max-width:600px;max-height:88vh;overflow-y:auto;box-shadow:var(--shadow-lg);">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border);">
+        <div style="font-size:17px;font-weight:700;display:flex;align-items:center;gap:10px;">
+          <span style="background:${team.color};color:#fff;padding:4px 12px;border-radius:8px;font-size:12px;">${team.name}</span> 인원 관리
+        </div>
+        <button onclick="closeMemberModal()" style="width:32px;height:32px;border-radius:8px;border:none;background:var(--card);color:var(--text-dim);cursor:pointer;display:flex;align-items:center;justify-content:center;"><i class="fas fa-times"></i></button>
+      </div>
+
+      <!-- 팀장 -->
+      <div style="margin-bottom:20px;">
+        <div style="font-size:11px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;"><i class="fas fa-star"></i> 팀장</div>
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+          <input class="inline-input" value="${esc(team.lead.name)}" onchange="DATA.teams[${teamIdx}].lead.name=this.value" placeholder="이름" style="flex:1;">
+          <input class="inline-input" value="${esc(team.lead.role)}" onchange="DATA.teams[${teamIdx}].lead.role=this.value" placeholder="역할" style="flex:1;">
+          <input class="inline-input" value="${esc(team.lead.phone||'')}" onchange="DATA.teams[${teamIdx}].lead.phone=this.value" placeholder="연락처" style="flex:1;">
+        </div>
+      </div>
+
+      <!-- 팀원 리스트 -->
+      <div style="margin-bottom:20px;">
+        <div style="font-size:11px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;"><i class="fas fa-users"></i> 팀원 (${team.members.length}명)</div>
+        <div id="memberList_${teamIdx}">`;
+
+  team.members.forEach((m,mi)=>{
+    h+=`<div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+      <input class="inline-input" value="${esc(m.name)}" onchange="DATA.teams[${teamIdx}].members[${mi}].name=this.value" placeholder="이름" style="flex:1;">
+      <input class="inline-input" value="${esc(m.role)}" onchange="DATA.teams[${teamIdx}].members[${mi}].role=this.value" placeholder="역할" style="flex:0.8;">
+      <input class="inline-input" value="${esc(m.phone||'')}" onchange="DATA.teams[${teamIdx}].members[${mi}].phone=this.value" placeholder="연락처" style="flex:1;">
+      <button onclick="removeMember(${teamIdx},${mi})" style="width:32px;height:32px;border-radius:8px;border:none;background:rgba(231,76,60,.15);color:var(--danger);cursor:pointer;flex-shrink:0;" title="삭제"><i class="fas fa-trash"></i></button>
+    </div>`;
+  });
+
+  h+=`</div>
+        <button onclick="addMember(${teamIdx})" style="width:100%;padding:10px;border:1px dashed var(--border);background:none;color:var(--text-muted);border-radius:8px;cursor:pointer;font-size:13px;margin-top:8px;"><i class="fas fa-plus"></i> 팀원 추가</button>
+      </div>
+
+      <div style="display:flex;gap:10px;justify-content:flex-end;padding-top:16px;border-top:1px solid var(--border);">
+        <button class="btn" onclick="closeMemberModal()">닫기</button>
+        <button class="btn btn-primary" onclick="saveMemberChanges()"><i class="fas fa-check"></i> 저장</button>
+      </div>
+    </div>
+  </div>`;
+
+  document.body.insertAdjacentHTML('beforeend',h);
+}
+
+function closeMemberModal(){
+  const m=document.getElementById('memberModal');
+  if(m)m.remove();
+}
+
+function addMember(teamIdx){
+  DATA.teams[teamIdx].members.push({name:'',role:'Technician',phone:''});
+  closeMemberModal();
+  openMemberModal(teamIdx);
+}
+
+function removeMember(teamIdx,memberIdx){
+  const name=DATA.teams[teamIdx].members[memberIdx].name||'(이름 없음)';
+  if(!confirm(name+'을(를) 삭제하시겠습니까?'))return;
+  DATA.teams[teamIdx].members.splice(memberIdx,1);
+  closeMemberModal();
+  openMemberModal(teamIdx);
+}
+
+function saveMemberChanges(){
+  closeMemberModal();
+  renderAll();
+  manualSave();
+  showToast('인원 변경사항이 저장되었습니다');
+}
+
+/* 센터장 연락처 수정 */
+function editCenterHead(){
+  const name=prompt('센터장 이름:',DATA.centerHead.name);
+  if(name===null)return;
+  const phone=prompt('센터장 연락처:',DATA.centerHead.phone||'');
+  if(phone===null)return;
+  DATA.centerHead.name=name;
+  DATA.centerHead.phone=phone;
+  renderAll();
+  manualSave();
+  showToast('센터장 정보가 저장되었습니다');
+}
 
 /* ═══════════════════════════════════════════════════════
    GOOGLE SHEETS 연동
@@ -928,12 +1119,12 @@ function showLoadingOverlay(show){
 
 function getLocalDefault(){
   return {
-    centerHead:{name:'김찬우',role:'센터장'},
+    centerHead:{name:'김찬우',role:'센터장',phone:''},
     teams:[
-      {id:'as',name:'AS팀',color:'#4a90e2',lead:{name:'강동구',role:'팀장'},members:[{name:'이대민',role:'Technician'},{name:'장균수',role:'Technician'},{name:'이덕수',role:'Technician'},{name:'이상민',role:'Technician'},{name:'곽연학',role:'Technician'},{name:'조성주',role:'Technician'},{name:'김지수',role:'Technician'},{name:'박준현',role:'Technician'},{name:'안정용',role:'Technician'},{name:'신준호',role:'Technician'},{name:'이동민',role:'Technician'},{name:'노우영',role:'Technician'},{name:'최승열',role:'Technician'}],tasks:[]},
-      {id:'support',name:'지원팀',color:'#f39c12',lead:{name:'이선제',role:'팀장'},members:[{name:'임성산',role:'Parts'},{name:'홍성균',role:'Loan'},{name:'노경호',role:'Loan'},{name:'박학림',role:'Assistant'},{name:'노세진',role:'Shipping & Packing'}],tasks:[]},
-      {id:'b2b',name:'B2B팀',color:'#20c997',lead:{name:'김태정',role:'Technician'},members:[],tasks:[]},
-      {id:'admin',name:'관리팀',color:'#9b59b6',lead:{name:'김찬우',role:'센터장'},members:[],tasks:[]}
+      {id:'as',name:'AS팀',color:'#4a90e2',lead:{name:'강동구',role:'팀장',phone:''},members:[{name:'이대민',role:'Technician',phone:''},{name:'장균수',role:'Technician',phone:''},{name:'이덕수',role:'Technician',phone:''},{name:'이상민',role:'Technician',phone:''},{name:'곽연학',role:'Technician',phone:''},{name:'조성주',role:'Technician',phone:''},{name:'김지수',role:'Technician',phone:''},{name:'박준현',role:'Technician',phone:''},{name:'안정용',role:'Technician',phone:''},{name:'신준호',role:'Technician',phone:''},{name:'이동민',role:'Technician',phone:''},{name:'노우영',role:'Technician',phone:''},{name:'최승열',role:'Technician',phone:''}],tasks:[]},
+      {id:'support',name:'지원팀',color:'#f39c12',lead:{name:'이선제',role:'팀장',phone:''},members:[{name:'임성산',role:'Parts',phone:''},{name:'홍성균',role:'Loan',phone:''},{name:'노경호',role:'Loan',phone:''},{name:'박학림',role:'Assistant',phone:''},{name:'노세진',role:'Shipping & Packing',phone:''}],tasks:[]},
+      {id:'b2b',name:'B2B팀',color:'#20c997',lead:{name:'김태정',role:'Technician',phone:''},members:[],tasks:[]},
+      {id:'admin',name:'관리팀',color:'#9b59b6',lead:{name:'김찬우',role:'센터장',phone:''},members:[],tasks:[]}
     ]
   };
 }
