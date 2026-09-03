@@ -146,6 +146,24 @@
   .mail-table th{background:#eafaf0;color:#1f2328;}
   .mail-check{width:34px;}
 
+  /* 메일 발신 정보 배너 + 실제 발송 미리보기 (auto-mail.html 패턴 참고) */
+  .mail-info-banner{
+    background:var(--orange-bg);border:1px solid var(--orange);color:#92400e;
+    font-size:12px;font-weight:600;padding:10px 14px;border-radius:8px;margin-bottom:18px;line-height:1.7;
+  }
+  .mail-info-banner b{display:inline-block;min-width:74px;}
+  .preview-section{border-top:1px dashed var(--border);margin-top:18px;padding-top:18px;}
+  .preview-label{font-size:11px;font-weight:700;color:var(--text-sub);margin-bottom:6px;letter-spacing:.3px;}
+  .mail-meta{
+    font-size:12.5px;color:#444;background:#f4f4f2;border-radius:8px;padding:10px 12px;
+    margin-bottom:14px;line-height:1.7;word-break:break-all;
+  }
+  .mail-subject{
+    font-size:13.5px;font-weight:700;color:var(--text);background:#f4f4f2;border-radius:8px;
+    padding:10px 12px;margin-bottom:14px;word-break:break-all;
+  }
+  .mail-intro{font-size:13px;color:#444;line-height:1.6;margin-bottom:14px;}
+
   .toast{
     position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
     background:#1f2328;color:#fff;padding:10px 18px;border-radius:10px;
@@ -262,6 +280,10 @@
   <!-- 3. 콜센터 메일 발송 -->
   <section class="card">
     <div class="card-title"><span class="badge">3</span> 콜센터 메일 발송 <small>&nbsp;선택한 날짜의 입고 건을 콜센터에 안내합니다</small></div>
+    <div class="mail-info-banner">
+      <b>표시 이름</b> HIQASC &lt;hiqasc@gmail.com&gt;<br>
+      <b>회신 주소</b> asc@hiqasc.kr (받는 사람이 회신 누르면 여기로 감)
+    </div>
     <div class="form-actions" style="margin-top:0;">
       <div class="field" style="max-width:200px;">
         <label>대상 날짜</label>
@@ -285,6 +307,19 @@
           <tbody id="mailBody"></tbody>
         </table>
       </div>
+
+      <div class="preview-section">
+        <div class="card-title" style="font-size:14px;margin-bottom:14px;">📨 실제 발송될 메일 미리보기</div>
+        <div class="preview-label">받는 사람</div>
+        <div class="mail-meta" id="previewRecipients"></div>
+        <div class="preview-label">참조</div>
+        <div class="mail-meta" id="previewCc"></div>
+        <div class="preview-label">제목</div>
+        <div class="mail-subject" id="previewSubject"></div>
+        <div class="preview-label">본문</div>
+        <div class="mail-intro" id="previewIntro"></div>
+        <div id="previewTable"></div>
+      </div>
     </div>
     <div class="form-actions">
       <button class="btn btn-green" id="sendMailBtn" onclick="sendMail()" disabled>📧 콜센터에 메일 발송</button>
@@ -299,6 +334,12 @@
 /* ================== 설정 ================== */
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz27DBJ1Zhcs6rcCrvHSzkDQhuoSrmmF4GiTR4QsqlSTTJ-qtEH-uPkKZAnR3NK9retYQ/exec';
 const ETC_LABEL = '기타';
+
+/* 메일 발송 정보 - Code.gs의 실제 발송 로직과 반드시 동일하게 유지 (미리보기 = 실제 발송 내용) */
+const MAIL_TO = ['nespresso_tck_crm@trans-cosmos.co.kr', 'CRC.KR@nespresso.com'];
+const MAIL_CC = ['asc@hiqasc.kr'];
+const MAIL_SUBJECT = '스페어 파츠 입고 건, 출고 확인 요청 드립니다.';
+const MAIL_INTRO_HTML = '안녕하세요.<br>금일 임대머신과 함께 아래 회원님의 SP 반송 입고되었습니다.<br>진행 방향 요청 드립니다';
 
 /* ================== 상태 ================== */
 let allRows = [];
@@ -565,19 +606,52 @@ function renderMailTable(){
   document.getElementById('mailCheckAll').checked = mailRows.every(r=>r.include);
   body.innerHTML = mailRows.map((r, idx)=>`
     <tr>
-      <td class="mail-check"><input type="checkbox" ${r.include?'checked':''} onchange="mailRows[${idx}].include=this.checked; document.getElementById('sendMailBtn').disabled = !mailRows.some(x=>x.include);"></td>
+      <td class="mail-check"><input type="checkbox" ${r.include?'checked':''} onchange="mailRows[${idx}].include=this.checked; document.getElementById('sendMailBtn').disabled = !mailRows.some(x=>x.include); updateMailPreview();"></td>
       <td>${escapeHtml(r.memberId||'')}</td>
       <td>${escapeHtml(r.name||'')}</td>
       <td>${escapeHtml(r.items||'')}</td>
-      <td><input type="text" class="remark-input" value="${escapeAttr(r.remark||'')}" oninput="mailRows[${idx}].remark=this.value;"></td>
+      <td><input type="text" class="remark-input" value="${escapeAttr(r.remark||'')}" oninput="mailRows[${idx}].remark=this.value; updateMailPreview();"></td>
     </tr>
   `).join('');
   document.getElementById('sendMailBtn').disabled = !mailRows.some(r=>r.include);
+  updateMailPreview();
 }
 
 function toggleMailAll(checked){
   mailRows.forEach(r=>r.include = checked);
   renderMailTable();
+}
+
+/* 실제 Code.gs가 만드는 표와 동일한 인라인 스타일로 렌더링 — 미리보기 = 실제 발송본 */
+function buildMailTableHtml(rows){
+  const cellStyle = 'border:1px solid #999;padding:6px 10px;';
+  let html = '<table style="border-collapse:collapse;font-size:13px;width:100%;max-width:640px;">';
+  html += '<tr style="background:#C6E0B4;font-weight:bold;">';
+  ['회원번호','이름','내용물','비고'].forEach(h=>{
+    html += `<td style="${cellStyle}">${escapeHtml(h)}</td>`;
+  });
+  html += '</tr>';
+  rows.forEach(r=>{
+    html += '<tr>';
+    html += `<td style="${cellStyle}">${escapeHtml(r.memberId||'')}</td>`;
+    html += `<td style="${cellStyle}">${escapeHtml(r.name||'')}</td>`;
+    html += `<td style="${cellStyle}">${escapeHtml(r.items||'')}</td>`;
+    html += `<td style="${cellStyle}">${escapeHtml(r.remark||'')}</td>`;
+    html += '</tr>';
+  });
+  html += '</table>';
+  return html;
+}
+
+function updateMailPreview(){
+  const selected = mailRows.filter(r=>r.include);
+  document.getElementById('previewRecipients').textContent = MAIL_TO.join(', ');
+  document.getElementById('previewCc').textContent = MAIL_CC.join(', ');
+  document.getElementById('previewSubject').textContent = MAIL_SUBJECT;
+  document.getElementById('previewIntro').innerHTML = MAIL_INTRO_HTML;
+  document.getElementById('previewTable').innerHTML = selected.length
+    ? buildMailTableHtml(selected)
+    : '<p style="color:var(--text-sub);font-size:13px;">선택된 항목이 없습니다.</p>';
 }
 
 async function sendMail(){
@@ -587,7 +661,7 @@ async function sendMail(){
     setMsg('mailMsg', '발송할 항목을 선택해주세요.', false);
     return;
   }
-  if(!confirm(`${date} 기준 ${selected.length}건을 콜센터(nespresso_tck_crm@trans-cosmos.co.kr, CRC.KR@nespresso.com)로 발송합니다. 계속할까요?`)){
+  if(!confirm(`[${MAIL_SUBJECT}]\n받는사람: ${MAIL_TO.join(', ')}\n참조: ${MAIL_CC.join(', ')}\n\n${date} 기준 ${selected.length}건을 발송합니다. 계속할까요?`)){
     return;
   }
 
