@@ -336,7 +336,10 @@ const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz27DBJ1Zhcs6rc
 const ETC_LABEL = '기타';
 
 /* 메일 발송 정보 - Code.gs의 실제 발송 로직과 반드시 동일하게 유지 (미리보기 = 실제 발송 내용) */
-const MAIL_TO = ['nespresso_tck_crm@trans-cosmos.co.kr', 'CRC.KR@nespresso.com'];
+// ⚠️ 테스트 모드: 실제 운영 주소 대신 안전한 테스트 주소로 임시 전환된 상태입니다.
+// 테스트 확인 끝나면 아래 두 줄을 원래 운영 주소로 되돌려야 합니다.
+// 운영 주소: MAIL_TO = ['nespresso_tck_crm@trans-cosmos.co.kr', 'CRC.KR@nespresso.com'], MAIL_CC = ['asc@hiqasc.kr']
+const MAIL_TO = ['donggu.kang@hiqasc.kr'];
 const MAIL_CC = ['asc@hiqasc.kr'];
 const MAIL_SUBJECT = '스페어 파츠 입고 건, 출고 확인 요청 드립니다.';
 const MAIL_INTRO_HTML = '안녕하세요.<br>금일 임대머신과 함께 아래 회원님의 SP 반송 입고되었습니다.<br>진행 방향 요청 드립니다';
@@ -675,6 +678,8 @@ async function sendMail(){
       body: JSON.stringify({
         action:'sendMail',
         date,
+        to: MAIL_TO,
+        cc: MAIL_CC,
         rows: selected.map(r=>({ memberId:r.memberId, name:r.name, items:r.items, remark:r.remark }))
       })
     });
