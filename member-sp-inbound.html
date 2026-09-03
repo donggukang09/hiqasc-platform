@@ -341,7 +341,8 @@ const ETC_LABEL = '기타';
 // 운영 주소: MAIL_TO = ['nespresso_tck_crm@trans-cosmos.co.kr', 'CRC.KR@nespresso.com'], MAIL_CC = ['asc@hiqasc.kr']
 const MAIL_TO = ['donggu.kang@hiqasc.kr'];
 const MAIL_CC = ['asc@hiqasc.kr'];
-const MAIL_SUBJECT = '스페어 파츠 입고 건, 출고 확인 요청 드립니다.';
+// ⚠️ 테스트용 임시 제목(위 fetch의 subject와 동일하게 맞춤). 테스트 끝나면 원래 제목으로 되돌릴 것.
+const MAIL_SUBJECT = 'SP 입고 확인 테스트 A-0903';
 const MAIL_INTRO_HTML = '안녕하세요.<br>금일 임대머신과 함께 아래 회원님의 SP 반송 입고되었습니다.<br>진행 방향 요청 드립니다';
 
 /* ================== 상태 ================== */
@@ -680,10 +681,8 @@ async function sendMail(){
         date,
         to: MAIL_TO,
         cc: MAIL_CC,
-        // ⚠️ 테스트용 임시 제목: 기존 제목("스페어 파츠 입고 건...")을 디버깅 중 반복 발송해서
-        // 스팸 필터에 패턴으로 학습됐는지 확인하기 위해 매번 다른 제목으로 보내는 중입니다.
-        // 테스트 끝나면 이 subject 줄은 삭제해서 백엔드 기본 제목을 쓰도록 되돌려야 합니다.
-        subject: 'SP 입고 확인 테스트 A-0903',
+        // 미리보기와 항상 같은 제목이 나가도록 MAIL_SUBJECT 상수를 그대로 사용.
+        subject: MAIL_SUBJECT,
         rows: selected.map(r=>({ memberId:r.memberId, name:r.name, items:r.items, remark:r.remark }))
       })
     });
