@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>회원 SP 입고 관리(임대) | HIQASC</title>
+<style>
+  :root{
+    --bg:#f5f6f8;
+    --card:#ffffff;
+    --border:#e5e7eb;
+    --text:#1f2328;
+    --text-sub:#6b7280;
+    --blue:#2563eb;
+    --blue-dark:#1d4ed8;
+    --blue-bg:#eff4ff;
+    --green:#16a34a;
+    --green-bg:#eafaf0;
+    --orange:#d97706;
+    --orange-bg:#fff7e6;
+    --red:#dc2626;
+    --yellow:#fbbf24;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Malgun Gothic","Apple SD Gothic Neo",Arial,sans-serif;
+    line-height:1.5;
+  }
+  .wrap{max-width:1100px;margin:0 auto;padding:32px 20px 60px;}
+  header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:28px;}
+  h1{font-size:26px;font-weight:700;margin:0 0 8px;}
+  header p{color:var(--text-sub);font-size:14px;margin:0;}
+  .btn-home{
+    flex-shrink:0;border:1px solid var(--border);background:#fff;color:var(--text);
+    border-radius:10px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;
+    font-family:inherit;white-space:nowrap;
+  }
+  .btn-home:hover{background:#f3f4f6;}
+
+  .card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:24px;
+    margin-bottom:24px;
+    box-shadow:0 1px 2px rgba(0,0,0,.03);
+  }
+  .card-title{
+    display:flex;align-items:center;gap:10px;
+    font-size:16px;font-weight:700;margin-bottom:18px;
+  }
+  .card-title small{font-size:12px;font-weight:500;color:var(--text-sub);}
+  .badge{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:24px;height:24px;border-radius:50%;
+    background:var(--blue);color:#fff;font-size:13px;font-weight:700;flex-shrink:0;
+  }
+
+  /* form */
+  .form-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:14px;
+  }
+  .field{display:flex;flex-direction:column;gap:6px;}
+  .field.full{grid-column:1 / -1;}
+  .field label{font-size:12px;font-weight:600;color:var(--text-sub);}
+  .field input, .field select{
+    padding:10px 12px;
+    border:1px solid var(--border);
+    border-radius:10px;
+    font-size:14px;
+    background:#fff;
+    color:var(--text);
+    font-family:inherit;
+  }
+  .field input:focus, .field select:focus{
+    outline:none;border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-bg);
+  }
+  .form-actions{display:flex;align-items:center;gap:12px;margin-top:16px;flex-wrap:wrap;}
+  .btn{
+    border:none;border-radius:10px;padding:11px 20px;font-size:14px;font-weight:600;
+    cursor:pointer;font-family:inherit;transition:opacity .15s;
+  }
+  .btn:hover{opacity:.88;}
+  .btn:disabled{opacity:.5;cursor:not-allowed;}
+  .btn-primary{background:var(--blue);color:#fff;}
+  .btn-secondary{background:#f3f4f6;color:var(--text);}
+  .btn-green{background:var(--green);color:#fff;}
+  .btn-sm{padding:6px 12px;font-size:12.5px;border-radius:8px;}
+  #formMsg,#mailMsg{font-size:13px;font-weight:600;}
+  #formMsg.ok,#mailMsg.ok{color:var(--green);}
+  #formMsg.err,#mailMsg.err{color:var(--red);}
+
+  /* checkbox group */
+  .check-group{
+    display:flex;flex-wrap:wrap;gap:10px;
+    padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:#fff;
+  }
+  .check-item{
+    display:flex;align-items:center;gap:6px;font-size:13.5px;
+    border:1px solid var(--border);border-radius:20px;padding:6px 12px;cursor:pointer;background:#fafafa;
+  }
+  .check-item input{margin:0;cursor:pointer;}
+  .check-item.checked{background:var(--blue-bg);border-color:#c7d9ff;color:var(--blue-dark);font-weight:600;}
+  .check-item.etc-item{gap:8px;}
+  .check-item.etc-item input[type=text]{
+    border:1px solid var(--border);border-radius:6px;padding:3px 8px;font-size:12.5px;
+    width:140px;font-family:inherit;
+  }
+
+  /* search */
+  .search-grid{
+    display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:14px;
+  }
+  .search-grid .field label{font-size:11px;}
+  .search-grid .field input, .search-grid .field select{padding:8px 10px;font-size:13px;}
+
+  /* table */
+  .table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:12px;}
+  table{width:100%;border-collapse:collapse;font-size:13px;min-width:900px;}
+  th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;}
+  th{background:#fafafa;font-weight:700;color:var(--text-sub);font-size:12px;position:sticky;top:0;}
+  tbody tr:hover{background:#fafbff;}
+  td.wrap-cell{white-space:normal;max-width:220px;}
+  .empty-row td{text-align:center;color:var(--text-sub);padding:30px;}
+  .list-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;font-size:13px;color:var(--text-sub);}
+
+  .status-select{
+    border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:12.5px;font-family:inherit;cursor:pointer;font-weight:700;
+  }
+  .status-select.pending{background:var(--orange-bg);color:var(--orange);border-color:#fcd9a8;}
+  .status-select.done{background:var(--green-bg);color:var(--green);border-color:#bfe8cf;}
+
+  .remark-input{
+    border:1px solid transparent;border-radius:8px;padding:6px 8px;font-size:13px;font-family:inherit;
+    width:100%;min-width:140px;background:transparent;
+  }
+  .remark-input:hover{border-color:var(--border);background:#fff;}
+  .remark-input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-bg);background:#fff;}
+
+  /* mail preview table */
+  .mail-table th{background:#eafaf0;color:#1f2328;}
+  .mail-check{width:34px;}
+
+  .toast{
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:#1f2328;color:#fff;padding:10px 18px;border-radius:10px;
+    font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:200;
+  }
+  .toast.show{opacity:1;}
+
+  @media (max-width:760px){
+    .form-grid{grid-template-columns:repeat(2,1fr);}
+    .search-grid{grid-template-columns:repeat(2,1fr);}
+    table{min-width:760px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>📮 회원 SP 입고 관리(임대)</h1>
+      <p>임대머신 반납 시 함께 잘못 반송된 회원 개인 SP(물통 등)를 기록하고, 콜센터에 안내 메일을 보내 회원에게 택배로 돌려주는 흐름을 관리합니다.</p>
+    </div>
+    <button class="btn-home" onclick="location.href='index.html'">🏠 메인으로</button>
+  </header>
+
+  <!-- 1. 입력 폼 -->
+  <section class="card">
+    <div class="card-title"><span class="badge">1</span> 입고 등록</div>
+    <div class="form-grid">
+      <div class="field">
+        <label>입고일자</label>
+        <input type="date" id="f_date">
+      </div>
+      <div class="field">
+        <label>박스번호</label>
+        <input type="text" id="f_boxNo" placeholder="박스번호">
+      </div>
+      <div class="field">
+        <label>회원번호</label>
+        <input type="text" id="f_memberId" placeholder="회원번호">
+      </div>
+      <div class="field">
+        <label>회원명</label>
+        <input type="text" id="f_name" placeholder="회원명">
+      </div>
+      <div class="field full">
+        <label>입고품 (해당 항목 선택)</label>
+        <div class="check-group" id="itemCheckGroup">
+          <span style="color:var(--text-sub);font-size:13px;">불러오는 중...</span>
+        </div>
+      </div>
+      <div class="field full">
+        <label>비고 (선택)</label>
+        <input type="text" id="f_remark" placeholder="비고">
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-primary" id="saveBtn" onclick="saveEntry()">저장</button>
+      <button class="btn btn-secondary" onclick="clearForm()">초기화</button>
+      <span id="formMsg"></span>
+    </div>
+  </section>
+
+  <!-- 2. 검색 + 리스트 -->
+  <section class="card">
+    <div class="card-title"><span class="badge">2</span> 전체 내역 · 검색</div>
+    <div class="search-grid">
+      <div class="field">
+        <label>입고일자</label>
+        <input type="date" id="s_date" oninput="renderList()">
+      </div>
+      <div class="field">
+        <label>박스번호</label>
+        <input type="text" id="s_boxNo" oninput="renderList()">
+      </div>
+      <div class="field">
+        <label>회원번호</label>
+        <input type="text" id="s_memberId" oninput="renderList()">
+      </div>
+      <div class="field">
+        <label>회원명</label>
+        <input type="text" id="s_name" oninput="renderList()">
+      </div>
+      <div class="field">
+        <label>상태</label>
+        <select id="s_status" onchange="renderList()">
+          <option value="">전체</option>
+          <option value="대기중">대기중</option>
+          <option value="출고완료">출고완료</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-actions" style="margin:0 0 14px;">
+      <button class="btn btn-secondary btn-sm" onclick="clearSearch()">검색 초기화</button>
+      <button class="btn btn-secondary btn-sm" onclick="loadData()">🔄 새로고침</button>
+    </div>
+    <div class="list-meta">
+      <span id="listCount">0건</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>입고일자</th><th>박스번호</th><th>회원번호</th><th>회원명</th>
+            <th>입고품</th><th>상태</th><th>비고</th>
+          </tr>
+        </thead>
+        <tbody id="listBody">
+          <tr class="empty-row"><td colspan="7">불러오는 중...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 3. 콜센터 메일 발송 -->
+  <section class="card">
+    <div class="card-title"><span class="badge">3</span> 콜센터 메일 발송 <small>&nbsp;선택한 날짜의 입고 건을 콜센터에 안내합니다</small></div>
+    <div class="form-actions" style="margin-top:0;">
+      <div class="field" style="max-width:200px;">
+        <label>대상 날짜</label>
+        <input type="date" id="m_date">
+      </div>
+      <button class="btn btn-secondary" style="align-self:flex-end;" onclick="loadMailPreview()">불러오기</button>
+    </div>
+    <div style="margin:16px 0;" id="mailPreviewWrap" hidden>
+      <div class="list-meta">
+        <span id="mailCount">0건</span>
+        <span style="font-size:12.5px;color:var(--text-sub);">비고는 발송 전 자유롭게 수정할 수 있습니다.</span>
+      </div>
+      <div class="table-wrap">
+        <table class="mail-table">
+          <thead>
+            <tr>
+              <th class="mail-check"><input type="checkbox" id="mailCheckAll" onchange="toggleMailAll(this.checked)"></th>
+              <th>회원번호</th><th>이름</th><th>내용물</th><th>비고</th>
+            </tr>
+          </thead>
+          <tbody id="mailBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-green" id="sendMailBtn" onclick="sendMail()" disabled>📧 콜센터에 메일 발송</button>
+      <span id="mailMsg"></span>
+    </div>
+  </section>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================== 설정 ================== */
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz27DBJ1Zhcs6rcCrvHSzkDQhuoSrmmF4GiTR4QsqlSTTJ-qtEH-uPkKZAnR3NK9retYQ/exec';
+const ETC_LABEL = '기타';
+
+/* ================== 상태 ================== */
+let allRows = [];
+let itemOptions = [];
+let mailRows = []; // 발송 미리보기용 행 (편집 가능한 사본)
+
+function todayStr(){
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const dd = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${dd}`;
+}
+
+window.addEventListener('DOMContentLoaded', ()=>{
+  document.getElementById('f_date').value = todayStr();
+  document.getElementById('m_date').value = todayStr();
+  loadData();
+});
+
+/* ================== 데이터 로드 ================== */
+async function loadData(){
+  document.getElementById('listBody').innerHTML = '<tr class="empty-row"><td colspan="7">불러오는 중...</td></tr>';
+  try{
+    const res = await fetch(APPS_SCRIPT_URL, {method:'GET'});
+    const data = await res.json();
+    if(data.status !== 'ok') throw new Error(data.message || '불러오기 실패');
+    allRows = data.rows || [];
+    itemOptions = data.itemOptions || [];
+    renderItemCheckboxes();
+    renderList();
+  }catch(err){
+    document.getElementById('listBody').innerHTML =
+      `<tr class="empty-row"><td colspan="7">불러오기 실패: ${escapeHtml(String(err.message||err))}</td></tr>`;
+  }
+}
+
+function renderItemCheckboxes(){
+  const wrap = document.getElementById('itemCheckGroup');
+  wrap.innerHTML = '';
+  itemOptions.forEach((opt, idx)=>{
+    const id = 'chk_item_' + idx;
+    const label = document.createElement('label');
+    label.className = 'check-item';
+    label.setAttribute('for', id);
+    label.innerHTML = `<input type="checkbox" id="${id}" value="${escapeHtml(opt)}" onchange="onItemCheckChange(this)"> ${escapeHtml(opt)}`;
+    wrap.appendChild(label);
+  });
+  // 기타 항목 (고정, 자유 텍스트)
+  const etcLabel = document.createElement('label');
+  etcLabel.className = 'check-item etc-item';
+  etcLabel.setAttribute('for', 'chk_item_etc');
+  etcLabel.innerHTML = `<input type="checkbox" id="chk_item_etc" onchange="onItemCheckChange(this)"> ${ETC_LABEL}
+    <input type="text" id="f_etcText" placeholder="내용 입력">`;
+  wrap.appendChild(etcLabel);
+}
+
+function onItemCheckChange(input){
+  input.closest('.check-item').classList.toggle('checked', input.checked);
+}
+
+function collectSelectedItems(){
+  const wrap = document.getElementById('itemCheckGroup');
+  const checked = Array.from(wrap.querySelectorAll('input[type=checkbox]:checked'));
+  const parts = [];
+  checked.forEach(c=>{
+    if(c.id === 'chk_item_etc'){
+      const txt = document.getElementById('f_etcText').value.trim();
+      parts.push(txt ? `기타: ${txt}` : '기타');
+    }else{
+      parts.push(c.value);
+    }
+  });
+  return parts.join(', ');
+}
+
+/* ================== 저장 ================== */
+async function saveEntry(){
+  const payload = {
+    action: 'create',
+    date: document.getElementById('f_date').value.trim(),
+    boxNo: document.getElementById('f_boxNo').value.trim(),
+    memberId: document.getElementById('f_memberId').value.trim(),
+    name: document.getElementById('f_name').value.trim(),
+    items: collectSelectedItems(),
+    remark: document.getElementById('f_remark').value.trim()
+  };
+
+  if(!payload.date){
+    setMsg('formMsg', '입고일자를 입력해주세요.', false);
+    return;
+  }
+  if(!payload.memberId && !payload.name){
+    setMsg('formMsg', '회원번호 또는 회원명 중 최소 1개는 입력해주세요.', false);
+    return;
+  }
+  if(!payload.items){
+    setMsg('formMsg', '입고품을 최소 1개 선택해주세요.', false);
+    return;
+  }
+
+  const btn = document.getElementById('saveBtn');
+  btn.disabled = true;
+  setMsg('formMsg', '저장 중...', true);
+
+  try{
+    const res = await fetch(APPS_SCRIPT_URL, {
+      method:'POST',
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if(data.status !== 'ok') throw new Error(data.message || '저장 실패');
+    setMsg('formMsg', '저장되었습니다. (상태: 대기중)', true);
+    clearForm(true);
+    await loadData();
+    showToast('저장되었습니다.');
+  }catch(err){
+    setMsg('formMsg', '저장 실패: ' + (err.message||err), false);
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+function setMsg(elId, text, ok){
+  const el = document.getElementById(elId);
+  el.textContent = text;
+  el.className = ok ? 'ok' : 'err';
+}
+
+function clearForm(keepMsg){
+  document.getElementById('f_boxNo').value = '';
+  document.getElementById('f_memberId').value = '';
+  document.getElementById('f_name').value = '';
+  document.getElementById('f_remark').value = '';
+  document.getElementById('f_date').value = todayStr();
+  const wrap = document.getElementById('itemCheckGroup');
+  wrap.querySelectorAll('input[type=checkbox]').forEach(c=>{
+    c.checked = false;
+    c.closest('.check-item').classList.remove('checked');
+  });
+  const etcText = document.getElementById('f_etcText');
+  if(etcText) etcText.value = '';
+  if(!keepMsg) setMsg('formMsg', '', true);
+}
+
+/* ================== 리스트 / 검색 ================== */
+function clearSearch(){
+  ['s_date','s_boxNo','s_memberId','s_name'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('s_status').value = '';
+  renderList();
+}
+
+function renderList(){
+  const sDate = document.getElementById('s_date').value.trim();
+  const sBoxNo = document.getElementById('s_boxNo').value.trim().toLowerCase();
+  const sMemberId = document.getElementById('s_memberId').value.trim().toLowerCase();
+  const sName = document.getElementById('s_name').value.trim().toLowerCase();
+  const sStatus = document.getElementById('s_status').value;
+
+  let filtered = allRows.filter(r=>{
+    if(sDate && r.date !== sDate) return false;
+    if(sBoxNo && !String(r.boxNo||'').toLowerCase().includes(sBoxNo)) return false;
+    if(sMemberId && !String(r.memberId||'').toLowerCase().includes(sMemberId)) return false;
+    if(sName && !String(r.name||'').toLowerCase().includes(sName)) return false;
+    if(sStatus && r.status !== sStatus) return false;
+    return true;
+  });
+
+  filtered = filtered.slice().sort((a,b)=>{
+    if(a.date !== b.date) return a.date < b.date ? 1 : -1;
+    return (b.rowIndex||0) - (a.rowIndex||0);
+  });
+
+  document.getElementById('listCount').textContent = `${filtered.length}건`;
+
+  const body = document.getElementById('listBody');
+  if(filtered.length === 0){
+    body.innerHTML = '<tr class="empty-row"><td colspan="7">조건에 맞는 데이터가 없습니다.</td></tr>';
+    return;
+  }
+  body.innerHTML = filtered.map(r=>`
+    <tr>
+      <td>${escapeHtml(r.date||'')}</td>
+      <td>${escapeHtml(r.boxNo||'')}</td>
+      <td>${escapeHtml(r.memberId||'')}</td>
+      <td>${escapeHtml(r.name||'')}</td>
+      <td class="wrap-cell">${escapeHtml(r.items||'')}</td>
+      <td>
+        <select class="status-select ${r.status==='출고완료'?'done':'pending'}" onchange="changeStatus(${r.rowIndex}, this)">
+          <option value="대기중" ${r.status==='대기중'?'selected':''}>대기중</option>
+          <option value="출고완료" ${r.status==='출고완료'?'selected':''}>출고완료</option>
+        </select>
+      </td>
+      <td class="wrap-cell">
+        <input type="text" class="remark-input" value="${escapeAttr(r.remark||'')}"
+          onblur="changeRemark(${r.rowIndex}, this, '${escapeAttr(r.remark||'')}')">
+      </td>
+    </tr>
+  `).join('');
+}
+
+async function changeStatus(rowIndex, selectEl){
+  const newStatus = selectEl.value;
+  selectEl.className = 'status-select ' + (newStatus==='출고완료' ? 'done' : 'pending');
+  try{
+    const res = await fetch(APPS_SCRIPT_URL, {
+      method:'POST',
+      body: JSON.stringify({ action:'updateRow', rowIndex, status:newStatus })
+    });
+    const data = await res.json();
+    if(data.status !== 'ok') throw new Error(data.message || '변경 실패');
+    const row = allRows.find(r=>r.rowIndex===rowIndex);
+    if(row) row.status = newStatus;
+    showToast('상태가 변경되었습니다.');
+  }catch(err){
+    showToast('상태 변경 실패: ' + (err.message||err));
+    await loadData();
+  }
+}
+
+async function changeRemark(rowIndex, inputEl, oldValue){
+  const newValue = inputEl.value.trim();
+  if(newValue === oldValue) return;
+  try{
+    const res = await fetch(APPS_SCRIPT_URL, {
+      method:'POST',
+      body: JSON.stringify({ action:'updateRow', rowIndex, remark:newValue })
+    });
+    const data = await res.json();
+    if(data.status !== 'ok') throw new Error(data.message || '변경 실패');
+    const row = allRows.find(r=>r.rowIndex===rowIndex);
+    if(row) row.remark = newValue;
+    inputEl.setAttribute('onblur', `changeRemark(${rowIndex}, this, '${escapeAttr(newValue)}')`);
+    showToast('비고가 저장되었습니다.');
+  }catch(err){
+    showToast('비고 저장 실패: ' + (err.message||err));
+    await loadData();
+  }
+}
+
+/* ================== 콜센터 메일 발송 ================== */
+function loadMailPreview(){
+  const date = document.getElementById('m_date').value.trim();
+  if(!date){
+    setMsg('mailMsg', '대상 날짜를 선택해주세요.', false);
+    return;
+  }
+  mailRows = allRows
+    .filter(r=>r.date === date)
+    .map(r=>({ rowIndex:r.rowIndex, memberId:r.memberId, name:r.name, items:r.items, remark:r.remark||'', include:true }));
+
+  document.getElementById('mailPreviewWrap').hidden = mailRows.length === 0;
+  document.getElementById('mailCount').textContent = `${mailRows.length}건`;
+  setMsg('mailMsg', '', true);
+  renderMailTable();
+
+  if(mailRows.length === 0){
+    setMsg('mailMsg', '해당 날짜에 입고된 내역이 없습니다.', false);
+  }
+}
+
+function renderMailTable(){
+  const body = document.getElementById('mailBody');
+  document.getElementById('mailCheckAll').checked = mailRows.every(r=>r.include);
+  body.innerHTML = mailRows.map((r, idx)=>`
+    <tr>
+      <td class="mail-check"><input type="checkbox" ${r.include?'checked':''} onchange="mailRows[${idx}].include=this.checked; document.getElementById('sendMailBtn').disabled = !mailRows.some(x=>x.include);"></td>
+      <td>${escapeHtml(r.memberId||'')}</td>
+      <td>${escapeHtml(r.name||'')}</td>
+      <td>${escapeHtml(r.items||'')}</td>
+      <td><input type="text" class="remark-input" value="${escapeAttr(r.remark||'')}" oninput="mailRows[${idx}].remark=this.value;"></td>
+    </tr>
+  `).join('');
+  document.getElementById('sendMailBtn').disabled = !mailRows.some(r=>r.include);
+}
+
+function toggleMailAll(checked){
+  mailRows.forEach(r=>r.include = checked);
+  renderMailTable();
+}
+
+async function sendMail(){
+  const date = document.getElementById('m_date').value.trim();
+  const selected = mailRows.filter(r=>r.include);
+  if(selected.length === 0){
+    setMsg('mailMsg', '발송할 항목을 선택해주세요.', false);
+    return;
+  }
+  if(!confirm(`${date} 기준 ${selected.length}건을 콜센터(nespresso_tck_crm@trans-cosmos.co.kr, CRC.KR@nespresso.com)로 발송합니다. 계속할까요?`)){
+    return;
+  }
+
+  const btn = document.getElementById('sendMailBtn');
+  btn.disabled = true;
+  setMsg('mailMsg', '발송 중...', true);
+
+  try{
+    const res = await fetch(APPS_SCRIPT_URL, {
+      method:'POST',
+      body: JSON.stringify({
+        action:'sendMail',
+        date,
+        rows: selected.map(r=>({ memberId:r.memberId, name:r.name, items:r.items, remark:r.remark }))
+      })
+    });
+    const data = await res.json();
+    if(data.status !== 'ok') throw new Error(data.message || '발송 실패');
+    setMsg('mailMsg', '메일이 발송되었습니다.', true);
+    showToast('메일이 발송되었습니다.');
+  }catch(err){
+    setMsg('mailMsg', '발송 실패: ' + (err.message||err), false);
+  }finally{
+    btn.disabled = !mailRows.some(r=>r.include);
+  }
+}
+
+/* ================== 공통 ================== */
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 1800);
+}
+
+function escapeHtml(str){
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function escapeAttr(str){
+  return escapeHtml(str).replace(/'/g, '&#39;');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>기타 입고 관리 | HIQASC</title>
+<style>
+  :root{
+    --bg:#2a2a2a;
+    --card:#353535;
+    --border:#454545;
+    --text:#e0e0e0;
+    --text-sub:#9a9a9a;
+    --accent:#9b59b6;
+    --accent-dark:#8e44ad;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Malgun Gothic","Apple SD Gothic Neo",Arial,sans-serif;
+    line-height:1.5;
+  }
+  .wrap{max-width:900px;margin:0 auto;padding:40px 20px 60px;}
+  header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:36px;}
+  .title-row{display:flex;align-items:center;gap:14px;}
+  .title-icon{
+    width:48px;height:48px;border-radius:14px;flex-shrink:0;
+    background:linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+    display:flex;align-items:center;justify-content:center;font-size:24px;
+    box-shadow:0 4px 12px rgba(155,89,182,.3);
+  }
+  h1{font-size:24px;font-weight:700;margin:0 0 4px;}
+  header p{color:var(--text-sub);font-size:13.5px;margin:0;}
+  .btn-home{
+    flex-shrink:0;border:1px solid var(--border);background:#3d3d3d;color:var(--text);
+    border-radius:10px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;
+    font-family:inherit;white-space:nowrap;
+  }
+  .btn-home:hover{background:#454545;}
+
+  .cards-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:18px;
+  }
+  .card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:26px;
+    cursor:pointer;
+    transition:border-color .15s, background .15s, box-shadow .15s, transform .15s;
+  }
+  .card:hover{
+    border-color:var(--accent);
+    background:#3d3550;
+    box-shadow:0 8px 20px rgba(155,89,182,.18);
+    transform:translateY(-2px);
+  }
+  .card-icon{
+    width:52px;height:52px;border-radius:14px;margin-bottom:16px;
+    background:linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+    display:flex;align-items:center;justify-content:center;font-size:26px;
+  }
+  .card-title{font-size:17px;font-weight:700;margin-bottom:8px;}
+  .card-desc{font-size:13px;color:var(--text-sub);line-height:1.6;}
+
+  @media (max-width:640px){
+    .cards-grid{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="title-row">
+      <div class="title-icon">📥</div>
+      <div>
+        <h1>기타 입고 관리</h1>
+        <p>정상 출고 흐름과 별도로 발생하는 입고 건을 기록하는 도구 모음입니다.</p>
+      </div>
+    </div>
+    <button class="btn-home" onclick="location.href='index.html'">🏠 메인으로</button>
+  </header>
+
+  <div class="cards-grid">
+    <div class="card" onclick="openApp('boxInbound')">
+      <div class="card-icon">📦</div>
+      <div class="card-title">종이박스 입고 관리</div>
+      <div class="card-desc">회원 물통 등 셀러블 파츠가 별도로 입고될 때 기록하고, 캘린더·리스트로 검색합니다.</div>
+    </div>
+    <div class="card" onclick="openApp('memberSpInbound')">
+      <div class="card-icon">📮</div>
+      <div class="card-title">회원 SP 입고 관리(임대)</div>
+      <div class="card-desc">임대머신 반납 시 잘못 반송된 회원 개인 SP를 기록하고, 콜센터에 메일로 안내합니다.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const APP_URLS = {
+    boxInbound: 'sp-inbound-tracker.html',
+    memberSpInbound: 'member-sp-inbound.html'
+  };
+  function openApp(key){
+    const url = APP_URLS[key];
+    if(url) window.location.href = url;
+  }
+</script>
+</body>
+</html>
