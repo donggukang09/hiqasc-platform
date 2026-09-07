@@ -36,9 +36,27 @@
     background:linear-gradient(135deg,#2f6feb,#5b8cf5);
     color:#fff;
     padding:22px 24px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    flex-wrap:wrap;
   }
   header h1{margin:0;font-size:20px;}
   header p{margin:4px 0 0;font-size:13px;opacity:0.9;}
+  .home-btn{
+    background:rgba(255,255,255,0.15);
+    border:1px solid rgba(255,255,255,0.4);
+    color:#fff;
+    padding:9px 16px;
+    border-radius:8px;
+    font-size:13px;
+    font-weight:600;
+    text-decoration:none;
+    white-space:nowrap;
+    transition:background .15s;
+  }
+  .home-btn:hover{background:rgba(255,255,255,0.28);}
   .wrap{max-width:1000px;margin:0 auto;padding:20px 16px;}
 
   .kit-tabs{display:flex;gap:8px;margin-bottom:18px;}
@@ -109,8 +127,11 @@
 <body>
 
 <header>
-  <h1>캡슐 샘플 키트 재고 관리</h1>
-  <p>VL / OL Sample Kit — 입고 · 유통기한 · 사용량 관리</p>
+  <div>
+    <h1>캡슐 샘플 키트 재고 관리</h1>
+    <p>VL / OL Sample Kit — 입고 · 유통기한 · 사용량 관리</p>
+  </div>
+  <a class="home-btn" href="index.html">🏠 메인으로</a>
 </header>
 
 <div class="wrap">
