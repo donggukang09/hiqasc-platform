@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>캡슐 샘플 키트 재고 관리</title>
+<style>
+  :root{
+    --bg:#f4f6f8;
+    --card:#ffffff;
+    --border:#e2e6ea;
+    --text:#222b33;
+    --sub:#6b7684;
+    --accent:#2f6feb;
+    --accent-dark:#1f52b8;
+    --ok:#2e9e5b;
+    --ok-bg:#e6f7ed;
+    --warn:#d97b0e;
+    --warn-bg:#fff2e0;
+    --danger:#d64545;
+    --danger-bg:#fdecec;
+    --gray-bg:#eef0f2;
+    --gray-text:#7a828c;
+    --stock:#7c3aed;
+    --stock-bg:#f3e8ff;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Malgun Gothic',sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    padding-bottom:60px;
+  }
+  header{
+    background:linear-gradient(135deg,#2f6feb,#5b8cf5);
+    color:#fff;
+    padding:22px 24px;
+  }
+  header h1{margin:0;font-size:20px;}
+  header p{margin:4px 0 0;font-size:13px;opacity:0.9;}
+  .wrap{max-width:1000px;margin:0 auto;padding:20px 16px;}
+
+  .kit-tabs{display:flex;gap:8px;margin-bottom:18px;}
+  .kit-tab{
+    flex:1;padding:12px;text-align:center;border-radius:10px;
+    background:var(--card);border:1px solid var(--border);cursor:pointer;
+    font-weight:600;color:var(--sub);transition:all .15s;
+  }
+  .kit-tab.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+  .stat-row{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px;}
+  .stat-card{
+    flex:1;min-width:130px;background:var(--card);border:1px solid var(--border);border-radius:10px;
+    padding:14px;text-align:center;
+  }
+  .stat-card .num{font-size:22px;font-weight:700;}
+  .stat-card .label{font-size:12px;color:var(--sub);margin-top:2px;}
+  .stat-card.warn .num{color:var(--warn);}
+  .stat-card.danger .num{color:var(--danger);}
+  .stat-card.stock .num{color:var(--stock);}
+
+  .card{
+    background:var(--card);border:1px solid var(--border);border-radius:12px;
+    padding:18px;margin-bottom:18px;
+  }
+  .card h2{margin:0 0 14px;font-size:15px;display:flex;align-items:center;gap:6px;}
+
+  .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;align-items:end;}
+  .field label{display:block;font-size:12px;color:var(--sub);margin-bottom:4px;}
+  .field input,.field select{
+    width:100%;padding:9px 10px;border:1px solid var(--border);border-radius:8px;
+    font-size:14px;background:#fff;
+  }
+  .btn{
+    padding:10px 16px;border:none;border-radius:8px;background:var(--accent);color:#fff;
+    font-weight:600;font-size:14px;cursor:pointer;
+  }
+  .btn:hover{background:var(--accent-dark);}
+  .btn.small{padding:6px 10px;font-size:12px;border-radius:6px;}
+  .btn.danger{background:var(--danger);}
+  .btn.danger:hover{background:#b83636;}
+  .btn.ghost{background:transparent;border:1px solid var(--border);color:var(--text);}
+
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th,td{padding:9px 8px;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;}
+  th{color:var(--sub);font-weight:600;font-size:12px;}
+  tr.disposed td{color:var(--gray-text);}
+
+  .badge{
+    display:inline-block;padding:3px 9px;border-radius:100px;font-size:12px;font-weight:600;
+  }
+  .badge.ok{background:var(--ok-bg);color:var(--ok);}
+  .badge.warn{background:var(--warn-bg);color:var(--warn);}
+  .badge.danger{background:var(--danger-bg);color:var(--danger);}
+  .badge.gray{background:var(--gray-bg);color:var(--gray-text);}
+  .badge.stock{background:var(--stock-bg);color:var(--stock);}
+
+  .empty{color:var(--sub);font-size:13px;padding:14px 0;text-align:center;}
+  .table-scroll{overflow-x:auto;}
+  .msg{font-size:13px;margin-top:8px;}
+  .msg.error{color:var(--danger);}
+  .msg.success{color:var(--ok);}
+
+  select#useLotSelect{max-width:100%;}
+  .footer-note{text-align:center;color:var(--sub);font-size:11px;margin-top:30px;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>캡슐 샘플 키트 재고 관리</h1>
+  <p>VL / OL Sample Kit — 입고 · 유통기한 · 사용량 관리</p>
+</header>
+
+<div class="wrap">
+
+  <div class="kit-tabs">
+    <div class="kit-tab active" data-kit="VL" onclick="switchKit('VL')">VL Sample Kit</div>
+    <div class="kit-tab" data-kit="OL" onclick="switchKit('OL')">OL Sample Kit</div>
+  </div>
+
+  <div class="stat-row">
+    <div class="stat-card">
+      <div class="num" id="statTotal">-</div>
+      <div class="label">현재 총 재고 (개)</div>
+    </div>
+    <div class="stat-card warn">
+      <div class="num" id="statWarn">-</div>
+      <div class="label">폐기 임박 로트 (D-120 이하)</div>
+    </div>
+    <div class="stat-card danger">
+      <div class="num" id="statExpired">-</div>
+      <div class="label">기한 초과 로트</div>
+    </div>
+    <div class="stat-card stock">
+      <div class="num" id="statLowStock">-</div>
+      <div class="label">재고부족 로트 (100개 이하)</div>
+    </div>
+  </div>
+
+  <!-- 입고 등록 -->
+  <div class="card">
+    <h2>📦 입고 등록</h2>
+    <div class="form-grid">
+      <div class="field">
+        <label>입고일자</label>
+        <input type="date" id="inDate">
+      </div>
+      <div class="field">
+        <label>입고수량</label>
+        <input type="number" id="inQty" min="1" placeholder="예: 3000">
+      </div>
+      <div class="field">
+        <label>Best Before</label>
+        <input type="date" id="inBestBefore">
+      </div>
+      <div class="field">
+        <label>비고 (선택)</label>
+        <input type="text" id="inNote" placeholder="메모">
+      </div>
+      <div class="field">
+        <button class="btn" onclick="submitLot()">입고 등록</button>
+      </div>
+    </div>
+    <div class="msg" id="lotMsg"></div>
+  </div>
+
+  <!-- 재고 로트 목록 -->
+  <div class="card">
+    <h2 id="lotListTitle">🧪 VL Sample Kit 재고 로트</h2>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>로트ID</th><th>입고일</th><th>입고수량</th><th>잔여수량</th>
+            <th>Best Before</th><th>상태</th><th>비고</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="lotTableBody"></tbody>
+      </table>
+      <div class="empty" id="lotEmpty" style="display:none;">등록된 로트가 없습니다.</div>
+    </div>
+  </div>
+
+  <!-- 사용 기록 -->
+  <div class="card">
+    <h2>✍️ 오늘 사용 기록</h2>
+    <div class="form-grid">
+      <div class="field">
+        <label>사용일자</label>
+        <input type="date" id="useDate">
+      </div>
+      <div class="field" style="grid-column:span 2;">
+        <label>사용할 로트 선택</label>
+        <select id="useLotSelect"></select>
+      </div>
+      <div class="field">
+        <label>사용수량</label>
+        <input type="number" id="useQty" min="1" placeholder="예: 50">
+      </div>
+      <div class="field">
+        <button class="btn" onclick="submitUsage()">사용 기록 저장</button>
+      </div>
+    </div>
+    <div class="msg" id="useMsg"></div>
+  </div>
+
+  <!-- 사용 이력 -->
+  <div class="card">
+    <h2>📋 사용 이력 (최근 30건)</h2>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>사용일자</th><th>로트ID</th><th>사용수량</th></tr></thead>
+        <tbody id="usageTableBody"></tbody>
+      </table>
+      <div class="empty" id="usageEmpty" style="display:none;">사용 기록이 없습니다.</div>
+    </div>
+  </div>
+
+  <div class="footer-note">DEVELOPED BY DONGGU KANG</div>
+</div>
+
+<script>
+// ===== 배포 후 아래 URL을 실제 Apps Script 웹 앱 URL로 교체하세요 =====
+const API_URL = 'https://script.google.com/macros/s/AKfycby9s3N9Ed8TUWDqE2iC-ixEVvypXVyq2WHo_pQcWda5SU1poyGTUAWanaOsVVa-lX5z/exec';
+
+const DISPOSAL_THRESHOLD_DAYS = 120; // 4개월
+const LOW_STOCK_THRESHOLD = 100; // 잔여수량 이 값 이하면 재고부족 알람
+
+let currentKit = 'VL';
+let allLots = [];
+let allUsage = [];
+
+function todayStr(){
+  const d = new Date();
+  const tz = new Date(d.getTime() - d.getTimezoneOffset()*60000);
+  return tz.toISOString().slice(0,10);
+}
+
+document.getElementById('inDate').value = todayStr();
+document.getElementById('useDate').value = todayStr();
+
+function switchKit(kit){
+  currentKit = kit;
+  document.querySelectorAll('.kit-tab').forEach(el=>{
+    el.classList.toggle('active', el.dataset.kit === kit);
+  });
+  document.getElementById('lotListTitle').textContent =
+    (kit === 'VL' ? '🧪 VL Sample Kit 재고 로트' : '🧪 OL Sample Kit 재고 로트');
+  render();
+}
+
+function daysUntil(dateStr){
+  const today = new Date(todayStr() + 'T00:00:00');
+  const target = new Date(dateStr + 'T00:00:00');
+  return Math.round((target - today) / 86400000);
+}
+
+function statusBadge(lot){
+  if (lot.status === '폐기완료') {
+    return `<span class="badge gray">폐기완료 (${lot.disposedDate})</span>`;
+  }
+  const d = daysUntil(lot.bestBefore);
+  if (d < 0) return `<span class="badge danger">기한초과 D+${Math.abs(d)}</span>`;
+  if (d <= DISPOSAL_THRESHOLD_DAYS) return `<span class="badge warn">폐기임박 D-${d}</span>`;
+  return `<span class="badge ok">정상 D-${d}</span>`;
+}
+
+function isLowStock(lot){
+  return lot.status === '정상' && Number(lot.remainingQty) <= LOW_STOCK_THRESHOLD;
+}
+
+function lowStockBadge(lot){
+  return isLowStock(lot)
+    ? `<span class="badge stock">재고부족 ${Number(lot.remainingQty).toLocaleString()}개</span>`
+    : '';
+}
+
+function rowBadges(lot){
+  const parts = [statusBadge(lot)];
+  const stock = lowStockBadge(lot);
+  if (stock) parts.push(stock);
+  return parts.join(' ');
+}
+
+async function loadData(){
+  try{
+    const res = await fetch(API_URL);
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || '데이터 로드 실패');
+    allLots = data.lots;
+    allUsage = data.usage;
+    render();
+  }catch(err){
+    document.getElementById('lotMsg').textContent = '데이터 로드 실패: ' + err.message + ' (API_URL이 설정되었는지 확인하세요)';
+    document.getElementById('lotMsg').className = 'msg error';
+  }
+}
+
+function render(){
+  renderStats();
+  renderLotTable();
+  renderUseLotSelect();
+  renderUsageTable();
+}
+
+function renderStats(){
+  const kitLots = allLots.filter(l => l.kitType === currentKit && l.status === '정상');
+  const total = kitLots.reduce((s,l)=> s + Number(l.remainingQty||0), 0);
+  const warnCount = kitLots.filter(l => {
+    const d = daysUntil(l.bestBefore);
+    return d >= 0 && d <= DISPOSAL_THRESHOLD_DAYS;
+  }).length;
+  const expiredCount = kitLots.filter(l => daysUntil(l.bestBefore) < 0).length;
+  const lowStockCount = kitLots.filter(isLowStock).length;
+  document.getElementById('statTotal').textContent = total.toLocaleString();
+  document.getElementById('statWarn').textContent = warnCount;
+  document.getElementById('statExpired').textContent = expiredCount;
+  document.getElementById('statLowStock').textContent = lowStockCount;
+}
+
+function renderLotTable(){
+  const kitLots = allLots
+    .filter(l => l.kitType === currentKit)
+    .sort((a,b)=>{
+      if (a.status !== b.status) return a.status === '폐기완료' ? 1 : -1;
+      return a.bestBefore.localeCompare(b.bestBefore);
+    });
+  const body = document.getElementById('lotTableBody');
+  const empty = document.getElementById('lotEmpty');
+  body.innerHTML = '';
+  if (kitLots.length === 0){ empty.style.display='block'; return; }
+  empty.style.display='none';
+
+  kitLots.forEach(lot=>{
+    const tr = document.createElement('tr');
+    if (lot.status === '폐기완료') tr.className = 'disposed';
+    const disposeBtn = lot.status === '정상'
+      ? `<button class="btn small danger" onclick="disposeLot('${lot.lotId}')">폐기 처리</button>`
+      : '';
+    tr.innerHTML = `
+      <td>${lot.lotId}</td>
+      <td>${lot.inboundDate}</td>
+      <td>${Number(lot.inboundQty).toLocaleString()}</td>
+      <td>${Number(lot.remainingQty).toLocaleString()}</td>
+      <td>${lot.bestBefore}</td>
+      <td>${rowBadges(lot)}</td>
+      <td>${lot.note || ''}</td>
+      <td>${disposeBtn}</td>
+    `;
+    body.appendChild(tr);
+  });
+}
+
+function renderUseLotSelect(){
+  const sel = document.getElementById('useLotSelect');
+  const activeLots = allLots
+    .filter(l => l.kitType === currentKit && l.status === '정상' && Number(l.remainingQty) > 0)
+    .sort((a,b)=> a.bestBefore.localeCompare(b.bestBefore));
+  sel.innerHTML = '';
+  if (activeLots.length === 0){
+    sel.innerHTML = '<option value="">사용 가능한 로트 없음</option>';
+    return;
+  }
+  activeLots.forEach(lot=>{
+    const d = daysUntil(lot.bestBefore);
+    const dLabel = d < 0 ? `D+${Math.abs(d)} 초과` : `D-${d}`;
+    const stockFlag = isLowStock(lot) ? ' ⚠️재고부족' : '';
+    const opt = document.createElement('option');
+    opt.value = lot.lotId;
+    opt.textContent = `${lot.lotId} · 입고 ${lot.inboundDate} · ${dLabel} · 잔여 ${Number(lot.remainingQty).toLocaleString()}개${stockFlag}`;
+    sel.appendChild(opt);
+  });
+}
+
+function renderUsageTable(){
+  const kitUsage = allUsage
+    .filter(u => u.kitType === currentKit)
+    .sort((a,b)=> b.useDate.localeCompare(a.useDate))
+    .slice(0, 30);
+  const body = document.getElementById('usageTableBody');
+  const empty = document.getElementById('usageEmpty');
+  body.innerHTML = '';
+  if (kitUsage.length === 0){ empty.style.display='block'; return; }
+  empty.style.display='none';
+  kitUsage.forEach(u=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${u.useDate}</td><td>${u.lotId}</td><td>${Number(u.qty).toLocaleString()}</td>`;
+    body.appendChild(tr);
+  });
+}
+
+async function postAction(payload){
+  const res = await fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(payload)
+  });
+  return res.json();
+}
+
+async function submitLot(){
+  const msgEl = document.getElementById('lotMsg');
+  const payload = {
+    action: 'addLot',
+    kitType: currentKit,
+    inboundDate: document.getElementById('inDate').value,
+    inboundQty: document.getElementById('inQty').value,
+    bestBefore: document.getElementById('inBestBefore').value,
+    note: document.getElementById('inNote').value
+  };
+  if (!payload.inboundDate || !payload.inboundQty || !payload.bestBefore){
+    msgEl.textContent = '입고일자, 입고수량, Best Before를 모두 입력해주세요.';
+    msgEl.className = 'msg error';
+    return;
+  }
+  msgEl.textContent = '저장 중...';
+  msgEl.className = 'msg';
+  try{
+    const result = await postAction(payload);
+    if (!result.ok) throw new Error(result.error);
+    msgEl.textContent = `입고 등록 완료: ${result.lotId}`;
+    msgEl.className = 'msg success';
+    document.getElementById('inQty').value = '';
+    document.getElementById('inBestBefore').value = '';
+    document.getElementById('inNote').value = '';
+    await loadData();
+  }catch(err){
+    msgEl.textContent = '오류: ' + err.message;
+    msgEl.className = 'msg error';
+  }
+}
+
+async function submitUsage(){
+  const msgEl = document.getElementById('useMsg');
+  const lotId = document.getElementById('useLotSelect').value;
+  const payload = {
+    action: 'useCapsule',
+    lotId: lotId,
+    useDate: document.getElementById('useDate').value,
+    qty: document.getElementById('useQty').value
+  };
+  if (!lotId){
+    msgEl.textContent = '사용할 로트를 선택해주세요.';
+    msgEl.className = 'msg error';
+    return;
+  }
+  if (!payload.qty || Number(payload.qty) <= 0){
+    msgEl.textContent = '사용수량을 입력해주세요.';
+    msgEl.className = 'msg error';
+    return;
+  }
+  msgEl.textContent = '저장 중...';
+  msgEl.className = 'msg';
+  try{
+    const result = await postAction(payload);
+    if (!result.ok) throw new Error(result.error);
+    msgEl.textContent = `사용 기록 저장 완료 (잔여 ${Number(result.remainingQty).toLocaleString()}개)`;
+    msgEl.className = 'msg success';
+    document.getElementById('useQty').value = '';
+    await loadData();
+  }catch(err){
+    msgEl.textContent = '오류: ' + err.message;
+    msgEl.className = 'msg error';
+  }
+}
+
+async function disposeLot(lotId){
+  if (!confirm(`${lotId} 로트를 폐기 처리하시겠습니까?\n남은 수량이 폐기수량으로 기록되고 재고에서 제외됩니다.`)) return;
+  try{
+    const result = await postAction({ action: 'disposeLot', lotId: lotId });
+    if (!result.ok) throw new Error(result.error);
+    await loadData();
+  }catch(err){
+    alert('폐기 처리 오류: ' + err.message);
+  }
+}
+
+loadData();
+</script>
+</body>
+</html>
