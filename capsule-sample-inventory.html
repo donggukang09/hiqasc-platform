@@ -358,7 +358,7 @@ function renderLotTable(){
     const tr = document.createElement('tr');
     if (lot.status === '폐기완료') tr.className = 'disposed';
     const disposeBtn = lot.status === '정상'
-      ? `<button class="btn small danger" onclick="disposeLot('${lot.lotId}')">폐기 처리</button>`
+      ? `<button class="btn small danger" onclick="disposeLot('${lot.lotId}')">테스트용으로 전환</button>`
       : '';
     tr.innerHTML = `
       <td>${lot.lotId}</td>
