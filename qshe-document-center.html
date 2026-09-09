@@ -181,6 +181,13 @@ table.data-table tr:hover td { background:#3a3a3a; }
 .detail-row td { background:#2a2a2a !important; }
 
 .attend-table input { width:100%; }
+.photo-thumb { position:relative; width:84px; height:84px; border-radius:8px; overflow:hidden; border:1px solid #4a4a4a; }
+.photo-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+.photo-thumb .rm { position:absolute; top:2px; right:2px; width:20px; height:20px; border-radius:50%; border:none; background:rgba(0,0,0,0.6); color:#fff; font-size:12px; line-height:20px; text-align:center; cursor:pointer; padding:0; }
+.photo-gallery { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+.photo-gallery a img { width:80px; height:80px; object-fit:cover; border-radius:8px; border:1px solid #4a4a4a; display:block; }
+body.doc-mode .photo-thumb { border-color:#d8dade; }
+body.doc-mode .photo-gallery a img { border-color:#d8dade; }
 .inline-edit input, .inline-edit select { padding:6px 8px; font-size:0.85em; }
 
 /* 표 안의 클래스 없는 입력칸(구급함/OJT/인벤토리/참석자) 기본 스타일 */
@@ -516,7 +523,11 @@ body.doc-mode .footer .developer-tag { color:#c2660f; }
         </table>
         </div>
 
-        <button class="btn btn-primary" id="fd_saveBtn" onclick="saveFireDrill()" style="margin-top:14px;">💾 훈련 결과 저장</button>
+        <div class="panel-title" style="margin-top:18px;">📷 현장 사진 (선택, 여러 장 가능)</div>
+        <input type="file" id="fd_photos" accept="image/*" multiple onchange="onFdPhotosPicked(event)">
+        <div id="fd_photo_preview" style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;"></div>
+
+        <button class="btn btn-primary" id="fd_saveBtn" onclick="saveFireDrill()" style="margin-top:18px;">💾 훈련 결과 저장</button>
         <div class="status-msg" id="fd_status"></div>
     </div>
 
@@ -1136,6 +1147,54 @@ function renumberAttendees() {
     });
 }
 
+/* ── 사진 첨부: 선택 → 미리보기 → 저장 시 리사이즈 후 base64로 전송 ── */
+let fdPhotoFiles = [];
+
+function onFdPhotosPicked(evt) {
+    fdPhotoFiles = fdPhotoFiles.concat(Array.from(evt.target.files || []));
+    evt.target.value = ''; // 같은 파일 다시 선택 가능하도록 초기화
+    renderFdPhotoPreview();
+}
+
+function removeFdPhoto(idx) {
+    fdPhotoFiles.splice(idx, 1);
+    renderFdPhotoPreview();
+}
+
+function renderFdPhotoPreview() {
+    const box = document.getElementById('fd_photo_preview');
+    box.innerHTML = fdPhotoFiles.map(function (f, i) {
+        const url = URL.createObjectURL(f);
+        return '<div class="photo-thumb"><img src="' + url + '"><button type="button" class="rm" onclick="removeFdPhoto(' + i + ')">✕</button></div>';
+    }).join('');
+}
+
+/** 이미지 파일을 캔버스로 축소·압축해서 {name, mime, base64} 로 변환 (전송 용량 절감) */
+function resizeImageFile(file, maxDim, quality) {
+    return new Promise(function (resolve, reject) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const img = new Image();
+            img.onload = function () {
+                let w = img.width, h = img.height;
+                if (w > maxDim || h > maxDim) {
+                    if (w >= h) { h = Math.round(h * maxDim / w); w = maxDim; }
+                    else { w = Math.round(w * maxDim / h); h = maxDim; }
+                }
+                const canvas = document.createElement('canvas');
+                canvas.width = w; canvas.height = h;
+                canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                const dataUrl = canvas.toDataURL('image/jpeg', quality || 0.82);
+                resolve({ name: (file.name || 'photo').replace(/\.[^.]+$/, '') + '.jpg', mime: 'image/jpeg', base64: dataUrl.split(',')[1] });
+            };
+            img.onerror = function () { reject(new Error('이미지를 읽을 수 없습니다: ' + file.name)); };
+            img.src = e.target.result;
+        };
+        reader.onerror = function () { reject(new Error('파일을 읽을 수 없습니다: ' + file.name)); };
+        reader.readAsDataURL(file);
+    });
+}
+
 async function saveFireDrill() {
     const date = document.getElementById('fd_date').value;
     const leader = document.getElementById('fd_leader').value.trim();
@@ -1155,14 +1214,21 @@ async function saveFireDrill() {
     const btn = document.getElementById('fd_saveBtn');
     btn.disabled = true;
     try {
+        let photos = [];
+        if (fdPhotoFiles.length > 0) {
+            showStatus('fd_status', true, '📷 사진 처리 중... (' + fdPhotoFiles.length + '장)');
+            photos = await Promise.all(fdPhotoFiles.map(function (f) { return resizeImageFile(f, 1280, 0.82); }));
+        }
         await apiPost({ sheet: '화재훈련', action: 'add', data: {
             '훈련일시': date, '시나리오': document.getElementById('fd_scenario').value.trim(),
             '훈련대상': document.getElementById('fd_target').value.trim(), '집결지': document.getElementById('fd_gather').value.trim(),
             '진행자': leader, '절차JSON': JSON.stringify(procs), '참석자JSON': JSON.stringify(attendees),
             '결과및개선사항': document.getElementById('fd_result').value.trim()
-        }});
-        showStatus('fd_status', true, '✅ 저장되었습니다.');
+        }, photos: photos });
+        showStatus('fd_status', true, '✅ 저장되었습니다.' + (photos.length ? ' (사진 ' + photos.length + '장 첨부)' : ''));
         document.getElementById('fd_result').value = '';
+        fdPhotoFiles = [];
+        renderFdPhotoPreview();
         renderFireDrillItems();
         loadHistoryFireDrill();
     } catch (err) {
@@ -1179,19 +1245,23 @@ async function loadHistoryFireDrill() {
         const rows = json.rows.sort(function (a, b) { return (b['훈련일시']||'').localeCompare(a['훈련일시']||''); });
         if (rows.length === 0) { tbody.innerHTML = '<tr><td colspan="5" style="color:#808080;">등록된 이력이 없습니다.</td></tr>'; return; }
         tbody.innerHTML = rows.map(function (r, idx) {
-            let attendees = [], procs = [];
+            let attendees = [], procs = [], photos = [];
             try { attendees = JSON.parse(r['참석자JSON'] || '[]'); } catch (e) {}
             try { procs = JSON.parse(r['절차JSON'] || '[]'); } catch (e) {}
+            try { photos = JSON.parse(r['사진JSON'] || '[]'); } catch (e) {}
             const detailId = 'fd_detail_' + idx;
             const procDetail = procs.map(function (p) {
                 return '<div style="margin-bottom:4px;"><span class="badge ' + (p.result === '미흡' ? 'badge-bad' : 'badge-ok') + '">' + esc(p.result||'-') + '</span> ' + esc(p.t) + (p.remark ? ' — ' + esc(p.remark) : '') + '</div>';
             }).join('');
             const attDetail = attendees.length ? ('<div style="margin-top:8px;color:#909090;">참석자: ' + attendees.map(function(a){return esc(a.dept)+' '+esc(a.name);}).join(', ') + '</div>') : '';
             const resultNote = r['결과및개선사항'] ? '<div style="margin-top:8px;color:#c4c4c4;">결과/개선: ' + esc(r['결과및개선사항']) + '</div>' : '';
+            const photoGallery = photos.length ? ('<div class="photo-gallery">' + photos.map(function (p) {
+                return '<a href="' + esc(p.viewUrl || p.url) + '" target="_blank" rel="noopener"><img src="' + esc(p.url) + '" loading="lazy" alt="' + esc(p.name||'사진') + '"></a>';
+            }).join('') + '</div>') : '';
             return '<tr><td>' + esc(r['훈련일시']) + '</td><td>' + esc(r['훈련대상']||'-') + '</td><td>' + esc(r['진행자']||'-') + '</td>' +
-                '<td>' + attendees.length + '명</td>' +
+                '<td>' + attendees.length + '명' + (photos.length ? ' · 📷' + photos.length : '') + '</td>' +
                 '<td style="white-space:nowrap;"><span class="detail-toggle" onclick="toggleDetail(\'' + detailId + '\')">상세</span> · <span class="detail-toggle" style="color:#e74c3c;" onclick="deleteRecord(\'화재훈련\',\'' + r.id + '\',loadHistoryFireDrill)">삭제</span></td></tr>' +
-                '<tr class="detail-row" id="' + detailId + '"><td colspan="5">' + procDetail + attDetail + resultNote + '</td></tr>';
+                '<tr class="detail-row" id="' + detailId + '"><td colspan="5">' + procDetail + attDetail + resultNote + photoGallery + '</td></tr>';
         }).join('');
     } catch (err) {
         tbody.innerHTML = '<tr><td colspan="5" style="color:#e74c3c;">불러오기 실패: ' + esc(err.message) + '</td></tr>';
