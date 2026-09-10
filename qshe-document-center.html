@@ -706,7 +706,7 @@ body.doc-mode .footer .developer-tag { color:#c2660f; }
         <div class="panel-title">📋 인벤토리 목록 (구분·나머지 항목만 편집, 변경 후 각 행의 💾 클릭)</div>
         <div class="table-wrap">
         <table class="data-table inline-edit">
-            <thead><tr><th style="width:70px;">구분</th><th style="white-space:nowrap;">명칭</th><th style="width:90px;">수량</th><th>사용목적</th><th>관련위험요소</th><th>예방조치/PPE</th><th>점검주기</th><th>비고</th><th></th></tr></thead>
+            <thead><tr><th style="width:70px;">구분</th><th style="white-space:nowrap;">명칭</th><th style="width:90px; white-space:nowrap;">수량</th><th>사용목적</th><th>관련위험요소</th><th>예방조치/PPE</th><th>점검주기</th><th>비고</th><th></th></tr></thead>
             <tbody id="inv_list"><tr><td colspan="9" style="color:#808080;">불러오는 중...</td></tr></tbody>
         </table>
         </div>
@@ -1702,7 +1702,7 @@ function invRowHtml(item) {
     return '<tr>' +
         '<td style="width:70px;">' + f('구분') + '</td>' +
         '<td style="white-space:nowrap;"><strong>' + esc(item.label) + '</strong></td>' +
-        '<td style="width:90px;">' + esc(qtyText) + '</td>' +
+        '<td style="width:90px; white-space:nowrap;">' + esc(qtyText) + '</td>' +
         '<td>' + f('사용목적') + '</td><td>' + f('관련위험요소') + '</td><td>' + f('예방조치') + '</td>' +
         '<td>' + f('점검주기') + '</td><td>' + f('비고') + '</td>' +
         '<td style="white-space:nowrap;">' +
