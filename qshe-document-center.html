@@ -686,32 +686,27 @@ body.doc-mode .footer .developer-tag { color:#c2660f; }
     <div class="tool-head">
         <div>
             <div class="tool-title">🧰 보유 공구·장비 인벤토리</div>
-            <div class="tool-desc">※ 2.10(안전보건 위험성평가) 항목 부속서. "수량" 열은 실제 보유 수량으로 채워주세요. 목록에 없는 공구/장비는 아래에서 추가할 수 있습니다.</div>
+            <div class="tool-desc">※ 2.10(안전보건 위험성평가) 항목 부속서. 명칭·수량은 소모품재고(TOOL 카테고리)와 실시간 연동됩니다.</div>
         </div>
         <button class="back-btn" onclick="backToHub()">← 목록으로</button>
     </div>
 
     <div class="panel">
-        <div class="panel-title">➕ 새 공구/장비 추가</div>
-        <div class="form-grid">
-            <div class="form-group"><label>구분</label><input id="inv_new_cat" placeholder="예: 수공구"></div>
-            <div class="form-group"><label>명칭</label><input id="inv_new_name" placeholder="공구/장비명"></div>
-            <div class="form-group"><label>수량</label><input id="inv_new_qty" placeholder="예: 3"></div>
-            <div class="form-group"><label>점검주기</label><input id="inv_new_cycle" placeholder="예: 수시 육안점검"></div>
-            <div class="form-group full"><label>사용 목적</label><input id="inv_new_purpose"></div>
-            <div class="form-group full"><label>관련 위험요소</label><input id="inv_new_risk"></div>
-            <div class="form-group full"><label>예방조치/PPE</label><input id="inv_new_prevent"></div>
-            <div class="form-group full"><label>비고</label><input id="inv_new_note"></div>
+        <div class="panel-title">🔗 소모품재고 연동 안내</div>
+        <div class="tool-desc" style="margin:0;">
+            아래 목록의 <strong>명칭·수량</strong>은 소모품 재고 리스트의 <strong>TOOL 카테고리</strong> 항목을 실시간으로
+            그대로 가져옵니다(자동 갱신, 직접 수정 불가). <strong>구분</strong>과 나머지 항목(사용목적·관련위험요소·예방조치/PPE·점검주기·비고)만
+            아래 표에서 입력한 뒤 각 행의 💾를 눌러 저장하세요. 목록에 없는 공구를 추가하려면 소모품재고 시트의 TOOL 카테고리에 먼저 등록해주세요.
         </div>
-        <button class="btn btn-primary btn-sm" onclick="addInventoryItem()">추가</button>
+        <button class="btn btn-secondary btn-sm" style="margin-top:10px;" onclick="loadInventory()">🔄 새로고침</button>
         <div class="status-msg" id="inv_status"></div>
     </div>
 
     <div class="panel">
-        <div class="panel-title">📋 인벤토리 목록 (직접 편집 가능, 변경 후 각 행의 💾 클릭)</div>
+        <div class="panel-title">📋 인벤토리 목록 (구분·나머지 항목만 편집, 변경 후 각 행의 💾 클릭)</div>
         <div class="table-wrap">
         <table class="data-table inline-edit">
-            <thead><tr><th>구분</th><th>명칭</th><th style="width:70px;">수량</th><th>사용목적</th><th>관련위험요소</th><th>예방조치/PPE</th><th>점검주기</th><th>비고</th><th></th></tr></thead>
+            <thead><tr><th>구분</th><th>명칭</th><th style="width:90px;">수량</th><th>사용목적</th><th>관련위험요소</th><th>예방조치/PPE</th><th>점검주기</th><th>비고</th><th></th></tr></thead>
             <tbody id="inv_list"><tr><td colspan="9" style="color:#808080;">불러오는 중...</td></tr></tbody>
         </table>
         </div>
@@ -826,6 +821,10 @@ body.doc-mode .footer .developer-tag { color:#c2660f; }
    설정: Apps Script 웹앱 URL (배포 후 아래 값을 교체하세요)
    ════════════════════════════════════════════════ */
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz37ibgP8xruhPV46Fd-uI9kCh0PFS5UOiI-URPqW90eCTSI0xde_2t9PU81XSFPOAX/exec';
+
+/* 공구·장비 인벤토리의 "명칭/수량"을 실시간으로 가져올 소모품재고 시트 */
+const CONSUMABLES_SHEET_ID = '1vfnyawoFJnxFODMpmk_iGGwEOfTo0duc1-8VUyPyjcA';
+const CONSUMABLES_SHEET_NAME = '소모품재고';
 
 function isConfigured() {
     return APPS_SCRIPT_URL && APPS_SCRIPT_URL.indexOf('https://script.google.com') === 0;
@@ -1671,61 +1670,96 @@ window.addEventListener('load', function () {
 });
 </script>
 <script>
-/* ════════════ 공구·장비 인벤토리 ════════════ */
-function invRowHtml(r) {
-    const id = r.id;
-    function f(field) { return '<input value="' + esc(r[field]||'') + '" id="inv_' + id + '_' + field + '">'; }
+/* ════════════ 공구·장비 인벤토리 (명칭/수량은 소모품재고 TOOL 카테고리와 실시간 연동) ════════════ */
+
+/* 소모품재고 시트에서 TOOL 카테고리 항목만 가져오기 (gviz, 읽기 전용) */
+async function fetchToolItemsFromConsumables() {
+    const url = 'https://docs.google.com/spreadsheets/d/' + CONSUMABLES_SHEET_ID + '/gviz/tq?tqx=out:json&sheet=' + encodeURIComponent(CONSUMABLES_SHEET_NAME);
+    const res = await fetch(url);
+    const text = await res.text();
+    const json = JSON.parse(text.substring(47).slice(0, -2));
+    const items = [];
+    (json.table.rows || []).forEach(function (row) {
+        if (!row.c) return;
+        const category = (row.c[0] && row.c[0].v != null) ? String(row.c[0].v).trim() : '';
+        const name = (row.c[1] && row.c[1].v != null) ? String(row.c[1].v).trim() : '';
+        if (category !== 'TOOL' || !name) return;
+        const spec = (row.c[2] && row.c[2].v != null) ? String(row.c[2].v).trim() : '';
+        const qty = (row.c[4] && row.c[4].v != null) ? row.c[4].v : '';
+        const unit = (row.c[6] && row.c[6].v != null) ? String(row.c[6].v).trim() : '';
+        const label = spec ? (name + '(' + spec + ')') : name;
+        items.push({ label: label, qty: qty, unit: unit });
+    });
+    return items;
+}
+
+function invRowHtml(item) {
+    const r = item.saved || {};
+    const id = r.id || '';
+    const rowKey = id || ('new_' + item.label.replace(/[^a-zA-Z0-9가-힣]/g, '_'));
+    function f(field) { return '<input value="' + esc(r[field] || '') + '" id="inv_' + rowKey + '_' + field + '">'; }
+    const qtyText = (item.qty === '' || item.qty === null || item.qty === undefined) ? '-' : (Number(item.qty).toLocaleString() + (item.unit ? ' ' + item.unit : ''));
     return '<tr>' +
-        '<td>' + f('구분') + '</td><td>' + f('명칭') + '</td><td style="width:70px;">' + f('수량') + '</td>' +
+        '<td>' + f('구분') + '</td>' +
+        '<td><strong>' + esc(item.label) + '</strong></td>' +
+        '<td style="width:90px;">' + esc(qtyText) + '</td>' +
         '<td>' + f('사용목적') + '</td><td>' + f('관련위험요소') + '</td><td>' + f('예방조치') + '</td>' +
         '<td>' + f('점검주기') + '</td><td>' + f('비고') + '</td>' +
-        '<td style="white-space:nowrap;"><button class="btn btn-secondary btn-sm" onclick="saveInventoryRow(\'' + id + '\')">💾</button> ' +
-        '<button class="btn btn-danger btn-sm" onclick="deleteRecord(\'공구장비인벤토리\',\'' + id + '\',loadInventory)">✕</button></td></tr>';
+        '<td style="white-space:nowrap;">' +
+        '<button class="btn btn-secondary btn-sm" onclick="saveInventoryRow(\'' + rowKey + '\',\'' + esc(id) + '\',\'' + esc(item.label) + '\',\'' + esc(item.qty) + '\')">💾</button>' +
+        (id ? ' <button class="btn btn-secondary btn-sm" title="입력 내용 초기화" onclick="resetInventoryRow(\'' + id + '\')">↺</button>' : '') +
+        '</td></tr>';
 }
 
 async function loadInventory() {
     const tbody = document.getElementById('inv_list');
     tbody.innerHTML = '<tr><td colspan="9" style="color:#808080;">불러오는 중...</td></tr>';
     try {
-        const json = await apiGet('공구장비인벤토리');
-        if (json.rows.length === 0) { tbody.innerHTML = '<tr><td colspan="9" style="color:#808080;">등록된 항목이 없습니다.</td></tr>'; return; }
-        tbody.innerHTML = json.rows.map(invRowHtml).join('');
+        const results = await Promise.all([fetchToolItemsFromConsumables(), apiGet('공구장비인벤토리')]);
+        const toolItems = results[0];
+        const saved = results[1];
+        if (toolItems.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="9" style="color:#808080;">소모품재고 시트에 TOOL 카테고리 항목이 없습니다.</td></tr>';
+            return;
+        }
+        const savedMap = {};
+        saved.rows.forEach(function (r) { savedMap[r['명칭']] = r; });
+        const merged = toolItems.map(function (item) {
+            return { label: item.label, qty: item.qty, unit: item.unit, saved: savedMap[item.label] || null };
+        });
+        tbody.innerHTML = merged.map(invRowHtml).join('');
     } catch (err) {
         tbody.innerHTML = '<tr><td colspan="9" style="color:#e74c3c;">불러오기 실패: ' + esc(err.message) + '</td></tr>';
     }
 }
 
-async function saveInventoryRow(id) {
-    const fields = ['구분','명칭','수량','사용목적','관련위험요소','예방조치','점검주기','비고'];
-    const data = {};
-    fields.forEach(function (f) { data[f] = document.getElementById('inv_' + id + '_' + f).value.trim(); });
+async function saveInventoryRow(rowKey, id, label, qty) {
+    const fields = ['구분', '사용목적', '관련위험요소', '예방조치', '점검주기', '비고'];
+    const data = { '명칭': label, '수량': qty };
+    fields.forEach(function (f) {
+        const el = document.getElementById('inv_' + rowKey + '_' + f);
+        data[f] = el ? el.value.trim() : '';
+    });
     try {
-        await apiPost({ sheet: '공구장비인벤토리', action: 'update', id: id, data: data });
+        if (id) {
+            await apiPost({ sheet: '공구장비인벤토리', action: 'update', id: id, data: data });
+        } else {
+            await apiPost({ sheet: '공구장비인벤토리', action: 'add', data: data });
+        }
         showStatus('inv_status', true, '✅ 저장되었습니다.');
+        loadInventory();
     } catch (err) {
         showStatus('inv_status', false, '❌ 저장 실패: ' + err.message);
     }
 }
 
-async function addInventoryItem() {
-    const data = {
-        '구분': document.getElementById('inv_new_cat').value.trim(),
-        '명칭': document.getElementById('inv_new_name').value.trim(),
-        '수량': document.getElementById('inv_new_qty').value.trim(),
-        '사용목적': document.getElementById('inv_new_purpose').value.trim(),
-        '관련위험요소': document.getElementById('inv_new_risk').value.trim(),
-        '예방조치': document.getElementById('inv_new_prevent').value.trim(),
-        '점검주기': document.getElementById('inv_new_cycle').value.trim(),
-        '비고': document.getElementById('inv_new_note').value.trim()
-    };
-    if (!data['명칭']) { showStatus('inv_status', false, '명칭은 필수입니다.'); return; }
+async function resetInventoryRow(id) {
+    if (!confirm('입력한 구분·사용목적 등 내용을 초기화할까요? (품목 자체는 소모품재고 목록에 남아있는 한 계속 표시됩니다)')) return;
     try {
-        await apiPost({ sheet: '공구장비인벤토리', action: 'add', data: data });
-        ['inv_new_cat','inv_new_name','inv_new_qty','inv_new_purpose','inv_new_risk','inv_new_prevent','inv_new_cycle','inv_new_note'].forEach(function(id){ document.getElementById(id).value=''; });
-        showStatus('inv_status', true, '✅ 추가되었습니다.');
+        await apiPost({ sheet: '공구장비인벤토리', action: 'delete', id: id });
         loadInventory();
     } catch (err) {
-        showStatus('inv_status', false, '❌ 추가 실패: ' + err.message);
+        alert('초기화 실패: ' + err.message);
     }
 }
 
