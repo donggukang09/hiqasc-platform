@@ -337,10 +337,11 @@ const ETC_LABEL = '기타';
 
 /* 메일 발송 정보 - Code.gs의 실제 발송 로직과 반드시 동일하게 유지 (미리보기 = 실제 발송 내용) */
 // 운영 설정: 사내 메일서버(hiqasc.kr)가 이 계정에서 오는 메일을 조용히 차단하는 게 확인되어
-// ⚠️ 테스트 모드: <table> 태그 제거가 사내 메일서버 차단을 우회하는지 확인하기 위해
-// 외부 콜센터 주소는 빼고 asc@hiqasc.kr 하나만 보내는 중. 확인 끝나면 운영 주소로 되돌릴 것.
-// 운영 주소: MAIL_TO = ['nespresso_tck_crm@trans-cosmos.co.kr', 'CRC.KR@nespresso.com', 'asc@hiqasc.kr']
-const MAIL_TO = ['asc@hiqasc.kr'];
+// 운영 설정: 사내 메일서버(hiqasc.kr)가 이 계정에서 오는 메일을 조용히 차단하는 게 확인되어
+// (표 유무, div 대체, 순수 줄글 전부 시도했지만 원인 아님으로 확인됨) asc@hiqasc.kr을 참조가
+// 아니라 수신자에 그냥 같이 넣는 최소 구성으로 운영. 콜센터(외부)는 정상 수신되고,
+// 고객 회신은 Reply-To(asc@hiqasc.kr)로 정상 전달됨을 확인함.
+const MAIL_TO = ['nespresso_tck_crm@trans-cosmos.co.kr', 'CRC.KR@nespresso.com', 'asc@hiqasc.kr'];
 const MAIL_CC = [];
 const MAIL_SUBJECT = '스페어 파츠 입고 건, 출고 확인 요청 드립니다.';
 const MAIL_INTRO_HTML = '안녕하세요.<br>금일 임대머신과 함께 아래 회원님의 SP 반송 입고되었습니다.<br>진행 방향 요청 드립니다';
