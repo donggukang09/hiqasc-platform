@@ -339,6 +339,43 @@ body.doc-mode .footer .developer-tag { color:#c2660f; }
     </div>
 
     <div class="section">
+        <h2 class="section-title">🏭 시설·설비 안전관리</h2>
+        <p class="section-sub">작업환경·설비 관련 정기 점검 및 기록</p>
+        <div class="cards-grid">
+            <div class="card" onclick="openTool('cleaning')">
+                <div class="card-icon">🧽</div>
+                <h3 class="card-title">청소 프로그램 · 실시기록</h3>
+                <p class="card-description">구역별 청소 기준(프로그램)을 게시하고, 청소 실시 여부를 기록합니다.</p>
+                <span class="card-badge active">기록형 · 매일/주1회</span>
+            </div>
+            <div class="card" onclick="openTool('pest')">
+                <div class="card-icon">🐜</div>
+                <h3 class="card-title">방충방서 대응절차</h3>
+                <p class="card-description">입고/수리 중 해충 발견 시 대응절차를 게시하고, 발생 이력을 기록합니다.</p>
+                <span class="card-badge active">게시+기록</span>
+            </div>
+            <div class="card" onclick="openTool('packer')">
+                <div class="card-icon">📦</div>
+                <h3 class="card-title">포장기 위험성 · 표지 현황</h3>
+                <p class="card-description">포장기 위험요소·안전표지(픽토그램) 부착상태를 점검하고 편집합니다.</p>
+                <span class="card-badge doc">게시+편집</span>
+            </div>
+            <div class="card" onclick="openTool('rack')">
+                <div class="card-icon">🗄️</div>
+                <h3 class="card-title">렉(선반) 자체점검표</h3>
+                <p class="card-description">보관구역 렉의 기울어짐·하중·고정상태 등 8개 항목을 점검하고 기록합니다.</p>
+                <span class="card-badge active">기록형 · 월 1회</span>
+            </div>
+            <div class="card" onclick="openTool('ladder')">
+                <div class="card-icon">🪜</div>
+                <h3 class="card-title">사다리 점검</h3>
+                <p class="card-description">사용 전 확인사항을 게시하고, 월간 정기점검 결과를 기록합니다.</p>
+                <span class="card-badge active">게시+기록</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
         <h2 class="section-title">🎓 교육 관리</h2>
         <p class="section-sub">직원별 교육 이력을 등록하고 이어서 관리</p>
         <div class="cards-grid">
@@ -537,6 +574,216 @@ body.doc-mode .footer .developer-tag { color:#c2660f; }
         <table class="data-table">
             <thead><tr><th>훈련일시</th><th>대상</th><th>진행자</th><th>참석인원</th><th></th></tr></thead>
             <tbody id="fd_history"><tr><td colspan="5" style="color:#808080;">불러오는 중...</td></tr></tbody>
+        </table>
+        </div>
+    </div>
+</div>
+
+<!-- ══════ TOOL: 청소 프로그램 · 실시기록 ══════ -->
+<div id="tool-cleaning" class="tool-view">
+    <div class="tool-head">
+        <div>
+            <div class="tool-title">🧽 청소 프로그램 및 실시기록</div>
+            <div class="tool-desc">※ 3.70(청소 프로그램) 항목 증빙자료. 구역은 월 1회 로테이션 배정.</div>
+        </div>
+        <button class="back-btn" onclick="backToHub()">← 목록으로</button>
+    </div>
+
+    <div class="panel">
+        <div class="panel-title">📋 구역별 청소 프로그램 (기준문서)</div>
+        <div class="table-wrap">
+        <table class="data-table" id="cleaning_program_table"></table>
+        </div>
+    </div>
+
+    <div class="panel">
+        <div class="panel-title">📝 청소 실시 기록</div>
+        <div class="form-grid">
+            <div class="form-group"><label>일자</label><input type="date" id="cl_date"></div>
+            <div class="form-group"><label>구역</label><select id="cl_area"></select></div>
+            <div class="form-group"><label>실시자</label><input type="text" id="cl_person" placeholder="실시자 이름"></div>
+            <div class="form-group">
+                <label>완료여부</label>
+                <select id="cl_done"><option value="완료">완료</option><option value="미흡">미흡</option></select>
+            </div>
+            <div class="form-group full"><label>비고</label><input type="text" id="cl_note"></div>
+        </div>
+        <button class="btn btn-primary" id="cl_saveBtn" onclick="saveCleaning()" style="margin-top:14px;">💾 기록 저장</button>
+        <div class="status-msg" id="cl_status"></div>
+    </div>
+
+    <div class="panel">
+        <div class="panel-title">📜 실시 이력</div>
+        <div class="table-wrap">
+        <table class="data-table">
+            <thead><tr><th>일자</th><th>구역</th><th>실시자</th><th>완료여부</th><th>비고</th><th></th></tr></thead>
+            <tbody id="cl_history"><tr><td colspan="6" style="color:#808080;">불러오는 중...</td></tr></tbody>
+        </table>
+        </div>
+    </div>
+</div>
+
+<!-- ══════ TOOL: 방충방서 대응절차 ══════ -->
+<div id="tool-pest" class="tool-view">
+    <div class="tool-head">
+        <div>
+            <div class="tool-title">🐜 입고/수리 중 해충 발견 시 대응절차</div>
+            <div class="tool-desc">※ 3.40(방충방서 관리), 3.50(입고 시 방충 방지) 항목 증빙자료. 방충방서 정기관리는 세스코(월 1회) 위탁 — 계약서 및 월간 보고서 별도 보관.</div>
+        </div>
+        <button class="back-btn" onclick="backToHub()">← 목록으로</button>
+    </div>
+
+    <div class="panel">
+        <div class="panel-title">📋 대응절차 (기준문서)</div>
+        <div class="table-wrap">
+        <table class="data-table" id="pest_proc_table"></table>
+        </div>
+    </div>
+
+    <div class="panel">
+        <div class="panel-title">📝 해충 발견 시 기록</div>
+        <div class="form-grid">
+            <div class="form-group"><label>발생일시</label><input type="date" id="pe_date"></div>
+            <div class="form-group"><label>기종</label><input type="text" id="pe_model" placeholder="발견된 기계 기종"></div>
+            <div class="form-group"><label>등록자</label><input type="text" id="pe_reporter" placeholder="발견자/관리자"></div>
+            <div class="form-group full"><label>조치 내용</label><input type="text" id="pe_action" placeholder="격리·이동·통보 등 조치 내용"></div>
+            <div class="form-group full"><label>비고</label><input type="text" id="pe_note"></div>
+        </div>
+        <button class="btn btn-primary" id="pe_saveBtn" onclick="savePest()" style="margin-top:14px;">💾 기록 저장</button>
+        <div class="status-msg" id="pe_status"></div>
+    </div>
+
+    <div class="panel">
+        <div class="panel-title">📜 발생 이력</div>
+        <div class="table-wrap">
+        <table class="data-table">
+            <thead><tr><th>발생일시</th><th>기종</th><th>조치내용</th><th>등록자</th><th>비고</th><th></th></tr></thead>
+            <tbody id="pe_history"><tr><td colspan="6" style="color:#808080;">불러오는 중...</td></tr></tbody>
+        </table>
+        </div>
+    </div>
+</div>
+
+<!-- ══════ TOOL: 포장기 위험성 및 표지 현황 ══════ -->
+<div id="tool-packer" class="tool-view">
+    <div class="tool-head">
+        <div>
+            <div class="tool-title">📦 포장기 위험성평가 및 안전표지 현황</div>
+            <div class="tool-desc">※ 2.12(기계 위험성) 항목 증빙자료. 총 3대(챔버형 2대, 터널형 1대) 보유. "전기 사양"·"부착상태" 확인 후 채워주세요.</div>
+        </div>
+        <button class="back-btn" onclick="backToHub()">← 목록으로</button>
+    </div>
+
+    <div class="panel">
+        <div class="panel-title">➕ 새 항목 추가</div>
+        <div class="form-grid">
+            <div class="form-group"><label>기계</label><input id="pk_new_machine" placeholder="예: 챔버형 포장기"></div>
+            <div class="form-group"><label>구획/부위</label><input id="pk_new_part" placeholder="예: 전원부"></div>
+            <div class="form-group"><label>전기 사양</label><input id="pk_new_elec" placeholder="예: 220V"></div>
+            <div class="form-group"><label>부착상태</label>
+                <select id="pk_new_status"><option value="">-</option><option value="부착완료">부착완료</option><option value="미부착">미부착</option><option value="확인필요">확인필요</option></select>
+            </div>
+            <div class="form-group full"><label>주요 위험요소</label><input id="pk_new_risk"></div>
+            <div class="form-group full"><label>필요 픽토그램</label><input id="pk_new_picto"></div>
+            <div class="form-group full"><label>기존 안전장치</label><input id="pk_new_safe"></div>
+            <div class="form-group full"><label>비고</label><input id="pk_new_note"></div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="addPackerItem()">추가</button>
+        <div class="status-msg" id="pk_status"></div>
+    </div>
+
+    <div class="panel">
+        <div class="panel-title">📋 위험성 · 표지 현황 목록 (직접 편집 가능, 변경 후 각 행의 💾 클릭)</div>
+        <div class="table-wrap">
+        <table class="data-table inline-edit">
+            <thead><tr><th>기계</th><th>구획/부위</th><th style="width:100px;">전기사양</th><th>주요위험요소</th><th>필요픽토그램</th><th>기존안전장치</th><th style="width:110px;">부착상태</th><th>비고</th><th></th></tr></thead>
+            <tbody id="pk_list"><tr><td colspan="9" style="color:#808080;">불러오는 중...</td></tr></tbody>
+        </table>
+        </div>
+    </div>
+</div>
+
+<!-- ══════ TOOL: 렉(선반) 자체점검표 ══════ -->
+<div id="tool-rack" class="tool-view">
+    <div class="tool-head">
+        <div>
+            <div class="tool-title">🗄️ 렉(선반) 자체 안전점검표</div>
+            <div class="tool-desc">※ 2.10(보관구역 안전) 항목 — 외부 인증점검 전 자체 육안점검 기록. 외부 인증업체 정식 점검은 연내 별도 예정.</div>
+        </div>
+        <button class="back-btn" onclick="backToHub()">← 목록으로</button>
+    </div>
+
+    <div class="panel">
+        <div class="panel-title">🗓️ 연간 점검계획 (기준문서)</div>
+        <div class="table-wrap">
+        <table class="data-table" id="rack_plan_table"></table>
+        </div>
+    </div>
+
+    <div class="panel">
+        <div class="panel-title">📝 새 점검 등록</div>
+        <div class="form-grid">
+            <div class="form-group"><label>점검일자</label><input type="date" id="rk_date"></div>
+            <div class="form-group"><label>점검구역</label><input type="text" id="rk_area" placeholder="예: 부품공간, 수리대기공간 등"></div>
+            <div class="form-group"><label>점검자</label><input type="text" id="rk_inspector" placeholder="점검자 이름"></div>
+        </div>
+        <div id="rk_items"></div>
+        <div class="form-group full" style="margin-top:8px;">
+            <label>종합 비고</label>
+            <textarea id="rk_note" placeholder="전체 총평 또는 특이사항"></textarea>
+        </div>
+        <button class="btn btn-primary" id="rk_saveBtn" onclick="saveRack()" style="margin-top:14px;">💾 점검 결과 저장</button>
+        <div class="status-msg" id="rk_status"></div>
+    </div>
+
+    <div class="panel">
+        <div class="panel-title">📜 점검 이력</div>
+        <div class="table-wrap">
+        <table class="data-table">
+            <thead><tr><th>점검일자</th><th>점검구역</th><th>점검자</th><th>불량</th><th>비고</th><th></th></tr></thead>
+            <tbody id="rk_history"><tr><td colspan="6" style="color:#808080;">불러오는 중...</td></tr></tbody>
+        </table>
+        </div>
+    </div>
+</div>
+
+<!-- ══════ TOOL: 사다리 점검 ══════ -->
+<div id="tool-ladder" class="tool-view">
+    <div class="tool-head">
+        <div>
+            <div class="tool-title">🪜 사다리 사용 전 확인 및 월간 점검표</div>
+            <div class="tool-desc">※ 안전보건 위험성평가 부속서. 월 1회 이상 점검, 이상 발견 시 즉시 조치 후 기록.</div>
+        </div>
+        <button class="back-btn" onclick="backToHub()">← 목록으로</button>
+    </div>
+
+    <div class="panel">
+        <div class="panel-title">✅ 사다리 사용 전 확인사항 (게시)</div>
+        <ul id="ladder_precheck_list" style="margin-left:20px; line-height:1.9;"></ul>
+    </div>
+
+    <div class="panel">
+        <div class="panel-title">📝 월간 정기점검 기록</div>
+        <div class="form-grid">
+            <div class="form-group"><label>점검일자</label><input type="date" id="ld_date"></div>
+            <div class="form-group"><label>점검자</label><input type="text" id="ld_inspector" placeholder="점검자 이름"></div>
+            <div class="form-group">
+                <label>이상 유무</label>
+                <select id="ld_issue"><option value="이상없음">이상없음</option><option value="이상있음">이상있음</option></select>
+            </div>
+            <div class="form-group full"><label>조치사항</label><input type="text" id="ld_action" placeholder="이상 있을 시 조치 내용"></div>
+            <div class="form-group"><label>확인자</label><input type="text" id="ld_confirmer" placeholder="확인(서명)"></div>
+        </div>
+        <button class="btn btn-primary" id="ld_saveBtn" onclick="saveLadder()" style="margin-top:14px;">💾 점검 결과 저장</button>
+        <div class="status-msg" id="ld_status"></div>
+    </div>
+
+    <div class="panel">
+        <div class="panel-title">📜 점검 이력</div>
+        <div class="table-wrap">
+        <table class="data-table">
+            <thead><tr><th>점검일자</th><th>점검자</th><th>이상유무</th><th>조치사항</th><th>확인자</th><th></th></tr></thead>
+            <tbody id="ld_history"><tr><td colspan="6" style="color:#808080;">불러오는 중...</td></tr></tbody>
         </table>
         </div>
     </div>
@@ -1814,6 +2061,373 @@ async function loadProcedureStats() {
 TOOL_LOADERS['inventory'] = loadInventory;
 TOOL_LOADERS['matrix'] = renderMatrix;
 TOOL_LOADERS['procedure'] = loadProcedureStats;
+</script>
+<script>
+/* ════════════ 청소 프로그램 · 실시기록 ════════════ */
+const CLEANING_PROGRAM = [
+    { area:'수리작업장', target:'작업대, 바닥, 공구함 주변', cycle:'매일', method:'마른걸레/청소기로 이물 제거 후 젖은걸레로 마무리', tool:'일반 청소용품' },
+    { area:'부품/창고구역', target:'선반, 통로 바닥', cycle:'주 1회', method:'진공청소 후 걸레질', tool:'일반 청소용품' },
+    { area:'세정/디스케일링구역', target:'작업대, 싱크대', cycle:'매일', method:'전용 세정제로 세척 후 건조', tool:'TQM 승인 세정제(3.80 참고)' },
+    { area:'사무공간', target:'책상, 바닥', cycle:'주 1회', method:'일반 청소', tool:'일반 청소용품' },
+    { area:'탈의실/화장실', target:'세면대, 바닥', cycle:'매일', method:'전용 세제로 세척', tool:'화장실 전용 세제' },
+    { area:'입출고구역', target:'적재구역 바닥, 통로', cycle:'주 1회', method:'진공청소 후 걸레질', tool:'일반 청소용품' }
+];
+
+function renderCleaningProgram() {
+    document.getElementById('cleaning_program_table').innerHTML =
+        '<thead><tr><th>구역</th><th>청소 대상</th><th>주기</th><th>청소 방법</th><th>사용 도구/세제</th></tr></thead>' +
+        '<tbody>' + CLEANING_PROGRAM.map(function (r) {
+            return '<tr><td>' + esc(r.area) + '</td><td>' + esc(r.target) + '</td><td>' + esc(r.cycle) + '</td><td>' + esc(r.method) + '</td><td>' + esc(r.tool) + '</td></tr>';
+        }).join('') + '</tbody>';
+    const sel = document.getElementById('cl_area');
+    if (sel) sel.innerHTML = CLEANING_PROGRAM.map(function (r) { return '<option value="' + esc(r.area) + '">' + esc(r.area) + '</option>'; }).join('');
+}
+
+async function saveCleaning() {
+    const date = document.getElementById('cl_date').value;
+    const area = document.getElementById('cl_area').value;
+    const person = document.getElementById('cl_person').value.trim();
+    if (!date || !person) { showStatus('cl_status', false, '일자·실시자는 필수입니다.'); return; }
+    const btn = document.getElementById('cl_saveBtn');
+    btn.disabled = true;
+    try {
+        await apiPost({ sheet: '청소실시기록', action: 'add', data: {
+            '일자': date, '구역': area, '실시자': person,
+            '완료여부': document.getElementById('cl_done').value, '비고': document.getElementById('cl_note').value.trim()
+        }});
+        showStatus('cl_status', true, '✅ 저장되었습니다.');
+        document.getElementById('cl_person').value = '';
+        document.getElementById('cl_note').value = '';
+        loadHistoryCleaning();
+    } catch (err) {
+        showStatus('cl_status', false, '❌ 저장 실패: ' + err.message);
+    }
+    btn.disabled = false;
+}
+
+async function loadHistoryCleaning() {
+    const tbody = document.getElementById('cl_history');
+    tbody.innerHTML = '<tr><td colspan="6" style="color:#808080;">불러오는 중...</td></tr>';
+    try {
+        const json = await apiGet('청소실시기록');
+        const rows = json.rows.sort(function (a, b) { return (b['일자']||'').localeCompare(a['일자']||''); });
+        if (rows.length === 0) { tbody.innerHTML = '<tr><td colspan="6" style="color:#808080;">등록된 이력이 없습니다.</td></tr>'; return; }
+        tbody.innerHTML = rows.map(function (r) {
+            const badgeCls = r['완료여부'] === '완료' ? 'badge-ok' : 'badge-warn';
+            return '<tr><td>' + esc(r['일자']) + '</td><td>' + esc(r['구역']) + '</td><td>' + esc(r['실시자']) + '</td>' +
+                '<td><span class="badge ' + badgeCls + '">' + esc(r['완료여부']) + '</span></td>' +
+                '<td>' + esc(r['비고']||'-') + '</td>' +
+                '<td><span class="detail-toggle" style="color:#e74c3c;" onclick="deleteRecord(\'청소실시기록\',\'' + r.id + '\',loadHistoryCleaning)">삭제</span></td></tr>';
+        }).join('');
+    } catch (err) {
+        tbody.innerHTML = '<tr><td colspan="6" style="color:#e74c3c;">불러오기 실패: ' + esc(err.message) + '</td></tr>';
+    }
+}
+
+TOOL_LOADERS['cleaning'] = loadHistoryCleaning;
+
+/* ════════════ 방충방서 대응절차 ════════════ */
+const PEST_PROCEDURE = [
+    { step:'1. 예방', action:'입고 즉시 별도 분리된 입출고 구역에 보관 (수리작업장과 물리적 분리)', owner:'전 직원', note:'상시' },
+    { step:'2. 발견', action:'수리를 위해 기계 내부를 개방하는 과정에서 해충(흔적 포함) 발견', owner:'수리 담당 기술자', note:'분해/점검 시점' },
+    { step:'3. 격리', action:'발견 즉시 해당 기계를 비닐에 담아 밀봉 처리', owner:'발견자', note:'즉시' },
+    { step:'4. 이동', action:'밀봉된 기계를 베란다(격리구역)로 이동하여 별도 보관', owner:'발견자', note:'즉시' },
+    { step:'5. 통보 및 인계', action:'Nespresso 측에 상황 전달 및 기계 인계', owner:'관리자/담당자', note:'당일 내' },
+    { step:'6. 기록', action:'발생 일시, 기종, 조치 내용을 간단히 기록 (아래 발생 이력에 기록)', owner:'관리자', note:'발생 시마다' }
+];
+
+function renderPestProcedure() {
+    document.getElementById('pest_proc_table').innerHTML =
+        '<thead><tr><th>단계</th><th>조치 내용</th><th>담당</th><th>비고</th></tr></thead>' +
+        '<tbody>' + PEST_PROCEDURE.map(function (r) {
+            return '<tr><td>' + esc(r.step) + '</td><td>' + esc(r.action) + '</td><td>' + esc(r.owner) + '</td><td>' + esc(r.note) + '</td></tr>';
+        }).join('') + '</tbody>';
+}
+
+async function savePest() {
+    const date = document.getElementById('pe_date').value;
+    const model = document.getElementById('pe_model').value.trim();
+    if (!date || !model) { showStatus('pe_status', false, '발생일시·기종은 필수입니다.'); return; }
+    const btn = document.getElementById('pe_saveBtn');
+    btn.disabled = true;
+    try {
+        await apiPost({ sheet: '방충방서이력', action: 'add', data: {
+            '발생일시': date, '기종': model,
+            '조치내용': document.getElementById('pe_action').value.trim(),
+            '등록자': document.getElementById('pe_reporter').value.trim(),
+            '비고': document.getElementById('pe_note').value.trim()
+        }});
+        showStatus('pe_status', true, '✅ 저장되었습니다.');
+        ['pe_model','pe_action','pe_reporter','pe_note'].forEach(function (id) { document.getElementById(id).value = ''; });
+        loadHistoryPest();
+    } catch (err) {
+        showStatus('pe_status', false, '❌ 저장 실패: ' + err.message);
+    }
+    btn.disabled = false;
+}
+
+async function loadHistoryPest() {
+    const tbody = document.getElementById('pe_history');
+    tbody.innerHTML = '<tr><td colspan="6" style="color:#808080;">불러오는 중...</td></tr>';
+    try {
+        const json = await apiGet('방충방서이력');
+        const rows = json.rows.sort(function (a, b) { return (b['발생일시']||'').localeCompare(a['발생일시']||''); });
+        if (rows.length === 0) { tbody.innerHTML = '<tr><td colspan="6" style="color:#808080;">등록된 발생 이력이 없습니다.</td></tr>'; return; }
+        tbody.innerHTML = rows.map(function (r) {
+            return '<tr><td>' + esc(r['발생일시']) + '</td><td>' + esc(r['기종']) + '</td><td>' + esc(r['조치내용']||'-') + '</td>' +
+                '<td>' + esc(r['등록자']||'-') + '</td><td>' + esc(r['비고']||'-') + '</td>' +
+                '<td><span class="detail-toggle" style="color:#e74c3c;" onclick="deleteRecord(\'방충방서이력\',\'' + r.id + '\',loadHistoryPest)">삭제</span></td></tr>';
+        }).join('');
+    } catch (err) {
+        tbody.innerHTML = '<tr><td colspan="6" style="color:#e74c3c;">불러오기 실패: ' + esc(err.message) + '</td></tr>';
+    }
+}
+
+TOOL_LOADERS['pest'] = function () { renderPestProcedure(); loadHistoryPest(); };
+
+/* ════════════ 포장기 위험성 및 표지 현황 ════════════ */
+const PACKER_STATUS_OPTIONS = ['', '부착완료', '미부착', '확인필요'];
+
+function packerRowHtml(r) {
+    const id = r.id;
+    function f(field) { return '<input value="' + esc(r[field] || '') + '" id="pk_' + id + '_' + field + '">'; }
+    const statusSel = '<select id="pk_' + id + '_부착상태">' + PACKER_STATUS_OPTIONS.map(function (o) {
+        return '<option value="' + esc(o) + '"' + (r['부착상태'] === o ? ' selected' : '') + '>' + (o || '-') + '</option>';
+    }).join('') + '</select>';
+    return '<tr>' +
+        '<td>' + f('기계') + '</td><td>' + f('구획부위') + '</td><td style="width:100px;">' + f('전기사양') + '</td>' +
+        '<td>' + f('주요위험요소') + '</td><td>' + f('필요픽토그램') + '</td><td>' + f('기존안전장치') + '</td>' +
+        '<td style="width:110px;">' + statusSel + '</td><td>' + f('비고') + '</td>' +
+        '<td style="white-space:nowrap;"><button class="btn btn-secondary btn-sm" onclick="savePackerRow(\'' + id + '\')">💾</button> ' +
+        '<button class="btn btn-danger btn-sm" onclick="deleteRecord(\'포장기위험성\',\'' + id + '\',loadPacker)">✕</button></td></tr>';
+}
+
+async function loadPacker() {
+    const tbody = document.getElementById('pk_list');
+    tbody.innerHTML = '<tr><td colspan="9" style="color:#808080;">불러오는 중...</td></tr>';
+    try {
+        const json = await apiGet('포장기위험성');
+        if (json.rows.length === 0) { tbody.innerHTML = '<tr><td colspan="9" style="color:#808080;">등록된 항목이 없습니다.</td></tr>'; return; }
+        tbody.innerHTML = json.rows.map(packerRowHtml).join('');
+    } catch (err) {
+        tbody.innerHTML = '<tr><td colspan="9" style="color:#e74c3c;">불러오기 실패: ' + esc(err.message) + '</td></tr>';
+    }
+}
+
+async function savePackerRow(id) {
+    const fields = ['기계','구획부위','전기사양','주요위험요소','필요픽토그램','기존안전장치','부착상태','비고'];
+    const data = {};
+    fields.forEach(function (f) {
+        const el = document.getElementById('pk_' + id + '_' + f);
+        data[f] = el ? el.value.trim() : '';
+    });
+    try {
+        await apiPost({ sheet: '포장기위험성', action: 'update', id: id, data: data });
+        showStatus('pk_status', true, '✅ 저장되었습니다.');
+    } catch (err) {
+        showStatus('pk_status', false, '❌ 저장 실패: ' + err.message);
+    }
+}
+
+async function addPackerItem() {
+    const data = {
+        '기계': document.getElementById('pk_new_machine').value.trim(),
+        '구획부위': document.getElementById('pk_new_part').value.trim(),
+        '전기사양': document.getElementById('pk_new_elec').value.trim(),
+        '주요위험요소': document.getElementById('pk_new_risk').value.trim(),
+        '필요픽토그램': document.getElementById('pk_new_picto').value.trim(),
+        '기존안전장치': document.getElementById('pk_new_safe').value.trim(),
+        '부착상태': document.getElementById('pk_new_status').value,
+        '비고': document.getElementById('pk_new_note').value.trim()
+    };
+    if (!data['기계']) { showStatus('pk_status', false, '기계는 필수입니다.'); return; }
+    try {
+        await apiPost({ sheet: '포장기위험성', action: 'add', data: data });
+        ['pk_new_machine','pk_new_part','pk_new_elec','pk_new_risk','pk_new_picto','pk_new_safe','pk_new_note'].forEach(function (id) { document.getElementById(id).value = ''; });
+        document.getElementById('pk_new_status').value = '';
+        showStatus('pk_status', true, '✅ 추가되었습니다.');
+        loadPacker();
+    } catch (err) {
+        showStatus('pk_status', false, '❌ 추가 실패: ' + err.message);
+    }
+}
+
+TOOL_LOADERS['packer'] = loadPacker;
+
+/* ════════════ 렉(선반) 자체점검표 ════════════ */
+const RACK_PLAN = [
+    { type:'자체점검', method:'육안점검(본 체크리스트)', cycle:'월 1회 이상', note:'9월부터 시행' },
+    { type:'외부 인증점검', method:'인증 점검업체 의뢰', cycle:'연 1회 (시기 확정 예정)', note:'업체 선정 후 확정' }
+];
+
+function renderRackPlan() {
+    document.getElementById('rack_plan_table').innerHTML =
+        '<thead><tr><th>구분</th><th>점검 방식</th><th>주기/예정시기</th><th>비고</th></tr></thead>' +
+        '<tbody>' + RACK_PLAN.map(function (r) {
+            return '<tr><td>' + esc(r.type) + '</td><td>' + esc(r.method) + '</td><td>' + esc(r.cycle) + '</td><td>' + esc(r.note) + '</td></tr>';
+        }).join('') + '</tbody>';
+}
+
+const ITEMS_RACK = [
+    { t:'렉 기둥(수직재)이 기울어지거나 휘어진 곳은 없는가?' },
+    { t:'기둥-선반 연결 볼트/핀이 풀리거나 빠진 곳은 없는가?' },
+    { t:'제조사 표시 허용하중을 초과하여 적재하지 않았는가?' },
+    { t:'적재물이 선반 밖으로 돌출되거나 낙하 위험은 없는가?' },
+    { t:'렉 하단이 바닥에 고정되어 흔들림이 없는가?' },
+    { t:'기둥·선반에 찌그러짐, 균열, 부식은 없는가?' },
+    { t:'렉 주변 통로가 확보되어 있고 장애물이 없는가?' },
+    { t:'팔레트 상단 적재물이 스트레치랩 등으로 포장되어 있는가?' }
+];
+
+function renderRackItems() {
+    document.getElementById('rk_items').innerHTML = ITEMS_RACK.map(function (it, i) {
+        return '<div class="checklist-item" id="rk_item_' + i + '" data-result="">' +
+            '<div class="checklist-item-head">' +
+            '<div class="checklist-item-name">' + (i + 1) + '. ' + esc(it.t) + '</div>' +
+            '<div class="seg">' +
+            '<button type="button" class="seg-btn" onclick="setItemResult(\'rk\',' + i + ',\'양호\',true)">양호</button>' +
+            '<button type="button" class="seg-btn" onclick="setItemResult(\'rk\',' + i + ',\'불량\',true)">불량</button>' +
+            '</div></div>' +
+            '<div class="checklist-item-extra" id="rk_extra_' + i + '">' +
+            '<div class="form-group"><label>조치사항</label><input id="rk_action_' + i + '" placeholder="조치사항"></div>' +
+            '<div class="form-group"><label>담당자</label><input id="rk_owner_' + i + '" placeholder="담당자"></div>' +
+            '<div class="form-group"><label>조치완료일</label><input type="date" id="rk_due_' + i + '"></div>' +
+            '</div></div>';
+    }).join('');
+}
+
+async function saveRack() {
+    const date = document.getElementById('rk_date').value;
+    const area = document.getElementById('rk_area').value.trim();
+    const inspector = document.getElementById('rk_inspector').value.trim();
+    if (!date || !area || !inspector) { showStatus('rk_status', false, '점검일자·점검구역·점검자는 필수입니다.'); return; }
+    const results = ITEMS_RACK.map(function (it, i) {
+        return {
+            t: it.t,
+            result: document.getElementById('rk_item_' + i).dataset.result || '',
+            action: document.getElementById('rk_action_' + i).value.trim(),
+            owner: document.getElementById('rk_owner_' + i).value.trim(),
+            due: document.getElementById('rk_due_' + i).value
+        };
+    });
+    const btn = document.getElementById('rk_saveBtn');
+    btn.disabled = true;
+    try {
+        await apiPost({ sheet: '렉점검', action: 'add', data: {
+            '점검일자': date, '점검자': inspector, '점검구역': area,
+            '결과JSON': JSON.stringify(results), '종합비고': document.getElementById('rk_note').value.trim()
+        }});
+        showStatus('rk_status', true, '✅ 저장되었습니다.');
+        document.getElementById('rk_area').value = '';
+        document.getElementById('rk_note').value = '';
+        renderRackItems();
+        loadHistoryRack();
+    } catch (err) {
+        showStatus('rk_status', false, '❌ 저장 실패: ' + err.message);
+    }
+    btn.disabled = false;
+}
+
+async function loadHistoryRack() {
+    const tbody = document.getElementById('rk_history');
+    tbody.innerHTML = '<tr><td colspan="6" style="color:#808080;">불러오는 중...</td></tr>';
+    try {
+        const json = await apiGet('렉점검');
+        const rows = json.rows.sort(function (a, b) { return (b['점검일자']||'').localeCompare(a['점검일자']||''); });
+        if (rows.length === 0) { tbody.innerHTML = '<tr><td colspan="6" style="color:#808080;">등록된 이력이 없습니다.</td></tr>'; return; }
+        tbody.innerHTML = rows.map(function (r, idx) {
+            let results = [];
+            try { results = JSON.parse(r['결과JSON'] || '[]'); } catch (e) {}
+            const badCount = results.filter(function (x) { return x.result === '불량'; }).length;
+            const detailId = 'rk_detail_' + idx;
+            const detail = results.map(function (x) {
+                return '<div style="margin-bottom:6px;"><span class="badge ' + (x.result === '불량' ? 'badge-bad' : (x.result === '양호' ? 'badge-ok' : 'badge-mute')) + '">' + esc(x.result || '미기록') + '</span> ' + esc(x.t) +
+                    (x.result === '불량' ? '<br><span style="color:#909090;font-size:0.85em;">↳ 조치: ' + esc(x.action||'-') + ' / 담당: ' + esc(x.owner||'-') + ' / 완료예정: ' + esc(x.due||'-') + '</span>' : '') + '</div>';
+            }).join('');
+            return '<tr>' +
+                '<td>' + esc(r['점검일자']) + '</td><td>' + esc(r['점검구역']) + '</td><td>' + esc(r['점검자']) + '</td>' +
+                '<td>' + (badCount > 0 ? '<span class="badge badge-bad">' + badCount + '건</span>' : '<span class="badge badge-ok">없음</span>') + '</td>' +
+                '<td style="max-width:200px;">' + esc(r['종합비고'] || '-') + '</td>' +
+                '<td style="white-space:nowrap;"><span class="detail-toggle" onclick="toggleDetail(\'' + detailId + '\')">상세</span> · <span class="detail-toggle" style="color:#e74c3c;" onclick="deleteRecord(\'렉점검\',\'' + r.id + '\',loadHistoryRack)">삭제</span></td>' +
+                '</tr>' +
+                '<tr class="detail-row" id="' + detailId + '"><td colspan="6">' + detail + '</td></tr>';
+        }).join('');
+    } catch (err) {
+        tbody.innerHTML = '<tr><td colspan="6" style="color:#e74c3c;">불러오기 실패: ' + esc(err.message) + '</td></tr>';
+    }
+}
+
+TOOL_LOADERS['rack'] = loadHistoryRack;
+
+/* ════════════ 사다리 사용 전 확인 · 월간 점검 ════════════ */
+const LADDER_PRECHECK = [
+    '사다리 다리(발판)가 흔들리거나 파손된 곳은 없는가?',
+    '미끄럼 방지 고무(발끝 마개)가 정상 부착되어 있는가?',
+    '펼침 고정장치(잠금장치)가 완전히 고정되는가?',
+    '평평하고 안정된 바닥에 놓았는가?',
+    '사다리 위에서 무리하게 몸을 옆으로 뻗지 않는다.'
+];
+
+function renderLadderPrecheck() {
+    document.getElementById('ladder_precheck_list').innerHTML =
+        LADDER_PRECHECK.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('') +
+        '<li style="color:#e74c3c; list-style:none; margin-top:8px;">※ 이상이 있으면 사용을 중단하고 관리자에게 즉시 보고하세요.</li>';
+}
+
+async function saveLadder() {
+    const date = document.getElementById('ld_date').value;
+    const inspector = document.getElementById('ld_inspector').value.trim();
+    if (!date || !inspector) { showStatus('ld_status', false, '점검일자·점검자는 필수입니다.'); return; }
+    const btn = document.getElementById('ld_saveBtn');
+    btn.disabled = true;
+    try {
+        await apiPost({ sheet: '사다리점검', action: 'add', data: {
+            '점검일자': date, '점검자': inspector,
+            '이상유무': document.getElementById('ld_issue').value,
+            '조치사항': document.getElementById('ld_action').value.trim(),
+            '확인자': document.getElementById('ld_confirmer').value.trim()
+        }});
+        showStatus('ld_status', true, '✅ 저장되었습니다.');
+        ['ld_inspector','ld_action','ld_confirmer'].forEach(function (id) { document.getElementById(id).value = ''; });
+        loadHistoryLadder();
+    } catch (err) {
+        showStatus('ld_status', false, '❌ 저장 실패: ' + err.message);
+    }
+    btn.disabled = false;
+}
+
+async function loadHistoryLadder() {
+    const tbody = document.getElementById('ld_history');
+    tbody.innerHTML = '<tr><td colspan="6" style="color:#808080;">불러오는 중...</td></tr>';
+    try {
+        const json = await apiGet('사다리점검');
+        const rows = json.rows.sort(function (a, b) { return (b['점검일자']||'').localeCompare(a['점검일자']||''); });
+        if (rows.length === 0) { tbody.innerHTML = '<tr><td colspan="6" style="color:#808080;">등록된 이력이 없습니다.</td></tr>'; return; }
+        tbody.innerHTML = rows.map(function (r) {
+            const badgeCls = r['이상유무'] === '이상있음' ? 'badge-bad' : 'badge-ok';
+            return '<tr><td>' + esc(r['점검일자']) + '</td><td>' + esc(r['점검자']) + '</td>' +
+                '<td><span class="badge ' + badgeCls + '">' + esc(r['이상유무']) + '</span></td>' +
+                '<td>' + esc(r['조치사항']||'-') + '</td><td>' + esc(r['확인자']||'-') + '</td>' +
+                '<td><span class="detail-toggle" style="color:#e74c3c;" onclick="deleteRecord(\'사다리점검\',\'' + r.id + '\',loadHistoryLadder)">삭제</span></td></tr>';
+        }).join('');
+    } catch (err) {
+        tbody.innerHTML = '<tr><td colspan="6" style="color:#e74c3c;">불러오기 실패: ' + esc(err.message) + '</td></tr>';
+    }
+}
+
+TOOL_LOADERS['ladder'] = loadHistoryLadder;
+
+window.addEventListener('load', function () {
+    document.getElementById('cl_date').value = todayStr();
+    document.getElementById('pe_date').value = todayStr();
+    document.getElementById('rk_date').value = todayStr();
+    document.getElementById('ld_date').value = todayStr();
+    renderCleaningProgram();
+    renderPestProcedure();
+    renderRackPlan();
+    renderRackItems();
+    renderLadderPrecheck();
+});
 </script>
 </body>
 </html>
