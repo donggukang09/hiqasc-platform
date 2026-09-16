@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <title>온습도 모니터링 - HIQASC</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
+            background: #2a2a2a;
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+
+        /* 헤더 */
+        .top-header {
+            background: #1e1e1e;
+            border-bottom: 1px solid #3a3a3a;
+            padding: 16px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .top-header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .top-header-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #27ae60 0%, #219a52 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .top-header-title {
+            font-size: 1.2em;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .top-header-sub {
+            font-size: 0.8em;
+            color: #808080;
+            margin-top: 2px;
+        }
+
+        .top-header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-date {
+            font-size: 0.85em;
+            color: #808080;
+        }
+
+        .back-btn {
+            background: #353535;
+            border: 1px solid #4a4a4a;
+            color: #a0a0a0;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.85em;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover {
+            background: #4a4a4a;
+            color: #ffffff;
+        }
+
+        /* 컨텐츠 */
+        .content {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 30px 24px;
+        }
+
+        .panel {
+            background: #353535;
+            border: 1px solid #4a4a4a;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .panel-title {
+            font-size: 1.05em;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 16px;
+            padding-left: 12px;
+            border-left: 4px solid #27ae60;
+        }
+
+        .standard-box {
+            background: #2a2a2a;
+            border: 1px solid #4a4a4a;
+            border-radius: 8px;
+            padding: 14px 18px;
+            font-size: 0.9em;
+            color: #c0c0c0;
+            line-height: 1.7;
+        }
+
+        .standard-box b { color: #ffffff; }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 14px;
+        }
+
+        .form-group.full { grid-column: 1 / -1; }
+
+        .form-group label {
+            display: block;
+            font-size: 0.8em;
+            color: #a0a0a0;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            background: #2a2a2a;
+            border: 1px solid #4a4a4a;
+            border-radius: 8px;
+            padding: 10px 12px;
+            color: #e0e0e0;
+            font-size: 0.9em;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #27ae60;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 8px;
+            padding: 11px 22px;
+            font-size: 0.9em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #27ae60 0%, #219a52 100%);
+            color: #ffffff;
+        }
+
+        .btn-primary:hover { opacity: 0.9; }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .status-msg {
+            margin-top: 10px;
+            font-size: 0.85em;
+        }
+
+        .status-msg.ok { color: #27ae60; }
+        .status-msg.err { color: #e74c3c; }
+
+        .table-wrap { overflow-x: auto; }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85em;
+        }
+
+        .data-table th {
+            text-align: left;
+            padding: 10px 12px;
+            background: #2a2a2a;
+            color: #a0a0a0;
+            font-weight: 600;
+            border-bottom: 1px solid #4a4a4a;
+            white-space: nowrap;
+        }
+
+        .data-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #3a3a3a;
+            color: #d0d0d0;
+        }
+
+        .data-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .badge-ok {
+            background: rgba(39, 174, 96, 0.15);
+            border: 1px solid rgba(39, 174, 96, 0.3);
+            color: #27ae60;
+        }
+
+        .badge-bad {
+            background: rgba(231, 76, 60, 0.15);
+            border: 1px solid rgba(231, 76, 60, 0.3);
+            color: #e74c3c;
+        }
+
+        .detail-toggle {
+            cursor: pointer;
+            text-decoration: underline;
+            color: #7fb9ff;
+            font-size: 0.85em;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 30px;
+            color: #505050;
+            font-size: 0.8em;
+        }
+
+        .footer .developer-tag {
+            margin-top: 6px;
+            font-weight: 600;
+            color: #27ae60;
+        }
+
+        @media (max-width: 768px) {
+            .top-header { padding: 14px 16px; }
+            .content { padding: 20px 12px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 헤더 -->
+    <div class="top-header">
+        <div class="top-header-left">
+            <div class="top-header-icon">🌡️</div>
+            <div>
+                <div class="top-header-title">온습도 모니터링</div>
+                <div class="top-header-sub">보관구역 온습도 기록 관리</div>
+            </div>
+        </div>
+        <div class="top-header-right">
+            <span class="header-date" id="currentDate"></span>
+            <a href="support-team.html" class="back-btn">📦 Support Team으로</a>
+        </div>
+    </div>
+
+    <!-- 컨텐츠 -->
+    <div class="content">
+
+        <div class="panel">
+            <div class="panel-title">📋 관리기준</div>
+            <div class="standard-box" id="standardBox"></div>
+            <p style="margin-top:10px; font-size:0.8em; color:#808080;">※ 5.40(보관조건 모니터링) 항목 증빙자료. 1일 1회 이상 기록 권장(예: 출근 직후).</p>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title">📝 온습도 기록</div>
+            <div class="form-grid">
+                <div class="form-group"><label>일자</label><input type="date" id="th_date"></div>
+                <div class="form-group"><label>시각</label><input type="time" id="th_time"></div>
+                <div class="form-group"><label>온도(℃)</label><input type="number" id="th_temp" step="0.1" placeholder="예: 23.5"></div>
+                <div class="form-group"><label>습도(%)</label><input type="number" id="th_humid" step="0.1" placeholder="예: 45"></div>
+                <div class="form-group">
+                    <label>기준 이내</label>
+                    <select id="th_inrange">
+                        <option value="예">예</option>
+                        <option value="아니오">아니오</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>확인자</label><input type="text" id="th_confirmer" placeholder="확인자 이름"></div>
+                <div class="form-group full"><label>이상 시 조치사항</label><input type="text" id="th_action" placeholder="기준 이탈 시 조치 내용(선택)"></div>
+            </div>
+            <button class="btn btn-primary" id="th_saveBtn" onclick="saveTempHumid()" style="margin-top:14px;">💾 기록 저장</button>
+            <div class="status-msg" id="th_status"></div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title">📜 기록 이력</div>
+            <div class="table-wrap">
+            <table class="data-table">
+                <thead><tr><th>일자</th><th>시각</th><th>온도(℃)</th><th>습도(%)</th><th>기준이내</th><th>조치사항</th><th>확인자</th><th></th></tr></thead>
+                <tbody id="th_history"><tr><td colspan="8" style="color:#808080;">불러오는 중...</td></tr></tbody>
+            </table>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p>&copy; 2025 HIQASC Repair Team Management Platform. All rights reserved.</p>
+        <p class="developer-tag">DEVELOPED BY DONGGU KANG</p>
+    </div>
+
+    <script>
+    /* ════════════════════════════════════════════════
+       설정: Apps Script 웹앱 URL
+       (qshe-document-center.html과 동일한 백엔드 — 같은 스프레드시트,
+        '온습도모니터링' 탭만 별도 사용. 프론트엔드 페이지만 분리됨)
+       ════════════════════════════════════════════════ */
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz37ibgP8xruhPV46Fd-uI9kCh0PFS5UOiI-URPqW90eCTSI0xde_2t9PU81XSFPOAX/exec';
+
+    /* 관리기준 — 필요 시 이 값만 수정하면 됩니다 */
+    const TEMP_HUMID_STANDARD = { temp: '(기준 입력)', humidity: '(기준 입력)' };
+
+    async function apiGet(sheet, params) {
+        const qs = new URLSearchParams(Object.assign({ sheet: sheet, _cb: Date.now() }, params || {})).toString();
+        const res = await fetch(APPS_SCRIPT_URL + '?' + qs, { cache: 'no-store' });
+        if (!res.ok) throw new Error('서버 응답 오류(' + res.status + ') - 잠시 후 다시 시도해주세요');
+        const json = await res.json();
+        if (json.status !== 'ok') throw new Error(json.message || '조회 실패');
+        return json;
+    }
+
+    async function apiPost(body) {
+        const res = await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(body)
+        });
+        if (!res.ok) throw new Error('서버 응답 오류(' + res.status + ') - 잠시 후 다시 시도해주세요');
+        const json = await res.json();
+        if (json.status !== 'ok') throw new Error(json.message || '저장 실패');
+        return json;
+    }
+
+    function esc(s) {
+        if (s === undefined || s === null) return '';
+        return String(s).replace(/[&<>"']/g, function (c) {
+            return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c];
+        });
+    }
+
+    function todayStr() {
+        const d = new Date();
+        return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    }
+
+    function nowTimeStr() {
+        const d = new Date();
+        return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+    }
+
+    function showStatus(elId, ok, msg) {
+        const el = document.getElementById(elId);
+        el.className = 'status-msg ' + (ok ? 'ok' : 'err');
+        el.textContent = msg;
+        setTimeout(function () { el.textContent = ''; }, 4000);
+    }
+
+    function renderStandard() {
+        document.getElementById('standardBox').innerHTML =
+            '<b>온도:</b> ' + esc(TEMP_HUMID_STANDARD.temp) + ' &nbsp;&nbsp; <b>습도:</b> ' + esc(TEMP_HUMID_STANDARD.humidity);
+    }
+
+    async function saveTempHumid() {
+        const date = document.getElementById('th_date').value;
+        const time = document.getElementById('th_time').value;
+        const temp = document.getElementById('th_temp').value;
+        const humid = document.getElementById('th_humid').value;
+        if (!date || !time || temp === '' || humid === '') {
+            showStatus('th_status', false, '일자·시각·온도·습도는 필수입니다.');
+            return;
+        }
+        const btn = document.getElementById('th_saveBtn');
+        btn.disabled = true;
+        try {
+            await apiPost({ sheet: '온습도모니터링', action: 'add', data: {
+                '일자': date, '시각': time, '온도': temp, '습도': humid,
+                '기준이내': document.getElementById('th_inrange').value,
+                '조치사항': document.getElementById('th_action').value.trim(),
+                '확인자': document.getElementById('th_confirmer').value.trim()
+            }});
+            showStatus('th_status', true, '✅ 저장되었습니다.');
+            document.getElementById('th_temp').value = '';
+            document.getElementById('th_humid').value = '';
+            document.getElementById('th_action').value = '';
+            document.getElementById('th_time').value = nowTimeStr();
+            loadHistoryTempHumid();
+        } catch (err) {
+            showStatus('th_status', false, '❌ 저장 실패: ' + err.message);
+        }
+        btn.disabled = false;
+    }
+
+    async function deleteRecord(id) {
+        if (!confirm('이 기록을 삭제하시겠습니까?')) return;
+        try {
+            await apiPost({ sheet: '온습도모니터링', action: 'delete', id: id });
+            loadHistoryTempHumid();
+        } catch (err) {
+            alert('삭제 실패: ' + err.message);
+        }
+    }
+
+    async function loadHistoryTempHumid() {
+        const tbody = document.getElementById('th_history');
+        tbody.innerHTML = '<tr><td colspan="8" style="color:#808080;">불러오는 중...</td></tr>';
+        try {
+            const json = await apiGet('온습도모니터링');
+            const rows = json.rows.sort(function (a, b) {
+                const ka = (a['일자']||'') + ' ' + (a['시각']||'');
+                const kb = (b['일자']||'') + ' ' + (b['시각']||'');
+                return kb.localeCompare(ka);
+            });
+            if (rows.length === 0) { tbody.innerHTML = '<tr><td colspan="8" style="color:#808080;">등록된 이력이 없습니다.</td></tr>'; return; }
+            tbody.innerHTML = rows.map(function (r) {
+                const badgeCls = r['기준이내'] === '아니오' ? 'badge-bad' : 'badge-ok';
+                return '<tr><td>' + esc(r['일자']) + '</td><td>' + esc(r['시각']) + '</td>' +
+                    '<td>' + esc(r['온도']) + '</td><td>' + esc(r['습도']) + '</td>' +
+                    '<td><span class="badge ' + badgeCls + '">' + esc(r['기준이내']) + '</span></td>' +
+                    '<td>' + esc(r['조치사항']||'-') + '</td><td>' + esc(r['확인자']||'-') + '</td>' +
+                    '<td><span class="detail-toggle" style="color:#e74c3c;" onclick="deleteRecord(\'' + r.id + '\')">삭제</span></td></tr>';
+            }).join('');
+        } catch (err) {
+            tbody.innerHTML = '<tr><td colspan="8" style="color:#e74c3c;">불러오기 실패: ' + esc(err.message) + '</td></tr>';
+        }
+    }
+
+    function updateDate() {
+        const now = new Date();
+        const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+        document.getElementById('currentDate').textContent = now.toLocaleDateString('ko-KR', options);
+    }
+
+    window.addEventListener('load', function () {
+        updateDate();
+        renderStandard();
+        document.getElementById('th_date').value = todayStr();
+        document.getElementById('th_time').value = nowTimeStr();
+        loadHistoryTempHumid();
+    });
+    </script>
+    <script src="hiq-notification.js?v=2"></script>
+</body>
+</html>
