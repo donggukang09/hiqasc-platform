@@ -245,7 +245,7 @@
     <p class="step-desc">SVC에서 다운로드한 원본 엑셀을 올리면, 필요한 11개 열만 남기고 정리한 뒤 자동 필터를 적용합니다.</p>
     <div class="rules">
       <div>&bull; 머신 열은 항상 <b>0</b>으로 채웁니다 (Nessoft pick_up_status 값)</div>
-      <div>&bull; Pick-up Number가 <b>문자로 시작</b>하거나(예: B260921502) <b>8자리 이상 숫자</b>(날짜형식으로 긴 번호)면 <b>임의번호 등록 건</b>으로 자동 제외</div>
+      <div>&bull; <b>Pick-up Number 또는 관리번호</b>가 <b>문자를 포함</b>하거나(예: B260921502) <b>8자리 이상 숫자</b>(날짜형식으로 긴 번호)면 <b>임의번호 등록 건</b>으로 자동 제외 (둘 중 하나만 해당돼도 제외)</div>
       <div>&bull; B2B 건은 자동으로 빼지 않고 그대로 포함합니다</div>
       <div>&bull; 나머지(수량 비교, 리턴데이트&middot;시리얼번호&middot;리페어코드&middot;테크니션 노트 확인)는 다운로드한 파일을 직접 검토해주세요</div>
     </div>
@@ -267,7 +267,7 @@
 
       <div id="s1-excl-wrap" style="display:none;">
         <table class="excl">
-          <thead><tr><th>Pick-up Number</th><th>사유</th><th>판단 근거</th></tr></thead>
+          <thead><tr><th>식별번호</th><th>사유</th><th>판단 근거</th></tr></thead>
           <tbody id="s1-excl-body"></tbody>
         </table>
       </div>
@@ -442,19 +442,35 @@ setupDrop('drop1', 'file1', 'file1-chip', (wb) => {
   const excluded = [];
   const kept = [];
 
-  for (const r of dataRows) {
-    const pickupVal = r[idx.pickup];
-    const pickupStr = idx.pickup !== -1 ? cellToStr(pickupVal) : '';
+  function checkRandomPattern(str) {
+    if (!str) return { flagged: false };
+    const hasLetter = !/^[0-9]+$/.test(str);
+    const isLongDigit = /^[0-9]+$/.test(str) && str.length >= RANDOM_DIGIT_LEN;
+    return {
+      flagged: hasLetter || isLongDigit,
+      detail: hasLetter ? '문자 포함' : (isLongDigit ? `${str.length}자리 숫자 (날짜형식으로 추정)` : ''),
+    };
+  }
 
-    const hasLetter = pickupStr !== '' && !/^[0-9]+$/.test(pickupStr);
-    const isLongDigit = /^[0-9]+$/.test(pickupStr) && pickupStr.length >= RANDOM_DIGIT_LEN;
-    const isRandom = pickupStr !== '' && (hasLetter || isLongDigit);
+  for (const r of dataRows) {
+    const pickupStr = idx.pickup !== -1 ? cellToStr(r[idx.pickup]) : '';
+    const adminStr = idx.admin !== -1 ? cellToStr(r[idx.admin]) : '';
+
+    // Pick-up Number와 관리번호 둘 중 하나라도 임의번호 패턴이면 제외
+    // (정상 Pick-up Number가 붙어 있어도 관리번호가 임의로 등록된 건일 수 있음)
+    const pickupCheck = checkRandomPattern(pickupStr);
+    const adminCheck = checkRandomPattern(adminStr);
+    const isRandom = pickupCheck.flagged || adminCheck.flagged;
 
     if (isRandom) {
       randomCount++;
+      const which = pickupCheck.flagged && adminCheck.flagged
+        ? 'Pick-up Number/관리번호'
+        : pickupCheck.flagged ? 'Pick-up Number' : '관리번호';
+      const detail = pickupCheck.flagged ? pickupCheck.detail : adminCheck.detail;
       excluded.push({
-        pickup: pickupStr,
-        detail: hasLetter ? '문자 포함' : `${pickupStr.length}자리 숫자 (날짜형식으로 추정)`,
+        pickup: pickupStr || adminStr,
+        detail: `${which}: ${detail}`,
       });
       continue;
     }
