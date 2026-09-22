@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nessoft 임포트 자동화</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root {
+    --bg: #f6f7f9;
+    --card: #ffffff;
+    --border: #e2e5ea;
+    --text: #1b1f27;
+    --muted: #6b7280;
+    --accent: #1f6feb;
+    --accent-dark: #1857b8;
+    --danger: #d1453b;
+    --danger-bg: #fdecea;
+    --warn-bg: #fff8e6;
+    --warn-text: #92700a;
+    --ok-bg: #eaf7ee;
+    --ok-text: #17703a;
+    --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Malgun Gothic", sans-serif;
+    line-height: 1.55;
+  }
+  .wrap {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 32px 20px 80px;
+  }
+  header.page-header {
+    margin-bottom: 28px;
+  }
+  header.page-header h1 {
+    font-size: 22px;
+    margin: 0 0 6px;
+  }
+  header.page-header p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 14px;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+  .step-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 4px;
+    font-size: 17px;
+    font-weight: 700;
+  }
+  .step-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .step-desc {
+    color: var(--muted);
+    font-size: 13.5px;
+    margin: 0 0 18px;
+  }
+  .rules {
+    font-size: 12.5px;
+    color: var(--muted);
+    background: #f8f9fb;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin: 0 0 18px;
+  }
+  .rules div { margin: 2px 0; }
+  .file-drop {
+    display: block;
+    width: 100%;
+    border: 1.5px dashed #c7cbd3;
+    border-radius: 10px;
+    padding: 22px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .15s, background .15s;
+    background: #fbfbfc;
+    box-sizing: border-box;
+  }
+  .file-drop:hover, .file-drop.dragover {
+    border-color: var(--accent);
+    background: #f0f6ff;
+  }
+  .file-drop input { display: none; }
+  .file-drop .icon { font-size: 26px; margin-bottom: 6px; }
+  .file-drop .main { font-size: 14px; font-weight: 600; }
+  .file-drop .sub { font-size: 12px; color: var(--muted); margin-top: 3px; }
+  .file-name-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #eef2f7;
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-size: 13px;
+    margin-top: 12px;
+  }
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin: 18px 0;
+  }
+  .stat {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 10px;
+    text-align: center;
+    background: #fafbfc;
+  }
+  .stat .num { font-size: 20px; font-weight: 700; }
+  .stat .label { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+  .stat.warn .num { color: var(--danger); }
+  .stat.ok .num { color: var(--ok-text); }
+  table.excl {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+    margin-top: 10px;
+  }
+  table.excl th, table.excl td {
+    border-bottom: 1px solid var(--border);
+    padding: 7px 8px;
+    text-align: left;
+  }
+  table.excl th { color: var(--muted); font-weight: 600; }
+  .tag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 999px;
+  }
+  .tag.random { background: var(--danger-bg); color: var(--danger); }
+  .tag.b2b { background: var(--warn-bg); color: var(--warn-text); }
+  .notice {
+    font-size: 12.5px;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-top: 12px;
+  }
+  .notice.warn { background: var(--warn-bg); color: var(--warn-text); }
+  .notice.ok { background: var(--ok-bg); color: var(--ok-text); }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 11px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 14px;
+  }
+  .btn:hover { background: var(--accent-dark); }
+  .btn:disabled { background: #c6cbd4; cursor: not-allowed; }
+  .field-row {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 6px;
+  }
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .field label { font-size: 12.5px; color: var(--muted); font-weight: 600; }
+  .field input {
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 8px 10px;
+    font-size: 14px;
+    font-family: var(--mono);
+    width: 160px;
+  }
+  .batch-preview {
+    font-family: var(--mono);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--accent-dark);
+    background: #f0f6ff;
+    border-radius: 7px;
+    padding: 8px 12px;
+    display: inline-block;
+    margin-top: 4px;
+  }
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 18px 0;
+  }
+  footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: 11.5px;
+    margin-top: 36px;
+    letter-spacing: .04em;
+  }
+  .locked-msg {
+    color: var(--muted);
+    font-size: 13.5px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="page-header">
+    <h1>Nessoft 임포트 자동화</h1>
+    <p>SVC 엑셀 다운로드 후 &mdash; 열 정리 &amp; 필터링(1단계) &rarr; 사람이 직접 검토 &rarr; Nessoft 임포트용 XML 생성(2단계)</p>
+  </header>
+
+  <!-- STEP 1 -->
+  <section class="card" id="step1">
+    <h2 class="step-title"><span class="step-badge">1</span> 엑셀 정리 &amp; 자동 필터링</h2>
+    <p class="step-desc">SVC에서 다운로드한 원본 엑셀을 올리면, 필요한 11개 열만 남기고 정리한 뒤 자동 필터를 적용합니다.</p>
+    <div class="rules">
+      <div>&bull; 머신 열은 항상 <b>0</b>으로 채웁니다 (Nessoft pick_up_status 값)</div>
+      <div>&bull; Pick-up Number가 <b>문자로 시작</b>하거나(예: B260921502) <b>8자리 이상 숫자</b>(날짜형식으로 긴 번호)면 <b>임의번호 등록 건</b>으로 자동 제외</div>
+      <div>&bull; B2B 건은 자동으로 빼지 않고 그대로 포함합니다</div>
+      <div>&bull; 나머지(수량 비교, 리턴데이트&middot;시리얼번호&middot;리페어코드&middot;테크니션 노트 확인)는 다운로드한 파일을 직접 검토해주세요</div>
+    </div>
+
+    <label class="file-drop" id="drop1">
+      <input type="file" id="file1" accept=".xlsx,.xls" />
+      <div class="icon">📄</div>
+      <div class="main">원본 엑셀 파일 선택 또는 드래그</div>
+      <div class="sub">SVC에서 다운로드한 "수리 출고일" 엑셀 (.xlsx)</div>
+      <div id="file1-chip"></div>
+    </label>
+
+    <div id="step1-result" style="display:none;">
+      <div class="summary-grid" style="grid-template-columns: repeat(3, 1fr);">
+        <div class="stat"><div class="num" id="s1-total">0</div><div class="label">원본 행 수</div></div>
+        <div class="stat warn"><div class="num" id="s1-random">0</div><div class="label">임의번호 제외</div></div>
+        <div class="stat ok"><div class="num" id="s1-final">0</div><div class="label">최종 결과 행 수</div></div>
+      </div>
+
+      <div id="s1-excl-wrap" style="display:none;">
+        <table class="excl">
+          <thead><tr><th>Pick-up Number</th><th>사유</th><th>판단 근거</th></tr></thead>
+          <tbody id="s1-excl-body"></tbody>
+        </table>
+      </div>
+
+      <div id="s1-missing" class="notice warn" style="display:none;"></div>
+
+      <button class="btn" id="download1">📥 정리된 엑셀 다운로드</button>
+    </div>
+  </section>
+
+  <!-- STEP 2 -->
+  <section class="card" id="step2">
+    <h2 class="step-title"><span class="step-badge">2</span> XML 변환 (Nessoft 임포트용)</h2>
+    <p class="step-desc">pickups.xsd 구조에 맞는 완성 XML을 바로 생성합니다. (엑셀 XML맵 설정, 메모장 헤더 교체, ns1: 삭제 과정이 전부 필요 없습니다)</p>
+
+    <div id="s2-auto-source" class="notice ok" style="display:none;"></div>
+
+    <div class="field-row">
+      <div class="field">
+        <label for="batchDate">기준 날짜</label>
+        <input type="date" id="batchDate">
+      </div>
+      <div class="field">
+        <label for="batchSeq">순번</label>
+        <input type="number" id="batchSeq" value="1" min="1" style="width:70px;">
+      </div>
+      <div class="field">
+        <label>&nbsp;</label>
+        <div class="batch-preview" id="batchPreview">-</div>
+      </div>
+    </div>
+
+    <label class="file-drop" id="drop2">
+      <input type="file" id="file2" accept=".xlsx,.xls" />
+      <div class="icon">🧾</div>
+      <div class="main">직접 수정한 파일이 있다면 선택 또는 드래그 (선택사항)</div>
+      <div class="sub">아무 파일도 올리지 않으면 1단계 결과를 그대로 사용해서 변환합니다</div>
+      <div id="file2-chip"></div>
+    </label>
+
+    <button class="btn" id="convert2">🔄 변환하기</button>
+
+    <div id="step2-result" style="display:none;">
+      <p id="s2-source" style="font-size:12.5px; color:var(--muted); margin:0 0 8px;"></p>
+      <div class="summary-grid" style="grid-template-columns: repeat(2, 1fr);">
+        <div class="stat ok"><div class="num" id="s2-count">0</div><div class="label">XML로 변환된 건수</div></div>
+        <div class="stat warn"><div class="num" id="s2-warn">0</div><div class="label">필수값 누락 경고</div></div>
+      </div>
+      <div id="s2-warn-wrap" style="display:none;">
+        <table class="excl">
+          <thead><tr><th>Pick-up Number</th><th>문제</th></tr></thead>
+          <tbody id="s2-warn-body"></tbody>
+        </table>
+      </div>
+      <button class="btn" id="download2">📥 XML 다운로드 (Nessoft 임포트용)</button>
+    </div>
+  </section>
+
+  <footer>DEVELOPED BY DONGGU KANG</footer>
+</div>
+
+<script>
+/* ---------- 공통 유틸 ---------- */
+function pad2(n) { return String(n).padStart(2, '0'); }
+
+function cellToStr(v) {
+  if (v === null || v === undefined) return '';
+  if (v instanceof Date) return v.toISOString();
+  if (typeof v === 'number') {
+    return Number.isInteger(v) ? String(v) : String(v);
+  }
+  return String(v).trim();
+}
+
+function isPureNumeric(v) {
+  const s = cellToStr(v);
+  if (s === '') return false;
+  return /^[0-9]+$/.test(s);
+}
+
+function escapeXml(str) {
+  return String(str == null ? '' : str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
+function findHeaderIndex(headerRow, names) {
+  for (const name of names) {
+    const idx = headerRow.findIndex(h => (h || '').toString().trim() === name);
+    if (idx !== -1) return idx;
+  }
+  return -1;
+}
+
+function sheetToRows(ws) {
+  return XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: '' });
+}
+
+function downloadBlob(filename, content, mime) {
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function setupDrop(dropId, inputId, chipId, onFile) {
+  const drop = document.getElementById(dropId);
+  const input = document.getElementById(inputId);
+  const chip = document.getElementById(chipId);
+
+  input.addEventListener('change', () => {
+    if (input.files[0]) handleFile(input.files[0]);
+  });
+  drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('dragover'); });
+  drop.addEventListener('dragleave', () => drop.classList.remove('dragover'));
+  drop.addEventListener('drop', e => {
+    e.preventDefault();
+    drop.classList.remove('dragover');
+    if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+  });
+
+  function handleFile(file) {
+    chip.innerHTML = `<span class="file-name-chip">📎 ${file.name}</span>`;
+    const reader = new FileReader();
+    reader.onload = e => {
+      const data = new Uint8Array(e.target.result);
+      const wb = XLSX.read(data, { type: 'array', cellDates: true });
+      onFile(wb, file.name);
+    };
+    reader.readAsArrayBuffer(file);
+  }
+}
+
+/* ---------- STEP 1: 엑셀 정리 ---------- */
+const CLEAN_HEADERS = ['회원번호','관리번호','Pick-up Number','Return Date','Machine','Serial Number','리페어코드#1','리페어코드#2','리페어코드#3','repair_centre','Technician note'];
+
+let step1Output = null; // AOA for download
+let step1Records = null; // 2단계에서 파일 재첨부 없이 바로 쓸 데이터
+
+setupDrop('drop1', 'file1', 'file1-chip', (wb) => {
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  const rows = sheetToRows(ws);
+  const header = rows[0] || [];
+
+  const idx = {
+    member: findHeaderIndex(header, ['회원번호']),
+    admin: findHeaderIndex(header, ['관리번호']),
+    pickup: findHeaderIndex(header, ['Pick-up Number']),
+    returnDate: findHeaderIndex(header, ['Return Date']),
+    serial: findHeaderIndex(header, ['Serial Number']),
+    code1: findHeaderIndex(header, ['리페어코드#1']),
+    code2: findHeaderIndex(header, ['리페어코드#2']),
+    code3: findHeaderIndex(header, ['리페어코드#3']),
+    note: findHeaderIndex(header, ['Technician note']),
+  };
+
+  const missingCols = Object.entries(idx).filter(([k, v]) => v === -1).map(([k]) => k);
+
+  const dataRows = rows.slice(1).filter(r => r.some(c => c !== '' && c !== undefined && c !== null));
+
+  const RANDOM_DIGIT_LEN = 8; // 이 자리수 이상인 순수 숫자 Pick-up Number는 날짜형식 임의번호로 간주
+
+  let randomCount = 0;
+  const excluded = [];
+  const kept = [];
+
+  for (const r of dataRows) {
+    const pickupVal = r[idx.pickup];
+    const pickupStr = idx.pickup !== -1 ? cellToStr(pickupVal) : '';
+
+    const hasLetter = pickupStr !== '' && !/^[0-9]+$/.test(pickupStr);
+    const isLongDigit = /^[0-9]+$/.test(pickupStr) && pickupStr.length >= RANDOM_DIGIT_LEN;
+    const isRandom = pickupStr !== '' && (hasLetter || isLongDigit);
+
+    if (isRandom) {
+      randomCount++;
+      excluded.push({
+        pickup: pickupStr,
+        detail: hasLetter ? '문자 포함' : `${pickupStr.length}자리 숫자 (날짜형식으로 추정)`,
+      });
+      continue;
+    }
+    kept.push(r);
+  }
+
+  const outRows = [CLEAN_HEADERS.slice()];
+  const records = [];
+  for (const r of kept) {
+    outRows.push([
+      idx.member !== -1 ? r[idx.member] : '',
+      idx.admin !== -1 ? r[idx.admin] : '',
+      idx.pickup !== -1 ? r[idx.pickup] : '',
+      idx.returnDate !== -1 ? r[idx.returnDate] : '',
+      0,
+      idx.serial !== -1 ? r[idx.serial] : '',
+      idx.code1 !== -1 ? r[idx.code1] : '',
+      idx.code2 !== -1 ? r[idx.code2] : '',
+      idx.code3 !== -1 ? r[idx.code3] : '',
+      'K',
+      idx.note !== -1 ? r[idx.note] : '',
+    ]);
+    records.push({
+      memberNumber: idx.member !== -1 ? r[idx.member] : '',
+      externalRef: idx.admin !== -1 ? r[idx.admin] : '',
+      pickupNumber: idx.pickup !== -1 ? r[idx.pickup] : '',
+      returnDateRaw: idx.returnDate !== -1 ? r[idx.returnDate] : '',
+      serial: idx.serial !== -1 ? r[idx.serial] : '',
+      code1: idx.code1 !== -1 ? r[idx.code1] : '',
+      code2: idx.code2 !== -1 ? r[idx.code2] : '',
+      code3: idx.code3 !== -1 ? r[idx.code3] : '',
+      note: idx.note !== -1 ? r[idx.note] : '',
+    });
+  }
+  step1Output = outRows;
+  step1Records = records;
+  const step2AutoNotice = document.getElementById('s2-auto-source');
+  if (step2AutoNotice) {
+    step2AutoNotice.textContent = `✅ 1단계 결과(${records.length}건)가 2단계에서 자동으로 사용됩니다. 수정한 파일을 따로 올리지 않으면 이 데이터로 변환합니다.`;
+    step2AutoNotice.style.display = 'block';
+  }
+
+  document.getElementById('s1-total').textContent = dataRows.length;
+  document.getElementById('s1-random').textContent = randomCount;
+  document.getElementById('s1-final').textContent = kept.length;
+
+  const exclWrap = document.getElementById('s1-excl-wrap');
+  const exclBody = document.getElementById('s1-excl-body');
+  exclBody.innerHTML = '';
+  if (excluded.length) {
+    exclWrap.style.display = 'block';
+    for (const e of excluded) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${e.pickup || '-'}</td><td><span class="tag random">임의번호</span></td><td>${e.detail || ''}</td>`;
+      exclBody.appendChild(tr);
+    }
+  } else {
+    exclWrap.style.display = 'none';
+  }
+
+  const missingBox = document.getElementById('s1-missing');
+  if (missingCols.length) {
+    missingBox.style.display = 'block';
+    missingBox.textContent = `⚠️ 다음 열을 찾지 못했습니다: ${missingCols.join(', ')} — 원본 엑셀의 열 이름을 확인해주세요.`;
+  } else {
+    missingBox.style.display = 'none';
+  }
+
+  document.getElementById('step1-result').style.display = 'block';
+});
+
+document.getElementById('download1').addEventListener('click', () => {
+  if (!step1Output) return;
+  const ws = XLSX.utils.aoa_to_sheet(step1Output);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'cleaned');
+  const today = new Date();
+  const fname = `수리출고일_정리_${today.getFullYear()}${pad2(today.getMonth()+1)}${pad2(today.getDate())}.xlsx`;
+  XLSX.writeFile(wb, fname);
+});
+
+/* ---------- STEP 2: XML 변환 ---------- */
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+}
+document.getElementById('batchDate').value = todayStr();
+
+function updateBatchPreview() {
+  const dateVal = document.getElementById('batchDate').value; // YYYY-MM-DD
+  const seq = document.getElementById('batchSeq').value || '1';
+  let batch = '-';
+  if (dateVal) {
+    const [y, m, d] = dateVal.split('-');
+    batch = `${y}${m}${d}${seq}`;
+  }
+  document.getElementById('batchPreview').textContent = batch;
+  return batch;
+}
+document.getElementById('batchDate').addEventListener('input', updateBatchPreview);
+document.getElementById('batchSeq').addEventListener('input', updateBatchPreview);
+updateBatchPreview();
+
+let step2Xml = null;
+let step2BatchName = 'batch';
+
+function formatReturnDate(v) {
+  let d = null;
+  if (v instanceof Date) {
+    d = v;
+  } else if (typeof v === 'number') {
+    // excel serial date fallback
+    const parsed = XLSX.SSF.parse_date_code(v);
+    if (parsed) d = new Date(parsed.y, parsed.m - 1, parsed.d);
+  } else if (typeof v === 'string' && v.trim() !== '') {
+    const parts = v.trim().split(/[\/\-.]/);
+    if (parts.length === 3) {
+      // assume DD/MM/YYYY or YYYY-MM-DD
+      if (parts[0].length === 4) {
+        d = new Date(+parts[0], +parts[1] - 1, +parts[2]);
+      } else {
+        d = new Date(+parts[2], +parts[1] - 1, +parts[0]);
+      }
+    }
+  }
+  if (!d || isNaN(d.getTime())) return '';
+  return `${pad2(d.getDate())}/${pad2(d.getMonth()+1)}/${d.getFullYear()}`;
+}
+
+let step2UploadedWb = null;
+let step2UploadedName = '';
+
+setupDrop('drop2', 'file2', 'file2-chip', (wb, fname) => {
+  step2UploadedWb = wb;
+  step2UploadedName = fname;
+});
+
+function extractRawRecordsFromWorkbook(wb) {
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  const rows = sheetToRows(ws);
+  const header = rows[0] || [];
+
+  const idx = {
+    member: findHeaderIndex(header, ['회원번호']),
+    admin: findHeaderIndex(header, ['관리번호']),
+    pickup: findHeaderIndex(header, ['Pick-up Number']),
+    returnDate: findHeaderIndex(header, ['Return Date']),
+    serial: findHeaderIndex(header, ['Serial Number']),
+    code1: findHeaderIndex(header, ['리페어코드#1']),
+    code2: findHeaderIndex(header, ['리페어코드#2']),
+    code3: findHeaderIndex(header, ['리페어코드#3']),
+    note: findHeaderIndex(header, ['Technician note']),
+  };
+
+  const dataRows = rows.slice(1).filter(r => r.some(c => c !== '' && c !== undefined && c !== null));
+
+  return dataRows.map(r => ({
+    memberNumber: idx.member !== -1 ? r[idx.member] : '',
+    externalRef: idx.admin !== -1 ? r[idx.admin] : '',
+    pickupNumber: idx.pickup !== -1 ? r[idx.pickup] : '',
+    returnDateRaw: idx.returnDate !== -1 ? r[idx.returnDate] : '',
+    serial: idx.serial !== -1 ? r[idx.serial] : '',
+    code1: idx.code1 !== -1 ? r[idx.code1] : '',
+    code2: idx.code2 !== -1 ? r[idx.code2] : '',
+    code3: idx.code3 !== -1 ? r[idx.code3] : '',
+    note: idx.note !== -1 ? r[idx.note] : '',
+  }));
+}
+
+document.getElementById('convert2').addEventListener('click', () => {
+  let rawRecords = null;
+  let sourceLabel = '';
+
+  if (step2UploadedWb) {
+    rawRecords = extractRawRecordsFromWorkbook(step2UploadedWb);
+    sourceLabel = `업로드한 파일(${step2UploadedName})`;
+  } else if (step1Records) {
+    rawRecords = step1Records;
+    sourceLabel = '1단계 결과';
+  } else {
+    alert('먼저 1단계에서 원본 엑셀을 처리하거나, 여기에 파일을 올려주세요.');
+    return;
+  }
+
+  const batch = updateBatchPreview();
+  step2BatchName = batch;
+
+  const warnings = [];
+  const records = [];
+
+  for (const r of rawRecords) {
+    const memberNumber = cellToStr(r.memberNumber);
+    const externalRef = cellToStr(r.externalRef);
+    const pickupNumber = cellToStr(r.pickupNumber);
+    const returnDate = formatReturnDate(r.returnDateRaw);
+    const serial = cellToStr(r.serial);
+    const code1 = cellToStr(r.code1);
+    const code2 = cellToStr(r.code2);
+    const code3 = cellToStr(r.code3);
+    const note = cellToStr(r.note);
+
+    const missing = [];
+    if (!pickupNumber) missing.push('Pick-up Number');
+    if (!returnDate) missing.push('Return Date');
+    if (!serial) missing.push('Serial Number');
+    if (!code1) missing.push('리페어코드#1');
+    if (missing.length) warnings.push({ pickup: pickupNumber || '(빈 값)', problem: missing.join(', ') + ' 누락' });
+
+    records.push({ memberNumber, externalRef, pickupNumber, returnDate, serial, code1, code2, code3, note });
+  }
+
+  const lines = [];
+  lines.push('<?xml version="1.0" encoding="UTF-8" ?>');
+  lines.push('<import_batch version_number="1.0" xsi:schemaLocation="http://nesclub.nespresso.com/webservice/club/xsd/ http://nesclub.nespresso.com/webservice/club/xsd/" xmlns="http://nesclub.nespresso.com/webservice/club/xsd/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">');
+  lines.push(`<batch_number>${escapeXml(batch)}</batch_number>`);
+  lines.push('<sender_id>80</sender_id>');
+  lines.push('<entity>29</entity>');
+  lines.push('<channel>1</channel>');
+  lines.push('');
+
+  for (const rec of records) {
+    lines.push('\t<record>');
+    lines.push(`\t\t<member_number>${escapeXml(rec.memberNumber)}</member_number>`);
+    lines.push(`\t\t<external_ref>${escapeXml(rec.externalRef)}</external_ref>`);
+    lines.push('\t\t<pick_up>');
+    lines.push(`\t\t\t<number>${escapeXml(rec.pickupNumber)}</number>`);
+    lines.push(`\t\t\t<return_date>${escapeXml(rec.returnDate)}</return_date>`);
+    lines.push('\t\t\t<pick_up_status>0</pick_up_status>');
+    lines.push(`\t\t\t<serial_number>${escapeXml(rec.serial)}</serial_number>`);
+    lines.push(`\t\t\t<repair_code_1>${escapeXml(rec.code1)}</repair_code_1>`);
+    if (rec.code2) lines.push(`\t\t\t<repair_code_2>${escapeXml(rec.code2)}</repair_code_2>`);
+    if (rec.code3) lines.push(`\t\t\t<repair_code_3>${escapeXml(rec.code3)}</repair_code_3>`);
+    lines.push('\t\t\t<repair_centre>K</repair_centre>');
+    lines.push(`\t\t\t<repair_centre_remark>${escapeXml(rec.note)}</repair_centre_remark>`);
+    lines.push('\t\t</pick_up>');
+    lines.push('\t</record>');
+  }
+  lines.push(`<!--<total_customers>${records.length}</total_customers>-->`);
+  lines.push('</import_batch>');
+
+  step2Xml = lines.join('\n');
+
+  document.getElementById('s2-count').textContent = records.length;
+  document.getElementById('s2-warn').textContent = warnings.length;
+  document.getElementById('s2-source').textContent = `사용된 데이터: ${sourceLabel}`;
+
+  const warnWrap = document.getElementById('s2-warn-wrap');
+  const warnBody = document.getElementById('s2-warn-body');
+  warnBody.innerHTML = '';
+  if (warnings.length) {
+    warnWrap.style.display = 'block';
+    for (const w of warnings) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${w.pickup}</td><td>${w.problem}</td>`;
+      warnBody.appendChild(tr);
+    }
+  } else {
+    warnWrap.style.display = 'none';
+  }
+
+  document.getElementById('step2-result').style.display = 'block';
+});
+
+document.getElementById('download2').addEventListener('click', () => {
+  if (!step2Xml) return;
+  const batch = step2BatchName || 'batch';
+  downloadBlob(`${batch}.xml`, step2Xml, 'application/xml;charset=utf-8');
+});
+</script>
+</body>
+</html>
