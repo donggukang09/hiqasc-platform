@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>픽업폼 추출기 | HIQASC</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+  :root{--bg:#f6f5f3;--card:#fff;--line:#e6e2dc;--text:#2a2a2a;--muted:#8a857e;--accent:#e8853a;--accent-soft:#fdf1e7;--ok:#2e9e5b;--ok-soft:#e8f6ee;--err:#d94c4c;--err-soft:#fdecec}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Manrope','Malgun Gothic',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+  .wrap{max-width:820px;margin:0 auto;padding:28px 16px 60px}
+  header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px}
+  header h1{font-size:22px;font-weight:800}
+  header h1 span{color:var(--accent)}
+  .back{color:var(--muted);text-decoration:none;font-size:13px;font-weight:600}
+  .back:hover{color:var(--accent)}
+  .drop{display:block;border:2px dashed var(--accent);background:var(--accent-soft);border-radius:14px;padding:28px 16px;text-align:center;cursor:pointer;transition:.15s}
+  .drop.over{background:#fbe2cc}
+  .drop b{display:block;font-size:16px;margin-bottom:4px}
+  .drop small{color:var(--muted);font-size:13px}
+  .drop input{display:none}
+  .file-info{margin:14px 0 4px;font-size:13px;color:var(--muted);display:none}
+  .file-info b{color:var(--text)}
+  .warn{display:none;margin-top:10px;padding:10px 14px;border-radius:10px;background:var(--err-soft);color:var(--err);font-size:13px;font-weight:600}
+  .section{margin-top:22px}
+  .section h2{font-size:13px;font-weight:800;color:var(--accent);letter-spacing:.5px;margin-bottom:8px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .row{display:grid;grid-template-columns:150px 1fr 76px;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid var(--line)}
+  .row:last-child{border-bottom:none}
+  .row label{font-size:13px;font-weight:700}
+  .row label i{font-style:normal;color:var(--muted);font-weight:600;margin-right:4px}
+  .row input,.row textarea{width:100%;font:inherit;font-size:14px;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:#fcfbfa;color:var(--text)}
+  .row textarea{resize:vertical;min-height:62px;line-height:1.5}
+  .row input:focus,.row textarea:focus{outline:none;border-color:var(--accent);background:#fff}
+  .row.empty input,.row.empty textarea{border-color:var(--err);background:var(--err-soft)}
+  .row.done{background:var(--ok-soft)}
+  .copy{font:inherit;font-size:13px;font-weight:700;border:none;border-radius:8px;padding:8px 0;background:var(--accent);color:#fff;cursor:pointer}
+  .copy:hover{filter:brightness(.95)}
+  .row.done .copy{background:var(--ok)}
+  details{margin-top:22px;font-size:13px;color:var(--muted)}
+  details pre{margin-top:8px;padding:12px;background:var(--card);border:1px solid var(--line);border-radius:10px;white-space:pre-wrap;font-size:12px;color:var(--text);max-height:320px;overflow:auto}
+  footer{margin-top:36px;text-align:center;font-size:11px;letter-spacing:2px;color:var(--muted);font-weight:700}
+  @media (max-width:600px){.row{grid-template-columns:1fr 70px}.row label{grid-column:1/-1}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>픽업폼 <span>추출기</span></h1>
+    <a class="back" href="automation-tools.html">← 업무 자동화 TOOL</a>
+  </header>
+
+  <label class="drop" id="drop">
+    <input type="file" id="file" accept="application/pdf,.pdf">
+    <b>📄 픽업 PDF를 끌어다 놓거나 클릭해서 선택</b>
+    <small>PDF는 이 PC의 브라우저 안에서만 읽고 외부로 전송하지 않습니다</small>
+  </label>
+  <div class="file-info" id="fileInfo"></div>
+  <div class="warn" id="warn"></div>
+
+  <div id="result"></div>
+
+  <details id="rawBox" style="display:none">
+    <summary>PDF 원문 텍스트 보기 (추출 확인용)</summary>
+    <pre id="raw"></pre>
+  </details>
+
+  <footer>DEVELOPED BY DONGGU KANG</footer>
+</div>
+
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+const FIELDS=[
+  {g:'픽업 정보',k:'mgmt',l:'관리번호'},
+  {k:'pickupNo',l:'Pick-up Number'},
+  {k:'pickupDate',l:'Pick-up date'},
+  {k:'custNo',l:'회원번호'},
+  {k:'name',l:'고객명'},
+  {k:'phone',l:'고객 휴대폰'},
+  {k:'addr',l:'고객 주소',ta:1},
+  {k:'receiver',l:'접수자명'},
+  {g:'제품 · 수리 정보',k:'machineId',l:'Machine ID'},
+  {k:'machineColor',l:'Machine Color'},
+  {k:'purchaseDate',l:'제품구매일'},
+  {k:'serial',l:'Serial'},
+  {k:'failCode',l:'Failure Code'},
+  {k:'failDesc',l:'Failure Description'},
+  {k:'note',l:'서비스노트',ta:1}
+];
+
+/* ---------- PDF 텍스트 → 줄 단위 재구성 (좌표 기준) ---------- */
+function buildLines(items){
+  const its=items.filter(i=>i.str&&i.str.trim()!=='').map(i=>({s:i.str,x:i.transform[4],y:i.transform[5],w:i.width}));
+  its.sort((a,b)=>b.y-a.y);
+  const lines=[];
+  for(const it of its){
+    const L=lines.find(l=>Math.abs(l.y-it.y)<=1.5);
+    if(L)L.items.push(it);else lines.push({y:it.y,items:[it]});
+  }
+  lines.sort((a,b)=>b.y-a.y);
+  return lines.map(l=>{
+    l.items.sort((a,b)=>a.x-b.x);
+    let out='',end=null;
+    for(const it of l.items){
+      if(end!==null){const gap=it.x-end;if(gap>40)out+='\t';else if(gap>=1.5)out+=' ';}
+      out+=it.s;end=Math.max(end??0,it.x+it.w);
+    }
+    return out.trim();
+  });
+}
+
+/* ---------- 줄 → 픽업폼 항목 ---------- */
+function ymd(d,m,y){return y+'-'+m+'-'+d;}
+function parsePickup(lines){
+  const r={};
+  const col=s=>s.split('\t')[0].trim();
+  const find=re=>{for(const l of lines){const m=l.match(re);if(m)return m;}return null;};
+  let m;
+  if(m=find(/Pick-up number\s+([\d,]+)/i)){r.mgmt=m[1].replace(/,/g,'');r.pickupNo=r.mgmt;}
+  if(m=find(/(?:Pick-up date|픽업\s*날짜)\s+(\d{2})\/(\d{2})\/(\d{4})/i))r.pickupDate=ymd(m[1],m[2],m[3]);
+  if(m=find(/Customer nr\.?\s+(\d+)/i))r.custNo=m[1];
+  const ai=lines.findIndex(l=>/Pick-up address/i.test(l));
+  if(ai>=0){
+    r.name=col(lines[ai].replace(/.*Pick-up address/i,'')).replace(/\s*님\s*$/,'').replace(/\s+/g,'');
+    const addr=[];
+    for(let i=ai+1;i<lines.length;i++){
+      const t=col(lines[i]);
+      if(/^KOREA$/i.test(t)||/전화번호|Phone nr/i.test(t))break;
+      if(/^\d{5}(\s|$)/.test(t))continue;           // 우편번호 + 시/도 줄 제외
+      if(t)addr.push(t);
+    }
+    r.addr=addr.join(' ').replace(/\s+/g,' ');
+  }
+  if(m=find(/전화번호\s+([\d\-]+)/))r.phone=m[1];
+  if(m=find(/Machine type\s+(\S+)\s+([^\t]+)/i)){r.machineId=m[1];r.machineColor=m[2].trim();}
+  if(m=find(/Purchase Date\s+(\d{2})\/(\d{2})\/(\d{4})/i))r.purchaseDate=ymd(m[1],m[2],m[3]);
+  if(m=find(/일련\s*번호\s+(\S+)/))r.serial=m[1];
+  if(m=find(/Failure code\s+(\d+)\s+([^\t]+)/i)){r.failCode=m[1];r.failDesc=m[2].trim();}
+  const ci=lines.findIndex(l=>/^의견\s*:/.test(l));
+  if(ci>=0){
+    const first=lines[ci].replace(/^의견\s*:/,'').trim();
+    r.note=[first,...lines.slice(ci+1)].filter(Boolean).join(' ').replace(/\s+/g,' ').trim();
+    if(r.note){const parts=r.note.split('/').map(s=>s.trim()).filter(Boolean);r.receiver=parts[parts.length-1]||'';}
+  }
+  return r;
+}
+
+/* ---------- 화면 ---------- */
+const $=id=>document.getElementById(id);
+function esc(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function render(r){
+  let html='',open=false;
+  FIELDS.forEach((f,i)=>{
+    if(f.g){if(open)html+='</div></div>';html+=`<div class="section"><h2>◆ ${f.g}</h2><div class="card">`;open=true;}
+    const v=r[f.k]||'';
+    const input=f.ta?`<textarea id="f_${f.k}">${esc(v)}</textarea>`:`<input id="f_${f.k}" value="${esc(v)}">`;
+    html+=`<div class="row${v?'':' empty'}" id="r_${f.k}"><label><i>${i+1}.</i>${f.l}</label>${input}<button class="copy" data-k="${f.k}">복사</button></div>`;
+  });
+  if(open)html+='</div></div>';
+  $('result').innerHTML=html;
+  const miss=FIELDS.filter(f=>!r[f.k]).map(f=>f.l);
+  $('warn').style.display=miss.length?'block':'none';
+  $('warn').textContent=miss.length?`⚠ 추출하지 못한 항목: ${miss.join(', ')} — PDF를 확인하고 직접 입력해 주세요.`:'';
+}
+
+$('result').addEventListener('click',async e=>{
+  const b=e.target.closest('.copy');if(!b)return;
+  const k=b.dataset.k,el=$('f_'+k),v=el.value;
+  try{await navigator.clipboard.writeText(v);}
+  catch(_){el.select();document.execCommand('copy');}
+  $('r_'+k).classList.add('done');b.textContent='✓ 복사됨';
+});
+$('result').addEventListener('input',e=>{
+  const row=e.target.closest('.row');if(!row)return;
+  row.classList.toggle('empty',!e.target.value.trim());
+  row.classList.remove('done');row.querySelector('.copy').textContent='복사';
+});
+
+async function handle(file){
+  if(!file)return;
+  if(!/\.pdf$/i.test(file.name)&&file.type!=='application/pdf'){alert('PDF 파일만 올릴 수 있습니다.');return;}
+  $('fileInfo').style.display='block';
+  $('fileInfo').innerHTML=`불러오는 중… <b>${esc(file.name)}</b>`;
+  try{
+    const pdf=await pdfjsLib.getDocument({data:new Uint8Array(await file.arrayBuffer())}).promise;
+    let lines=[];
+    for(let p=1;p<=pdf.numPages;p++){
+      const tc=await (await pdf.getPage(p)).getTextContent();
+      lines=lines.concat(buildLines(tc.items));
+    }
+    if(!lines.join('').trim()){
+      $('fileInfo').innerHTML=`<b>${esc(file.name)}</b>`;
+      $('warn').style.display='block';
+      $('warn').textContent='⚠ 이 PDF에는 텍스트가 없습니다 (스캔·이미지 PDF). 이 도구로는 추출할 수 없습니다.';
+      $('result').innerHTML='';$('rawBox').style.display='none';return;
+    }
+    $('fileInfo').innerHTML=`✅ <b>${esc(file.name)}</b> · ${pdf.numPages}페이지`;
+    $('raw').textContent=lines.join('\n');$('rawBox').style.display='block';
+    render(parsePickup(lines));
+  }catch(err){
+    console.error(err);
+    $('fileInfo').innerHTML=`<b>${esc(file.name)}</b>`;
+    $('warn').style.display='block';$('warn').textContent='⚠ PDF를 읽지 못했습니다: '+err.message;
+  }
+}
+
+const drop=$('drop');
+$('file').addEventListener('change',e=>{handle(e.target.files[0]);e.target.value='';});
+['dragenter','dragover'].forEach(t=>drop.addEventListener(t,e=>{e.preventDefault();drop.classList.add('over');}));
+['dragleave','drop'].forEach(t=>drop.addEventListener(t,e=>{e.preventDefault();drop.classList.remove('over');}));
+drop.addEventListener('drop',e=>handle(e.dataTransfer.files[0]));
+</script>
+</body>
+</html>
