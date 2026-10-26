@@ -52,22 +52,14 @@
   .step.confirmed .num{background:var(--ok)}
   .step-head h2{margin:0}
   .lock-msg{font-size:12.5px;color:var(--muted);margin:0 0 10px 40px}
-  .item{border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px;background:#fcfcfd}
-  .item-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
-  .item-label{font-weight:700;font-size:14px}
-  .item-hint{font-size:12.5px;color:var(--sub);margin:2px 0 8px}
-  .na-btn{flex:0 0 auto;border:1px solid var(--line);background:#fff;border-radius:6px;padding:3px 8px;font:inherit;font-size:12px;cursor:pointer;color:var(--sub)}
-  .na-btn.on{background:#eef0f2;color:var(--text);font-weight:700}
-  textarea{width:100%;min-height:56px;resize:vertical;padding:9px 10px;border:1px solid var(--line);border-radius:8px;font:inherit;font-size:14px}
-  textarea:focus,select:focus{outline:none;border-color:var(--accent)}
-  textarea:disabled{background:#f4f5f6;color:var(--sub)}
-  .item.valid textarea{border-color:#bfe3cc}
-  .confirm{display:flex;align-items:center;gap:10px;margin-top:6px;padding:12px;border-radius:10px;border:2px dashed var(--line);cursor:pointer;font-weight:700;font-size:14px}
-  .confirm input{width:22px;height:22px;accent-color:var(--ok);cursor:pointer}
-  .confirm.ready{border-color:var(--accent);background:var(--accent-bg)}
-  .confirm.disabled{cursor:not-allowed;color:var(--muted)}
-  .confirm.disabled input{cursor:not-allowed}
-  .step.confirmed .confirm{border-style:solid;border-color:var(--ok);background:var(--ok-bg);color:#1d7a45}
+  .item{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:10px;background:#fcfcfd;cursor:pointer;transition:all .15s}
+  .item:hover{border-color:var(--accent)}
+  .item input{flex:0 0 24px;width:24px;height:24px;accent-color:var(--ok);cursor:pointer;margin:0}
+  .item-label{font-weight:700;font-size:14.5px}
+  .item-hint{font-size:12.5px;color:var(--sub);margin-top:2px}
+  .item.checked{border-color:var(--ok);background:var(--ok-bg)}
+  .item.checked .item-label{color:#1d7a45}
+  select:focus{outline:none;border-color:var(--accent)}
   .remain{font-size:12px;color:var(--muted);margin-top:6px}
 
   .submit{width:100%;padding:15px;border:0;border-radius:12px;background:var(--accent);color:#fff;font:inherit;font-size:16px;font-weight:800;cursor:pointer}
@@ -107,25 +99,23 @@
 /* ───────── 설정 ───────── */
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyH2PVmFBVK-m17gJN5waBhOBHIZSAy0i-d34101gub4hc0PR7gkYQNYFoSsDM_goXX/exec';
 const NAME_KEY = 'hiq_closingcheck_lastname';
-const MIN_CHARS = 4;           // 항목별 최소 설명 글자 수 ('해당 없음'은 예외)
-const NA_TEXT = '해당 없음';
 
 const STEPS = [
   { key:'parts', icon:'🔩', title:'부품 입력 여부',
-    desc:'이번 마감 전 수리한 건의 부품 입력이 정확한지 SVC에서 직접 확인하고 설명을 적어주세요.',
+    desc:'이번 마감 전 수리한 건의 부품 입력이 정확한지 SVC에서 직접 확인하고 항목별로 체크하세요.',
     items:[
       { label:'실제 사용한 부품', hint:'SVC에 입력한 부품이 실제로 교체·사용한 부품과 일치하는지', ph:'예) 6건 확인 — 입력 부품과 실제 사용 부품 일치' },
       { label:'테크니션 노트 내용', hint:'노트에 수리 내용과 사용 부품이 빠짐없이 맞게 적혀 있는지', ph:'예) 6건 노트 확인, 1건 사용 부품 누락되어 보완' },
       { label:'부품 승인 / 등록', hint:'승인이 필요한 부품의 승인 요청과 부품 등록이 완료되었는지', ph:'예) 승인 필요 1건 승인 완료, 나머지 등록 완료' }
     ]},
   { key:'ship', icon:'📅', title:'출고일',
-    desc:'출고일이 정확히 금일인지, 수리 후 익일 출고인지 확인하고 출고일이 정상 입력됐는지 설명해주세요.',
+    desc:'출고일이 정확히 금일인지, 수리 후 익일 출고인지 확인하고 출고일이 정상 입력됐는지 체크하세요.',
     items:[
       { label:'금일 출고 건', hint:'오늘 출고되는 건의 출고일이 오늘 날짜로 정확히 입력되었는지', ph:'예) 금일 출고 4건 — 출고일 오늘 날짜로 정상 입력' },
       { label:'익일 출고 건', hint:'수리 후 다음 날 출고되는 건의 출고일이 익일로 입력되었는지', ph:'예) 익일 출고 2건 — 1건 금일로 잘못 입력되어 수정' }
     ]},
   { key:'call', icon:'📞', title:'통화요청 진행 여부',
-    desc:'건별로 통화요청이 필요한지, 정상 진행되었는지 확인하고 설명해주세요.',
+    desc:'건별로 통화요청이 필요한지, 정상 진행되었는지 확인하고 체크하세요.',
     items:[
       { label:'수리 후 출고 건', hint:'통화요청 없이 수리 후 바로 출고되는 건이 맞게 처리되었는지', ph:'예) 4건 — 통화요청 불필요, 출고 처리 정상' },
       { label:'수리 후 통화요청 건', hint:'수리 후 고객 통화가 필요한 건이 통화요청으로 정상 등록되었는지', ph:'예) 1건 — 통화요청 등록 확인' },
@@ -272,85 +262,51 @@ function buildSteps() {
       <div class="step-body">
         <p class="desc">${esc(s.desc)}</p>
         ${s.items.map((it, ii) => `
-          <div class="item" id="item${si}_${ii}">
-            <div class="item-top">
-              <div><div class="item-label">${esc(it.label)}</div><div class="item-hint">${esc(it.hint)}</div></div>
-              <button type="button" class="na-btn" data-s="${si}" data-i="${ii}">해당 없음</button>
-            </div>
-            <textarea id="ta${si}_${ii}" data-s="${si}" placeholder="${esc(it.ph)}"></textarea>
-          </div>`).join('')}
-        <label class="confirm disabled" id="cfl${si}">
-          <input type="checkbox" id="cf${si}" data-s="${si}" disabled>
-          <span>위 내용을 SVC에서 직접 확인했습니다</span>
-        </label>
+          <label class="item" id="item${si}_${ii}">
+            <input type="checkbox" class="ick" id="ck${si}_${ii}" data-s="${si}">
+            <div><div class="item-label">${esc(it.label)}</div><div class="item-hint">${esc(it.hint)}</div></div>
+          </label>`).join('')}
         <div class="remain" id="remain${si}"></div>
       </div>
     </div>`).join('');
 
-  el.querySelectorAll('textarea').forEach(t => t.addEventListener('input', updateSteps));
-  el.querySelectorAll('.na-btn').forEach(b => b.onclick = () => {
-    const ta = $(`ta${b.dataset.s}_${b.dataset.i}`);
-    ta.value = ta.value.trim() === NA_TEXT ? '' : NA_TEXT;
-    updateSteps();
-  });
-  el.querySelectorAll('input[type=checkbox]').forEach(cb => cb.onchange = () => {
+  el.querySelectorAll('.ick').forEach(cb => cb.onchange = () => {
     const si = Number(cb.dataset.s);
-    if (cb.checked) {
-      confirmed[si] = true;
-      updateSteps();
+    updateSteps();
+    if (cb.checked && confirmed[si]) {
       const next = $('step' + (si + 1));
       if (next) next.scrollIntoView({ behavior:'smooth', block:'start' });
       else $('submitBtn').scrollIntoView({ behavior:'smooth', block:'center' });
-    } else {
-      for (let k = si; k < STEPS.length; k++) confirmed[k] = false;   // 이후 단계도 다시 확인
-      updateSteps();
     }
   });
-}
-
-function itemValid(v) {
-  v = v.trim();
-  return v === NA_TEXT || v.length >= MIN_CHARS;
 }
 
 function updateSteps() {
   STEPS.forEach((s, si) => {
     const unlocked = si === 0 || confirmed[si - 1];
-    if (!unlocked) confirmed[si] = false;
     const card = $('step' + si);
     card.classList.toggle('locked', !unlocked);
-    card.classList.toggle('confirmed', confirmed[si]);
     $('lock' + si).classList.toggle('hidden', unlocked);
 
-    let validCnt = 0;
+    let cnt = 0;
     s.items.forEach((_, ii) => {
-      const ta = $(`ta${si}_${ii}`);
-      const ok = itemValid(ta.value);
-      if (ok) validCnt++;
-      ta.disabled = !unlocked || confirmed[si];
-      $(`item${si}_${ii}`).classList.toggle('valid', ok);
-      const na = card.querySelector(`.na-btn[data-i="${ii}"]`);
-      na.disabled = ta.disabled;
-      na.classList.toggle('on', ta.value.trim() === NA_TEXT);
+      const cb = $(`ck${si}_${ii}`);
+      if (!unlocked) cb.checked = false;          // 앞 단계가 풀리면 다시 확인
+      cb.disabled = !unlocked;
+      if (cb.checked) cnt++;
+      $(`item${si}_${ii}`).classList.toggle('checked', cb.checked);
     });
-    const allValid = validCnt === s.items.length;
-    const cb = $('cf' + si), cfl = $('cfl' + si);
-    cb.checked = confirmed[si];
-    cb.disabled = !unlocked || (!allValid && !confirmed[si]);
-    cfl.classList.toggle('disabled', cb.disabled);
-    cfl.classList.toggle('ready', !cb.disabled && !confirmed[si]);
-    $('remain' + si).textContent = confirmed[si] ? '✔ 확인 완료 — 수정하려면 체크를 해제하세요.'
-      : allValid ? '모든 항목 설명 완료 — 직접 확인했다면 체크하세요.'
-      : `설명 입력 ${validCnt}/${s.items.length} (항목마다 ${MIN_CHARS}자 이상 또는 '해당 없음')`;
+    confirmed[si] = unlocked && cnt === s.items.length;
+    card.classList.toggle('confirmed', confirmed[si]);
+    $('remain' + si).textContent = confirmed[si] ? '✔ 확인 완료'
+      : `확인 ${cnt}/${s.items.length} — 모든 항목을 체크하면 다음 단계가 열립니다.`;
   });
   $('submitBtn').disabled = !confirmed.every(Boolean);
 }
 
 function collectAnswers() {
   const out = {};
-  STEPS.forEach((s, si) => {
-    out[s.key] = s.items.map((it, ii) => `[${it.label}] ${$(`ta${si}_${ii}`).value.trim()}`).join('\n');
-  });
+  STEPS.forEach(s => { out[s.key] = s.items.map(it => `[${it.label}] 확인 완료`).join('\n'); });
   return out;
 }
 
