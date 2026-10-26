@@ -13,7 +13,8 @@
   const REFRESH_MS = 60 * 1000;
 
   const CSS = `
-  .cb-card{background:#353535;border:1px solid #444;border-radius:14px;padding:18px;color:#e8e8e8;font-family:'Manrope','Pretendard','Malgun Gothic',sans-serif;margin:16px 0}
+  #closing-board{margin:0 auto 24px;width:calc(100% - 60px);max-width:1140px;box-sizing:border-box}
+  .cb-card{box-sizing:border-box;width:100%;background:#353535;border:1px solid #4a4a4a;border-radius:16px;padding:20px 24px;color:#e8e8e8;font-family:'Manrope','Pretendard','Malgun Gothic',sans-serif}
   .cb-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
   .cb-title{font-size:16px;font-weight:800;margin:0}
   .cb-title span{color:#4a90e2}

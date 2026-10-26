@@ -1539,6 +1539,11 @@
         </div>
 
         <!-- ============================================ -->
+        <!-- 마감 셀프체크 현황 (closing-board.js) -->
+        <!-- ============================================ -->
+        <div id="closing-board"></div>
+
+        <!-- ============================================ -->
         <!-- 업무용 검색기 (통합) -->
         <!-- ============================================ -->
         <div class="searchhub-banner" onclick="goTeam('search-hub.html')">
@@ -1864,6 +1869,7 @@
             // === index.html — 업무 지원 센터 ===
             { name: '직원 제안', icon: '💡', desc: '업무·복지·시설 개선 아이디어 제안', url: 'suggestion.html', team: '업무 지원', badge: 'support', iconClass: 'team-support', keywords: '제안,건의,아이디어,개선,비밀글,suggestion,직원제안' },
             { name: '일일 업무 보고', icon: '📅', desc: '매일 업무 종료 시 작성하는 보고서', url: 'daily-report.html', team: '업무 지원', badge: 'support', iconClass: 'team-support', keywords: '일일보고,업무보고,daily,report' },
+            { name: '마감 셀프체크', icon: '✅', desc: '하루 3회(11:20·16:20·17:50) 마감 전 셀프 체크', url: 'closing-check.html', team: '업무 지원', badge: 'support', iconClass: 'team-support', keywords: '마감,셀프체크,셀프,체크,부품입력,출고일,통화요청,closing,check' },
             { name: '연차 신청', icon: '🌴', desc: '연차 신청 및 승인 관리', url: 'https://donggukang09.github.io/hiqasc-overtime/leave_request.html', team: '업무 지원', badge: 'support', iconClass: 'team-support', external: true, keywords: '연차,휴가,신청,leave' },
             { name: 'QC 품질검사', icon: '🔍', desc: '수리 완료 머신 품질 검사 및 PASS/FAIL 판정', url: 'qc.html', team: '업무 지원', badge: 'support', iconClass: 'team-support', keywords: 'QC,품질,검사,테스트,quality,check,pass,fail' },
             { name: '잔류 근무 보고서', icon: '🌙', desc: '탄력 근무 외 잔류 근무 내역 제출', url: 'overtime-report.html', team: '업무 지원', badge: 'support', iconClass: 'team-support', keywords: '잔류,근무,보고서,야근,추가근무,overtime,report' },
@@ -2444,6 +2450,7 @@
     </script>
     <script src="hiq-notification.js?v=4"></script>
     <script src="hiq-widget.js?v=1"></script>
+    <script src="closing-board.js?v=1"></script>
     <script>
     (function() {
         var today = new Date().toISOString().slice(0, 10);
