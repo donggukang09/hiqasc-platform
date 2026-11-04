@@ -2259,6 +2259,7 @@
             if (_intro) _intro.remove();
             document.documentElement.classList.remove('intro-docked');
             if (window.__showVertuoUpPopup) window.__showVertuoUpPopup();
+            if (window.__checkQrPopup) setTimeout(window.__checkQrPopup, 800);
         }
 
         // 비밀번호 확인
@@ -2690,6 +2691,99 @@
 })();
 </script>
 <!-- ===== /버츄오 업 사용설명서 팝업 ===== -->
+<!-- ===== QR 정기 팝업 (2026-11-04 ~ 11-13, 매일 08:55 / 13:55) ===== -->
+<div id="hiqQrModal" role="dialog" aria-modal="true" aria-label="QR 코드 안내">
+  <div class="hqr-overlay"></div>
+  <div class="hqr-card">
+    <button class="hqr-x" type="button" aria-label="닫기">&times;</button>
+    <div class="hqr-badge" id="hqrSlot">09:00</div>
+    <h3 class="hqr-title">QR 코드를 스캔해 주세요</h3>
+    <div class="hqr-img-wrap"><img alt="QR 코드" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAmgAAAJmCAYAAADo5Xw5AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAABKISURBVHhe7dsxDiRF1oXRigEfCwnaYFcYLKR30T5iA0io19UmBiuI3/ql4Ukz4tXrybxRdY50jelphTIjC/Q5rL33fgAAEONf9Q8AALiXQAMACCPQAADCCDQAgDDr3/8jgT/++OPx66+//v1vAADw1X3//fePz58/1z9+PGqgffr06fHx48e//w0AAL66Dx8+PL58+VL/+PH4T4H222+/PX755Ze//00AAL6KH3/88fHdd9/1Au33338XaAAA/yM//PDD45tvvvmPgeY/EgAACCPQAADCCDQAgDACDQAgjEADAAgj0AAAwgg0AIAwAg0AIIxAAwAII9AAAMIINACAMAINACCMQAMACCPQAADCCDQAgDACDQAgjEADAAgj0AAAwgg0AIAwAg0AIIxAAwAII9AAAMIINACAMAINACCMQAMACCPQAADCCDQAgDACDQAgjEADAAgj0AAAwgg0AIAwAg0AIIxAAwAII9AAAMIINACAMMcG2lrLDt1UPa+zqXped1P1vO4m6lnd8bx6l93drT7PlZuq59k5O92xgQYA8KoEGgBAGIEGABBGoAEAhBFoAABhBBoAQBiBBgAQRqABAIQRaAAAYQQaAEAYgQYAEEagAQCEEWgAAGEEGgBAGIEGABDmbQNt721P7m71eTpba402Vc/r7k71LrvjXPV32N1U/S11drf6PPbP9+7eNtAAAFIJNACAMAINACCMQAMACCPQAADCCDQAgDACDQAgjEADAAgj0AAAwgg0AIAwAg0AIIxAAwAII9AAAMIINACAMAINACCMQHvSWuvYna6+T2d323vfunofnd2tPk93U/W87ibqd+zudPUuOztdfZ+TxoxAAwAII9AAAMIINACAMAINACCMQAMACCPQAADCCDQAgDACDQAgjEADAAgj0AAAwgg0AIAwAg0AIIxAAwAII9AAAMIINDjIWmu0O9Vn6e5ue+/RJupdXL2pehdXDk4l0AAAwgg0AIAwAg0AIIxAAwAII9AAAMIINACAMAINACCMQAMACCPQAADCCDQAgDACDQAgjEADAAgj0AAAwgg0AIAwAg0AIIxA463svW/d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YwMNAOBVCTQAgDACDQAgjEADAAgj0AAAwgg0AIAwAg0AIIxAAwAII9AAAMIINACAMAINACCMQAMACCPQAADCCDQAgDACDQAgzLGBttayQze19356d6vP0129y+7qeZ3Vs7qbqs/T3d3qfVy5u9Xn6e5O9Vm6e2f1n8Grd7pjAw0A4FUJNACAMAINACCMQAMACCPQAADCCDQAgDACDQAgjEADAAgj0AAAwgg0AIAwAg0AIIxAAwAII9AAAMIINACAMAINACDM2wba3tueHOdaaz29+jvobqo+T3f1ebqbqud1NlXv4urV9+nuTvVZujtd/ZZX7t29baABAKQSaAAAYQQaAEAYgQYAEEagAQCEEWgAAGEEGgBAGIEGABBGoAEAhBFoAABhBBoAQBiBBgAQRqABAIQRaAAAYQQaAEAYgfaktdax43n1Lq/e3vu2TdV36W6qnnfSpuq37G6qvk93E/Ws08b7EmgAAGEEGgBAGIEGABBGoAEAhBFoAABhBBoAQBiBBgAQRqABAIQRaAAAYQQaAEAYgQYAEEagAQCEEWgAAGEEGgBAGIEGABBGoHGctdbTu9vee7T6Plduqr7LaTtZ/Zbd1bvobqqe19lUPe/qTdVv2d1EfZfu6rN0dzqBBgAQRqABAIQRaAAAYQQaAEAYgQYAEEagAQCEEWgAAGEEGgBAGIEGABBGoAEAhBFoAABhBBoAQBiBBgAQRqABAIQRaAAAYQQaXGitNdrU3vvpTdV3OW1T9T5PWr2L7up53dXzOpuq53U3Ve+iu5PVd+nudAINACCMQAMACCPQAADCCDQAgDACDQAgjEADAAgj0AAAwgg0AIAwAg0AIIxAAwAII9AAAMIINACAMAINACCMQAMACCPQnrT3PnbvbK01Wr3Lq3ey+i7dwTPq76i7qfrvkO6m6vtcual6F92dTqABAIQRaAAAYQQaAEAYgQYAEEagAQCEEWgAAGEEGgBAGIEGABBGoAEAhBFoAABhBBoAQBiBBgAQRqABAIQRaAAAYQQaAECYtw20tZY9OZ5X77K7qXpeZ6fbe482Ve/zyk3Vu+huqp7XWb2L7up5V68+T3cnq3fR3eneNtAAAFIJNACAMAINACCMQAMACCPQAADCCDQAgDACDQAgjEADAAgj0AAAwgg0AIAwAg0AIIxAAwAII9AAAMIINACAMAINACDMsYG297ZDN1XPu3JT9byTdrf6PN1N1fNO2jurd9Hd3erzdMe5jg00AIBXJdAAAMIINACAMAINACCMQAMACCPQAADCCDQAgDACDQAgjEADAAgj0AAAwgg0AIAwAg0AIIxAAwAII9AAAMIINACAMAINACCMQAMACCPQAADCCDQAgDACDQAgjEADAAgj0AAAwgg0AIAwAg0AIIxAAwAII9AAAMIINACAMAINACCMQAMACCPQAADCCDQAgDACDQAgjEADAAgj0AAAwgg0AIAwAg0AIIxAAwAII9AAAMIINACAMGvvvf//f3z69Onx8ePHx+PxePz888///vcAAPhKPn/+/Pjw4cPjy5cv9f96PP5boAEA8L/zjwPtr7/+evz5559//xsAAHx133777eOnn36qf/x41EADAOB+/iMBAIAwAg0AIIxAAwAII9AAAML8H+RdRp0TAAtOAAAAAElFTkSuQmCC"></div>
+    <button class="hqr-ok" type="button">확인</button>
+  </div>
+</div>
+<style>
+  #hiqQrModal{display:none;position:fixed;inset:0;z-index:100002;align-items:center;justify-content:center;padding:20px;font-family:'Segoe UI','Malgun Gothic',sans-serif}
+  #hiqQrModal.show{display:flex;animation:hqrFade .2s ease}
+  @keyframes hqrFade{from{opacity:0}to{opacity:1}}
+  #hiqQrModal .hqr-overlay{position:absolute;inset:0;background:rgba(0,0,0,.7)}
+  #hiqQrModal .hqr-card{position:relative;width:340px;max-width:92vw;max-height:90vh;overflow:auto;background:#353535;border:1px solid #4a4a4a;border-radius:16px;padding:22px 20px 20px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+  #hiqQrModal .hqr-x{position:absolute;top:8px;right:10px;width:32px;height:32px;border:none;border-radius:50%;background:rgba(0,0,0,.35);color:#fff;font-size:22px;line-height:1;cursor:pointer}
+  #hiqQrModal .hqr-x:hover{background:rgba(0,0,0,.6)}
+  #hiqQrModal .hqr-badge{display:inline-block;background:rgba(74,144,226,.15);border:1px solid rgba(74,144,226,.4);color:#4a90e2;font-size:12px;font-weight:800;letter-spacing:.08em;padding:4px 12px;border-radius:20px}
+  #hiqQrModal .hqr-title{margin:10px 0 14px;font-size:18px;font-weight:800;color:#e0e0e0}
+  #hiqQrModal .hqr-img-wrap{background:#fff;border-radius:12px;padding:12px}
+  #hiqQrModal .hqr-img-wrap img{display:block;width:100%;height:auto;image-rendering:pixelated}
+  #hiqQrModal .hqr-ok{display:block;width:100%;margin-top:14px;background:#4a90e2;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;padding:12px;cursor:pointer;font-family:inherit}
+  #hiqQrModal .hqr-ok:hover{filter:brightness(1.08)}
+</style>
+<script>
+(function(){
+  var START = '2026-11-04', END = '2026-11-13';   // 노출 기간 (끝 날짜 포함)
+  var SLOTS = [                                    // 노출 시각 (정각 5분 전) / 배지 표시
+    { at: '08:55', label: '09:00' },
+    { at: '13:55', label: '14:00' }
+  ];
+  var GRACE_MIN = 60;                              // 시각 이후 이 시간(분) 안에 접속해도 표시
+
+  var modal = document.getElementById('hiqQrModal');
+  if(!modal) return;
+  var current = null;
+
+  function pad(n){ return (n<10?'0':'')+n; }
+  function dateStr(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+  function userKey(slot, day){
+    var user = sessionStorage.getItem('userName') ||
+      (sessionStorage.getItem('hiqasc_isAdmin')==='true' ? 'admin' : '');
+    return 'hiq_qr_seen_' + (user||'guest') + '_' + day + '_' + slot;
+  }
+  function seen(k){ try{ return localStorage.getItem(k)==='1'; }catch(e){ return false; } }
+  function markSeen(k){ try{ localStorage.setItem(k,'1'); }catch(e){} }
+
+  function dueSlot(){
+    var now = new Date(), day = dateStr(now);
+    if(day < START || day > END) return null;
+    var mins = now.getHours()*60 + now.getMinutes();
+    for(var i=0;i<SLOTS.length;i++){
+      var p = SLOTS[i].at.split(':'), s = (+p[0])*60 + (+p[1]);
+      if(mins >= s && mins < s + GRACE_MIN){
+        var k = userKey(SLOTS[i].label, day);
+        if(!seen(k)) return { slot: SLOTS[i].label, key: k };
+      }
+    }
+    return null;
+  }
+
+  function check(){
+    if(sessionStorage.getItem('hiqasc_authenticated') !== 'true') return;
+    if(modal.classList.contains('show')) return;
+    var d = dueSlot();
+    if(!d) return;
+    current = d;
+    document.getElementById('hqrSlot').textContent = d.slot + ' 5분 전 알림';
+    modal.classList.add('show');
+  }
+  function closeQr(){
+    if(current) markSeen(current.key);
+    current = null;
+    modal.classList.remove('show');
+  }
+
+  modal.querySelector('.hqr-x').addEventListener('click', closeQr);
+  modal.querySelector('.hqr-ok').addEventListener('click', closeQr);
+  modal.querySelector('.hqr-overlay').addEventListener('click', closeQr);
+  document.addEventListener('keydown', function(e){
+    if(e.key==='Escape' && modal.classList.contains('show')) closeQr();
+  });
+
+  window.addEventListener('load', function(){ setTimeout(check, 800); });
+  setInterval(check, 20000);   // 페이지를 열어둔 상태에서도 정시에 표시
+  document.addEventListener('visibilitychange', function(){ if(!document.hidden) check(); });
+  window.__checkQrPopup = check;
+})();
+</script>
+<!-- ===== /QR 정기 팝업 ===== -->
+
 </body>
 
 </html>
