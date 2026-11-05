@@ -2691,7 +2691,7 @@
 })();
 </script>
 <!-- ===== /버츄오 업 사용설명서 팝업 ===== -->
-<!-- ===== QR 정기 팝업 (2026-11-04 ~ 11-13, 매일 08:55 / 13:55) ===== -->
+<!-- ===== QR 정기 팝업 (2026-11-04 ~ 11-13, 매일 08:55 / 14:00) ===== -->
 <div id="hiqQrModal" role="dialog" aria-modal="true" aria-label="QR 코드 안내">
   <div class="hqr-overlay"></div>
   <div class="hqr-card">
@@ -2720,9 +2720,9 @@
 <script>
 (function(){
   var START = '2026-11-04', END = '2026-11-13';   // 노출 기간 (끝 날짜 포함)
-  var SLOTS = [                                    // 노출 시각 (정각 5분 전) / 배지 표시
-    { at: '08:55', label: '09:00' },
-    { at: '13:55', label: '14:00' }
+  var SLOTS = [                                    // 노출 시각 / 배지 표시
+    { at: '08:55', label: '09:00', text: '09:00 5분 전 알림' },
+    { at: '14:00', label: '14:00', text: '14:00 알림' }
   ];
   var GRACE_MIN = 60;                              // 시각 이후 이 시간(분) 안에 접속해도 표시
 
@@ -2748,7 +2748,7 @@
       var p = SLOTS[i].at.split(':'), s = (+p[0])*60 + (+p[1]);
       if(mins >= s && mins < s + GRACE_MIN){
         var k = userKey(SLOTS[i].label, day);
-        if(!seen(k)) return { slot: SLOTS[i].label, key: k };
+        if(!seen(k)) return { slot: SLOTS[i].label, text: SLOTS[i].text, key: k };
       }
     }
     return null;
@@ -2760,7 +2760,7 @@
     var d = dueSlot();
     if(!d) return;
     current = d;
-    document.getElementById('hqrSlot').textContent = d.slot + ' 5분 전 알림';
+    document.getElementById('hqrSlot').textContent = d.text;
     modal.classList.add('show');
   }
   function closeQr(){
