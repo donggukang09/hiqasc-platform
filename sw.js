@@ -1,43 +1,50 @@
-// 업무 플래너 Service Worker — v4
-const CACHE = 'planner-v4';
-const ASSETS = ['./index.html','./manifest.json','./icon-192.png','./icon-512.png','./favicon.png'];
+/* BASS LOG 서비스 워커 — 신호 없는 저수지에서도 앱이 열리게
+   DEVELOPED BY DONGGU KANG */
+const CACHE = 'bass-log-v22';
+const TILES = 'bass-log-tiles';
+const MAX_TILES = 1500;
+const CORE = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './rigs.html', './home-morning.jpg', './home-day.jpg', './home-night.jpg'];
 
 self.addEventListener('install', e => {
-  self.skipWaiting();
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS).catch(()=>{})));
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE)).then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', e => {
-  e.waitUntil(
-    caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
-      .then(() => self.clients.claim())
-  );
+  e.waitUntil(caches.keys()
+    .then(keys => Promise.all(keys.filter(k => k !== CACHE && k !== TILES).map(k => caches.delete(k))))
+    .then(() => self.clients.claim()));
 });
+
+async function trimTiles(){
+  const c = await caches.open(TILES), keys = await c.keys();
+  for (let i = 0; i < keys.length - MAX_TILES; i++) await c.delete(keys[i]);
+}
 
 self.addEventListener('fetch', e => {
   const req = e.request;
-  if (req.method !== 'GET') return;                       // 쓰기(POST)는 건드리지 않음
-  const url = new URL(req.url);
-  if (url.origin !== self.location.origin) return;        // 구글 등 외부 요청은 그대로 통과
+  if (req.method !== 'GET') return;
+  const u = new URL(req.url);
 
-  const isHTML = req.mode === 'navigate' || (req.headers.get('accept')||'').includes('text/html');
-  if (isHTML) {
-    e.respondWith(
-      fetch(req)
-        .then(res => { const c = res.clone(); caches.open(CACHE).then(ch => ch.put(req, c)); return res; })
-        .catch(() => caches.match(req).then(r => r || caches.match('./index.html')).then(r => r || new Response('오프라인', {status:503, headers:{'Content-Type':'text/plain; charset=utf-8'}})))
-    );
-  } else {
-    e.respondWith(
-      caches.match(req).then(r => r || fetch(req).catch(() => new Response('', {status:503})))
-    );
+  // 데이터·날씨는 항상 네트워크 (앱이 직접 오프라인 처리)
+  // 네이버 지도는 약관상 저장 금지 → 캐시하지 않음
+  if (/script\.google|googleusercontent|open-meteo|drive\.google|naver\.com|naver\.net|pstatic\.net/.test(u.hostname)) return;
+
+  // 앱 파일: 네트워크 우선 → 새 버전 바로 반영, 안 되면 캐시
+  if (u.origin === location.origin) {
+    e.respondWith(fetch(req).then(r => {
+      if (r.ok) { const cp = r.clone(); caches.open(CACHE).then(c => c.put(req, cp)); }
+      return r;
+    }).catch(() => caches.match(req).then(r => r || caches.match('./index.html'))));
+    return;
   }
-});
 
-self.addEventListener('notificationclick', e => {
-  e.notification.close();
-  e.waitUntil(clients.matchAll({type:'window'}).then(list => {
-    for (const c of list){ if ('focus' in c) return c.focus(); }
-    if (clients.openWindow) return clients.openWindow('./index.html');
-  }));
+  // 폰트·지도 라이브러리·지도 타일: 캐시 우선 (한 번 본 지도는 오프라인에서도 보임)
+  const isTile = /arcgisonline|cartocdn/.test(u.hostname);
+  e.respondWith(caches.match(req).then(hit => hit || fetch(req).then(r => {
+    if (r.ok || r.type === 'opaque') {
+      const cp = r.clone();
+      caches.open(isTile ? TILES : CACHE).then(c => c.put(req, cp)).then(() => { if (isTile) trimTiles(); });
+    }
+    return r;
+  })));
 });
